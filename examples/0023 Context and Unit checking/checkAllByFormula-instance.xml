@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+   http://xbrl.org/formula/conformance/example concepts.xsd
+">
+
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="concepts.xsd"/>
+
+  <link:linkbaseRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="checkAllByFormula-formulae.xml"/>
+
+  <context id="context-1">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <context id="context-2">
+    <entity>
+      <identifier scheme="http://klingon.empire/entity/identification/scheme">09</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <unit id="unit-US">
+    <measure>iso4217:USD</measure>
+  </unit>
+
+  <unit id="unit-EU">
+    <measure>iso4217:EUR</measure>
+  </unit>
+
+  <unit id="unit-Klingon">
+    <measure>iso4217:XTS</measure>
+  </unit>
+
+  <concept:equity decimals="0" contextRef="context-1" unitRef="unit-US">400</concept:equity>
+
+</xbrl>

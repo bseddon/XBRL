@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:gl-usk="http://www.xbrl.org/int/gl/usk/2006-10-25">
+  <presentationLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="../cor/gl-cor-2006-10-25.xsd#gl-cor_entryHeader" xlink:label="entryHeader_1107630698013_0" xlink:title="presentation: accountingEntries to entryHeader"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_endDateRepeatingEntry" xlink:label="endDateRepeatingEntry_1107630123076_1" xlink:title="endDateRepeatingEntry"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1107630698013_0" xlink:to="endDateRepeatingEntry_1107630123076_1" xlink:title="presentation: entryHeader to endDateRepeatingEntry" order="270.0"/>
+    <loc xlink:type="locator" xlink:href="../cor/gl-cor-2006-10-25.xsd#gl-cor_entryHeader" xlink:label="entryHeader_1112797124749_0" xlink:title="entryHeader"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_reverse" xlink:label="reverse_1112797124749_1" xlink:title="reverse"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="reverse_1112797124749_1" xlink:title="presentation: entryHeader to reverse" order="280.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_reversingDate" xlink:label="reversingDate_1112797124749_2" xlink:title="reversingDate"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="reversingDate_1112797124749_2" xlink:title="presentation: entryHeader to reversingDate" order="290.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_reversingStdId" xlink:label="reversingStdId_1112797342131_0" xlink:title="reversingStdId"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="reversingStdId_1112797342131_0" xlink:title="presentation: entryHeader to reversingStdId" order="205.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_frequencyInterval" xlink:label="frequencyInterval_1112797342131_1" xlink:title="frequencyInterval"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="frequencyInterval_1112797342131_1" xlink:title="presentation: entryHeader to frequencyInterval" order="220.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_recurringStdDescription" xlink:label="recurringStdDescription_1112797376821_0" xlink:title="recurringStdDescription"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="recurringStdDescription_1112797376821_0" xlink:title="presentation: entryHeader to recurringStdDescription" order="210.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_frequencyUnit" xlink:label="frequencyUnit_1112797400666_0" xlink:title="frequencyUnit"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="frequencyUnit_1112797400666_0" xlink:title="presentation: entryHeader to frequencyUnit" order="230.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_repetitionsRemaining" xlink:label="repetitionsRemaining_1112797433853_0" xlink:title="repetitionsRemaining"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="repetitionsRemaining_1112797433853_0" xlink:title="presentation: entryHeader to repetitionsRemaining" order="240.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_nextDateRepeat" xlink:label="nextDateRepeat_1112797471417_0" xlink:title="nextDateRepeat"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="nextDateRepeat_1112797471417_0" xlink:title="presentation: entryHeader to nextDateRepeat" order="250.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_lastDateRepeat" xlink:label="lastDateRepeat_1112797676552_0" xlink:title="lastDateRepeat"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="entryHeader_1112797124749_0" xlink:to="lastDateRepeat_1112797676552_0" xlink:title="presentation: entryHeader to lastDateRepeat" order="260.0"/>
+    <loc xlink:type="locator" xlink:href="../bus/gl-bus-2006-10-25.xsd#gl-bus_jobInfo" xlink:label="jobInfo_1112796970828_1" xlink:title="jobInfo"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_jobCode" xlink:label="jobCode_1112796970828_2" xlink:title="jobCode"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="jobInfo_1112796970828_1" xlink:to="jobCode_1112796970828_2" xlink:title="presentation: jobInfo to jobCode" order="10.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_jobDescription" xlink:label="jobDescription_1112796970828_3" xlink:title="jobDescription"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="jobInfo_1112796970828_1" xlink:to="jobDescription_1112796970828_3" xlink:title="presentation: jobInfo to jobDescription" order="20.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_jobPhaseCode" xlink:label="jobPhaseCode_1112796970828_4" xlink:title="jobPhaseCode"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="jobInfo_1112796970828_1" xlink:to="jobPhaseCode_1112796970828_4" xlink:title="presentation: jobInfo to jobPhaseCode" order="30.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_jobPhaseDescription" xlink:label="jobPhaseDescription_1112796970828_5" xlink:title="jobPhaseDescription"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="jobInfo_1112796970828_1" xlink:to="jobPhaseDescription_1112796970828_5" xlink:title="presentation: jobInfo to jobPhaseDescription" order="40.0"/>
+    <loc xlink:type="locator" xlink:href="gl-usk-2006-10-25.xsd#gl-usk_jobActive" xlink:label="jobActive_1130122141497_0" xlink:title="jobActive"/>
+    <presentationArc xlink:type="arc" xlink:arcrole="http://www.xbrl.org/2003/arcrole/parent-child" xlink:from="jobInfo_1112796970828_1" xlink:to="jobActive_1130122141497_0" xlink:title="presentation: jobInfo to jobActive" order="41.0"/>
+  </presentationLink>
+</linkbase>

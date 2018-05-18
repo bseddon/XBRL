@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2006-10-25" xmlns:gl-srcd="http://www.xbrl.org/int/gl/srcd/2007-02-08" xmlns:gl-plt="http://www.xbrl.org/int/gl/plt/2006-10-25" xmlns:xii="http://www.xbrl.org/xii/2004-10-29" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:iso639="http://www.xbrl.org/2005/iso639" xsi:schemaLocation="http://www.xbrl.org/int/gl/plt/2006-10-25 ../plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd">
+	<xbrll:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="../plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd"/>
+	<xbrli:context id="now">
+		<xbrli:entity>
+			<xbrli:identifier scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</xbrli:identifier>
+		</xbrli:entity>
+		<xbrli:period>
+			<xbrli:instant>2007-04-24</xbrli:instant>
+		</xbrli:period>
+	</xbrli:context>
+	<xbrli:unit id="usd">
+		<xbrli:measure>iso4217:USD</xbrli:measure>
+	</xbrli:unit>
+	<xbrli:unit id="NotUsed">
+		<xbrli:measure>xbrli:pure</xbrli:measure>
+	</xbrli:unit>
+	<gl-cor:accountingEntries>
+		<gl-cor:documentInfo>
+			<gl-cor:entriesType contextRef="now">entries</gl-cor:entriesType>
+			<gl-cor:language contextRef="now">iso639:en</gl-cor:language>
+			<gl-cor:creationDate contextRef="now">2007-04-24</gl-cor:creationDate>
+			<gl-bus:creator contextRef="now">Gianluca Garbellotto</gl-bus:creator>
+			<gl-cor:entriesComment contextRef="now">Sample SRCD instance 1 - Journal entries that roll up to a fragment of a US GAAP instance representing a Statement of Activities - Training Wheels approach</gl-cor:entriesComment>
+			<gl-cor:periodCoveredStart contextRef="now">2003-07-01</gl-cor:periodCoveredStart>
+			<gl-cor:periodCoveredEnd contextRef="now">2004-06-30</gl-cor:periodCoveredEnd>
+		</gl-cor:documentInfo>
+		<gl-cor:entityInformation>
+			<gl-bus:organizationIdentifiers>
+				<gl-bus:organizationIdentifier contextRef="now">XBRL International</gl-bus:organizationIdentifier>
+				<gl-bus:organizationDescription contextRef="now">Entity Name</gl-bus:organizationDescription>
+			</gl-bus:organizationIdentifiers>
+		</gl-cor:entityInformation>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">1</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">156325</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">1234</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Member A</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">10</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4000</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Members Dues</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">156325</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<!-- This enumerated field from [gl-cor] provides guidance to applications on whether the fact should be considered a beginning balance ({beginning-balance}), an ending balance ({ending-balance}) or a period change ({period-change}). This can drive some decisions for applications: 1.	Where the end reporting concept has separate labels for beginning and end of period, this can drive the selection of those labels. 2. Applications working on “period change” situations will usually require appropriate cut-off dates for reporting and may need to reference other fields in XBRL Global Ledger to determine which transactions to include in which reporting periods. 3. Matching to appropriate elements (instant, duration) can be tested or exceptions noted. -->
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<!-- A QNameItemType, this concept from (gl-cor) is the target element – the reporting concept in an XBRL FR taxonomy, or an element in a proprietary schema, that the detailed content in the XBRL Global Ledger instance is summarized to is described here. The associated namespace and the actual schema file would be noted in the open <xbrl> tag in the namespace declarations and would be discoverable by the application. -->
+					<gl-cor:summaryReportingElement contextRef="now">xii:DuesIncome</gl-cor:summaryReportingElement>
+					<!-- Each numeric item in an instance document must have an attribute either describing the precision of the value or the trustworthy decimals. Although every numeric item in an XBRL Global Ledger instance would also have a precision or decimal, there is no science as to how to properly calculate the precision or decimal when many items are brought together. Applications may attempt to do so, or the value can be provided here. -->
+					<!-- One of the four following values MUST be provided within this tuple: -->
+					<!-- [gl-srcd:summaryPrecision] - A non-negative integer. -->
+					<!-- [gl-srcd:summaryPrecisionINF] - No content is permitted. The existence of the concept itself implies that the precision value is INF. -->
+					<!-- [gl-srcd:summaryDecimals] - An integer. -->
+					<!-- [gl-srcd:summaryDecimalsINF] - No content is permitted. The existence of the concept itself implies that the decimals value is INF. -->
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<!-- Contexts in XBRL FR instances are where information about the organization whose business information is being reported (identifier) and possible sub-unit (segment), the time period associated with the facts, and any applicable scenario are provided. Segments can represent any logical and appropriate “slice” or “dimension of the company. As noted above, in the discussion on the [reportingDateSelector], XBRL Global Ledger provides representations for many dates, any of which may be appropriate for an end report. And many of the typical “scenarios” found in end-reporting – e.g., budget, forecast, actual – are handled with specific XBRL Global Ledger enumerations and values. Where the user wishes to explicitly hard code these values, rather than use programmatic means to determine them, the concepts found in this structure allow that definition. -->
+					<gl-srcd:summaryContext>
+						<!-- It is rare that a source system of detail contains an identifier that is used by a summarization system to identify it; the accounting system doesn’t usually hold the CIK code used to file an SEC filing. XBRL GL has fields to hold various external facing identification codes ([organizationIdenfier]/[organizationDescription]). Where this cannot be interrogated and used, the following fields allow the explicit description of the appropriate content. -->
+						<gl-srcd:summaryEntity>
+							<!-- This token can be used to hold the value for the identifier. Examples: XBRL GL Inc., 529947 -->
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<!-- This URIItemType can be used for the scheme. Examples: http://www.sec.gov, http://www.mycompany.com -->
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<!-- XBRL Global Ledger provides representational capabilities for the many dates associated with business transactions, events and documents. Where it is determined that hard coding a date is a more appropriate path, it can be done using this structure. Users can provide either the instant, the start and end date of the duration, or specify that forever is the appropriate period. -->
+						<gl-srcd:summaryPeriod>
+							<!-- If the value is a duration, the starting date is coded here. -->
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<!-- If the value is a duration, the ending date is coded here. -->
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<!-- The most common and well-known examples of FR scenarios – actual, budget, projection/forecast – are explicitly handled with XBRL GL through other means (in particular the [entryType] and specific budget oriented fields.) -->
+						<!-- Where it makes more sense to hard code the scenario information, it can be done with this structure, which is virtually the same as the segment’s counterpart. -->
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<!-- Units of measure can normally be found in XBRL Global Ledger by unit of measure concepts associated with monetary and quantity concept fields. For example, [amount] is associated with [amountCurrency] and [measurableQuantity] with [measurableQuantityUnitOfMeasure]. Where hard coding, rather than determining, the appropriate unit of measure is determined to be the best course of action, it can be provided with this structure. It will be up to implementation/applications to handle differences between the actual units and the summary units; no capture of conversion factors has been contemplated for this version of SRCD. -->
+					<!-- The unit of measure is most often a single value (ISO 4217 and a currency indicator for monetary items, custom for most other purposes), but sometimes can be fractional, with both a numerator and a denominator. -->
+					<gl-srcd:summaryUnit>
+						<!-- A token value, which would include QName values. -->
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">2</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">185783</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">5678</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Member B</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">11</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4000</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Members Dues</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">185783</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:DuesIncome</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">3</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">100000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">4321</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Co-Sponsor X</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">12</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4100</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Conference Co-Sponsorships</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">100000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:CosponsorshipConferenceFee</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">4</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">16224</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">8765</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Co-Sponsor Y</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">13</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4100</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Conference Co-Sponsorships</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">16224</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:CosponsorshipConferenceFee</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">5</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">47342</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">2143</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Client 1</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">14</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Services</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">47342</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:ContributedServicesRevenue</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">6</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">29247</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">6587</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Client 2</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">15</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Services</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">29247</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:ContributedServicesRevenue</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">7</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">10000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">1201</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Sponsor 1</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">20</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4300</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Sponsorships</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">10000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:SponsorshipIncome</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">8</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">28333</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">4398</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Sponsor 2</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">C</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">21</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4300</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Sponsorships</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">28333</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:SponsorshipIncome</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">9</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">5000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">9112</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Bank A</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">V</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">342</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4400</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Interests</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">5000</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:InterestIncomeExpenseGross</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+		<gl-cor:entryHeader>
+			<gl-cor:enteredBy contextRef="now">GLG</gl-cor:enteredBy>
+			<gl-cor:enteredDate contextRef="now">2004-03-31</gl-cor:enteredDate>
+			<gl-cor:sourceJournalID contextRef="now">gj</gl-cor:sourceJournalID>
+			<gl-cor:entryNumber contextRef="now">10</gl-cor:entryNumber>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">1200</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Accounts Receivable</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">283</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">D</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:identifierReference>
+					<gl-cor:identifierCode contextRef="now">5533</gl-cor:identifierCode>
+					<gl-cor:identifierDescription contextRef="now">Bank 2</gl-cor:identifierDescription>
+					<gl-cor:identifierType contextRef="now">V</gl-cor:identifierType>
+				</gl-cor:identifierReference>
+				<gl-cor:documentType contextRef="now">invoice</gl-cor:documentType>
+				<gl-cor:documentNumber contextRef="now">551</gl-cor:documentNumber>
+				<gl-cor:documentDate contextRef="now">2004-02-26</gl-cor:documentDate>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+				<gl-cor:account>
+					<gl-cor:accountMainID contextRef="now">4400</gl-cor:accountMainID>
+					<gl-cor:accountMainDescription contextRef="now">Interests</gl-cor:accountMainDescription>
+				</gl-cor:account>
+				<gl-cor:amount contextRef="now" decimals="2" unitRef="usd">283</gl-cor:amount>
+				<gl-cor:debitCreditCode contextRef="now">C</gl-cor:debitCreditCode>
+				<gl-cor:postingDate contextRef="now">2004-03-10</gl-cor:postingDate>
+				<gl-cor:xbrlInfo>
+					<gl-cor:xbrlInclude contextRef="now">period_change</gl-cor:xbrlInclude>
+					<gl-cor:summaryReportingElement contextRef="now">xii:InterestIncomeExpenseGross</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" unitRef="NotUsed" decimals="0">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">xii</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.xbrl.org</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2003-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2004-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+						<gl-srcd:summaryScenario>
+							<gl-srcd:summaryContents contextRef="now">xii:Audited</gl-srcd:summaryContents>
+						</gl-srcd:summaryScenario>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:USD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+	</gl-cor:accountingEntries>
+</xbrli:xbrl>

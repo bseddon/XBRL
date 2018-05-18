@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/assertion/value ../../core_schemas/2008/value-assertion.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- context check verifies entity identifier scheme
+         fails klingon scheme context
+         also checks that instant date is anywhere in 2007 
+         (which means instant dateTime gt 2007-01-01 midnite and
+          dateTime le 2008-01-01 midnite)-->
+    <va:valueAssertion xlink:type="resource" xlink:label="check_context"
+      id="check_context"
+      aspectModel="non-dimensional" implicitFiltering="true" 
+      test="
+         (: check the scheme of the entity identifer :)
+         $ctx[xbrli:entity/xbrli:identifier/@scheme
+           eq 'http://xbrl.org/entity/identification/scheme']
+         and
+         (: check that the instant date is during 2007 :)
+         xfi:period-instant( xfi:context-period( $ctx ) ) 
+           gt xs:dateTime('2007-01-01T00:00:00')
+         and
+         xfi:period-instant( xfi:context-period( $ctx ) ) 
+           le xs:dateTime('2008-01-01T00:00:00')
+         " />
+
+    <!-- unit check verifies unit measure
+         fails klingon empire currency measure -->
+    <va:valueAssertion xlink:type="resource" xlink:label="check_unit"
+      id="check_unit"
+      aspectModel="non-dimensional" implicitFiltering="true" 
+      test="
+         (: check the measure identifer :)
+         local-name-from-QName(
+           xfi:measure-name(
+             xfi:unit-numerator( $unit )[1] ) )
+             ne 'XTS'
+         " />
+
+    <!--  Arc from the assertions to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="ctx" 
+     xlink:from="check_context" xlink:to="variable_context" order="1.0"/>
+
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="unit" 
+     xlink:from="check_unit" xlink:to="variable_unit" order="1.0" />
+
+
+
+    <!--  General variable binds to each context, one by one,
+          in the instance document, without regard to whether
+          any fact item references that context. -->
+    <variable:generalVariable 
+     xlink:type="resource" xlink:label="variable_context"
+     bindAsSequence="false"
+     select="//xbrli:context" />
+
+    <!--  General variable binds to each unit, one by one,
+          in the instance document, without regard to whether
+          any fact item references that context. -->
+    <variable:generalVariable 
+     xlink:type="resource" xlink:label="variable_unit"
+     bindAsSequence="false"
+     select="//xbrli:unit" />
+
+  </generic:link>
+
+</link:linkbase>

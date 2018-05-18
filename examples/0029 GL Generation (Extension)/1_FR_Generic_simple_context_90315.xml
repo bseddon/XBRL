@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Sample XBRL FR instance document with facts that are not part of tuples and with simple XBRL context. Version 1.0.20090407.1 -->
+<!-- This file was created by the XBRL GL Working Group for educational purposes only, does not represent real company data and we welcome suggestions on improvement. Contact xbrlgl@xbrl.org with comments. -->
+<!-- This file was created as part of a package of supporting materials for the second Public Working Draft of the Summary Reporting Contextual Data (SRCD) module of the XBRL Global Ledger Taxonomy (XBRL GL). -->
+<!--The SRCD module provides a set of XBRL GL concepts that represent the "contextual data" typically found in XBRL instance documents - contexts, units and other attributes - with the main purposes of 1) Providing alternative ways to create XBRL instances from source accounting and financial data; 2) Unambiguously supporting the drill down from summary information expressed in XBRL to the underlying detail and back; 3) Providing a way to represent XBRL data in a flat, hierarchical XML format as a simple, optimized interface from/to accounting and business software and XBRL. -->
+<!-- The package includes three use cases: 1) Simple context: representation of XBRL facts that are not part of tuples and with simple, non-dimensional contextual information; 2) Tuples and simple context: representation of XBRL facts that are part of tuples and with simple, non-dimensional contextual information; 3) Tuples and dimensions: representation of XBRL facts that are part of tuples and with dimensional contextual information. -->
+<!-- This file is a simple XBRL FR instance document that illustrates use case 1 - Simple context. A corresponding XBRL GL instance document that illustrates how the SRCD module can be used  to unambiguously link detailed data to their summarized representation in an XBRL FR instance document or to represent the same information in a "flat", hierarchical XML format is distributed as part of the same package (file 1_GL_Generic_simple_context_90315.xml). Note: the term XBRL FR is used here to refer to summary oriented taxonomies and instances that are governed by XBRL’s technical documents including FRTA (http://www.xbrl.org/TaxonomyGuidance/); it is not limited to Financial Reporting per se. -->
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:p0="http://www.sample.com/xbrl/generic.simple.context" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:schemaRef xlink:href="generic.simple.context.xsd" xlink:type="simple"/>
+  <xbrli:context id="C001">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sampleentity.com">SampleEntity</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="AUD">
+    <xbrli:measure>iso4217:AUD</xbrli:measure>
+  </xbrli:unit>
+  <p0:elmtA contextRef="C001">Key</p0:elmtA>
+  <p0:elmtB contextRef="C001" decimals="0" unitRef="AUD">1000</p0:elmtB>
+</xbrli:xbrl>

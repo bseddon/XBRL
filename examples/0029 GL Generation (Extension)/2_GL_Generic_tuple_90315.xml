@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Sample XBRL GL instance document showing the SRCD representation of facts that are part of tuples and with simple XBRL context. Version 1.0.20090407.1 -->
+<!-- This file contains data fields considered very important to representing its subject. Annotations have been provided for the "most important" of those fields. The XBRL Global Ledger taxonomy (XBRL GL) has many other fields that could be helpful in expressing the information, but have been omitted because their presence is more circumstantial.. This file was created for educational purposes only, does not represent real company data and we welcome suggestions on improvement. Contact xbrlgl@xbrl.org with comments. -->
+<!-- This file was created as part of a package of supporting materials for the second Public Working Draft of the Summary Reporting Contextual Data (SRCD) module of the XBRL Global Ledger Taxonomy (XBRL GL). -->
+<!--The SRCD module provides a set of XBRL GL concepts that represent the "contextual data" typically found in XBRL instance documents - contexts, units and other attributes - with the main purposes of 1) Providing alternative ways to create XBRL instances from source accounting and financial data; 2) Unambiguously supporting the drill down from summary information expressed in XBRL to the underlying detail and back; 3) Providing a way to represent XBRL data in a flat, hierarchical XML format as a simple, optimized interface from/to accounting and business software and XBRL. -->
+<!-- The package includes three use cases: 1) Simple context: representation of XBRL facts that are not part of tuples and with simple, non-dimensional contextual information; 2) Tuples and simple context: representation of XBRL facts that are part of tuples and with simple, non-dimensional contextual information; 3) Tuples and dimensions: representation of XBRL facts that are part of tuples and with dimensional contextual information. -->
+<!-- This file is a simple XBRL GL instance document that illustrates how the SRCD module can be used  to unambiguously link detailed data to their summarized representation in an XBRL FR instance document or to represent the same information in a "flat", hierarchical XML format in use case 2 - tuples, no dimensional information. The corresponding XBRL FR instance document is distributed as part of the same package (file 2_FR_Generic_tuple_90315.xml). Note: the term XBRL FR is used here to refer to summary oriented taxonomies and instances that are governed by XBRL’s technical documents including FRTA (http://www.xbrl.org/TaxonomyGuidance/); it is not limited to Financial Reporting per se. -->
+<!-- The "root" of every XBRL file ("instance document") is xbrl. -->
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:example="http://www.sample.com/xbrl/Generic_tuple_taxonomy" xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2006-10-25" xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" xmlns:gl-muc="http://www.xbrl.org/int/gl/muc/2006-10-25" xmlns:gl-plt="http://www.xbrl.org/int/gl/plt/2006-10-25" xmlns:gl-srcd="http://www.xbrl.org/int/gl/srcd/2007-02-08" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:iso639="http://www.xbrl.org/2005/iso639" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/int/gl/plt/2006-10-25 ../plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd">
+	<xbrll:schemaRef xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="../plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd" xlink:type="simple"/>
+	<!-- Contexts, mandatory according to the XBRL 2.1, Specification, are not meant to describe the information in XBRL GL and appear only by convention. All facts are instant and developers are encouraged to duplicate/provide the date the XBRL GL information is created as the period's date. -->
+	<xbrli:context id="now">
+		<xbrli:entity>
+			<xbrli:identifier scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</xbrli:identifier>
+		</xbrli:entity>
+		<!-- The XBRL GL WG recommends using the file creation data as the period. -->
+		<xbrli:period>
+			<xbrli:instant>2009-02-11</xbrli:instant>
+		</xbrli:period>
+	</xbrli:context>
+	<!-- Units of measure in XBRL GL are handled within the measurable or multicurrency elements. Units are provided by convention and should not be relied upon in interpreting XBRL GL data. -->
+	<xbrli:unit id="aud">
+		<xbrli:measure>iso4217:AUD</xbrli:measure>
+	</xbrli:unit>
+	<xbrli:unit id="NotUsed">
+		<xbrli:measure>pure</xbrli:measure>
+	</xbrli:unit>
+	<!-- The container for XBRL GL, [accountingEntries], is not the root of an XBRL GL file - the root, as with all XBRL files, is xbrl. This means that a single XBRL GL file can store one or more virtual XBRL GL files, through one or more [accountingEntries] structures with data inside. The primary key to understanding an XBRL GL file is [entriesType]. A single physical XBRL GL file can have multiple [accountingEntries] structures to represent both transactions and master files; the differences are signified by the appropriate [entriesType] enumerated values. -->
+	<gl-cor:accountingEntries>
+		<!-- Because [entriesType] is mandatory, [documentInfo] is also required. -->
+		<gl-cor:documentInfo>
+			<!-- This field, [entriesType], provides the automated guidance on the purpose of the XBRL GL information.  In this case "other" has been used to keep the representation generic - the purpose of this particular instance is to illustrate the use of the SRCD module to link any kind of XBRL GL data to its XBRL FR summarized representation. -->
+			<gl-cor:entriesType contextRef="now">other</gl-cor:entriesType>
+			<gl-cor:language contextRef="now">iso639:en</gl-cor:language>
+			<!-- The date associated with the creation of the data reflected within the associated [accountingEntries] section. Somewhat like a "printed date" on a paper report -->
+			<gl-cor:creationDate contextRef="now">2009-02-09</gl-cor:creationDate>
+			<!-- A description related to the batch of information express in the [accountingEntries] structure. Why was this batch of information put together and published? It is helpful to put that information in the [entriesComment]. -->
+			<gl-cor:entriesComment contextRef="now">Sample SRCD instance - Generic Tuple and Simple Context</gl-cor:entriesComment>
+			<gl-cor:periodCoveredStart contextRef="now">2007-07-01</gl-cor:periodCoveredStart>
+			<gl-cor:periodCoveredEnd contextRef="now">2008-06-30</gl-cor:periodCoveredEnd>
+			<!-- The [summaryReportingTaxonomies] structure identifies and provides information about one or more target reporting taxonomies to which the data represented in the document is linked. We have only one in this example, but there could be multiple. -->
+			<gl-srcd:summaryReportingTaxonomies>
+				<!-- The namespace qualifier of the XBRL FR taxonomy schema can be used as ID for each taxonomy -->
+				<gl-srcd:summaryReportingTaxonomyID contextRef="now">example</gl-srcd:summaryReportingTaxonomyID>
+				<!-- Value of the "href" attribute of the [schemaRef] element in the target XBRL FR taxonomy. -->
+				<gl-srcd:summaryReportingTaxonomySchemaRefHref contextRef="now">Generic_tuple_taxonomy.xsd</gl-srcd:summaryReportingTaxonomySchemaRefHref>
+			</gl-srcd:summaryReportingTaxonomies>
+		</gl-cor:documentInfo>
+		<!-- Typically, an export from an accounting system does not carry with it information specifically about the company. However, the name of the company would be a very good thing to include with the file, making the [entityInformation] tuple necessary. -->
+		<gl-cor:entityInformation>
+			<!-- The name of the company would be a very good thing to include with the file; this structure and its content are where that would be stored. [organizationDescription] is not currently enumerated.  -->
+			<gl-bus:organizationIdentifiers>
+				<gl-bus:organizationIdentifier contextRef="now">Sample</gl-bus:organizationIdentifier>
+				<gl-bus:organizationDescription contextRef="now">Entity Name</gl-bus:organizationDescription>
+			</gl-bus:organizationIdentifiers>
+		</gl-cor:entityInformation>
+		<!-- Most representations of business detail requires entry in [entryHeader] and [entryDetail]. Few files can be represented using only [documentInfo] and entityInformation sections, but it is certainly possible. -->
+		<!-- For this report, the related data found in the 2_FR_Generic_tuple_90315.xml instance document is copied here for convenience:
+
+...
+<xbrli:context id="C001">
+		<xbrli:entity>
+			<xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+		</xbrli:entity>
+		<xbrli:period>
+			<xbrli:startDate>2007-07-01</xbrli:startDate>
+			<xbrli:endDate>2008-06-30</xbrli:endDate>
+		</xbrli:period>
+	</xbrli:context>
+	<xbrli:unit id="AUD">
+		<xbrli:measure>iso4217:AUD</xbrli:measure>
+	</xbrli:unit>
+	<example:TupleA>
+		<example:KeyElementA contextRef="C001">D001</example:KeyElementA>
+		<example:AdditionalElementA contextRef="C001">Division 1</example:AdditionalElementA>
+		<example:TupleB>
+			<example:KeyElementB contextRef="C001">John Smith</example:KeyElementB>
+			<example:AdditionalElementB contextRef="C001" decimals="0" unitRef="AUD">10000</example:AdditionalElementB>
+		</example:TupleB>
+		<example:TupleB>
+			<example:KeyElementB contextRef="C001">Mary Brown</example:KeyElementB>
+			<example:AdditionalElementB contextRef="C001" decimals="0" unitRef="AUD">50000</example:AdditionalElementB>
+		</example:TupleB>
+	</example:TupleA>
+	<example:TupleA>
+		<example:KeyElementA contextRef="C001">D002</example:KeyElementA>
+		<example:AdditionalElementA contextRef="C001">Division 2</example:AdditionalElementA>
+		<example:TupleB>
+			<example:KeyElementB contextRef="C001">Andrew Williams</example:KeyElementB>
+			<example:AdditionalElementB contextRef="C001" decimals="0" unitRef="AUD">75000</example:AdditionalElementB>
+		</example:TupleB>
+	</example:TupleA>
+...
+
+The XBRL GL elements used to describe the part of the data that is not contextual has been kept to the bare minimum on purpose. Monetary amounts in these examples are stored in [amount], non monetary amounts in [measurableQuantity], and all other data types in [measurableQualifier]. When more complex source information - entries, documents, sub-ledgers, ledgers, trial balances -  is represented with XBRL GL the [entryHeader] and [entryDetail] structures will have a larger number of elements depending on the information being represented. -->
+		<gl-cor:entryHeader>
+			<!-- Each primary monetary amount requires its own entryDetail section. Likewise, only one primary document can be noted in an entryDetail section. However, we are not referencing any documents here. Since the value of the first XBRL FR element is not an amount it is stored in the [measurableQualifier] element in the first [entryDetail] structure. -->
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<!-- This is the target element – the reporting concept in an XBRL FR taxonomy, or an element in a proprietary schema, that the detailed content in the XBRL GL instance is linked to is stored here. The associated namespace and the actual schema file would be noted in the open <xbrl> tag in the namespace declarations and would be discoverable by the application. -->
+					<gl-cor:summaryReportingElement contextRef="now">example:KeyElementA</gl-cor:summaryReportingElement>
+					<!-- This is the concept in the XBRL GL instance that will be the focus of summarization. By default, the [amount] field is assumed to be the primary field that will be acted upon. However, there are many other fields, the most obvious of which are numeric, although the process is not limited to numeric content, like in this particular case. -->
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<!-- When the target concept repeats over and over as part of a tuple [summaryReportingElement] is not enough. The [summaryTuplePath] concept allows an XPath expression to be provided in this stringItemType that describes exactly which occurrence of a tuple this content will go to/was represented by.  -->
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]</gl-srcd:summaryTuplePath>
+					<!-- Contexts in XBRL FR instances are where information about the organization whose business information is being reported (identifier) and possible sub-unit (segment), the time period associated with the facts, and any applicable scenario are provided. Segments can represent any logical and appropriate “slice” or “dimension” of the company. The [summaryContext] structure provides all the concepts necessary to explicitly indicate this information and link to a particular fact in the XBRL FR instance. In this case we are dealing with use case 2 - tuples and simple, non dimensional context, so only entity and period are used. -->
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<!-- Reference to the ID of the relevant target reporting taxonomy, defined in the [summaryReportingTaxonomies] structure at [documentInfo] level. Allows to identify sets of [xbrlInfo] structures that point to a specific taxonomy. -->
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<!-- In this simplified XBRL GL representation, non numeric information is stored in [measurableQualifier] -->
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">D001</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:AdditionalElementA</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">Division 1</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:KeyElementB</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]/example:TupleB[1]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">John Smith</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<!-- This [entryDetail] structure represents a monetary amount in the XBRL FR instance document, and [amount] is used to store its value. -->
+			<gl-cor:entryDetail>
+				<gl-cor:amount contextRef="now" decimals="0" unitRef="aud">10000</gl-cor:amount>
+				<!-- Like for any other "contextual" XBRL information, the SRCD module has a place for currencies and other XBRL units in the [summaryUnit] structure. [amountCurrency] is the XBRL GL concept where the currency related to an amount in a document, entry or other detailed data is normally stored, and while it is not strictly necessary for our purposes - again, we are trying to focus exclusively on the use of SRCD concepts - we took the opportunity to show its use here. -->
+				<gl-muc:amountCurrency contextRef="now">iso4217:AUD</gl-muc:amountCurrency>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:AdditionalElementB</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]/example:TupleB[1]</gl-srcd:summaryTuplePath>
+					<!-- Since this [entryDetail] links to a monetary amount, the [summaryPrecisionDecimals] structure is used to store the value of the decimals attribute in the linked XBRL FR element. In [summaryPrecision Decimals] one of four values must be provided, depending on the attributes of the XBRL FR element: [summaryPrecision], [summaryPrecisionINF], [summaryDecimals], [summaryDecimalsINF]. -->
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" decimals="INF" unitRef="NotUsed">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<!-- [summaryUnit] is were the value of the unit of measure associated with the linked XBRL FR element can be provided in SRCD. The unit of measure is most often a single value (ISO 4217 and a currency indicator for monetary items, custom for most other purposes), but sometimes can be fractional, with both a numerator and a denominator. -->
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:AUD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:KeyElementB</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]/example:TupleB[2]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">Mary Brown</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:amount contextRef="now" decimals="0" unitRef="aud">50000</gl-cor:amount>
+				<gl-muc:amountCurrency contextRef="now">iso4217:AUD</gl-muc:amountCurrency>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:AdditionalElementB</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[1]/example:TupleB[2]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" decimals="INF" unitRef="NotUsed">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:AUD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:KeyElementA</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[2]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">D002</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:AdditionalElementA</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[2]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">Division 2</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:KeyElementB</gl-cor:summaryReportingElement>
+					<gl-cor:detailMatchingElement contextRef="now">gl-bus:measurableQualifier</gl-cor:detailMatchingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[2]/example:TupleB[1]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+				<gl-bus:measurable>
+					<gl-bus:measurableQualifier contextRef="now">Andrew Williams</gl-bus:measurableQualifier>
+				</gl-bus:measurable>
+			</gl-cor:entryDetail>
+			<gl-cor:entryDetail>
+				<gl-cor:amount contextRef="now" decimals="0" unitRef="aud">75000</gl-cor:amount>
+				<gl-muc:amountCurrency contextRef="now">iso4217:AUD</gl-muc:amountCurrency>
+				<gl-cor:xbrlInfo>
+					<gl-cor:summaryReportingElement contextRef="now">example:AdditionalElementB</gl-cor:summaryReportingElement>
+					<gl-srcd:summaryTuplePath contextRef="now">/xbrli:xbrl/example:TupleA[2]/example:TupleB[1]</gl-srcd:summaryTuplePath>
+					<gl-srcd:summaryPrecisionDecimals>
+						<gl-srcd:summaryDecimals contextRef="now" decimals="INF" unitRef="NotUsed">0</gl-srcd:summaryDecimals>
+					</gl-srcd:summaryPrecisionDecimals>
+					<gl-srcd:summaryContext>
+						<gl-srcd:summaryEntity>
+							<gl-srcd:summaryIdentifier contextRef="now">Sample</gl-srcd:summaryIdentifier>
+							<gl-srcd:summaryScheme contextRef="now">http://www.sample.com</gl-srcd:summaryScheme>
+						</gl-srcd:summaryEntity>
+						<gl-srcd:summaryPeriod>
+							<gl-srcd:summaryStartDate contextRef="now">2007-07-01</gl-srcd:summaryStartDate>
+							<gl-srcd:summaryEndDate contextRef="now">2008-06-30</gl-srcd:summaryEndDate>
+						</gl-srcd:summaryPeriod>
+					</gl-srcd:summaryContext>
+					<gl-srcd:summaryUnit>
+						<gl-srcd:summaryNumerator contextRef="now">iso4217:AUD</gl-srcd:summaryNumerator>
+					</gl-srcd:summaryUnit>
+					<gl-srcd:summaryReportingTaxonomyIDRef contextRef="now">example</gl-srcd:summaryReportingTaxonomyIDRef>
+				</gl-cor:xbrlInfo>
+			</gl-cor:entryDetail>
+		</gl-cor:entryHeader>
+	</gl-cor:accountingEntries>
+</xbrli:xbrl>

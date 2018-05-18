@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema elementFormDefault="qualified" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/int/gl/usk/2006-10-25" attributeFormDefault="unqualified" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" xmlns:gl-usk="http://www.xbrl.org/int/gl/usk/2006-10-25" xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2005-01-18">
+  <annotation>
+    <appinfo>
+      <xbrll:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-usk-2006-10-25-presentation.xml" xlink:title="Presentation Links, all" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"/>
+      <xbrll:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-usk-2006-10-25-label.xml" xlink:title="Label Links, all" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <element name="frequencyInterval" id="gl-usk_frequencyInterval" type="gl-usk:frequencyIntervalItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="frequencyUnit" id="gl-usk_frequencyUnit" type="gl-usk:frequencyUnitItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="jobCode" id="gl-usk_jobCode" type="gl-usk:jobCodeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="jobDescription" id="gl-usk_jobDescription" type="gl-usk:jobDescriptionItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="jobPhaseCode" id="gl-usk_jobPhaseCode" type="gl-usk:jobPhaseCodeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="jobPhaseDescription" id="gl-usk_jobPhaseDescription" type="gl-usk:jobPhaseDescriptionItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="jobActive" id="gl-usk_jobActive" type="gl-usk:activeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="lastDateRepeat" id="gl-usk_lastDateRepeat" type="gl-usk:lastDateRepeatItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="nextDateRepeat" id="gl-usk_nextDateRepeat" type="gl-usk:nextDateRepeatItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="recurringStdDescription" id="gl-usk_recurringStdDescription" type="gl-usk:recurringStdDescriptionItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="repetitionsRemaining" id="gl-usk_repetitionsRemaining" type="gl-usk:repetitionsRemainingItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="reverse" id="gl-usk_reverse" type="gl-usk:reverseTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="reversingDate" id="gl-usk_reversingDate" type="gl-usk:reversingDateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="reversingStdId" id="gl-usk_reversingStdId" type="gl-usk:reversingStdIdItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="endDateRepeatingEntry" id="gl-usk_endDateRepeatingEntry" type="gl-usk:endDateRepeatingEntryItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</schema>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:i="http://www.xbrl.org/int/gl/FR-source-instance"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0029</number>
+  <name>Tuple generation examples</name>
+  <description>
+    Examples of GL tuple generation using the multi-instance approach
+  </description>
+
+  <variation id="V-01">
+    <name>
+        formula-scope method of chaining as used in tuple generation
+        multi-instance for input xbrl instance of a GL instance template
+        second input instance is an FR instance
+    </name>
+    <description>
+      Usage pattern example where first formula is chained from result of second.
+    </description>
+    <data>
+      <schema>SRCD/plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd</schema>
+      <instance readMeFirst="true">GL-template-instance1.xml</instance>  
+      <instance readMeFirst="true" name="i:FRinstance">1_FR_Generic_simple_context_90315.xml</instance>  
+     <linkbase>FR-simple-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>1_GL_Generic_simple_context_90315.xml</instance> 
+    </result>
+  </variation>
+
+
+</testcase>
+
+
+
+
+

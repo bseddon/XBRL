@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:xbrldi="http://xbrl.org/2006/xbrldi" 
+xmlns:concept="http://xbrl.org/formula/conformance/example" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd
+http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+http://xbrl.org/formula/conformance/example concepts.xsd
+">
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="concepts.xsd"/>
+
+  <unit id="unit">
+    <measure>iso4217:USD</measure>
+  </unit>
+  
+  <context id="period-2007">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+      <startDate>2007-01-01</startDate>
+      <endDate>2007-12-31</endDate>
+    </period>
+  </context>
+
+  <context id="period-2006">
+    <entity>
+      <identifier scheme="http://xbrl.org/entity/identification/scheme">ACME</identifier>
+    </entity>
+    <period>
+      <startDate>2006-01-01</startDate>
+      <endDate>2006-12-31</endDate>
+    </period>
+  </context>
+  
+  <!--  Assertion should be satisfied for the next couple of values -->
+  <concept:GrossIncomes decimals="0" contextRef="period-2007" unitRef="unit">500</concept:GrossIncomes>
+  <concept:NetIncomes   decimals="0" contextRef="period-2007" unitRef="unit">200</concept:NetIncomes>
+	
+	<!--  Assertion should not be satisfied for the next couple of values -->
+  <concept:GrossIncomes decimals="0" contextRef="period-2006" unitRef="unit">900</concept:GrossIncomes>
+  <concept:NetIncomes   decimals="0" contextRef="period-2006" unitRef="unit">1400</concept:NetIncomes>
+
+</xbrl>

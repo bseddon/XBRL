@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:tf="http://xbrl.org/2008/filter/tuple"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:c="http://xbrl.org/formula/conformance/example"
+  xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/filter/general ../../core_schemas/2008/general-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:href="../../core_schemas/2008/generic-label.xsd#standard-label" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <formula:formula xlink:type="resource" xlink:label="formula" 
+      value="if ( abs( sum($v:creditAmts) - sum($v:debitAmts) ) lt 1.0 )
+                then concat( $v:qualifier, ' is in balance')
+                else concat( $v:qualifier, ' is not in balance')"
+      source="v:qualifier"
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>c:EntriesInBalance</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_qualifier"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_creditAmounts" fallbackValue="()" bindAsSequence="true" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_debitAmounts" fallbackValue="()" bindAsSequence="true" />
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_qualifier">
+      <cf:concept>
+        <cf:qname>gl-cor:qualifierEntry</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_amount">
+      <cf:concept>
+        <cf:qname>gl-cor:amount</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+
+    <!--  Tuple filters for the fact variables -->
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_qualifier">
+        <tf:parent><tf:qname>gl-cor:entryHeader</tf:qname></tf:parent>
+    </tf:parentFilter> 
+
+    <tf:locationFilter xlink:type="resource" xlink:label="filter_acctID_tupleLocation"
+      variable="v:qualifier" 
+      location="../../gl-cor:qualifierEntry" />
+
+    <!--  General filters for the fact variables -->
+    <!--  Herm: special note on general filters:
+                as they "fire" on each item and will produce type errors
+                and are not dependent on conceptName filters, each has
+                code to be sure it only tests when on the right concept.
+                (See Wiki CR1 notes.)
+    -->
+    <gf:general xlink:type="resource" xlink:label="filter_codeC" 
+      test="
+          if (local-name(.) ne 'amount') then false() else
+             ../gl-cor:debitCreditCode eq 'C'
+        "/>
+    <gf:general xlink:type="resource" xlink:label="filter_codeD" 
+      test="
+          if (local-name(.) ne 'amount') then false() else
+             ../gl-cor:debitCreditCode eq 'D'
+        "/>
+
+    <!--  Preconditions -->
+
+    <!--  Labels for the formula and each variable -->
+    <label:label xlink:type="resource" xlink:label="formula_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Tests the balance of a qualifier’s section of GL entry details..</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_qualifier_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Binds to any qualifierEntry fact, e.g., BBF or standard</label:label>
+    <label:label xlink:type="resource" xlink:label="variable_creditAmounts_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Sequence of qualifier’s “C”-sibling amts</label:label>    
+    <label:label xlink:type="resource" xlink:label="variable_debitAmounts_label" 
+      xlink:role="http://www.xbrl.org/2008/role/label" xml:lang="en">Sequence of qualifier’s “D”-sibling amts</label:label>    
+   
+    <!-- Arcs from labels to the formula and variables being labelled -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="formula" xlink:to="formula_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_qualifier" xlink:to="variable_qualifier_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_creditAmounts" xlink:to="variable_creditAmounts_label" order="1.0"/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label"
+      xlink:from="variable_debitAmounts" xlink:to="variable_debitAmounts_label" order="1.0"/>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_qualifier" order="1.0"
+      name="v:qualifier" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_creditAmounts" order="2.0"
+      name="v:creditAmts" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_debitAmounts" order="3.0"
+      name="v:debitAmts" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_qualifier" xlink:to="filter_qualifier" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_creditAmounts" xlink:to="filter_amount" order="1.0"/>
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_creditAmounts" xlink:to="filter_acctID_tupleLocation" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_creditAmounts" xlink:to="filter_codeC" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_debitAmounts" xlink:to="filter_amount" order="1.0"/>
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_debitAmounts" xlink:to="filter_acctID_tupleLocation" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_debitAmounts" xlink:to="filter_codeD" order="1.0"/>
+
+    <!--  Arcs from formula to its precondition -->
+  </generic:link>
+
+</link:linkbase>
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:cfi="http://xbrl.org/2009/functions"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:my-fn="http://abc.com/function"
+
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2009/functions ../../core_schemas/2008/functions.xsd
+  ">
+  
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- function implementation 
+         for units of JPY use decimals -5, otherwise -2
+         numbers are different from input precision for 
+         being sure test really runs this function
+         instead of deriving from input item precisions
+    -->
+    <cfi:alt-implementation xlink:type="resource" xlink:label="cust-impl-decimals" 
+       id="cust-impl-decimals"
+     >
+       <cfi:input name="item"/>
+       <cfi:output>
+          for $unit in local-name-from-QName(
+                         xfi:measure-name(
+                           xfi:unit-numerator( xfi:unit( $item ))[1]
+                                       ))
+          return (
+             if ($unit eq 'JPY') then -5
+             else -2
+          )
+       </cfi:output>
+    </cfi:alt-implementation>
+
+  </generic:link>
+
+</link:linkbase>
+

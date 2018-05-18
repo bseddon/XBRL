@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:cfi="http://xbrl.org/2009/functions"
+
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2009/functions ../../core_schemas/2008/functions.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2009/cfi" xlink:href="../../core_schemas/2008/function.xsd#cfi-relationship" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- function definition -->
+    <variable:function xlink:type="resource" xlink:label="cust-fn-a-sig"
+       name="my-fn:a"
+       output="xs:decimal" >
+         <variable:input 
+           type="schema-element(xbrli:item)" />
+         <variable:input 
+           type="schema-element(xbrli:item)" />
+    </variable:function>
+
+    <!--  Arc from formula 1 to the implementation -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2009/cfi" 
+      xlink:from="cust-fn-a-sig" xlink:to="cust-fn-a-impl" order="1.0" />
+
+    <!-- function implementation -->
+    <cfi:implementation xlink:type="resource" xlink:label="cust-fn-a-impl" >
+        xquery version "1.0" encoding "utf-8";
+        module namespace my-fn = "http://abc.com/function";
+        define function my-fn:a(
+            $b as schema-element(xbrli:item),
+            $c as schema-element(xbrli:item)
+            ) as xs:decimal 
+        { 
+            $b + $c 
+        }; 
+    </cfi:implementation>
+
+
+  </generic:link>
+
+</link:linkbase>
+

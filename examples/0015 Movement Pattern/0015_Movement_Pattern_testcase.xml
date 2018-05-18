@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" 
+href="../../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance" 
+xmlns:xbrlve="http://xbrl.org/2008/variable/error"  
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="
+  http://xbrl.org/2008/conformance 
+  ../../../infrastructure/test.xsd">
+  <creator>
+    <name>Bill Seddon</name>
+    <email>bill.seddon@lyquidity.com</email>
+  </creator>
+  <number>0015</number>
+  <name>Movement Pattern</name>
+  <description>
+    .
+  </description>
+  <reference specification="EXAMPLES" id="movement-pattern"/>
+  <variation id="V-01">
+    <name>Custom function to compute result value</name>
+    <description>
+      The custom function in a value expression 
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-valueFn-concepts.xsd</schema>
+      <linkbase>21201-movement-valueFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+  <variation id="V-03">
+    <name>Custom function to compute filter qnameexpression</name>
+    <description>
+      The custom function in a filter qnameExpression
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-filterFn-concepts.xsd</schema>
+      <linkbase>21201-movement-filterFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+  <variation id="V-02">
+    <name>Custom function to compute resulting decimals</name>
+    <description>
+      The custom function in a decimals expression 
+      does not have a custom function signature within the DTS.
+    </description>
+    <data>
+      <schema readMeFirst="true">21201-movement-decimalsFn-concepts.xsd</schema>
+      <linkbase>21201-movement-decimalsFn-formulae.xml</linkbase>
+    </data>
+    <result>
+      <error>xbrlve:noCustomFunctionSignature</error>
+    </result>
+  </variation>  
+  
+</testcase>

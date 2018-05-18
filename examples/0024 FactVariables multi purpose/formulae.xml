@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Example Wagetax 2008 Formulae -->
+
+<link:linkbase 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:generic="http://xbrl.org/2008/generic" 
+xmlns:formula="http://xbrl.org/2008/formula" 
+xmlns:variable="http://xbrl.org/2008/variable" 
+xmlns:cf="http://xbrl.org/2008/filter/concept"
+xmlns:tf="http://xbrl.org/2008/filter/tuple"
+xmlns:mf="http://xbrl.org/2008/filter/match"
+xmlns:fn="http://www.w3.org/2005/xpath-functions" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+ http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen concepts.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/filter/match ../../core_schemas/2008/match-filter.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+" >
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+
+<!-- Opening generic linkbase (not connected to a DTS) -->  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+<!-- Formula 1 Check employee wages against total collective -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckTotalGrossWages" 
+     value="fn:abs( $TotalGrossWages1 - fn:sum( $GrossWage1 ) ) lt 1"
+     aspectModel="non-dimensional" implicitFiltering="false" source="TotalGrossWages1">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckTotalGrossWages</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 1, factVariabeles  -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalGrossWages1"  bindAsSequence="false"  />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_GrossWage1" fallbackValue="()" bindAsSequence="true" />
+
+<!-- Formula 1, concept filters no filtering on tuples -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalGrossWages">
+      <cf:concept>
+        <cf:qname>bd-lhn:TotalGrossWages</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_GrossWage">
+      <cf:concept>
+        <cf:qname>bd-lhn:GrossWage</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_parentTuple">
+      <tf:parent><tf:qname>bd-lhn:Employee</tf:qname></tf:parent>
+    </tf:parentFilter>
+
+<!-- Formula 1, variables, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckTotalGrossWages" xlink:to="factVariable_TotalGrossWages1" order="1" 
+     name="TotalGrossWages1" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckTotalGrossWages" xlink:to="factVariable_GrossWage1" order="2" 
+     name="GrossWage1" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalGrossWages1" xlink:to="filter_concept_TotalGrossWages" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_GrossWage1" xlink:to="filter_concept_GrossWage" order="1" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_GrossWage1" xlink:to="filter_parentTuple" order="1" />
+
+<!-- Fromula 2, Check if unitsProduced is present than function = production and GrossWage > 0 -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckWagesOnUnits" 
+     value=" $GrossWage2 gt 0 "
+     aspectModel="non-dimensional" implicitFiltering="false" source="GrossWage2">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckWagesOnUnits</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 2, establish preconditions before firing formula -->
+	<variable:precondition xlink:type="resource" xlink:label="precondition_UnitsProduced" test=" $UnitsProduced gt 0 "/>
+	<variable:precondition xlink:type="resource" xlink:label="precondition_Function" test=" $Function eq 'production' "/>
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:from="formula_CheckWagesOnUnits" xlink:to="precondition_UnitsProduced" order="1.0" />
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:from="formula_CheckWagesOnUnits" xlink:to="precondition_Function" order="2.0" />
+
+<!-- Formula 2, factVariabeles need same GrossWage as in formula 1 but this time with bindAsSequence =  true -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_GrossWage2" bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_UnitsProduced" bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_Function" bindAsSequence="false" />
+
+<!-- Formula 2, concept filters no filtering on tuples (yet) -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_Function">
+      <cf:concept>
+        <cf:qname>bd-lhn:Function</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_UnitsProduced">
+      <cf:concept>
+        <cf:qname>bd-lhn:UnitsProduced</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+<!-- This one is now redundant, because re-used from formula 1
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_GrossWage">
+      <cf:concept>
+        <cf:qname>bd-lhn:GrossWage</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+-->
+    <mf:matchLocation xlink:type="resource" xlink:label="filter_match" variable="GrossWage2" /> 
+
+<!-- Formula 2, variables, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckWagesOnUnits" xlink:to="factVariable_GrossWage2" order="3" 
+     name="GrossWage2" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckWagesOnUnits" xlink:to="factVariable_UnitsProduced" order="1" 
+     name="UnitsProduced" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckWagesOnUnits" xlink:to="factVariable_Function" order="1" 
+     name="Function" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_UnitsProduced" xlink:to="filter_concept_UnitsProduced" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_Function" xlink:to="filter_concept_Function" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_GrossWage2" xlink:to="filter_concept_GrossWage" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_GrossWage2" xlink:to="filter_parentTuple" order="1" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_UnitsProduced" xlink:to="filter_match" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_Function" xlink:to="filter_match" order="1" />
+
+<!-- Formula 3, test if GrossWage and SickleaveBenefit per Employee has at least one > 0 (maybe both) -->
+	 </generic:link>
+</link:linkbase>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-muc="http://www.xbrl.org/int/gl/muc/2006-10-25" xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" targetNamespace="http://www.xbrl.org/int/gl/muc/2006-10-25" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<include schemaLocation="../../muc/gl-muc-2006-10-25.xsd"/>
+	<complexType name="multicurrencyDetailComplexType" id="gl-muc_multicurrencyDetailComplexType">
+		<sequence>
+			<element ref="gl-muc:multicurrencyDetailExchangeRateDate" minOccurs="0"/>
+			<element ref="gl-muc:amountRestatedAmount" minOccurs="0"/>
+			<element ref="gl-muc:amountRestatedCurrency" minOccurs="0"/>
+			<element ref="gl-muc:amountRestatedExchangeRate" minOccurs="0"/>
+			<element ref="gl-muc:amountRestatedExchangeRateSource" minOccurs="0"/>
+			<element ref="gl-muc:amountRestatedExchangeRateType" minOccurs="0"/>
+			<element ref="gl-muc:amountTriangulationAmount" minOccurs="0"/>
+			<element ref="gl-muc:amountTriangulationCurrency" minOccurs="0"/>
+			<element ref="gl-muc:amountTriangulationExchangeRate" minOccurs="0"/>
+			<element ref="gl-muc:amountTriangulationExchangeRateSource" minOccurs="0"/>
+			<element ref="gl-muc:amountTriangulationExchangeRateType" minOccurs="0"/>
+			<element ref="gl-muc:restatedTriangulationExchangeRate" minOccurs="0"/>
+			<element ref="gl-muc:restatedExchangeRateTriangulationSource" minOccurs="0"/>
+			<element ref="gl-muc:restatedExchangeRateTriangulationType" minOccurs="0"/>
+			<element ref="gl-muc:multicurrencyDetailComment" minOccurs="0" maxOccurs="unbounded"/>
+		</sequence>
+		<attribute name="id" type="ID"/>
+	</complexType>
+	<complexType name="amountItemType">
+		<simpleContent>
+			<restriction base="xbrli:monetaryItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="currencyItemType">
+		<simpleContent>
+			<restriction base="xbrli:QNameItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="exchangeRateItemType">
+		<simpleContent>
+			<restriction base="xbrli:pureItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="exchangeRateDateItemType">
+		<simpleContent>
+			<restriction base="xbrli:dateTimeItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="commentItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="exchangeRateSourceItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="exchangeRateTypeItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType">
+				<attribute name="id" type="ID"/>
+			</restriction>
+		</simpleContent>
+	</complexType>
+</schema>

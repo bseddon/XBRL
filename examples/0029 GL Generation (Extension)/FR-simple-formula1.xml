@@ -1,0 +1,745 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:instance="http://xbrl.org/2008/formula/instance"
+  xmlns:tuple="http://xbrl.org/2008/formula/tuple"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xbrll="http://www.xbrl.org/2003/linkbase"
+  xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2006-10-25"
+  xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25"
+  xmlns:gl-srcd="http://www.xbrl.org/int/gl/srcd/2007-02-08" 
+  xmlns:i="http://www.xbrl.org/int/gl/FR-source-instance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/formula/tuple formula-tuple.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2008/formula/instance formula-instance.xsd
+  http://xbrl.org/2008/formula/instance formula-instance.xsd 
+ ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/formula-scope" xlink:href="formula-instance.xsd#formula-scope" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/instance-variable" xlink:href="formula-instance.xsd#instance-variable" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- (1) accountingEntries formula evaluates when test:a is input to variable
+         inputInstanceFactItemA; there are two of these test:a's, so there
+         will be two tuple t's resulting -->
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_accountingEntries"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:accountingEntries</formula:qname>
+        </formula:concept>
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- 3 tuples under accountingEntries:
+             (1) documentInfo
+             (2) entityInformation
+             (3) entryHeader
+    -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="accountingEntries" 
+      xlink:from="f_accountingEntries" xlink:to="f_documentInfo" order="1.0"/>
+
+    <!-- (1) documentInfo tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_documentInfo"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:documentInfo</formula:qname>
+        </formula:concept>
+        <tuple:location source="accountingEntries" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- documentInfo tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_entriesType" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_entriesType" 
+      value="'other'" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:entriesType</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_language" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_language" 
+      value="QName('http://www.xbrl.org/2005/iso639','en')" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:language</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_creationDate" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_creationDate" 
+      value="'other'" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:creationDate</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_periodCoveredStart" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_periodCoveredStart" 
+      value="'other'" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:periodCoveredStart</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_periodCoveredEnd" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_periodCoveredEnd" 
+      value="'other'" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:periodCoveredEnd</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="documentInfo" 
+      xlink:from="f_documentInfo" xlink:to="f_summaryReportingTaxonomies" order="2.0"/>
+
+    <!-- summaryReportingTaxonomies tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryReportingTaxonomies"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryReportingTaxonomies</formula:qname>
+        </formula:concept>
+        <tuple:location source="documentInfo" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- summaryReportingTaxonomies tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryReportingTaxonomies" 
+      xlink:from="f_summaryReportingTaxonomies" xlink:to="f_summaryReportingTaxonomyID" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryReportingTaxonomyID" 
+      value="prefix-from-QName( node-name(
+              /xbrli:xbrl/*[not(starts-with(namespace-uri(),'http://www.xbrl.org/2003/'))][1]
+              ))" 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryReportingTaxonomyID</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryReportingTaxonomies" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryReportingTaxonomies" 
+      xlink:from="f_summaryReportingTaxonomies" xlink:to="f_summaryReportingTaxonomySchemaRefHref" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryReportingTaxonomySchemaRefHref" 
+      value="
+            //xbrll:scheamRef[1]/@href
+            " 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryReportingTaxonomySchemaRefHref</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryReportingTaxonomies" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- end of summaryReportingTaxonomies tuple contents -->
+
+
+    <!-- end of documentInfo tuple contents -->
+
+    <!-- (2) entityInformation tuple -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="accountingEntries" 
+      xlink:from="f_accountingEntries" xlink:to="f_entityInformation" order="2.0"/>
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_entityInformation"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:entityInformation</formula:qname>
+        </formula:concept>
+        <tuple:location source="accountingEntries" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- entityInformation tuple contents -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="entityInformation" 
+      xlink:from="f_entityInformation" xlink:to="f_organizationIdentifiers" order="2.0"/>
+
+    <!-- organizationIdentifiers tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_organizationIdentifiers"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-bus:organizationIdentifiers</formula:qname>
+        </formula:concept>
+        <tuple:location source="entityInformation" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- organizationIdentifiers tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="organizationIdentifiers" 
+      xlink:from="f_organizationIdentifiers" xlink:to="f_organizationIdentifier" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_organizationIdentifier" 
+      value="
+            //xbrli:identifier[1]
+            " 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-bus:organizationIdentifier</formula:qname>
+        </formula:concept>
+        <tuple:location source="organizationIdentifiers" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryReportingTaxonomies" 
+      xlink:from="f_organizationIdentifiers" xlink:to="f_organizationDescription" order="2.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_organizationDescription" 
+      value="
+            //xbrli:identifier[1]
+            " 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-bus:organizationDescription</formula:qname>
+        </formula:concept>
+        <tuple:location source="organizationIdentifiers" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- end of organizationIdentifiers tuple contents -->
+
+    <!-- end of entityInformation tuple contents -->
+
+    <!-- (3) entryHeader tuple 
+         One of these per item in FR input instance
+    -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="accountingEntries" 
+      xlink:from="f_accountingEntries" xlink:to="f_entryHeader" order="3.0"/>
+
+    <!-- entryHeader binds once per FR instance items -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_entryHeader"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:entryHeader</formula:qname>
+        </formula:concept>
+        <tuple:location source="accountingEntries" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- entryHeader tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="entryHeader" 
+      xlink:from="f_entryHeader" xlink:to="f_organizationIdentifiers" order="2.0"/>
+
+    <!-- entryDetail tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_entryDetail"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:entryDetail</formula:qname>
+        </formula:concept>
+        <tuple:location source="entryHeader" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- entryDetail tuple contents -->
+
+    <!-- amount for numeric FRitems only -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_entryDetail" xlink:to="f_amount" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_amount" 
+      value="$FRitem"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:amount</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="f_detailMatchingElement" xlink:to="p_numeric" order="1.0"/>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="entryDetail" 
+      xlink:from="f_entryDetail" xlink:to="f_xbrlInfo" order="2.0"/>
+
+    <!-- xbrlInfo tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_xbrlInfo"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:xbrlInfo</formula:qname>
+        </formula:concept>
+        <tuple:location source="entryDetail" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- xbrlInfo tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_summaryReportingElement" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryReportingElement" 
+      value="
+            string-join((
+             prefix-from-QName(node-name($FRitem)),
+             ':',
+             local-name($FRitem)))
+            " 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:summaryReportingElement</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- matching element for nonnumeric items -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_detailMatchingElement" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_detailMatchingElement" 
+      value="QName('http://www.xbrl.org/int/gl/bus/2006-10-25','gl-bus:measurableQualifier')
+            " 
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-cor:detailMatchingElement</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+      </formula:aspects>
+    </formula:formula>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="f_detailMatchingElement" xlink:to="p_nonNumeric" order="1.0"/>
+
+    <!-- summary precision decimals only for numeric items -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_summaryPrecisionDecimals" order="1.0"/>
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryPrecisionDecimals"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryPrecisionDecimals</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="f_summaryPrecisionDecimals" xlink:to="p_numeric" order="1.0"/>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryUnit" 
+      xlink:from="f_summaryPrecisionDecimals" xlink:to="f_summaryDecimals" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryDecimals" 
+      value="$FRitem/@decimals"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryNumerator</formula:qname>
+        </formula:concept>
+        <formula:unit augment="false">
+          <formula:multiplyBy
+           measure="QName('http://www.xbrl.org/2003/instance','pure')" /> 
+        </formula:unit>
+        <tuple:location source="summaryUnit" />
+      </formula:aspects>
+    </formula:formula>
+
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_summaryContext" order="3.0"/>
+
+    <!-- summaryContext tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryContext"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryContext</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- summaryContext tuple contents -->
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryContext" 
+      xlink:from="f_summaryContext" xlink:to="f_summaryEntity" order="3.0"/>
+
+    <!-- summaryEntity tuple -->
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryEntity"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryEntity</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryEntity" 
+      xlink:from="f_summaryEntity" xlink:to="f_summaryIdentifier" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryIdentifier" 
+      value="xfi:identifier-value( xfi:identifier( $FRitem ) )"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryIdentifier</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryEntity" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryEntity" 
+      xlink:from="f_summaryEntity" xlink:to="f_summaryScheme" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryScheme" 
+      value="xfi:identifier-scheme( xfi:identifier( $FRitem ) )"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryScheme</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryEntity" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- summaryPeriod tuple -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryContext" 
+      xlink:from="f_summaryContext" xlink:to="f_summaryPeriod" order="1.0"/>
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryPeriod"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryPeriod</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryContext" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryPeriod" 
+      xlink:from="f_summaryPeriod" xlink:to="f_summaryStartDate" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryStartDate" 
+      value="xfi:period-start( xfi:period( $FRitem ) )"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryStartDate</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryPeriod" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryPeriod" 
+      xlink:from="f_summaryPeriod" xlink:to="f_summaryEndDate" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryEndDate" 
+      value="xfi:period-end( xfi:period( $FRitem ) )"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryEndDate</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryPeriod" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- summary unit only for numeric items -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_summaryUnit" order="1.0"/>
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_summaryUnit"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryUnit</formula:qname>
+        </formula:concept>
+        <tuple:location source="xbrlInfo" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="f_summaryUnit" xlink:to="p_numeric" order="1.0"/>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="summaryUnit" 
+      xlink:from="f_summaryUnit" xlink:to="f_summaryNumerator" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryNumerator" 
+      value="xfi:unit-numerator( xfi:unit( $FRitem ) )"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryNumerator</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryUnit" />
+      </formula:aspects>
+    </formula:formula>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="xbrlInfo" 
+      xlink:from="f_xbrlInfo" xlink:to="f_summaryReportingTaxonomyIDRef" order="3.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_summaryReportingTaxonomyIDRef" 
+      value="prefix-from-QName(node-name($FRitem))"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-srcd:summaryReportingTaxonomyIDRef</formula:qname>
+        </formula:concept>
+        <tuple:location source="summaryPeriod" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- measurable only for non-numeric information -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="entryDetail" 
+      xlink:from="f_entryDetail" xlink:to="f_measurable" order="1.0"/>
+
+    <tuple:tuple xlink:type="resource" xlink:label="f_measurable"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-bus:measurable</formula:qname>
+        </formula:concept>
+        <tuple:location source="entryDetail" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="f_measurable" xlink:to="p_nonNumeric" order="1.0"/>
+
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="measurable" 
+      xlink:from="f_measurable" xlink:to="f_measurableQualifier" order="1.0"/>
+
+    <formula:formula xlink:type="resource" xlink:label="f_measurableQualifier" 
+      value="$FRitem"
+      source="GLitem"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>gl-bus:measurableQualifier</formula:qname>
+        </formula:concept>
+        <tuple:location source="measurable" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- end of xbrlInfo tuple contents -->
+
+    <!-- end of entryHeader tuple contents -->
+
+
+
+
+    <!--  Fact variables. -->
+
+    <!-- GL template item, only item, in gl input instance, for item sources -->
+    <variable:factVariable xlink:type="resource" xlink:label="v_accountingEntries"   bindAsSequence="false" />
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="f_accountingEntries" xlink:to="v_accountingEntries" order="1.0"
+      name="GLitem" />
+
+    <!-- FR instance item, only items -->
+    <instance:instance name="i:FRinstance" xlink:type="resource" xlink:label="FRinstance" />
+
+    <variable:factVariable xlink:type="resource" xlink:label="v_FRitem"   bindAsSequence="false" />
+
+    <generic:arc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/instance-variable" 
+      xlink:from="FRinstance" xlink:to="v_FRitem" order="1.0"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="f_entryHeader" xlink:to="v_FRitem" order="1.0"
+      name="FRitem" />
+
+    <!-- preconditions -->
+    <variable:precondition xlink:type="resource" xlink:label="p_nonNumeric"
+        test="not(xfi:is-numeric(node-name($FRitem)))" />
+
+    <variable:precondition xlink:type="resource" xlink:label="p_numeric"
+        test="xfi:is-numeric(node-name($FRitem))" />
+
+  </generic:link>
+
+</link:linkbase>
+
+

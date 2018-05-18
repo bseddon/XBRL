@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by  1.0.0.0 (2007-09-18 14:07).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-09-19 01:37:17
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:eg="http://xbrl.org/formula/conformance/example" xsi:schemaLocation="http://xbrl.org/formula/conformance/example concepts-compute-ending-balance.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:href="concepts-compute-ending-balance.xsd" xlink:type="simple" />
+  <context id="now">
+    <entity>
+      <identifier scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</identifier>
+    </entity>
+    <period>
+      <instant>2004-10-03</instant>
+    </period>
+  </context>
+  <eg:EndingBalance contextRef="now">Account 1001 ending balance is -232042.26</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 1003 ending balance is -77033.02</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 1100 ending balance is -156194.25</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 1102 ending balance is 11490.38</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 3000 ending balance is -4.01</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 3100 ending balance is 676961.3</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 3200 ending balance is -490000</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 3140 ending balance is 163394.25</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 4100 ending balance is 258362.12</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 4300 ending balance is 82571</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 4500 ending balance is 16552.78</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 4400 ending balance is 4022.87</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 4200 ending balance is 7406</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5010 ending balance is -84932</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5490 ending balance is -6689</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5040 ending balance is -87657.19</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5091 ending balance is -26258.37</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5050 ending balance is -4125.83</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5450 ending balance is -3887.69</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5600 ending balance is -9500</eg:EndingBalance>
+  <eg:EndingBalance contextRef="now">Account 5100 ending balance is -42437.08</eg:EndingBalance>
+</xbrl>

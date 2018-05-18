@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Example Wagetax 2008 Formulae -->
+
+<link:linkbase 
+xmlns:xs="http://www.w3.org/2001/XMLSchema"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xbrli="http://www.xbrl.org/2003/instance"
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:formula="http://xbrl.org/2008/formula" 
+xmlns:variable="http://xbrl.org/2008/variable" 
+xmlns:generic="http://xbrl.org/2008/generic" 
+xmlns:cf="http://xbrl.org/2008/filter/concept"
+xmlns:tf="http://xbrl.org/2008/filter/tuple"
+xmlns:fn="http://www.w3.org/2005/xpath-functions" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen concepts.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+">
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+
+<!-- Opening generic linkbase (not connected to a DTS) -->  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+<!-- Formula 1, check if there is only Euro units   -->
+    <formula:formula xlink:type="resource" xlink:label="formula_checkunit_euro" 
+     value=" if ( $faultyUnit ne xs:QName('iso4217:EUR') )
+			 then concat ('Error; Illegal unit value ', $faultyUnit, ' in instance.')
+             else concat ('Unit value ', $faultyUnit, ' processed correctly.') "
+     aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:Checkunit</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+	 <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="faultyUnit" xlink:from="formula_checkunit_euro" xlink:to="generalVariable_unit" order="1.0" />
+    <variable:generalVariable xlink:type="resource" xlink:label="generalVariable_unit" bindAsSequence="false" select="//xbrli:unit/xbrli:measure"/>
+
+<!--Formula 2, check if there is only an id scheme of the duch tax office  -->
+    <formula:formula xlink:type="resource" xlink:label="formula_checkscheme_belastingdienst" 
+     value=" if ($faultyScheme ne xs:anyURI('www.belastingdienst.nl/loonheffingennummer') )
+			 then concat ('Error; Illegal scheme value ', $faultyScheme , ' in instance.')
+			 else concat ('Entity scheme ', $faultyScheme, ' processed correctly.') "
+     aspectModel="non-dimensional" implicitFiltering="false" >
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:Checkscheme</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="faultyScheme" xlink:from="formula_checkscheme_belastingdienst" xlink:to="generalVariable_scheme" order="1.0" />
+    <variable:generalVariable xlink:type="resource" xlink:label="generalVariable_scheme" bindAsSequence="false" select="//xbrli:context/xbrli:entity/xbrli:identifier/@scheme"/>
+
+<!-- Formula 3, check if the reported period is only january 2007 -->
+    <formula:formula xlink:type="resource" xlink:label="formula_checkperiod_january2007" 
+     value=" if ($faultyPeriod ne xs:date('2007-01-31') )
+			 then concat ('Error; Illegal period value ', $faultyPeriod, ' in instance.')
+			 else concat ('Period ', $faultyPeriod, ' processed correctly.') "
+     aspectModel="non-dimensional" implicitFiltering="false" >
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:Checkperiod</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="faultyPeriod" xlink:from="formula_checkperiod_january2007" xlink:to="generalVariable_period" order="1.0" />
+    <variable:generalVariable xlink:type="resource" xlink:label="generalVariable_period" bindAsSequence="false" select="//xbrli:context/xbrli:period/xbrli:instant"/>
+
+<!-- Formula 4, check details to total SocialInsurances -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_TotLnLBPH_vollAang" 
+     value=" if ( fn:abs( $TotalWageTaxSocialInsuranceContributions - fn:sum( $WageTaxAndSocialInsuranceContribution ) ) lt 1 )
+			 then xs:string('Calculation of TotalWageTaxSocialInsuranceContributions is succesfull.')
+			 else xs:string('Error: Calculation of TotalWageTaxSocialInsuranceContributions has variance of more than 1 Euro.') "
+     aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 5 check details to total InsuranceContributions -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_TotLnSV_vollAang" 
+      value=" if ( fn:abs( $TotalWagesSubjectToEmployeesInsuranceContributions - fn:sum( $WageSubjectToEmployeesInsuranceContributions ) ) lt 1 )
+			 then xs:string('Calculation of TotalWagesSubjectToEmployeesInsuranceContributions is succesfull.')
+			 else xs:string('Error: Calculation of TotalWagesSubjectToEmployeesInsuranceContributions has variance of more than 1 Euro.') "
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_TotLnSV_vollAang</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 6 check details to total  WithheldInsuranceContributions -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" 
+      value=" if ( fn:abs( $TotalWithheldWageTaxAndSocialInsuranceContributions - fn:sum( $WithheldWageTaxAndSocialInsuranceContributions ) ) lt 1 )
+			 then xs:string('Calculation of TotalWithheldWageTaxAndSocialInsuranceContributions is succesfull.')
+			 else xs:string('Error: Calculation of TotalWithheldWageTaxAndSocialInsuranceContributions has variance of more than 1 Euro.') "
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 7 check details to total DisablityInsuranceFund -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang" 
+      value=" if ( fn:abs( $TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund - fn:sum( $BasicContributionsDisabilityInsuranceFund ) ) lt 1 )
+			 then xs:string('Calculation of TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund is succesfull.')
+			 else xs:string('Error: Calculation of TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund has variance of more than 1 Euro.') "
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 8, check details to total  SupplementaryDisablityInsuranceFund -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang" 
+      value=" if ( fn:abs( $TotalSupplementaryContributionsDisabilityInsuranceFund - fn:sum( $SupplementaryContributionsDisabilityInsuranceFund ) ) lt 1 )
+			 then xs:string('Calculation of TotalSupplementaryContributionsDisabilityInsuranceFund is succesfull.')
+			 else xs:string('Error: Calculation of TotalSupplementaryContributionsDisabilityInsuranceFund has variance of more than 1 Euro.') "
+      aspectModel="non-dimensional" implicitFiltering="false">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang</formula:qname>
+        </formula:concept>
+		<formula:entityIdentifier scheme="'http://www.belastingdienst.nl/errorReport'" value="'Wagetax'" />
+		<formula:period>
+		  <formula:instant value="xs:date('2007-01-31')"/>
+		</formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Reserving variabeles for the values in the instance,  the totals cannot have fallback values, the details can be 'empty', totals can only occur once, details multiple times -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWageTaxSocialInsuranceContributions"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_WageTaxAndSocialInsuranceContribution"  bindAsSequence="true" fallbackValue="()"/>
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWagesSubjectToEmployeesInsuranceContributions"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_WageSubjectToEmployeesInsuranceContributions"  bindAsSequence="true" fallbackValue="()"/>
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_WithheldWageTaxAndSocialInsuranceContributions"  bindAsSequence="true" fallbackValue="()"/>
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_BasicContributionsDisabilityInsuranceFund"  bindAsSequence="true" fallbackValue="()" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalSupplementaryContributionsDisabilityInsuranceFund"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_SupplementaryContributionsDisabilityInsuranceFund"  bindAsSequence="true" fallbackValue="()" />
+
+<!-- The fact filters are called on conceptName -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWageTaxSocialInsuranceContributions">
+      <cf:concept><cf:qname>bd-lhn:TotalWageTaxSocialInsuranceContributions</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_WageTaxAndSocialInsuranceContribution">
+      <cf:concept><cf:qname>bd-lhn:WageTaxAndSocialInsuranceContribution</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWagesSubjectToEmployeesInsuranceContributions">
+      <cf:concept><cf:qname>bd-lhn:TotalWagesSubjectToEmployeesInsuranceContributions</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_WageSubjectToEmployeesInsuranceContributions">
+      <cf:concept><cf:qname>bd-lhn:WageSubjectToEmployeesInsuranceContributions</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWithheldWageTaxAndSocialInsuranceContributions">
+      <cf:concept><cf:qname>bd-lhn:TotalWithheldWageTaxAndSocialInsuranceContributions</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_WithheldWageTaxAndSocialInsuranceContributions">
+      <cf:concept><cf:qname>bd-lhn:WithheldWageTaxAndSocialInsuranceContributions</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund">
+      <cf:concept><cf:qname>bd-lhn:TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_BasicContributionsDisabilityInsuranceFund">
+      <cf:concept><cf:qname>bd-lhn:BasicContributionsDisabilityInsuranceFund</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalSupplementaryContributionsDisabilityInsuranceFund">
+      <cf:concept><cf:qname>bd-lhn:TotalSupplementaryContributionsDisabilityInsuranceFund</cf:qname></cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_SupplementaryContributionsDisabilityInsuranceFund">
+      <cf:concept><cf:qname>bd-lhn:SupplementaryContributionsDisabilityInsuranceFund</cf:qname></cf:concept>
+    </cf:conceptName>
+
+<!-- Extra filters are called on  tuples, the total for 'collective'  and the details for 'employee' (the DTS is forcing this, but hey, it's an example) -->
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_parentTuple_Employee">
+      <tf:parent><tf:qname>bd-lhn:Employee</tf:qname></tf:parent>
+    </tf:parentFilter>
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_parentTuple_CollectiveTaxDeclaration">
+      <tf:parent><tf:qname>bd-lhn:CollectiveTaxDeclaration</tf:qname></tf:parent>
+    </tf:parentFilter>
+
+<!-- Formula 1, variables, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnLBPH_vollAang" xlink:to="factVariable_TotalWageTaxSocialInsuranceContributions" order="1" 
+     name="TotalWageTaxSocialInsuranceContributions" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnLBPH_vollAang" xlink:to="factVariable_WageTaxAndSocialInsuranceContribution" order="2" 
+     name="WageTaxAndSocialInsuranceContribution" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWageTaxSocialInsuranceContributions" xlink:to="filter_concept_TotalWageTaxSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WageTaxAndSocialInsuranceContribution" xlink:to="filter_concept_WageTaxAndSocialInsuranceContribution" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWageTaxSocialInsuranceContributions" xlink:to="filter_parentTuple_CollectiveTaxDeclaration" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WageTaxAndSocialInsuranceContribution" xlink:to="filter_parentTuple_Employee" order="2" />
+
+<!-- Formula 2, variabeles, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnSV_vollAang" xlink:to="factVariable_TotalWagesSubjectToEmployeesInsuranceContributions" order="1" 
+	 name="TotalWagesSubjectToEmployeesInsuranceContributions" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnSV_vollAang" xlink:to="factVariable_WageSubjectToEmployeesInsuranceContributions" order="2" 
+	 name="WageSubjectToEmployeesInsuranceContributions" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWagesSubjectToEmployeesInsuranceContributions" xlink:to="filter_concept_TotalWagesSubjectToEmployeesInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WageSubjectToEmployeesInsuranceContributions" xlink:to="filter_concept_WageSubjectToEmployeesInsuranceContributions" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWagesSubjectToEmployeesInsuranceContributions" xlink:to="filter_parentTuple_CollectiveTaxDeclaration" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WageSubjectToEmployeesInsuranceContributions" xlink:to="filter_parentTuple_Employee" order="2" />
+
+<!-- Formula 3, variabeles, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" xlink:to="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" order="1" 
+	 name="TotalWithheldWageTaxAndSocialInsuranceContributions" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" xlink:to="factVariable_WithheldWageTaxAndSocialInsuranceContributions" order="2" 
+	 name="WithheldWageTaxAndSocialInsuranceContributions" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" xlink:to="filter_concept_TotalWithheldWageTaxAndSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" xlink:to="filter_concept_WithheldWageTaxAndSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" xlink:to="filter_parentTuple_CollectiveTaxDeclaration" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" xlink:to="filter_parentTuple_Employee" order="2" />
+
+<!-- Formula 4, variabeles, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang" xlink:to="factVariable_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund" order="1" 
+	 name="TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund"  />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang" xlink:to="factVariable_BasicContributionsDisabilityInsuranceFund" order="2" 
+	 name="BasicContributionsDisabilityInsuranceFund"  />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund"  xlink:to="filter_concept_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_BasicContributionsDisabilityInsuranceFund" xlink:to="filter_concept_BasicContributionsDisabilityInsuranceFund" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund" xlink:to="filter_parentTuple_CollectiveTaxDeclaration" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_BasicContributionsDisabilityInsuranceFund" xlink:to="filter_parentTuple_Employee" order="2" />
+
+<!-- Formula 5, variabeles, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+     xlink:from="formula_CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang" xlink:to="factVariable_TotalSupplementaryContributionsDisabilityInsuranceFund" order="1"
+	 name="TotalSupplementaryContributionsDisabilityInsuranceFund" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set"
+     xlink:from="formula_CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang" xlink:to="factVariable_SupplementaryContributionsDisabilityInsuranceFund" order="2"
+     name="SupplementaryContributionsDisabilityInsuranceFund" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalSupplementaryContributionsDisabilityInsuranceFund" xlink:to="filter_concept_TotalSupplementaryContributionsDisabilityInsuranceFund" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_SupplementaryContributionsDisabilityInsuranceFund" xlink:to="filter_concept_SupplementaryContributionsDisabilityInsuranceFund" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalSupplementaryContributionsDisabilityInsuranceFund" xlink:to="filter_parentTuple_CollectiveTaxDeclaration" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_SupplementaryContributionsDisabilityInsuranceFund" xlink:to="filter_parentTuple_Employee" order="2" />
+
+  </generic:link>
+
+</link:linkbase>

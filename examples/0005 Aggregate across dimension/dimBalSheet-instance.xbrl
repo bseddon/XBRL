@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:ex="http://abc.com/example"
+xsi:schemaLocation="
+http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd
+">
+  <link:schemaRef xlink:href="dimBalSheet.xsd" xlink:type="simple" />
+  <link:linkbaseRef 
+    xlink:href="dimBalSheet-assertion-inventory-FranceSpain-GroupFilter.xml"
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+
+  <context id="I-2007">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2007-EU">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="ex:CountriesAxis">ex:Europe</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2007-FR">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="ex:CountriesAxis">ex:France</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2007-DE">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="ex:CountriesAxis">ex:Germany</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2007-ES">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="ex:CountriesAxis">ex:Spain</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <context id="I-2007-US">
+    <entity>
+      <identifier scheme="http://abc.com">abc</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="ex:CountriesAxis">ex:USA</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <unit id="EUR">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <unit id="U-Pure">
+    <measure>pure</measure>
+  </unit>
+  <ex:Assets contextRef="I-2007" unitRef="EUR" decimals="0">100000</ex:Assets>
+  <ex:Assets contextRef="I-2007-EU" unitRef="EUR" decimals="0">50000</ex:Assets>
+  <ex:Assets contextRef="I-2007-FR" unitRef="EUR" decimals="0">10000</ex:Assets>
+  <ex:Assets contextRef="I-2007-DE" unitRef="EUR" decimals="0">5000</ex:Assets>
+  <ex:Assets contextRef="I-2007-ES" unitRef="EUR" decimals="0">35000</ex:Assets>
+  <ex:Assets contextRef="I-2007-US" unitRef="EUR" decimals="0">50000</ex:Assets>
+
+  <ex:CurrentAssets contextRef="I-2007" unitRef="EUR" decimals="0">40000</ex:CurrentAssets>
+  <ex:CurrentAssets contextRef="I-2007-EU" unitRef="EUR" decimals="0">10000</ex:CurrentAssets>
+  <ex:CurrentAssets contextRef="I-2007-FR" unitRef="EUR" decimals="0">3000</ex:CurrentAssets>
+  <ex:CurrentAssets contextRef="I-2007-DE" unitRef="EUR" decimals="0">3000</ex:CurrentAssets>
+  <ex:CurrentAssets contextRef="I-2007-ES" unitRef="EUR" decimals="0">4000</ex:CurrentAssets>
+  <ex:CurrentAssets contextRef="I-2007-US" unitRef="EUR" decimals="0">30000</ex:CurrentAssets>
+
+  <ex:CashAndCashEquivalents contextRef="I-2007" unitRef="EUR" decimals="0">10000</ex:CashAndCashEquivalents>
+  <ex:CashAndCashEquivalents contextRef="I-2007-EU" unitRef="EUR" decimals="0">5000</ex:CashAndCashEquivalents>
+  <ex:CashAndCashEquivalents contextRef="I-2007-DE" unitRef="EUR" decimals="0">2000</ex:CashAndCashEquivalents>
+  <ex:CashAndCashEquivalents contextRef="I-2007-ES" unitRef="EUR" decimals="0">3000</ex:CashAndCashEquivalents>
+  <ex:CashAndCashEquivalents contextRef="I-2007-US" unitRef="EUR" decimals="0">5000</ex:CashAndCashEquivalents>
+
+  <ex:Inventories contextRef="I-2007" unitRef="EUR" decimals="0">10000</ex:Inventories>
+  <ex:Inventories contextRef="I-2007-EU" unitRef="EUR" decimals="0">2000</ex:Inventories>
+  <ex:Inventories contextRef="I-2007-FR" unitRef="EUR" decimals="0">1000</ex:Inventories>
+  <ex:Inventories contextRef="I-2007-ES" unitRef="EUR" decimals="0">500</ex:Inventories>
+  <ex:Inventories contextRef="I-2007-US" unitRef="EUR" decimals="0">8000</ex:Inventories>
+
+  <ex:AccountsReceivable contextRef="I-2007" unitRef="EUR" decimals="0">10000</ex:AccountsReceivable>
+  <ex:AccountsReceivable contextRef="I-2007-EU" unitRef="EUR" decimals="0">2000</ex:AccountsReceivable>
+  <ex:AccountsReceivable contextRef="I-2007-FR" unitRef="EUR" decimals="0">1000</ex:AccountsReceivable>
+  <ex:AccountsReceivable contextRef="I-2007-DE" unitRef="EUR" decimals="0">1000</ex:AccountsReceivable>
+  <ex:AccountsReceivable contextRef="I-2007-US" unitRef="EUR" decimals="0">8000</ex:AccountsReceivable>
+
+  <ex:PrepaidExpenses contextRef="I-2007" unitRef="EUR" decimals="0">10000</ex:PrepaidExpenses>
+  <ex:PrepaidExpenses contextRef="I-2007-EU" unitRef="EUR" decimals="0">1000</ex:PrepaidExpenses>
+  <ex:PrepaidExpenses contextRef="I-2007-FR" unitRef="EUR" decimals="0">1000</ex:PrepaidExpenses>
+  <ex:PrepaidExpenses contextRef="I-2007-US" unitRef="EUR" decimals="0">9000</ex:PrepaidExpenses>
+
+  <ex:FixedAssets contextRef="I-2007" unitRef="EUR" decimals="0">60000</ex:FixedAssets>
+  <ex:FixedAssets contextRef="I-2007-EU" unitRef="EUR" decimals="0">40000</ex:FixedAssets>
+  <ex:FixedAssets contextRef="I-2007-FR" unitRef="EUR" decimals="0">7000</ex:FixedAssets>
+  <ex:FixedAssets contextRef="I-2007-DE" unitRef="EUR" decimals="0">2000</ex:FixedAssets>
+  <ex:FixedAssets contextRef="I-2007-US" unitRef="EUR" decimals="0">20000</ex:FixedAssets>
+
+  <ex:LiabilitiesAndEquity contextRef="I-2007" unitRef="EUR" decimals="0">100000</ex:LiabilitiesAndEquity>
+  <ex:LiabilitiesAndEquity contextRef="I-2007-EU" unitRef="EUR" decimals="0">50000</ex:LiabilitiesAndEquity>
+  <ex:LiabilitiesAndEquity contextRef="I-2007-FR" unitRef="EUR" decimals="0">0</ex:LiabilitiesAndEquity>
+  <ex:LiabilitiesAndEquity contextRef="I-2007-DE" unitRef="EUR" decimals="0">5000</ex:LiabilitiesAndEquity>
+  <ex:LiabilitiesAndEquity contextRef="I-2007-US" unitRef="EUR" decimals="0">50000</ex:LiabilitiesAndEquity>
+</xbrl>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema elementFormDefault="qualified" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/int/gl/taf/2006-10-25" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-gen="http://www.xbrl.org/int/gl/gen/2006-10-25" xmlns:gl-taf="http://www.xbrl.org/int/gl/taf/2006-10-25">
+  <annotation>
+    <appinfo>
+      <xbrll:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-taf-2006-10-25-presentation.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"/>
+      <xbrll:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-taf-2006-10-25-label.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <import namespace="http://www.xbrl.org/int/gl/gen/2006-10-25" schemaLocation="../gen/gl-gen-2006-10-25.xsd"/>
+  <element name="uniqueConsignmentReference" id="gl-taf_uniqueConsignmentReference" type="gl-taf:uniqueConsignmentReferenceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentType" id="gl-taf_originatingDocumentType" type="gl-taf:originatingDocumentTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentNumber" id="gl-taf_originatingDocumentNumber" type="gl-taf:originatingDocumentNumberItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentDate" id="gl-taf_originatingDocumentDate" type="gl-taf:originatingDocumentDateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentIdentifierType" id="gl-taf_originatingDocumentIdentifierType" type="gl-gen:identifierTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentStructure" id="gl-taf_originatingDocumentStructure" type="gl-taf:originatingDocumentStructureComplexType" substitutionGroup="xbrli:tuple" nillable="true"/>
+  <element name="originatingDocumentIdentifierCode" id="gl-taf_originatingDocumentIdentifierCode" type="gl-taf:originatingDocumentIdentifierCodeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originatingDocumentIdentifierTaxCode" id="gl-taf_originatingDocumentIdentifierTaxCode" type="gl-taf:originatingDocumentIdentifierTaxCodeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="tickingField" id="gl-taf_tickingField" type="gl-taf:tickingFieldItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="documentRemainingBalance" id="gl-taf_documentRemainingBalance" type="gl-taf:documentRemainingBalanceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</schema>

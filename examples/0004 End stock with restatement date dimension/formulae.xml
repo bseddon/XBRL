@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:c="http://xbrl.org/formula/conformance/example"
+  xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <formula:formula xlink:type="resource" xlink:label="formula" 
+      value="$v:start + $v:inflow - $v:outflow"
+      source="v:start"
+      aspectModel="dimensional" implicitFiltering="false">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:period>
+          <formula:instant value="xfi:period-end(xfi:period($v:inflow))"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_start"  bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_inflow"  bindAsSequence="false"/>
+    <variable:factVariable xlink:type="resource" xlink:label="variable_outflow"  bindAsSequence="false"/>
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_start" order="1.0"
+      name="v:start" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_inflow" order="2.0"
+      name="v:inflow" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_outflow" order="3.0"
+      name="v:outflow" />
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_start">
+      <cf:concept><cf:qname>c:stock</cf:qname></cf:concept>
+    </cf:conceptName> 
+    <cf:conceptName xlink:type="resource" xlink:label="filter_inflow">
+      <cf:concept><cf:qname>c:inflow</cf:qname></cf:concept>  
+    </cf:conceptName> 
+    <cf:conceptName xlink:type="resource" xlink:label="filter_outflow">
+      <cf:concept><cf:qname>c:outflow</cf:qname></cf:concept>  
+    </cf:conceptName>
+
+    <!-- Typed dimension filter for the start variable: note test
+    could be quite a few things depending on what is desired, and
+    because restatementDate is a date union, that casting and
+    date-to-following-midnight conversion is required. If the
+    if construct is missing XPath 2 will give the XPTY0004 error -->
+    <df:typedDimension xlink:type="resource" xlink:label="filter_start"
+      test="
+          (: restatement date is an instant of type dateUnion,
+             if reported as xs:date, move to following midnight and
+             convert to dateTime for comparison to period-start dateTime :)
+          (if (data(dim:restatementDate) instance of xs:date)
+             then (dateTime(dim:restatementDate, xs:time('00:00:00')) + xs:dayTimeDuration('P1D'))
+             else dim:restatementDate) 
+             gt xfi:period-start(xfi:period($v:inflow))
+          ">
+      <df:dimension>
+        <df:qname>dim:restatementDateDimension</df:qname>
+      </df:dimension>
+    </df:typedDimension>
+
+    <!-- Period filter for the start variable: note dependency on outflow to get
+    the evaluation order right -->
+    <pf:instantDuration xlink:type="resource" xlink:label="filter_start"
+    variable="v:outflow" boundary="start" />
+
+    <!--  Arcs from variables to their filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_start" xlink:to="filter_start" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_inflow" xlink:to="filter_inflow" order="2.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_outflow" xlink:to="filter_outflow" order="3.0"/>
+
+  </generic:link>
+
+</link:linkbase>

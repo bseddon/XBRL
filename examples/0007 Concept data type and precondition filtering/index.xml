@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0007</number>
+  <name>Concept data type filtering to get monetary facts</name>
+  <description>
+    Filter a set of facts to obtain those with the monetary data types or
+    data types that are derived from the monetary data type.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-data-type-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+
+  <variation id="V-01">
+    <name>Assets := (Liabilities + Equity)</name>
+    <description>
+      Concept data type filtering to enable testing for negative monetary facts.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-data-type-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <data>
+      <instance readMeFirst="true">instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>result.xml</instance>
+    </result>
+  </variation>  
+  
+</testcase>
+

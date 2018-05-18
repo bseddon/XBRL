@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TotalWagesSubjectToEmployeesInsuranceContributions instance for test on ConceptFilter + context period Filter -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen" xmlns:sands="http://www.nltaxonomie.nl/2.0/domein/bd/context/bd-context">
+  <link:schemaRef xlink:href="concepts.xsd" xlink:type="simple" />
+  <link:linkbaseRef 
+    xlink:href="formulae_segment.xml"
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+  <context id="Msg">
+    <entity>
+      <identifier scheme="www.belastingdienst.nl/loonheffingennummer">123456782L01</identifier>
+	  <segment><sands:segmentType>Declarant</sands:segmentType></segment>
+    </entity>
+    <period>
+      <instant>2007-01-31</instant>
+    </period>
+  </context>
+  <unit id="EURO">
+    <measure>iso4217:EUR</measure>
+  </unit>
+	<bd-lhn:TaxData>
+		<bd-lhn:WageTaxDeclaration>
+			<bd-lhn:TaxDeclaration>
+				<bd-lhn:FullTaxDeclaration>
+					<bd-lhn:CollectiveTaxDeclaration>
+						<bd-lhn:TotalSupplementaryContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">3</bd-lhn:TotalSupplementaryContributionsDisabilityInsuranceFund>
+					</bd-lhn:CollectiveTaxDeclaration>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:SupplementaryContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">1.25</bd-lhn:SupplementaryContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>
+					</bd-lhn:IncomeRelationship>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:SupplementaryContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">1.85</bd-lhn:SupplementaryContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>
+					</bd-lhn:IncomeRelationship>
+				</bd-lhn:FullTaxDeclaration>
+			</bd-lhn:TaxDeclaration>
+		</bd-lhn:WageTaxDeclaration>
+	</bd-lhn:TaxData>
+</xbrl>

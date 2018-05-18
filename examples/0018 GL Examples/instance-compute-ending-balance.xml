@@ -1,0 +1,3101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample Trial Balance file for XBRL GL 2005 with annotations  Version 1.0.50728.1 -->
+<!-- This file contains data fields considered very important to representing its subject. Annotations have been provided for the "most important" of those fields. XBRL GL has many other fields that could be helpful in expressing the information, but have been omitted because their presence is more circumstantial. This file was created for educational purposes only, does not represent real company data and we welcome suggestions on improvement. Contact xbrlgl@xbrl.org with comments. -->
+<!-- This file shows how we might represent a summary trial balance with XBRL GL. Trial balances come in many variations, some with the detailed transactions and some without. This is meant to show a four column summarized trial balance. -->
+<!-- The "root" of every XBRL file ("instance document") is xbrl. -->
+<xbrli:xbrl
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:xbrll="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25"
+  xmlns:gl-muc="http://www.xbrl.org/int/gl/muc/2006-10-25"
+  xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2006-10-25"
+  xmlns:gl-plt="http://www.xbrl.org/int/gl/plt/2006-10-25"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+  xmlns:iso639="http://www.xbrl.org/2005/iso639"
+  xsi:schemaLocation="http://www.xbrl.org/int/gl/plt/2006-10-25 plt/case-c-b-m-u-t/gl-plt-2006-10-25.xsd">
+  <xbrll:schemaRef
+    xlink:type="simple"
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+    xlink:href="concepts-compute-ending-balance.xsd" />
+  <!-- Contexts, mandatory according to the XBRL 2.1, Specification, are not meant to describe the information in XBRL GL and appear only by convention. All facts are instant and developers are encouraged to duplicate/provide the date the XBRL GL information is created as the period's date. -->
+  <xbrli:context id="now">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.xbrl.org/xbrlgl/sample">
+        SAMPLE
+      </xbrli:identifier>
+    </xbrli:entity>
+    <!-- The XBRL GL WG recommends using the file creation data as the period. -->
+    <xbrli:period>
+      <xbrli:instant>2004-10-03</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <!-- Units of measure in XBRL GL are handled within the measurable or multicurrency elements. Units are provided by convention and should not be relied upon in interpreting XBRL GL data. -->
+  <xbrli:unit id="usd">
+    <xbrli:measure>iso4217:USD</xbrli:measure>
+  </xbrli:unit>
+  <xbrli:unit id="NotUsed">
+    <xbrli:measure>xbrli:pure</xbrli:measure>
+  </xbrli:unit>
+  <!-- The container for XBRL GL, accountingEntries, is not the root of an XBRL GL file - the root, as with all XBRL files, is xbrl. This means that a single XBRL GL file can store one or more virtual XBRL GL files, through one or more accountingEntries structures with data inside. The primary key to understanding an XBRL GL file is the entriesType. A single physical XBRL GL file can have multiple accountingEntries structures to represent both transactions and master files; the differences are signified by the appropriate entriesType enumerated values. The value of the virtual accountingEntries in a single physical file is that detailed information about accounts (the number, the description and other attributes) can appear once in one accountingEntries structure while the entries themselves can refer only to the accountMainID as the index. -->
+  <gl-cor:accountingEntries>
+    <!-- Because entriesType is strongly suggested, documentInfo will be required. -->
+    <gl-cor:documentInfo>
+      <!-- This field, entriesType, provides the automated guidance on the purpose of the XBRL GL information. The trial balance is a standard, enumerated, type of file. -->
+      <gl-cor:entriesType contextRef="now">
+        trialbalance
+      </gl-cor:entriesType>
+      <!-- Like a serial number, this field, uniqueID, provides a place to uniquely identify/track a series of entries. It is like less relevant for ad-hoc reports, such as a trial balance, which is not normally used for later posting or reentry. XBRL GL provides for later correction through replacement or augmentation of transferred information. -->
+      <gl-cor:uniqueID contextRef="now">001</gl-cor:uniqueID>
+      <gl-cor:language contextRef="now">iso639:en</gl-cor:language>
+      <!-- The date associated with the creation of the data reflected within the associated accountingEntries section. Somewhat like a "printed date" on a paper report -->
+      <gl-cor:creationDate contextRef="now">
+        2005-07-05
+      </gl-cor:creationDate>
+      <gl-bus:creator contextRef="now">
+        XBRL GL Working Group
+      </gl-bus:creator>
+      <!-- A description related to the batch of information express in the accountingEntries structure. Why was this batch of information put together and published? It would be helpful to put that information in the entriesComment. -->
+      <gl-cor:entriesComment contextRef="now">
+        A best practice trial balance instance document
+      </gl-cor:entriesComment>
+      <!-- The period of time reflected by the trial balance. -->
+      <gl-cor:periodCoveredStart contextRef="now">
+        2005-06-01
+      </gl-cor:periodCoveredStart>
+      <gl-cor:periodCoveredEnd contextRef="now">
+        2005-06-30
+      </gl-cor:periodCoveredEnd>
+      <gl-bus:sourceApplication contextRef="now">
+        Navision
+      </gl-bus:sourceApplication>
+      <gl-muc:defaultCurrency contextRef="now">iso4217:usd</gl-muc:defaultCurrency>
+    </gl-cor:documentInfo>
+    <!-- Typically, an export from an accounting system does not carry with it information specifically about the company. However, the name of the company would be a very good thing to include with the file, making the entityInformation tuple necessary. -->
+    <gl-cor:entityInformation>
+      <!-- The name of the company would be a very good thing to include with the file; this structure and its content are where that would be stored. -->
+      <gl-bus:organizationIdentifiers>
+        <gl-bus:organizationIdentifier contextRef="now">
+          ABC Company
+        </gl-bus:organizationIdentifier>
+        <gl-bus:organizationDescription contextRef="now">
+          Company Name
+        </gl-bus:organizationDescription>
+      </gl-bus:organizationIdentifiers>
+    </gl-cor:entityInformation>
+    <!-- A trial balance requires entries in both the entryHeader and entryDetail. Few files can be represented using only documentInfo and entityInformation sections, but it is certainly possible. This format of trial balance likely requires two different entry header structures differentiates solely by the entryQualifier to describe the beginning and ending balances as BBF (Balance Brought Forward) and the other entries as ... well, NOT BBF. Another alternative would be to use the xbrlInclude structure without taxonomy references to take advantage of the xbrlInclude, which lets you state that a entryDetail line is beginning balance, ending balance or period change.-->
+    <gl-cor:entryHeader>
+      <!-- The key, as noted above, is the qualifierEntry, which will identify the first and fourth columns (the beginning balance and the ending balances) as BBF and the second and third columns (the total debits and the total credits) as normal periodic changes. -->
+      <gl-cor:qualifierEntry contextRef="now">
+        balance-brought-forward
+      </gl-cor:qualifierEntry>
+      <!-- Each amount requires its own entryDetail line. However, an entryHeader can have as many accounts as necessary. Should the trial balance want to tie multiple accounts together in this trial balance or to tie an account to an XBRL taxonomy element, then the associated accounts or the account to taxonomy mappings, then each grouping would require a separate entryHeader line. -->
+      <gl-cor:entryDetail>
+        <!-- A unique identifier for each entry detail line within an entry header, this should at the least be a counter. -->
+        <gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+        <!-- If account is represented elsewhere as a master file, you should only need a "key" to get to it.  You need mainID, of course. You wouldn't need to duplicate "description". In a simple environment, you might not need to duplicate accountPurposeCode or accountType, but in a multi-GAAP or concolidating environment you need accountPurposeCode and in an environment when accounts may be customers or vendors you would need accountType. -->
+        <gl-cor:account>
+          <!-- The account number is the basis for posting journal entries. In some cases, accounting systems used by small organizations do not use account numbers/codes, but only use a descriptive name for the account.  -->
+          <gl-cor:accountMainID contextRef="now">
+            1001
+          </gl-cor:accountMainID>
+          <!-- In most cases, the description is given to help a human reader; the accountMainID would be sufficient for data exchange purposes. As noted previously, some implementations use the description as the primary identifier of the account.  -->
+          <gl-cor:accountMainDescription contextRef="now">
+            SunTrust Operating
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          242678.26
+        </gl-cor:amount>
+        <!-- In the case of our four column trial balance, the debit and credit code will be used with the period change items to allocate the amounts to the columns. For the beginning and ending balances, the broader choice between signed amount, separate sign and debit credit code are in action. -->
+        <!-- XBRL GL has been designed to reflect how popular accounting systems store amounts - some combination of a signed amount (e.g., 5, -10), a separate sign (entered into signOfAmount) and a separate place to indicate the number is associated with a debit or credit (debitCreditCode). -->
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <!-- The posting date is the accounting significance date. For our balances, they will reflect the date at the beginning of the month and the date at the end of the month. -->
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <!-- XBRL GL has been designed as a bridge between transactions and reporting. As such, it includes tools to indicate elements in other schemas to which the detail can be summarized. Although this mapping will often be contained elsewhere, the XBRL GL instance can also contain the element in the external schema(s) which this line, and the "amount" by default, will be summarized to. -->
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1001
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            SunTrust Operating
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          232042.26
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">3</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1003
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Eagle Bank
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          104468.02
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">4</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1003
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Eagle Bank
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          77033.02
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">5</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Accounts Receivable
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          168416.25
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AccountsReceivableTradeNet
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">6</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Accounts Receivable
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          156194.25
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AccountsReceivableTradeNet
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">7</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1102
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Allowance for Doubtful Acct
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          11490.38
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AllowanceDoubtfulAccounts
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">8</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1102
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Allowance for Doubtful Acct
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          11490.38
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AllowanceDoubtfulAccounts
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">9</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3000
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Opening Bal Equity
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          4.01
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_StockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">10</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3000
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Opening Bal Equity
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          4.01
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_StockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">11</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Contribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          676961.30
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">12</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Contribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          676961.30
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">13</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Distribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          490000
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">14</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Distribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          490000
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">15</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3140
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Retained Earnings
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          163394.25
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_RetainedEarnings
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">16</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3140
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Retained Earnings
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          163394.25
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_RetainedEarnings
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">17</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Outsourcing SVC Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          238073.12
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">18</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Outsourcing SVC Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          258362.12
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">19</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4300
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Setup Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          74500
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">20</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4300
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Setup Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          82571
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">21</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4500
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Hosting and Maint. Fees
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          15769.78
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">22</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4500
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Hosting and Maint. Fees
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          16552.78
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">23</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4400
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Revenues Other
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          2321.87
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">24</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4400
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Revenues Other
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          4022.87
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">25</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Transaction Revenues
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          7189
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">26</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Transaction Revenues
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          7406
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">27</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5010
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Salaries and Wages
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          52500
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">28</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5010
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Salaries and Wages
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          84932
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">29</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5490
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefits Full Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          5084
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">30</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5490
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefits Full Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          6689
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">31</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5040
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Client Support - DAS
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          58870.19
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">32</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5040
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Client Support - DAS
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          87657.19
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">33</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5091
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefit Part Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          19805.37
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">34</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5091
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefit Part Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          26258.37
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">35</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5050
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Subcontractors
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          2977.83
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">36</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5050
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Subcontractors
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          4125.83
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">37</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5450
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Software e Hardware Purch and Support
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          3081.69
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesOther
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">38</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5450
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Software e Hardware Purch and Support
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          3887.69
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesOther
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">39</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5600
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Rent and Utilities
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          9500
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_LeaseRentalExpense
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">40</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5600
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Rent and Utilities
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          9500
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_LeaseRentalExpense
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">41</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Supplies and Office Expenses
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          32314.08
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-01
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            beginning_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherGeneralAdministrativeExpenses
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">42</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Supplies and Office Expenses
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          42437.08
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:postingDate contextRef="now">
+          2005-06-30
+        </gl-cor:postingDate>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            ending_balance
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherGeneralAdministrativeExpenses
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+    </gl-cor:entryHeader>
+    <!-- The first entryHeader was for the accounts/amounts representing the beginning and ending balances (with entryQualifier of BBF). The second entryHeader is for the period changes. -->
+    <gl-cor:entryHeader>
+      <!-- The key, as noted above, is the qualifierEntry, which will identify the first and fourth columns (the beginning balance and the ending balances) as BBF and the second and third columns (the total debits and the total credits) as normal periodic changes. This entryHeader represents the period changes and so does not use BBF, but "standard",-->
+      <gl-cor:qualifierEntry contextRef="now">
+        standard
+      </gl-cor:qualifierEntry>
+      <!-- Each amount requires its own entryDetail line. However, an entryHeader can have as many accounts as necessary. Should the trial balance want to tie multiple accounts together in this trial balance or to tie an account to an XBRL taxonomy element, then the associated accounts or the account to taxonomy mappings, then each grouping would require a separate entryHeader line. -->
+      <gl-cor:entryDetail>
+        <!-- A unique identifier for each entry detail line within an entry header, this should at the least be a counter. -->
+        <gl-cor:lineNumber contextRef="now">1</gl-cor:lineNumber>
+        <!-- If account is represented elsewhere as a master file, you should only need a "key" to get to it.  You need mainID, of course. You wouldn't need to duplicate "description". In a simple environment, you might not need to duplicate accountPurposeCode or accountType, but in a multi-GAAP or concolidating environment you need accountPurposeCode and in an environment when accounts may be customers or vendors you would need accountType. -->
+        <gl-cor:account>
+          <!-- The account number is the basis for posting journal entries. In some cases, accounting systems used by small organizations do not use account numbers/codes, but only use a descriptive name for the account.  -->
+          <gl-cor:accountMainID contextRef="now">
+            1001
+          </gl-cor:accountMainID>
+          <!-- In most cases, the description is given to help a human reader; the accountMainID would be sufficient for data exchange purposes. As noted previously, some implementations use the description as the primary identifier of the account.  -->
+          <gl-cor:accountMainDescription contextRef="now">
+            SunTrust Operating
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          37851
+        </gl-cor:amount>
+        <!-- In the case of our four column trial balance, the debit and credit code will be used with the period change items to allocate the amounts to the columns. For the beginning and ending balances, the broader choice between signed amount, separate sign and debit credit code are in action. -->
+        <!-- XBRL GL has been designed to reflect how popular accounting systems store amounts - some combination of a signed amount (e.g., 5, -10), a separate sign (entered into signOfAmount) and a separate place to indicate the number is associated with a debit or credit (debitCreditCode). -->
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <!-- For our second and third columns, the reporting period will guide the duration over which these amounts apply. -->
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">2</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1001
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            SunTrust Operating
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          48487
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">3</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1003
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Eagle Bank
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          5432
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">4</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1003
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Eagle Bank
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          32867
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_UnrestrictedCash
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">5</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Accounts Receivable
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          12654
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AccountsReceivableTradeNet
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">6</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Accounts Receivable
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          24876
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AccountsReceivableTradeNet
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">7</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1102
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Allowance for Doubtful Acct
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AllowanceDoubtfulAccounts
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">8</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            1102
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Allowance for Doubtful Acct
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_AllowanceDoubtfulAccounts
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">9</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3000
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Opening Bal Equity
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_StockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">10</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3000
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Opening Bal Equity
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_StockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">11</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Contribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">12</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Contribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">13</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Distribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">14</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Capital Distribution
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherChangesStockholdersEquity
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">15</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3140
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Retained Earnings
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_RetainedEarnings
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">16</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            3140
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Retained Earnings
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_RetainedEarnings
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">17</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Outsourcing SVC Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">18</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Outsourcing SVC Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          20289
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">19</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4300
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Setup Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">20</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4300
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Setup Fee Revenue
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          8071
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">21</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4500
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Hosting and Maint. Fees
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">22</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4500
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Hosting and Maint. Fees
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          783
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_SalesRevenueNetServices
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">23</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4400
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Revenues Other
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">24</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4400
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Revenues Other
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          1701
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">25</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Transaction Revenues
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">26</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            4200
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Transaction Revenues
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          217
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherOperatingRevenue
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">27</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5010
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Salaries and Wages
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          32432
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">28</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5010
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Salaries and Wages
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">29</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5490
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefits Full Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          1605
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">30</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5490
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefits Full Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">31</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5040
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Client Support - DAS
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          28787
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">32</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5040
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Client Support - DAS
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">33</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5091
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefit Part Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          6453
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">34</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5091
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Fringe Benefit Part Time
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">35</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5050
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Subcontractors
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          1148
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">36</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5050
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Subcontractors
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesDirectLabor
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">37</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5450
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Software e Hardware Purch and Support
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          806
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesOther
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">38</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5450
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Software e Hardware Purch and Support
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_CostServicesOther
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">39</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5600
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Rent and Utilities
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_LeaseRentalExpense
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">40</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5600
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Rent and Utilities
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_LeaseRentalExpense
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">41</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Supplies and Office Expenses
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          10123
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          D
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherGeneralAdministrativeExpenses
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+      <gl-cor:entryDetail>
+        <gl-cor:lineNumber contextRef="now">42</gl-cor:lineNumber>
+        <gl-cor:account>
+          <gl-cor:accountMainID contextRef="now">
+            5100
+          </gl-cor:accountMainID>
+          <gl-cor:accountMainDescription contextRef="now">
+            Supplies and Office Expenses
+          </gl-cor:accountMainDescription>
+          <gl-cor:accountPurposeCode contextRef="now">
+            usgaap
+          </gl-cor:accountPurposeCode>
+          <gl-cor:accountType contextRef="now">
+            account
+          </gl-cor:accountType>
+        </gl-cor:account>
+        <gl-cor:amount
+          contextRef="now"
+          decimals="2"
+          unitRef="usd">
+          0
+        </gl-cor:amount>
+        <gl-cor:debitCreditCode contextRef="now">
+          C
+        </gl-cor:debitCreditCode>
+        <gl-cor:xbrlInfo>
+          <gl-cor:xbrlInclude contextRef="now">
+            period_change
+          </gl-cor:xbrlInclude>
+          <gl-cor:summaryReportingElement contextRef="now">
+            usfr-pte_OtherGeneralAdministrativeExpenses
+          </gl-cor:summaryReportingElement>
+        </gl-cor:xbrlInfo>
+      </gl-cor:entryDetail>
+    </gl-cor:entryHeader>
+  </gl-cor:accountingEntries>
+</xbrli:xbrl>

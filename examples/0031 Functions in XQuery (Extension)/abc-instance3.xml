@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+  xmlns="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:test="http://abc.com/test1"
+  xsi:schemaLocation=""
+>
+  <link:schemaRef xlink:href="abc.xsd" xlink:type="simple" />
+  <link:linkbaseRef xlink:href="abc-formula3.xml" xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+    </period>
+  </context>
+
+  <unit id="u-eur">
+    <measure>iso4217:EUR</measure>
+  </unit>
+
+  <unit id="u-jpy">
+    <measure>iso4217:JPY</measure>
+  </unit>
+
+  <test:b    contextRef="c1" unitRef="u-eur" decimals="-3">1001000</test:b> 
+  <test:c    contextRef="c1" unitRef="u-eur" decimals="-3">1002000</test:c> 
+
+  <test:b    contextRef="c1" unitRef="u-jpy" decimals="-6">2010000000</test:b> 
+  <test:c    contextRef="c1" unitRef="u-jpy" decimals="-6">2020000000</test:c> 
+</xbrl>
+
+

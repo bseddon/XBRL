@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xs:schema 
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+  elementFormDefault="qualified" 
+  targetNamespace="http://xbrl.org/formula/conformance/example/dimensions"
+  xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xdt="http://xbrl.org/2005/xbrldt"
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xl="http://www.xbrl.org/2003/XLink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  >
+
+  <xs:annotation>
+    <xs:appinfo>
+
+      <link:linkbaseRef 
+        xlink:href="dimensions.xml"
+        xlink:type="simple" 
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"/>
+
+    </xs:appinfo>
+  </xs:annotation>
+
+  <xs:annotation>
+    <xs:appinfo>
+      <link:roleType roleURI="http://xbrl.org/formula/conformance/example/dimensions/noDimensions" id="emptyHypercube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType roleURI="http://xbrl.org/formula/conformance/example/dimensions/oneDimension" id="oneDimensionHypercube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+    </xs:appinfo>
+  </xs:annotation>
+
+  <xs:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+
+  <xs:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+
+  <xs:element name="cube" id="cube" substitutionGroup="xdt:hypercubeItem" xbrli:periodType="duration" type="xbrli:stringItemType" abstract="true" />
+
+  <xs:element name="restatementDateDimension" id="restatementDateDimension" substitutionGroup="xdt:dimensionItem" xbrli:periodType="duration" type="xbrli:stringItemType" xdt:typedDomainRef="#restatementDate" abstract="true" />
+
+  <xs:element name="restatementDate" id="restatementDate" type="xbrli:dateUnion" />
+
+</xs:schema>

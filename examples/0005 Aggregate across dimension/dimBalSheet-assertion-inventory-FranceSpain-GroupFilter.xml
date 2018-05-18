@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ex="http://abc.com/example"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/assertion/value ../../core_schemas/2008/value-assertion.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:href="../../core_schemas/2008/generic-label.xsd#standard-label" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <va:valueAssertion xlink:type="resource" xlink:label="assertion"
+        id="assertion"
+        aspectModel="dimensional" implicitFiltering="true" 
+      test="$inventory gt 0.15 * $currentAssets"/>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_inventory" bindAsSequence="false"  />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_currentAssets" bindAsSequence="false"  />
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_inventory">
+      <cf:concept>
+        <cf:qname>ex:Inventories</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+    <cf:conceptName xlink:type="resource" xlink:label="filter_currentAssets">
+      <cf:concept>
+        <cf:qname>ex:CurrentAssets</cf:qname>
+      </cf:concept>  
+    </cf:conceptName> 
+
+    <!--  Dimension filters for the fact variables by country -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_countries">
+      <df:dimension>
+        <df:qname>ex:CountriesAxis</df:qname>
+      </df:dimension>
+      <df:member>
+        <df:qname>ex:France</df:qname>
+      </df:member>
+      <df:member>
+        <df:qname>ex:Spain</df:qname>
+      </df:member>
+    </df:explicitDimension>
+
+    <!-- use group filter for dimensions -->
+    <variable:variableSetFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-filter" complement="false"
+      xlink:from="assertion" xlink:to="filter_countries" order="1.0" />
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="assertion" xlink:to="variable_inventory" order="1.0"
+      name="inventory" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="assertion" xlink:to="variable_currentAssets" order="2.0"
+      name="currentAssets" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true"
+      xlink:from="variable_inventory" xlink:to="filter_inventory" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true"
+      xlink:from="variable_currentAssets" xlink:to="filter_currentAssets" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>

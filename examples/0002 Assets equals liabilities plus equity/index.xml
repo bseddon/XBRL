@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://xbrl.org/2008/conformance ../../infrastructure/test.xsd
+  ">
+
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+
+  <number>0002</number>
+
+  <name>Compute total assets from total liabilities and total equity.</name>
+
+  <description>
+    The example involves derivation of a monetary value from other
+    monetary values.
+  </description>
+
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+
+  <variation id="V-01">
+    <name>Compute Assets</name>
+    <description>
+      Assets := (Liabilities + Equity)
+      This duplicates the functionality of the calculation linkbase.
+    </description>
+
+    <data>
+      <instance readMeFirst="true">input.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+
+    <result>
+      <instance>output.xml</instance>
+    </result>
+
+  </variation>
+
+</testcase>

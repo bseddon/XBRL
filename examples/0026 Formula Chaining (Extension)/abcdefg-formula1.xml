@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:instance="http://xbrl.org/2008/formula/instance"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:test="http://abc.com/test1"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2008/formula/instance formula-instance.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/instance-variable" xlink:href="formula-instance.xsd#instance-variable" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/formula-instance" xlink:href="formula-instance.xsd#formula-instance" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- formula 1 produces a = b + c +d -->
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="$b + $c + $e"
+      source="b"
+      aspectModel="dimensional" implicitFiltering="true" >
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:a</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- formula 2 to produce test:c temporary facts for formula 1, above -->
+    <formula:formula xlink:type="resource" xlink:label="formula2" 
+      value="$d + $e" 
+      source="d"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:c</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- formula 3 to produce test:e temporary facts for formula 1, above -->
+    <formula:formula xlink:type="resource" xlink:label="formula3" 
+      value="$f + $g" 
+      source="f"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:e</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- temporary instance to pass C to formula1 -->
+    <instance:instance name="temp-inst" xlink:type="resource" xlink:label="temp-inst" />
+
+    <!-- Chaining, formula 2 output to temp-inst -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/formula-instance" 
+      xlink:from="formula2" xlink:to="temp-inst" order="1.0"/>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_b"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_c"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_d"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_e"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_f"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_g"   bindAsSequence="false" />
+
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_b">
+      <cf:concept>
+        <cf:qname>test:b</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_c">
+      <cf:concept>
+        <cf:qname>test:c</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_d">
+      <cf:concept>
+        <cf:qname>test:d</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_e">
+      <cf:concept>
+        <cf:qname>test:e</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_f">
+      <cf:concept>
+        <cf:qname>test:f</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_g">
+      <cf:concept>
+        <cf:qname>test:g</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!--  Arc from formula 1 to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="variable_b" order="1.0"
+      name="b" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="variable_c" order="3.0"
+      name="c" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="variable_e" order="3.0"
+      name="e" />
+
+    <!--  Arc from formula 2 to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula2" xlink:to="variable_d" order="1.0"
+      name="d" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula2" xlink:to="variable_e" order="1.0"
+      name="e" />
+
+    <!-- Chaining, formula 2's output in temp-inst to variable_c -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/instance-variable" 
+      xlink:from="temp-inst" xlink:to="variable_c" order="1.0"/>
+
+    <!--  Arc from formula 3 to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula3" xlink:to="variable_f" order="1.0"
+      name="d" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula3" xlink:to="variable_g" order="1.0"
+      name="e" />
+
+    <!-- Chaining, formula 3's output in temp-inst to variable_c -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/instance-variable" 
+      xlink:from="temp-inst" xlink:to="variable_e" order="1.0"/>
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_b" xlink:to="filter_b" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_c" xlink:to="filter_c" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_d" xlink:to="filter_d" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_e" xlink:to="filter_e" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_f" xlink:to="filter_f" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_g" xlink:to="filter_g" order="1.0"/>
+  </generic:link>
+
+</link:linkbase>

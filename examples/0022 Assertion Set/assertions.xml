@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:validation="http://xbrl.org/2008/validation"  
+  xmlns:ea="http://xbrl.org/2008/assertion/existence"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:concept="http://xbrl.org/formula/conformance/example"
+  xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/assertion/existence ../../core_schemas/2008/existence-assertion.xsd
+  http://xbrl.org/2008/validation ../../core_schemas/2008/validation.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/assertion-set" xlink:href="../../core_schemas/2008/validation.xsd#assertion-set" xlink:type="simple"/>
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+                <!--  Assertion set definition -->
+    <validation:assertionSet xlink:type="resource" xlink:label="AssertionSet"/>
+        
+                <!--  Tests the existence of at least one fact for the concept NetIncomes 
+                                        This assertion should be satisfied for the instance provided -->
+    <ea:existenceAssertion xlink:type="resource" xlink:label="netIncomesMustExist"
+        id="netIncomesMustExist"
+        aspectModel="dimensional" implicitFiltering="true"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="netIncomesMustExist" xlink:to="NetIncomes" order="2.0"
+      name="v:NetIncomes"/>
+
+                <!--  Tests that no Expenses are provided in the instance document
+                                        This assertion should be satisfied for the instance provided -->
+    <ea:existenceAssertion xlink:type="resource" xlink:label="expensesMustNotExist"
+        id="expensesMustNotExist"
+        test=". eq 0" aspectModel="dimensional" implicitFiltering="true"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="expensesMustNotExist" xlink:to="Expenses" order="2.0"
+      name="v:Expenses"/>
+
+
+                <!--  Tests that there is at least a couple of facts for concept NetIncomes and
+                                        GrossIncomes  provided in the instance document for the same context
+                                        and unit, where the value of NetIncomes is less than or equal to the
+                                        value of GrossIncomes.  
+                                        This assertion should fail for the instance provided -->
+                                        
+    <ea:existenceAssertion xlink:type="resource" 
+        xlink:label="incomesMustExist" id="incomesMustExist"
+        aspectModel="dimensional" implicitFiltering="true"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="incomesMustExist" xlink:to="NetIncomes" order="1.0"
+      name="v:GrossIncomes"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="incomesMustExist" xlink:to="GrossIncomes" order="2.0"
+      name="v:NetIncomes"/>
+
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" 
+      xlink:from="incomesMustExist" xlink:to="incomesPrecondition" order="1.0"/>
+
+                <variable:precondition xlink:type="resource" xlink:label="incomesPrecondition"
+                                test="$v:NetIncomes le $v:GrossIncomes"/>
+
+    <!--  Fact variable: NetIncomes -->    
+    <variable:factVariable xlink:type="resource" xlink:label="NetIncomes"
+         bindAsSequence="false"/>
+                <cf:conceptName xlink:type="resource" xlink:label="NetIncomesFilter">
+                        <cf:concept>
+                                <cf:qname>
+                                        concept:NetIncomes
+                                </cf:qname>
+                        </cf:concept>
+                </cf:conceptName>               
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        xlink:from="NetIncomes" xlink:to="NetIncomesFilter" 
+        complement="false" cover="true" order="1.0"/>
+
+    <!--  Fact variable: GrossIncomes -->    
+    <variable:factVariable xlink:type="resource" xlink:label="GrossIncomes"
+         bindAsSequence="false"/>
+                <cf:conceptName xlink:type="resource" xlink:label="GrossIncomesFilter">
+                        <cf:concept>
+                                <cf:qname>
+                                        concept:GrossIncomes
+                                </cf:qname>
+                        </cf:concept>
+                </cf:conceptName>               
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        xlink:from="GrossIncomes" xlink:to="GrossIncomesFilter" 
+        complement="false" cover="true" order="1.0"/>
+
+    <!--  Fact variable: Expenses -->    
+    <variable:factVariable xlink:type="resource" xlink:label="Expenses"
+         bindAsSequence="false"/>
+                <cf:conceptName xlink:type="resource" xlink:label="ExpensesFilter">
+                        <cf:concept>
+                                <cf:qname>
+                                        concept:Expenses
+                                </cf:qname>
+                        </cf:concept>
+                </cf:conceptName>               
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        xlink:from="Expenses" xlink:to="ExpensesFilter" 
+        complement="false" cover="true" order="1.0"/>
+  
+        <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/assertion-set" 
+                                xlink:from="AssertionSet" xlink:to="netIncomesMustExist"/> 
+
+                <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/assertion-set" 
+                                xlink:from="AssertionSet" xlink:to="expensesMustNotExist"/> 
+
+                <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/assertion-set" 
+                                xlink:from="AssertionSet" xlink:to="incomesMustExist"/> 
+  
+        
+  </generic:link>
+</link:linkbase>

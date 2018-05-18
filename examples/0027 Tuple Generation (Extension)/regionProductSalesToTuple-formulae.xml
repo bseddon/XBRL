@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:tuple="http://xbrl.org/2008/formula/tuple"
+  xmlns:instance="http://xbrl.org/2008/formula/instance"
+  xmlns:validation="http://xbrl.org/2008/validation"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:tf="http://xbrl.org/2008/filter/tuple"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:eg="http://www.SampleCompany.com/Company"  
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/formula/tuple formula-tuple.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/filter/general ../../core_schemas/2008/general-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2008/formula/instance formula-instance.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+
+
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/instance-variable" xlink:href="formula-instance.xsd#formula-scope" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- (1) report tuple formula has no filters, it evaluates only once -->
+
+    <tuple:tuple xlink:type="resource" xlink:label="formulaReportTuple"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>eg:Report</formula:qname>
+        </formula:concept>
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- report tuple (1) is visible to nested region tuple formula (2) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="reportTuple" 
+      xlink:from="formulaReportTuple" xlink:to="formulaRegionTuple" order="1.0"/>
+
+    <!-- (2) region tuple formula evaluates for each region, creates the
+      region tuple as a child of the report tuple, evaluates once per
+      region dimension member -->
+
+    <tuple:tuple xlink:type="resource" xlink:label="formulaRegionTuple"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>eg:Region</formula:qname>
+        </formula:concept>
+        <tuple:location source="reportTuple" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- region tuple (2) is visible to regionId formula (3) and also to
+         nested product tuple formula (4) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="regionTuple" 
+      xlink:from="formulaRegionTuple" xlink:to="formulaRegionId" />
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="regionTuple" 
+      xlink:from="formulaRegionTuple" xlink:to="formulaProductTuple" />
+
+    <!-- (3) region Id formula evaluates for each region, creates the
+      region id element inside each region tuple, evaluates once per
+      region dimension member -->
+
+    <formula:formula xlink:type="resource" xlink:label="formulaRegionId"
+      value="
+        local-name-from-QName(
+          xfi:fact-explicit-dimension-value(
+            $itemsInRegion[1],
+            QName('http://www.SampleCompany.com/Company','eg:RegionDimension'))
+          )
+      "
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>eg:RegionId</formula:qname>
+        </formula:concept>
+        <tuple:location source="regionTuple" />
+        <!-- all other aspects come from first in itemsInRegion sequence -->
+        <formula:entityIdentifier
+          scheme="xfi:identifier-scheme( xfi:identifier( $itemsInRegion[1] ) )"
+          value="xfi:identifier-value( xfi:identifier( $itemsInRegion[1] ) )"/>
+        <formula:period>
+          <formula:duration
+            start="xfi:period-start( xfi:period( $itemsInRegion[1] ) )"
+            end="xfi:period-end( xfi:period( $itemsInRegion[1] ) )"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- (4) product tuple formula evaluates for each product, creates the
+      region tuple as a child of the region tuple, evaluates once per
+      product dimension member -->
+
+    <tuple:tuple xlink:type="resource" xlink:label="formulaProductTuple"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>eg:Product</formula:qname>
+        </formula:concept>
+        <tuple:location source="regionTuple" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- product tuple (4) is visible to productId formula (5) and also to
+         the items formula (6) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="productTuple" 
+      xlink:from="formulaProductTuple" xlink:to="formulaProductId" />
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="productTuple" 
+      xlink:from="formulaProductTuple" xlink:to="formulaSingleItem" />
+
+    <!-- (5) product Id formula evaluates for each product, creates the
+      product id element inside each product tuple, evaluates once per
+      product dimension member -->
+
+    <formula:formula xlink:type="resource" xlink:label="formulaProductId"
+      value="
+        local-name-from-QName(
+          xfi:fact-explicit-dimension-value(
+               $itemsInRegionInProduct[1],
+               QName('http://www.SampleCompany.com/Company','eg:ProductDimension'))
+          )
+      "
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>eg:ProductId</formula:qname>
+        </formula:concept>
+        <tuple:location source="productTuple" />
+        <!-- all other aspects come from first in itemsInRegionInProduct sequence -->
+        <formula:entityIdentifier
+          scheme="xfi:identifier-scheme( xfi:identifier( $itemsInRegionInProduct[1] ) )"
+          value="xfi:identifier-value( xfi:identifier( $itemsInRegionInProduct[1] ) )"/>
+        <formula:period>
+          <formula:duration
+            start="xfi:period-start( xfi:period( $itemsInRegionInProduct[1] ) )"
+            end="xfi:period-end( xfi:period( $itemsInRegionInProduct[1] ) )"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- (6) formulaItem evaluates once per item -->
+    <formula:formula xlink:type="resource" xlink:label="formulaSingleItem"
+      value="$item"
+      source="item"
+      aspectModel="dimensional" implicitFiltering="true">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <tuple:location source="productTuple" />
+        <!-- all other aspects come from source $item -->
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Fact variables of input instance.  -->
+
+    <!-- (1) items in region is subsequenced by implicit entity/scheme/period 
+         concept & product dimension are covered -->
+    <variable:factVariable xlink:type="resource"  bindAsSequence="true"
+      xlink:label="variable_itemsInRegion" />
+
+    <!-- (2) items per product (implicit match by region, entity, etc) -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="true"
+      xlink:label="variable_itemsInRegionInProduct" />
+
+    <!-- (3) items one-by-one iteratively, not in a sequence -->
+    <variable:factVariable xlink:type="resource" bindAsSequence="false" 
+      xlink:label="variable_item" />
+
+    <!--  No concept filters for the fact variables -->
+
+    <!--  Covering filters for explicit dimensions -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_dimensionProductCover">
+      <df:dimension>
+        <df:qname>eg:ProductDimension</df:qname>
+      </df:dimension>
+    </df:explicitDimension>
+
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_dimensionRegionCover">
+      <df:dimension>
+        <df:qname>eg:RegionDimension</df:qname>
+      </df:dimension>
+    </df:explicitDimension>
+
+    <!-- covering concept filter for input instance items (multiple concepts) -->
+    <cf:conceptSubstitutionGroup xlink:type="resource" xlink:label="filter_conceptCover" strict="false">
+       <cf:substitutionGroup>
+           <cf:qname>xbrli:item</cf:qname>
+       </cf:substitutionGroup>
+    </cf:conceptSubstitutionGroup>
+
+    <!--  reportTuple filter arcs -->
+    <!--  Arc from the formula to the variables it depends on -->
+    <!--  No variables for the reportTuple formula -->
+
+    <!--  regionTuple filter arcs -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="itemsInRegion" 
+      xlink:from="formulaRegionTuple" xlink:to="variable_itemsInRegion" order="2.0"/>
+
+    <!--  regionId formula arcs -->
+    <!--  no arc required, fires once per evaluation of region tuple formula -->
+
+    <!--  productTuple arcs -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="itemsInRegionInProduct" 
+      xlink:from="formulaProductTuple" xlink:to="variable_itemsInRegionInProduct" order="2.0"/>
+
+
+    <!--  productId arcs -->
+    <!--  no arc required, fires once per evaluation of product tuple formula -->
+
+
+    <!--  item formula arcs -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      name="item" 
+      xlink:from="formulaSingleItem" xlink:to="variable_item" order="2.0"/>
+
+
+    <!--  Arcs from variables to their filters -->
+
+    <!--  Items in region covers productDim and concept -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_itemsInRegion" xlink:to="filter_dimensionProductCover" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_itemsInRegion" xlink:to="filter_conceptCover" order="2.0"/>
+    
+    <!--  Items in product covers concept -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_itemsInRegionInProduct" xlink:to="filter_conceptCover" order="1.0"/>
+      
+
+  </generic:link>
+
+</link:linkbase>
+
+
+

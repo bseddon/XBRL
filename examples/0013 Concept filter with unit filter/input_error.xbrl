@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TotalWagesSubjectToEmployeesInsuranceContributions instance for test on ConceptFilter + context period Filter -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen">
+  <link:schemaRef xlink:href="concepts.xsd" xlink:type="simple" />
+  <context id="Msg">
+    <entity>
+      <identifier scheme="www.belastingdienst.nl/loonheffingennummer">123456782L01</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-31</instant>
+    </period>
+  </context>
+  <unit id="USD">
+    <measure>iso4217:USD</measure>
+  </unit>
+  <unit id="EURO">
+    <measure>iso4217:EUR</measure>
+  </unit>
+	<bd-lhn:TaxData>
+		<bd-lhn:WageTaxDeclaration>
+			<bd-lhn:TaxDeclaration>
+				<bd-lhn:FullTaxDeclaration>
+					<bd-lhn:CollectiveTaxDeclaration>
+						<bd-lhn:TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">103</bd-lhn:TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund>
+					</bd-lhn:CollectiveTaxDeclaration>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:BasicContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">96.36</bd-lhn:BasicContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>
+					</bd-lhn:IncomeRelationship>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:BasicContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="EURO" decimals="INF">34.18</bd-lhn:BasicContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>						
+					</bd-lhn:IncomeRelationship>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:BasicContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="USD" decimals="INF">69.36</bd-lhn:BasicContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>
+					</bd-lhn:IncomeRelationship>
+					<bd-lhn:IncomeRelationship>
+						<bd-lhn:Employee>
+							<bd-lhn:BasicContributionsDisabilityInsuranceFund contextRef="Msg" unitRef="USD" decimals="INF">34.18</bd-lhn:BasicContributionsDisabilityInsuranceFund>
+						</bd-lhn:Employee>
+					</bd-lhn:IncomeRelationship>
+				</bd-lhn:FullTaxDeclaration>
+			</bd-lhn:TaxDeclaration>
+		</bd-lhn:WageTaxDeclaration>
+	</bd-lhn:TaxData>
+</xbrl>

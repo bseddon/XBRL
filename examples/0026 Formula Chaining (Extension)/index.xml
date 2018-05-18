@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0026</number>
+  <name>Formula chaining extension usage pattern examples</name>
+  <description>
+    Examples of usage pattern for extension module to implement formula chaining.
+  </description>
+
+  <variation id="V-01">
+    <name>
+        Wiki usage pattern chaining example 1.
+        A = B + C chained with C = D + E
+    </name>
+    <description>
+      Usage pattern example where first formula is chained from result of second.
+    </description>
+    <data>
+      <schema>abcde-concepts.xsd</schema>
+      <instance readMeFirst="true">abcde-instance1.xml</instance>  
+     <linkbase>abcde-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abcde-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>
+        Wiki usage pattern chaining example 1.
+        A = B + C + E chained with C = D + E and E = F + G
+    </name>
+    <description>
+      Variation on V-01 with nested dependencies
+    </description>
+    <data>
+      <schema>abcdefg-concepts.xsd</schema>
+      <instance readMeFirst="true">abcdefg-instance1.xml</instance>  
+     <linkbase>abcdefg-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abcdefg-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>
+      V-01 with results C going into output xbrl instance
+    </name>
+    <description>
+      Variation on V-01 with C results into output xbrl instance
+    </description>
+    <data>
+      <schema>abcdefg-concepts.xsd</schema>
+      <instance readMeFirst="true">abcde-instance2.xml</instance>  
+     <linkbase>abcde-formula2.xml</linkbase>
+    </data>
+    <result>
+      <instance>abcde-result2.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-20">
+    <name>
+        Wiki usage pattern chaining second example.
+        Adaptation of COREP Use Case 18 to use chaining per wiki page diagram.
+    </name>
+    <description>
+      Usage pattern example where first formula is chained to second.
+    </description>
+    <data>
+      <schema>WeightedAverage.xsd</schema>
+      <instance readMeFirst="true">WeightedAverage-instance.xml</instance>  
+      <linkbase>WeightedAverage-formula.xml</linkbase>
+      <linkbase>WeightedAverage-definition.xml</linkbase>
+      <linkbase>WeightedAverage-label.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="3"
+         countNotSatisfied="0" />
+      <instance>WeightedAverage-results.xml</instance> 
+    </result>
+  </variation>
+
+</testcase>
+
+
+
+
+
+
+
+

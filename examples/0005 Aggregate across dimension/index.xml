@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0005</number>
+  <name>Aggregate across a dimension</name>
+  <description>
+     The example involves aggregation across a dimension.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <reference specification="DIMENSION-FILTER" id="sec-typed-dimension-filter"/>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+
+  <variation id="V.01">
+    <name>Dimension value aggregation</name>
+    <description>
+      The example involves aggregation across a dimension.  
+      Asserted to be consistent to reported aggregated value.  
+      Two variables are used, $v:any and $v:components.  
+      $v:any binds one-by-one to each fact in the instance.  
+      $v:components, a sequence, is dimensionMember filtered to be 
+      the children of $v:any, and implicitly matches in concept name, 
+      period, etc.  A precondition blocks when there $v:components 
+      finds no children of the $v:any dimension member (e.g., leaf nodes 
+      in member tree).  The fact produced by sum of $v:any's children is 
+      compared by the consistency assertion to the reported $v:any of the 
+      instance.
+      For the given input instance, two facts can be produced by the formula
+      and one of them is consistent with information contained in the provided instance
+      and one of them is not.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <reference specification="DIMENSION-FILTER" id="sec-typed-dimension-filter"/>
+    <data>
+      <instance readMeFirst="true">input.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <schema readMeFirst="false">dimensions.xsd</schema>
+      <linkbase readMeFirst="false">dimensions.xml</linkbase>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output.xml</instance>
+    </result>
+  </variation>
+
+</testcase>

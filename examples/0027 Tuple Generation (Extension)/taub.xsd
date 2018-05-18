@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:test="http://abc.com/test1"
+  targetNamespace="http://abc.com/test1"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element
+    id="t"
+    name="t"
+    substitutionGroup="xbrli:tuple"
+    nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction
+          base="anyType">
+          <choice
+            minOccurs="1"
+            maxOccurs="unbounded">
+            <element
+              ref="test:a"
+              minOccurs="0"
+              maxOccurs="1" />
+            <element
+              ref="test:u"
+              minOccurs="0"
+              maxOccurs="1" />
+          </choice>
+          <attribute
+            name="id"
+            type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element
+    id="u"
+    name="u"
+    substitutionGroup="xbrli:tuple"
+    nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction
+          base="anyType">
+          <choice
+            minOccurs="1"
+            maxOccurs="unbounded">
+            <element
+              ref="test:b"
+              minOccurs="0"
+              maxOccurs="1" />
+          </choice>
+          <attribute
+            name="id"
+            type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element
+    id="a"
+    name="a"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+  <element
+    id="b"
+    name="b"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="instant"
+    nillable="true" />
+</schema>

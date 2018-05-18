@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+  xmlns="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:test3="http://abc.com/test3"
+  xsi:schemaLocation=""
+>
+  <link:schemaRef xlink:href="abc-3.xsd" xlink:type="simple" />
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+    </period>
+  </context>
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://abc.com">02</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+    </period>
+  </context>
+  <unit id="u1">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <unit id="u2">
+    <measure>iso4217:JPY</measure>
+  </unit>
+  <test3:a    contextRef="c1" unitRef="u1" decimals="0">3001</test3:a> 
+  <test3:b    contextRef="c1" unitRef="u1" decimals="0">3002</test3:b> 
+  <test3:c    contextRef="c1" unitRef="u1" decimals="0">3003</test3:c> 
+
+  <test3:a    contextRef="c2" unitRef="u1" decimals="0">3010</test3:a> 
+  <test3:b    contextRef="c2" unitRef="u1" decimals="0">3020</test3:b> 
+  <!-- this fact has different unit than inst-a, fallbackValue taken --> 
+  <test3:c    contextRef="c2" unitRef="u2" decimals="0">3030</test3:c> 
+
+</xbrl>
+
+

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by  1.0.0.0 (2007-10-10 14:15).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-02-13 23:11:45
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:eg="http://xbrl.org/formula/conformance/example" xsi:schemaLocation="http://xbrl.org/formula/conformance/example concepts-trial-balance-check.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:href="concepts-trial-balance-check.xsd" xlink:type="simple" />
+  <context id="now">
+    <entity>
+      <identifier scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</identifier>
+    </entity>
+    <period>
+      <instant>2004-10-03</instant>
+    </period>
+  </context>
+  <eg:EntriesInBalance contextRef="now">balance-brought-forward is in balance</eg:EntriesInBalance>
+  <eg:EntriesInBalance contextRef="now">standard is in balance</eg:EntriesInBalance>
+</xbrl>

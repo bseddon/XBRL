@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/xii/2004-10-29 xii-20041029.xsd http://www.xbrl.org/us/fr/common/ptr/2005-02-28 http://www.xbrl.org/us/fr/common/ptr/2005-02-28/usfr-ptr-2005-02-28.xsd http://www.xbrl.org/2004/ref http://www.xbrl.org/2004/ref-2004-08-10.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xmlns:usfr-pte="http://www.xbrl.org/us/fr/common/pte/2005-02-28" xmlns:usfr-ar="http://www.xbrl.org/us/fr/rpt/ar/2005-02-28" xmlns:ref="http://www.xbrl.org/2004/ref" xmlns:usfr-ptr="http://www.xbrl.org/us/fr/common/ptr/2005-02-28" xmlns:xii="http://www.xbrl.org/xii/2004-10-29" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:us-gaap-ci="http://www.xbrl.org/us/fr/gaap/ci/2005-02-28">
+	<link:schemaRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="xii-20041029.xsd"/>
+	<xii:DuesIncome decimals="0" contextRef="xiiDuration2004" unitRef="usd">342108</xii:DuesIncome>
+	<xii:CosponsorshipConferenceFee decimals="0" contextRef="xiiDuration2004" unitRef="usd">116224</xii:CosponsorshipConferenceFee>
+	<xii:ContributedServicesRevenue decimals="0" contextRef="xiiDuration2004" unitRef="usd">76589</xii:ContributedServicesRevenue>
+	<xii:SponsorshipIncome decimals="0" contextRef="xiiDuration2004" unitRef="usd">38333</xii:SponsorshipIncome>
+	<xii:InterestIncomeExpenseGross decimals="0" contextRef="xiiDuration2004" unitRef="usd">5283</xii:InterestIncomeExpenseGross>
+	<context id="xiiDuration2004">
+		<entity>
+			<identifier scheme="http://www.xbrl.org">xii</identifier>
+		</entity>
+		<period>
+			<startDate>2003-07-01</startDate>
+			<endDate>2004-06-30</endDate>
+		</period>
+		<scenario>
+			<xii:Audited/>
+		</scenario>
+	</context>
+	<unit id="usd">
+		<measure>iso4217:USD</measure>
+	</unit>
+</xbrl>

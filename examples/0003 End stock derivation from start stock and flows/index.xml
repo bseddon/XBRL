@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+xmlns="http://xbrl.org/2008/conformance"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0003</number>
+  <name>Stock-flow computation</name>
+  <description>
+    The example involves derivation of a end stock from a start stock
+    and an inflow and an outflow over a following duration.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+  <variation id="V-01">
+    <name>Compute ending stock value</name>
+    <description>
+      End stock := (startStock + inflow - outflow). The example involves
+      derivation of a end stock from a start stock and a flow over a
+      following duration. Note that the example does not make any use of
+      the xbrli:period attribute on the concept declarations. Note also
+      that complexities relating to restatements of stock values,
+      reflected in additional information in context scenarios, are
+      being ignored in this simple example. Given the data in the
+      instance, the filters imply that the formula would only evaluate
+      using a starting stock of 600, and inflow over the following year
+      of 400 and an outflow over the same period of 300, resulting in an
+      end-of-period stock equal to 700. The inflow over a two year
+      period and the outflow over a three year period cannot be matched
+      so they do not support construction of an end-of-period stock
+      value two or three years out from the starting stock value.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <data>
+      <instance readMeFirst="true">input.xml</instance>
+      <schema>concepts.xsd</schema>
+      <linkbase>formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output.xml</instance>
+    </result>
+  </variation>
+</testcase>

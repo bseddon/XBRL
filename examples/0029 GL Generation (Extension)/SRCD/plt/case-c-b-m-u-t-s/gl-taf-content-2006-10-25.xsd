@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-taf="http://www.xbrl.org/int/gl/taf/2006-10-25" targetNamespace="http://www.xbrl.org/int/gl/taf/2006-10-25" elementFormDefault="qualified">
+	<import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+	<include schemaLocation="../../taf/gl-taf-2006-10-25.xsd"/>
+	<complexType name="originatingDocumentStructureComplexType">
+		<sequence>
+			<element ref="gl-taf:originatingDocumentType" minOccurs="0"/>
+			<element ref="gl-taf:originatingDocumentNumber" minOccurs="0"/>
+			<element ref="gl-taf:originatingDocumentDate" minOccurs="0"/>
+			<element ref="gl-taf:originatingDocumentIdentifierType" minOccurs="0"/>
+			<element ref="gl-taf:originatingDocumentIdentifierCode" minOccurs="0"/>
+			<element ref="gl-taf:originatingDocumentIdentifierTaxCode" minOccurs="0"/>
+		</sequence>
+		<attribute name="id" type="ID"/>
+	</complexType>
+	<complexType name="taxVerificationDateItemType">
+		<simpleContent>
+			<restriction base="xbrli:dateTimeItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="tickingFieldItemType">
+		<simpleContent>
+			<restriction base="xbrli:booleanItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="documentRemainingBalanceItemType">
+		<simpleContent>
+			<restriction base="xbrli:monetaryItemType">
+				<attribute name="id" type="ID"/>
+			</restriction>
+		</simpleContent>
+	</complexType>
+	<complexType name="uniqueConsignmentReferenceItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="originatingDocumentTypeItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="originatingDocumentNumberItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="originatingDocumentDateItemType">
+		<simpleContent>
+			<restriction base="xbrli:dateItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="originatingDocumentIdentifierCodeItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+	<complexType name="originatingDocumentIdentifierTaxCodeItemType">
+		<simpleContent>
+			<restriction base="xbrli:stringItemType"/>
+		</simpleContent>
+	</complexType>
+</schema>

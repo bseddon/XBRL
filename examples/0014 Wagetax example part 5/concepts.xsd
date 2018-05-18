@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+attributeFormDefault="unqualified" elementFormDefault="qualified" 
+targetNamespace="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+>
+  <xs:annotation>
+    <xs:appinfo>
+      <link:linkbaseRef xlink:href="formulae.xml" xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+  <xs:import namespace="http://www.nltaxonomie.nl/2.0/domein/bd/context/bd-context" schemaLocation="context.xsd"/>
+  <xs:element id="bd-lhn_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" name="CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_CheckNormaalTarief_TotLnLBPH_vollAang" name="CheckNormaalTarief_TotLnLBPH_vollAang" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_CheckNormaalTarief_TotLnSV_vollAang" name="CheckNormaalTarief_TotLnSV_vollAang" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang" name="CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang" name="CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_Checkunit" name="Checkunit" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_Checkscheme" name="Checkscheme" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_Checkperiod" name="Checkperiod" type="xbrli:stringItemType" substitutionGroup="xbrli:item" xbrli:periodType="instant" nillable="true" />
+  <xs:element id="bd-lhn_CollectiveTaxDeclaration" name="CollectiveTaxDeclaration" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:TotalWageTaxSocialInsuranceContributions"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:TotalWagesSubjectToEmployeesInsuranceContributions"/>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:TotalWithheldWageTaxAndSocialInsuranceContributions"/>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund"/>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:TotalSupplementaryContributionsDisabilityInsuranceFund"/>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:TotalSampleSegment"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_Employee" name="Employee" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:WageTaxAndSocialInsuranceContribution"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:WageSubjectToEmployeesInsuranceContributions"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:WithheldWageTaxAndSocialInsuranceContributions"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:BasicContributionsDisabilityInsuranceFund"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:SupplementaryContributionsDisabilityInsuranceFund"/>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:SampleSegment"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_CorrectiveEmployee" name="CorrectiveEmployee" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:WageSubjectToEmployeesInsuranceContributions"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_FullTaxDeclaration" name="FullTaxDeclaration" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:CollectiveTaxDeclaration"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" ref="bd-lhn:IncomeRelationship"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_IncomeRelationship" name="IncomeRelationship" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" ref="bd-lhn:Employee"/>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:CorrectiveEmployee"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_TaxData" name="TaxData" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:WageTaxDeclaration"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_TaxDeclaration" name="TaxDeclaration" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:choice maxOccurs="1" minOccurs="1">
+              <xs:element ref="bd-lhn:FullTaxDeclaration"/>
+            </xs:choice>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_BasicContributionsDisabilityInsuranceFund" name="BasicContributionsDisabilityInsuranceFund" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_SupplementaryContributionsDisabilityInsuranceFund" name="SupplementaryContributionsDisabilityInsuranceFund" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_SampleSegment" name="SampleSegment" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalSupplementaryContributionsDisabilityInsuranceFund" name="TotalSupplementaryContributionsDisabilityInsuranceFund" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund" name="TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalWagesSubjectToEmployeesInsuranceContributions" name="TotalWagesSubjectToEmployeesInsuranceContributions" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalWageTaxSocialInsuranceContributions" name="TotalWageTaxSocialInsuranceContributions" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalWithheldWageTaxAndSocialInsuranceContributions" name="TotalWithheldWageTaxAndSocialInsuranceContributions" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_TotalSampleSegment" name="TotalSampleSegment" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_WageSubjectToEmployeesInsuranceContributions" name="WageSubjectToEmployeesInsuranceContributions" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_WageTaxAndSocialInsuranceContribution" name="WageTaxAndSocialInsuranceContribution" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+  <xs:element id="bd-lhn_WageTaxDeclaration" name="WageTaxDeclaration" nillable="true" substitutionGroup="xbrli:tuple">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:restriction base="xs:anyType">
+          <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" ref="bd-lhn:TaxDeclaration"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID" use="optional"/>
+        </xs:restriction>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element id="bd-lhn_WithheldWageTaxAndSocialInsuranceContributions" name="WithheldWageTaxAndSocialInsuranceContributions" nillable="true" substitutionGroup="xbrli:item" type="xbrli:monetaryItemType" xbrli:periodType="instant"/>
+</xs:schema>

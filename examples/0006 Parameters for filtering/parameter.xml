@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <!-- Set to a string representation of a specific date  by the formula processor -->
+    <variable:parameter xlink:type="resource" xlink:label="parameter" 
+    xmlns:my="http://example.com" required="true" name="my:date"/>
+
+    <!-- Expects the $my:date variable to be a string representation of the date -->
+    <pf:periodInstant xlink:type="resource" xlink:label="filter_selectDate" 
+    date="xs:date($v:selectedDate)"/>
+
+    <!--  Locators used to identify formula and liabilities from formulae.xml -->
+    <link:loc xlink:type="locator" xlink:href="formulae.xml#formula" xlink:label="formula"/>
+    <link:loc xlink:type="locator" xlink:href="formulae.xml#variable_liabilities" xlink:label="liabilities"/>
+
+    <!-- Arc addition to formulae.xml to recognize parameter for formula -->
+    <variable:variableArc xlink:type="arc" xlink:to="parameter" xlink:from="formula" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" order="1" 
+      name="v:selectedDate" />
+
+    <!--  Arcs from variable to the new period filter -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" complement="false" cover="true"
+      xlink:from="liabilities" xlink:to="filter_selectDate" order="1.0"/>
+
+  </generic:link>
+
+</link:linkbase>

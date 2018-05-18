@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:gf="http://xbrl.org/2008/filter/general"
+  xmlns:ef="http://xbrl.org/2008/filter/entity"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ssf="http://xbrl.org/2008/filter/segment-scenario"
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:c="http://xbrl.org/formula/conformance/example"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/entity  ../../core_schemas/2008/entity-filter.xsd
+  http://xbrl.org/2008/filter/period  ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/segment-scenario ../../core_schemas/2008/segment-scenario-filter.xsd
+  http://xbrl.org/2008/filter/general ../../core_schemas/2008/general-filter.xsd
+  http://xbrl.org/2008/assertion/value ../../core_schemas/2008/value-assertion.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- context check verifies entity identifier scheme
+         fails klingon scheme context
+        also checks that instant date is anywhere in 2007 
+         (which means instant dateTime gt 2007-01-01 midnite and
+          dateTime le 2008-01-01 midnite) -->
+     <formula:formula xlink:type="resource" xlink:label="check_context"
+      aspectModel="non-dimensional" implicitFiltering="false" 
+      value="
+         (: check the scheme of the entity identifer :)
+         xfi:identifier-scheme( 
+              xfi:identifier ( $factsByContextID[1] ) )
+           eq xs:anyURI('http://xbrl.org/entity/identification/scheme')
+         and (
+         (: check the instant date is in 2007 :)
+           for $instDateTime in 
+             xfi:period-instant( xfi:period( $factsByContextID[1] ) )
+             return ($instDateTime gt xs:dateTime('2007-01-01T00:00:00')
+                 and $instDateTime le xs:dateTime('2008-01-01T00:00:00'))
+         
+         )" >
+      <!-- no SAV, all aspects have to be specified -->
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>c:checkOfContext</formula:qname>
+        </formula:concept>
+        <formula:entityIdentifier
+          scheme="xfi:identifier-scheme( 
+              xfi:identifier ( $factsByContextID[1] ) )"
+          value="xfi:identifier-value( 
+              xfi:identifier ( $factsByContextID[1] ) )"/>
+        <formula:period>
+          <formula:instant value="xfi:period-instant( xfi:period( $factsByContextID[1] ) )"/>
+        </formula:period>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- unit check verifies unit measure
+         fails klingon empire currency measure -->
+    <formula:formula xlink:type="resource" xlink:label="check_unit"
+      aspectModel="non-dimensional" implicitFiltering="false" 
+      value="
+         (: check the measure identifer :)
+         if (local-name-from-QName(
+               xfi:measure-name(
+                   xfi:unit-numerator( xfi:unit($factsByUnitID[1]) )[1] ) )
+                   ne 'XTS')
+            then 1 (: not boolean, needs to have unit in result :)
+            else 0
+         " >
+      <!-- no SAV, all aspects have to be specified -->
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>c:checkOfUnit</formula:qname>
+        </formula:concept>
+        <formula:entityIdentifier
+          scheme="'http://xbrl.org/entity/identification/scheme'"
+          value="'01'"/>
+        <formula:period>
+          <!-- date is in text, has to be made into date object here -->
+          <formula:instant value="xs:date('2007-12-31')"/>
+        </formula:period>
+        <formula:unit augment="false">
+          <!-- measure has to be resolved into QName object here -->
+          <formula:multiplyBy
+           measure="xfi:measure-name(
+                      xfi:unit-numerator( xfi:unit($factsByUnitID[1]) )[1] )" />
+        </formula:unit>
+      </formula:aspects>
+    </formula:formula>
+
+    <!--  Arc from the assertions to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="contextID" 
+     xlink:from="check_context" xlink:to="variable_usedContextIDs" order="1.0"/>
+
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="factsByContextID" 
+     xlink:from="check_context" xlink:to="variable_factsByContextID" order="1.0"/>
+
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="unitID" 
+     xlink:from="check_unit" xlink:to="variable_usedUnitIDs" order="1.0" />
+
+    <variable:variableArc xlink:type="arc" 
+     xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     name="factsByUnitID" 
+     xlink:from="check_unit" xlink:to="variable_factsByUnitID" order="1.0"/>
+
+    <!--  General variable binds to each context used by a fact -->
+    <variable:generalVariable 
+     xlink:type="resource" xlink:label="variable_usedContextIDs"
+     bindAsSequence="false"
+     select="
+       (: get the set of unique contextIDs for each fact in instance :)
+       distinct-values(
+         for $fact in xfi:facts-in-instance( /xbrli:xbrl )
+            return xfi:context($fact)/@id
+            )
+     "/>
+
+    <!--  General variable binds to each unit used by a fact -->
+    <variable:generalVariable 
+     xlink:type="resource" xlink:label="variable_usedUnitIDs"
+     bindAsSequence="false"
+     select="
+       (: get the set of unique unitIDs for each fact in instance :)
+       distinct-values(
+         for $fact in xfi:facts-in-instance( /xbrli:xbrl )
+            return xfi:unit($fact)/@id
+            )
+     "/>
+
+    <!--  Fact variable binds to each set of facts with same contextID, 
+          one binding per entire set of same context facts 
+          note not using implicit filtering -->
+    <variable:factVariable 
+     xlink:type="resource" xlink:label="variable_factsByContextID"
+      bindAsSequence="true"/>
+
+    <!--  Fact variable binds to each set of facts with same unit, 
+          one binding per entire set of same unit facts 
+          note not using implicit filtering -->
+    <variable:factVariable 
+     xlink:type="resource" xlink:label="variable_factsByUnitID"
+      bindAsSequence="true"/>
+
+    <!-- filter by context ID -->
+    <variable:variableFilterArc 
+    xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+    complement="false" cover="false"
+    xlink:from="variable_factsByContextID" xlink:to="filter_contextID" order="1.0"/>
+
+    <gf:general xlink:type="resource" xlink:label="filter_contextID"
+     test="@contextRef eq $contextID" />
+
+    <!-- filter by unit ID -->
+    <variable:variableFilterArc 
+    xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+    complement="false" cover="false"
+    xlink:from="variable_factsByUnitID" xlink:to="filter_unitID" order="1.0"/>
+
+    <gf:general xlink:type="resource" xlink:label="filter_unitID"
+     test="@unitRef eq $unitID" />
+
+    <!-- filters to block sub-sequence implicit filtering -->
+
+    <!-- context sequence needs to cover unit -->
+    <uf:generalMeasures xlink:type="resource" xlink:label="anyunit" test="true()"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:to="anyunit" 
+      xlink:from="variable_factsByContextID"
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true" />
+
+    <!-- unit sequence needs to cover period, identifier, segment, and scenario -->
+    <pf:period xlink:type="resource" xlink:label="anycontext" test="true()" />
+    <ef:identifier xlink:type="resource" xlink:label="anycontext" test="true()"/>
+
+    <!-- ssf filters are required if either segment or scenario are used
+         and would partition the result set.  However a mixture of
+         contexts with and without segment would cause these ssf filters
+         to reject contexts without seg/scen.  If such mixtures are used
+         multiple test passes or a modified strategy is required.  The
+         example instance here has no segment or scenario and would
+         reject all contexts if these filters were not commented out.
+    <ssf:segment xlink:type="resource" xlink:label="anycontext" test="true()" />
+    <ssf:scenario xlink:type="resource" xlink:label="anycontext" test="true()" />
+      -->
+
+    <variable:variableFilterArc xlink:type="arc" xlink:to="anycontext"
+      xlink:from="variable_factsByUnitID"
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+      complement="false" cover="true" />
+
+  </generic:link>
+
+</link:linkbase>

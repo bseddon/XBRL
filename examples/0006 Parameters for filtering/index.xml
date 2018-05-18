@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0006</number>
+  <name>Example using parameters through an extension filter</name>
+  <description>
+     Provide a parameter to specify an instant to execute the formula for.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+
+  <variation id="V-01">
+    <name>Demonstrates usage of a parameter to specify a particular instant</name>
+    <description>
+    This example extends example 0002 to show how an extension formula linkbase
+    of a base formula 
+    linkbase can augment to include a new period filter that 
+    supports usage of a period parameter to filter facts.  
+    In this example there are two, and it is important to be aware of how
+    they are referenced and discovered in executing the instance document.
+    The context.xsd schema has linkbaseRef to 0002's formulae.xml linkbase.
+    The other way to make the formula processor aware of the supplemental
+    parameter.xml linkbase is to linkbaseRef it from the instance document,
+    which was done here.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <reference specification="VARIABLES" id="sec-parameters"/>
+    <data>
+      <instance readMeFirst="true">instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+      <linkbase readMeFirst="false">parameter.xml</linkbase>
+      <parameter name="my:date" datatype="xs:string" value="2007-12-31"
+        xmlns:my="http://example.com" />
+    </data>
+    <result>
+      <instance>result.xml</instance>
+    </result>
+  </variation>
+
+</testcase>
+

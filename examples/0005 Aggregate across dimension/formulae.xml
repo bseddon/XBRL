@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:c="http://xbrl.org/formula/conformance/example"
+  xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/consistency-assertion-formula" xlink:href="../../core_schemas/2008/consistency-assertion.xsd#consistency-assertion-formula" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- provide assertion for 1 Euro check -->
+    <ca:consistencyAssertion xlink:type="resource" xlink:label="assertion"
+        strict="true" absoluteAcceptanceRadius="1"/>
+
+
+
+    <!--  Arc from the assertion to the formula -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/consistency-assertion-formula" 
+      xlink:from="assertion" xlink:to="formula" order="1.0"/>
+
+
+
+    <formula:formula xlink:type="resource" xlink:label="formula" 
+      value="sum($v:components)"
+      aspectModel="dimensional" implicitFiltering="true"
+      source="v:any" />
+
+
+
+    <!--  Fact variables ($any is sum of $components) -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_any" 
+     bindAsSequence="false"/>
+
+    <variable:factVariable xlink:type="resource" xlink:label="variable_components" 
+     bindAsSequence="true"/>
+
+
+
+    <!--  Arc from the formula to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_any" order="1.0"
+      name="v:any"/>
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula" xlink:to="variable_components" order="2.0"
+      name="v:components"/>
+
+
+
+    <!-- Filter components to be the dimension-members of the any bound fact. -->
+    <df:explicitDimension xlink:type="resource" xlink:label="filter_components">
+      <df:dimension>
+        <df:qname>dim:dimension</df:qname>
+      </df:dimension>
+      <df:member>
+        <df:variable>v:any</df:variable>
+        <df:linkrole>http://www.xbrl.org/2003/role/link</df:linkrole>
+        <df:arcrole>http://xbrl.org/int/dim/arcrole/domain-member</df:arcrole>
+        <df:axis>child</df:axis>
+      </df:member>
+    </df:explicitDimension>
+
+
+
+    <!--  Arcs from variables to their filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_components" xlink:to="filter_components" order="1.0"/>
+
+
+
+    <!-- formula precondition, there must be at least one component reported -->
+    <variable:precondition xlink:type="resource" xlink:label="precondition" 
+     test="count($v:components) gt 0" />
+
+    <generic:arc xlink:type="arc" xlink:to="precondition" xlink:from="formula" 
+    xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set-precondition" />
+
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

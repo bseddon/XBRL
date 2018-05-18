@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Template XBRL GL instance document facilitating addition of SRCD representation of facts -->
+<xbrli:xbrl 
+  xmlns:xbrli="http://www.xbrl.org/2003/instance" 
+  xmlns:gl-bus="http://www.xbrl.org/int/gl/bus/2006-10-25" 
+  xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" 
+  xmlns:gl-muc="http://www.xbrl.org/int/gl/muc/2006-10-25" 
+  xmlns:gl-plt="http://www.xbrl.org/int/gl/plt/2006-10-25" 
+  xmlns:gl-srcd="http://www.xbrl.org/int/gl/srcd/2007-02-08" 
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:iso639="http://www.xbrl.org/2005/iso639" 
+  xmlns:xbrll="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="
+    http://www.xbrl.org/int/gl/plt/2006-10-25 SRCD/plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd
+  ">
+  <xbrll:schemaRef 
+     xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+     xlink:href="SRCD/plt/case-c-b-m-u-t-s/gl-plt-2006-10-25.xsd" 
+     xlink:type="simple"/>
+
+  <xbrll:linkbaseRef 
+     xlink:href="FR-simple-formula1.xml" 
+     xlink:type="simple" 
+     xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+
+  <xbrli:context id="now">
+    <xbrli:entity>
+      <xbrli:identifier 
+        scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</xbrli:identifier>
+    </xbrli:entity>
+    <!-- The XBRL GL WG recommends using the file creation data as the period. -->
+    <xbrli:period>
+      <xbrli:instant>2009-02-27</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+
+  <!-- GL units are in GL items, such as gl-muc:amountCurrency -->
+  <xbrli:unit id="unit">
+    <xbrli:measure>xbrli:pure</xbrli:measure>
+  </xbrli:unit>
+
+  <!-- arbitrary item to use as source for GL output items to simplify formulas -->
+  <gl-cor:amount decimals="0" contextRef="now" unitRef="unit">0</gl-cor:amount>
+ 
+</xbrli:xbrl>

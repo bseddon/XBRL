@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+xmlns:sands="http://www.nltaxonomie.nl/2.0/domein/bd/context/bd-context"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="concepts.xsd"/>
+
+  <context id="context">
+    <entity>
+      <identifier scheme="www.belastingdienst.nl/errorReport">Wagetax</identifier>
+    </entity>
+    <period>
+      <instant>2007-01-31</instant>
+    </period>
+  </context>
+
+  <bd-lhn:CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang contextRef="context">Calculation of TotalWithheldWageTaxAndSocialInsuranceContributions is succesfull.</bd-lhn:CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang>
+  <bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang contextRef="context">Error: Calculation of TotalWageTaxSocialInsuranceContributions has variance of more than 1 Euro.</bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang>
+  <bd-lhn:CheckNormaalTarief_TotLnSV_vollAang contextRef="context">Error: Calculation of TotalWagesSubjectToEmployeesInsuranceContributions has variance of more than 1 Euro.</bd-lhn:CheckNormaalTarief_TotLnSV_vollAang>
+  <bd-lhn:CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang contextRef="context">Calculation of TotalWagesSubjectToBasicContributionsDisabilityInsuranceFund is succesfull.</bd-lhn:CheckNormaalTarief_Totpremie_basispremie_WAO_WIA_vollAang>
+  <bd-lhn:CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang contextRef="context">Calculation of TotalSupplementaryContributionsDisabilityInsuranceFund is succesfull.</bd-lhn:CheckNormaalTarief_Totpremie_gediff_WAO_WGA_vollAang>
+  <bd-lhn:Checkunit contextRef="context">Unit value iso4217:EUR processed correctly.</bd-lhn:Checkunit>
+  <bd-lhn:Checkunit contextRef="context">Error; Illegal unit value iso4217:USD in instance.</bd-lhn:Checkunit>
+  <bd-lhn:Checkscheme contextRef="context">Entity scheme www.belastingdienst.nl/loonheffingennummer processed correctly.</bd-lhn:Checkscheme>
+  <bd-lhn:Checkscheme contextRef="context">Entity scheme www.belastingdienst.nl/loonheffingennummer processed correctly.</bd-lhn:Checkscheme>
+  <bd-lhn:Checkscheme contextRef="context">Error; Illegal scheme value www.belastingdienst.nl/wagetaxnumber in instance.</bd-lhn:Checkscheme>
+  <bd-lhn:Checkscheme contextRef="context">Entity scheme www.belastingdienst.nl/loonheffingennummer processed correctly.</bd-lhn:Checkscheme>
+  <bd-lhn:Checkperiod contextRef="context">Period 2007-01-31 processed correctly.</bd-lhn:Checkperiod>
+  <bd-lhn:Checkperiod contextRef="context">Error; Illegal period value 2008-01-31 in instance.</bd-lhn:Checkperiod>
+  <bd-lhn:Checkperiod contextRef="context">Period 2007-01-31 processed correctly.</bd-lhn:Checkperiod>
+  <bd-lhn:Checkperiod contextRef="context">Period 2007-01-31 processed correctly.</bd-lhn:Checkperiod>
+
+</xbrl>

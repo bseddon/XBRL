@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:tuple="http://xbrl.org/2008/formula/tuple"
+  xmlns:instance="http://xbrl.org/2008/formula/instance"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:test="http://abc.com/test1"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/formula/tuple formula-tuple.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2008/formula/instance formula-instance.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/instance-variable" xlink:href="formula-instance.xsd#formula-scope" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- (1) tuple t formula evaluates when test:a is input to variable
+         inputInstanceFactItemA; there are two of these test:a's, so there
+         will be two tuple t's resulting -->
+
+    <tuple:tuple xlink:type="resource" xlink:label="formulaTupleT"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:t</formula:qname>
+        </formula:concept>
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- tuple t (1) of output instance, and variable test:a from the input
+         instance are both visible to nested item A formula (2) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="outputInstanceTupleT" 
+      xlink:from="formulaTupleT" xlink:to="formulaItemA" order="1.0"/>
+
+    <!-- (2) formula produces a single test:a result fact item -->
+    <formula:formula xlink:type="resource" xlink:label="formulaItemA" 
+      value="$inputInstanceFactItemA" 
+      source="inputInstanceFactItemA"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:a</formula:qname>
+        </formula:concept>
+        <tuple:location source="outputInstanceTupleT" />
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- formulaItemA's tuple output result, and fact item A in tuple t output
+         result, and variable from the input instance, all are visible 
+         to formulaTupleU (3) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="outputInstanceItemA" 
+      xlink:from="formulaItemA" xlink:to="formulaTupleU" order="1.0"/>
+
+    <!-- (3) produce nested tuple U inside tuple T in sequence after item a -->
+    <tuple:tuple xlink:type="resource" xlink:label="formulaTupleU"
+      aspectModel="non-dimensional" implicitFiltering="true">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:u</formula:qname>
+        </formula:concept>
+        <tuple:location source="outputInstanceTupleT" />
+        <!-- as a tuple, no other aspects are applicable -->
+      </formula:aspects>
+    </tuple:tuple>
+
+    <!-- formulaTupleU's tuple output result, and fact item A in tuple t output
+         result, and variable from the input instance, all are visible 
+         to formulaItemB (4) -->
+    <instance:formulaScopeArc xlink:type="arc" 
+      xlink:arcrole="http://xbrl.org/arcrole/2008/formula-scope"
+      name="outputInstanceTupleU" 
+      xlink:from="formulaTupleU" xlink:to="formulaItemB" order="1.0"/>
+
+    <!-- (4) formula produces a single test:b fact item = itema+1 -->
+    <formula:formula xlink:type="resource" xlink:label="formulaItemB" 
+      value="$outputInstanceItemA + 1"
+      source="inputInstanceFactItemA"
+      aspectModel="non-dimensional" implicitFiltering="true" >
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:b</formula:qname>
+        </formula:concept>
+        <tuple:location source="outputInstanceTupleU" />
+      </formula:aspects>
+    </formula:formula>
+
+
+    <!--  Fact variables. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_a"   bindAsSequence="false" />
+
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formulaTupleT" xlink:to="variable_a" order="1.0"
+      name="inputInstanceFactItemA" />
+
+  </generic:link>
+
+</link:linkbase>

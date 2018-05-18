@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2009 XBRL International. All Rights Reserved. -->
+
+<!--
+     Proposed for usage cases extension modules (chaining, tuple
+     generation, multi-instance)
+
+     At some later date this should go into core_schemas directory (not yet).
+  -->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:instance="http://xbrl.org/2008/formula/instance"
+  targetNamespace="http://xbrl.org/2008/formula/instance"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <!-- 
+           arc from an instance resource to a factVariable or generalVariable
+           to specify that it's source is the instance of the resource instead
+           of the default input instance of the formula processor 
+      -->
+      <link:arcroleType id="instance-variable"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/instance-variable">
+        <link:definition>Formula variable has an instance source</link:definition>
+        <link:usedOn>generic:arc</link:usedOn>
+      </link:arcroleType>
+
+      <!-- 
+           arc from a formula:formula to an instance resource
+           to specify that it's target is the instance of the resource instead
+           of the default output instance of the formula processor 
+      -->
+      <link:arcroleType id="formula-instance"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/formula-instance">
+        <link:definition>Formula facts go into specified instance target</link:definition>
+        <link:usedOn>generic:arc</link:usedOn>
+      </link:arcroleType>
+
+      <!-- 
+           arc from a variable-set to another variable-set
+           to provide visibility of source's in-scope variables to target
+
+           if a formula, then name on this arc gives visibility to the
+           formula's result in the result's instance, the result behaves
+           as if it were a factVariable in the source's in-scope variable set
+
+           the to-end variable set has access to the values and aspects of the
+           from-end variables (and formula result) but does not impact covering
+           within the from-end variable set; to-end has implicit filtering
+           available to match the from-side's aspects
+      -->
+      <link:arcroleType id="formula-scope"
+            cyclesAllowed="undirected" 
+            arcroleURI="http://xbrl.org/arcrole/2008/formula-scope">
+        <link:definition>Formula facts go into specified instance target</link:definition>
+        <link:usedOn>instance:formulaScopeArc</link:usedOn>
+      </link:arcroleType>
+    </appinfo>
+  </annotation>
+
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/generic"
+    schemaLocation="http://www.xbrl.org/2008/generic-link.xsd" />
+  <import
+    namespace="http://xbrl.org/2008/variable"
+    schemaLocation="http://www.xbrl.org/2008/variable.xsd" />
+ 
+  <!-- 
+        a resource corresponding to an instance
+
+        name allows it to be referenced by the formula processor
+        (e.g., java code) to associate with an input file (if there
+        is one) or with an output file (if the contents of the instance
+        are to be persisted)
+  -->
+  <element id="instance"
+  name="instance" substitutionGroup="variable:resource">
+    <complexType mixed="true">
+      <complexContent >
+        <extension base="variable:resource.type">
+          <attribute name="name" type="QName" use="required"/>
+          <attribute name="trace" type="string" use="optional"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+
+  <!--
+        qnames corresponding to the standard input xbrl instance
+        (of variables spec) and output xbrl instance (of formula spec)
+   -->
+  <element id="input-xbrl-instance"
+  name="input-xbrl-instance" type="string" abstract="true"/>
+
+  <element id="output-xbrl-instance"
+  name="output-xbrl-instance" type="string" abstract="true"/>
+
+  <!--
+        formula scope arc
+
+        see http://xbrl.org/arcrole/2008/formula-scope above
+
+        name attribute is optional only if from element is formula:formula
+   -->
+  <element id="formula-scope-arc"
+  name="formulaScopeArc" substitutionGroup="variable:variableArc"/>
+
+</schema>
+

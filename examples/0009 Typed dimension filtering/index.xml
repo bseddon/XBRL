@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0009</number>
+  <name>Typed dimension filtering example</name>
+  <description>
+      Example using typed dimension filtering.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="TUPLE-FILTER" id="sec-parent-filter"/>
+  <reference specification="TUPLE-FILTER" id="sec-location-filter"/>
+
+  <variation id="V-01">
+    <name>Typed dimension filtering example</name>
+    <description>
+      Example of using a typed dimension to select facts 
+      based upon the value of an attribute on a typed dimension.
+      The formula itself is simple, just returning the selected fact.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="TUPLE-FILTER" id="sec-parent-filter"/>
+  <reference specification="TUPLE-FILTER" id="sec-location-filter"/>
+    <data>
+      <instance readMeFirst="true">input.xml</instance>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output.xml</instance>
+    </result>
+  </variation>
+  
+</testcase>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+  xmlns="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:test="http://abc.com/test1"
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xsi:schemaLocation=""
+>
+  <link:schemaRef xlink:href="abc.xsd" xlink:type="simple" />
+  <link:linkbaseRef xlink:href="dim-definition.xml" xlink:type="simple"  
+     xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+  <link:linkbaseRef xlink:href="sum-formula1.xml" xlink:type="simple"  
+     xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+     
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+      <segment>
+        <xbrldi:explicitMember dimension="test:dim">test:memC1</xbrldi:explicitMember>
+      </segment>
+    </period>
+  </context>
+
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+      <segment>
+        <xbrldi:explicitMember dimension="test:dim">test:memC2</xbrldi:explicitMember>
+      </segment>
+    </period>
+  </context>
+
+  <context id="c3">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+      <segment>
+        <xbrldi:explicitMember dimension="test:dim">test:memC3</xbrldi:explicitMember>
+      </segment>
+    </period>
+  </context>
+
+  <unit id="u1">
+    <measure>iso4217:EUR</measure>
+  </unit>
+>  <unit id="u1">
+>    <measure>iso4217:JPY</measure>
+>  </unit>
+
+  <test:a    contextRef="c1" unitRef="u1" decimals="0">1001</test:a> 
+  <test:b    contextRef="c2" unitRef="u1" decimals="0">2002</test:b> 
+  <test:a    contextRef="c3" unitRef="u2" decimals="0">3003</test:a> 
+</xbrl>
+
+

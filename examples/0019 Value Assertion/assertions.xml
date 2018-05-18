@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:validation="http://xbrl.org/2008/validation"  
+  xmlns:va="http://xbrl.org/2008/assertion/value"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:v="http://xbrl.org/2008/formula/conformance/variable"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:concept="http://xbrl.org/formula/conformance/example"
+  xmlns:dim="http://xbrl.org/formula/conformance/example/dimensions"
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/assertion/value ../../core_schemas/2008/value-assertion.xsd
+  http://xbrl.org/2008/validation ../../core_schemas/2008/validation.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+
+                <!--  Very simple assertion -->
+    <va:valueAssertion xlink:type="resource" xlink:label="assertion"
+        id="assertion"
+        aspectModel="dimensional" implicitFiltering="true" 
+      test="$netIncomes le $grossIncomes"/>
+
+    <!--  Fact variables -->
+    <variable:factVariable xlink:type="resource" xlink:label="GrossIncomes"
+        bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="NetIncomes"
+        bindAsSequence="false" />
+
+    <!--  Arcs from the assertion to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="assertion" xlink:to="GrossIncomes" order="1.0"
+      name="grossIncomes"/>
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="assertion" xlink:to="NetIncomes" order="2.0"
+      name="netIncomes"/>
+
+                <!--  Concept filters for each variable -->
+                <cf:conceptName xlink:type="resource" xlink:label="GrossIncomesFilter">
+                        <cf:concept>
+                                <cf:qname>
+                                        concept:GrossIncomes
+                                </cf:qname>
+                        </cf:concept>
+                </cf:conceptName>                               
+                <cf:conceptName xlink:type="resource" xlink:label="NetIncomesFilter">
+                        <cf:concept>
+                                <cf:qname>
+                                        concept:NetIncomes
+                                </cf:qname>
+                        </cf:concept>
+                </cf:conceptName>               
+
+                <!--  Arcs from variables to filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        xlink:from="GrossIncomes" xlink:to="GrossIncomesFilter" 
+        complement="false" cover="true" order="1.0"/>    
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter"
+        xlink:from="NetIncomes" xlink:to="NetIncomesFilter" 
+        complement="false" cover="true" order="1.0"/>
+        
+  </generic:link>
+
+</link:linkbase>

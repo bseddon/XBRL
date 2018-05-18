@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0025</number>
+  <name>Tuple generation examples</name>
+  <description>
+    Examples of tuple generation using the multi-instance approach
+  </description>
+
+  <variation id="V-01">
+    <name>
+        formula-scope method of chaining as used in tuple generation
+        A = B + C chained from C = D + E
+    </name>
+    <description>
+      Usage pattern example where first formula is chained from result of second.
+    </description>
+    <data>
+      <schema>abcde.xsd</schema>
+      <instance readMeFirst="true">abcde-instance1.xml</instance>  
+     <linkbase>abcde-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abcde-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>
+        Same but double chaining
+        A = B + C + E chained from C = D + E and E = F + G
+    </name>
+    <description>
+      Variation on V-01 with nested dependencies
+    </description>
+    <data>
+      <schema>abcdefg.xsd</schema>
+      <instance readMeFirst="true">abcdefg-instance1.xml</instance>  
+     <linkbase>abcdefg-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abcdefg-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-10">
+    <name>
+        formula-scope method of tuple generation for tuple containing 3 items, item productions chained to each other.
+    </name>
+    <description>
+      A fact item from instance document is used to cause producing a tuple
+      with 3 fact items having same context and different values.  Item a read
+      from instance produces a tuple t, with a nested item a (same as input),
+      and items b=a+1 and c=b+1.  Formula chaining order is two items bind
+      one by one for tupleT formula, which outputs tuple T, chains to item A,
+      which outpust item A in tuple T, chains to item B formula, which outputs
+      item B based on output item A, which chains to item C formula, which
+      outputs item C based on output item B.
+    </description>
+    <data>
+      <schema>tabc.xsd</schema>
+      <instance readMeFirst="true">tabc-instance1.xml</instance>  
+     <linkbase>tabc-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>tabc-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-11">
+    <name>
+        formula-scope method of tuple generation for tuple containing 3 items, tuple chained to all three item production formulas.
+    </name>
+    <description>
+      Differs from V-10 by tuple T formula chains to all three of formulas to
+      produce A, B, and C.  The A, B, and C formulas are only dependent on the
+      input item and output tuple, whereas in V-10 the output items were dependent
+      on the preceding input items and tuple.
+    </description>
+    <data>
+      <schema>tabc.xsd</schema>
+      <instance readMeFirst="true">tabc-instance2.xml</instance>  
+     <linkbase>tabc-formula2.xml</linkbase>
+    </data>
+    <result>
+      <instance>tabc-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-12">
+    <name>
+        As V-10 but double nested tuples, with an item in outer tuple and item in inner tuple.
+    </name>
+    <description>
+      Output is pattern usually used in tuple approaches, such as GL, where each increasing nesting of tuples has identifying fact and inner tuple with details.  For each input, the outputs look like tuple-t contains item-a and a tuple-u with item-b 
+    </description>
+    <data>
+      <schema>taub.xsd</schema>
+      <instance readMeFirst="true">taub-instance1.xml</instance>  
+     <linkbase>taub-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>taub-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-20">
+    <name>
+        Tuple output from dimensional input
+    </name>
+    <description>
+      Input is reorganized into tuple form without dimensions.
+
+      The output has the format &lt;report&gt;&lt;region&gt;&lt;product&gt;&lt;sales...&gt;
+      where dimensional input is organized into tuples for region
+      and in each region tuples for sales by product.  In GL fashion
+      the region and product identifications are in tokens in the
+      tuple, not in dimensions or contexts.
+
+      To accomplish this an outer formula generates a single result
+      tuple and passes it and a factVariable of items, subsequenced
+      by date, entity, and region (covering concept and product
+      dimension), to a chained regionTuple formula.
+
+      The chained regionTuple formula, has a name on its variable-set
+      arc to refer to the reportTuple, and makes its in-scope
+      variables visible to the regionTuple formula.  The region
+      Tuple formula has a location so it is inside the reportTuple.
+      The regionTuple
+      formula has a factVariable getting seqeuences of items implicitly
+      matched to those of the report tuple but not covering product, so
+      they subsequence by product.
+
+      The regionTuple formula has a chained regionId formula generating a token item
+      of the region dimension name, and a chained productTuple formula.
+      The chained productTuple formula has a chained itemFormula producing
+      the detail items inside the product tuples, and a chained productId
+      formula producing a token item representing the product dimension.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+    <data>
+      <schema>regionProductSalesToTuple-concepts.xsd</schema>
+      <linkbase>regionProductSalesToTuple-definition.xml</linkbase>
+      <linkbase>regionProductSalesToTuple-formulae.xml</linkbase>
+      <instance readMeFirst="true">regionProductSalesToTuple-instance.xml</instance> 
+    </data>
+    <result>
+      <instance>chaining-tupleRegion-tupleProduct-result.xml</instance> 
+    </result>
+  </variation>
+
+</testcase>
+
+
+
+
+

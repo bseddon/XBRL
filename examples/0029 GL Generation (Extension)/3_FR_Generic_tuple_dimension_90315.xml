@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Sample XBRL FR instance document with facts that are part of tuples and with dimensional XBRL context. Version 1.0.20090407.1 -->
+<!-- This file was created by the XBRL GL Working Group for educational purposes only, does not represent real company data and we welcome suggestions on improvement. Contact xbrlgl@xbrl.org with comments. -->
+<!-- This file was created as part of a package of supporting materials for the second Public Working Draft of the Summary Reporting Contextual Data (SRCD) module of the XBRL Global Ledger Taxonomy (XBRL GL). -->
+<!--The SRCD module provides a set of XBRL GL concepts that represent the "contextual data" typically found in XBRL instance documents - contexts, units and other attributes - with the main purposes of 1) Providing alternative ways to create XBRL instances from source accounting and financial data; 2) Unambiguously supporting the drill down from summary information expressed in XBRL to the underlying detail and back; 3) Providing a way to represent XBRL data in a flat, hierarchical XML format as a simple, optimized interface from/to accounting and business software and XBRL. -->
+<!-- The package includes three use cases: 1) Simple context: representation of XBRL facts that are not part of tuples and with simple, non-dimensional contextual information; 2) Tuples and simple context: representation of XBRL facts that are part of tuples and with simple, non-dimensional contextual information; 3) Tuples and dimensions: representation of XBRL facts that are part of tuples and with dimensional contextual information. -->
+<!-- This file is a simple XBRL FR instance document that illustrates use case 3 - Tuples and dimensions. A corresponding XBRL GL instance document that illustrates how the SRCD module can be used  to unambiguously link detailed data to their summarized representation in an XBRL FR instance document or to represent the same information in a "flat", hierarchical XML format is distributed as part of the same package (file 3_GL_Generic_tuple_dimension_90315.xml). Note: the term XBRL FR is used here to refer to summary oriented taxonomies and instances that are governed by XBRL’s technical documents including FRTA (http://www.xbrl.org/TaxonomyGuidance/); it is not limited to Financial Reporting per se. -->
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:pDim="http://www.mycompany.com/xbrl/taxeditor/dim" xmlns:pPrimary="http://www.mycompany.com/xbrl/taxeditor/primary" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <link:schemaRef xlink:href="primary.xsd" xlink:type="simple"/>
+  <xbrli:context id="c1_Total">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:Total</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_QLD">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:QLD</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_NSW">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:NSW</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_ACT">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:ACT</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_VIC">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:VIC</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_NT">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:NT</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_WA">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:WA</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_TAS">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:TAS</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1_SA">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+      <xbrli:segment>
+        <xbrldi:explicitMember dimension="pPrimary:DimensionStatesAndTerritories">pDim:SA</xbrldi:explicitMember>
+      </xbrli:segment>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="c1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.sample.com">Sample</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2007-07-01</xbrli:startDate>
+      <xbrli:endDate>2008-06-30</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="AUD">
+    <xbrli:measure>iso4217:AUD</xbrli:measure>
+  </xbrli:unit>
+  <pPrimary:TupleA>
+    <pPrimary:KeyElement contextRef="c1">D001</pPrimary:KeyElement>
+    <pPrimary:AdditionalElement contextRef="c1">Division 1</pPrimary:AdditionalElement>
+    <pPrimary:Sales contextRef="c1_QLD" decimals="0" unitRef="AUD">10000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_VIC" decimals="0" unitRef="AUD">10000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_NSW" decimals="0" unitRef="AUD">20000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_ACT" decimals="0" unitRef="AUD">5000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_TAS" decimals="0" unitRef="AUD">2000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_WA" decimals="0" unitRef="AUD">12000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_SA" decimals="0" unitRef="AUD">20000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_NT" decimals="0" unitRef="AUD">1000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_Total" decimals="0" unitRef="AUD">80000</pPrimary:Sales>
+  </pPrimary:TupleA>
+  <pPrimary:TupleA>
+    <pPrimary:KeyElement contextRef="c1">D002</pPrimary:KeyElement>
+    <pPrimary:AdditionalElement contextRef="c1">Division 2</pPrimary:AdditionalElement>
+    <pPrimary:Sales contextRef="c1_QLD" decimals="0" unitRef="AUD">15500</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_VIC" decimals="0" unitRef="AUD">25000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_NSW" decimals="0" unitRef="AUD">15000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_ACT" decimals="0" unitRef="AUD">5000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_TAS" decimals="0" unitRef="AUD">1100</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_WA" decimals="0" unitRef="AUD">9000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_SA" decimals="0" unitRef="AUD">17000</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_NT" decimals="0" unitRef="AUD">500</pPrimary:Sales>
+    <pPrimary:Sales contextRef="c1_Total" decimals="0" unitRef="AUD">88100</pPrimary:Sales>
+  </pPrimary:TupleA>
+</xbrli:xbrl>

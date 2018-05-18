@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xmlns:i="http://abc.com/instance-resource-name"
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0028</number>
+  <name>Multi-instance examples</name>
+  <description>
+    Examples of multi-instance processing.  instance/@name matches that of formula instance resource name parameter.
+  </description>
+
+  <variation id="V-01">
+    <name>
+        2 input instances, same taxonomy and aspects, no fallback, implicitly filtered items summed.
+    </name>
+    <description>
+    </description>
+    <data>
+      <schema>abc-1.xsd</schema>
+      <instance readMeFirst="true">abc-1-instance1a.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">abc-1-instance1b.xml</instance>  
+      <linkbase>abc-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-1-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>
+        2 input instances, same taxonomy and aspects, with fallback, implicitly filtered items summed.
+    </name>
+    <description>
+    </description>
+    <data>
+      <schema>abc-1.xsd</schema>
+      <instance readMeFirst="true">abc-1-instance2a.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">abc-1-instance2b.xml</instance>  
+      <linkbase>abc-formula2.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-1-result2.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>
+        Same as v-01 but 3 input instances, fallbacks on inst-b and inst-c
+    </name>
+    <description>
+    </description>
+    <data>
+      <schema>abc-1.xsd</schema>
+      <instance readMeFirst="true">abc-1-instance3a.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">abc-1-instance3b.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-c">abc-1-instance3c.xml</instance>  
+      <linkbase>abc-formula3.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-1-result3.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>
+        Same as v-03 but each instance has different taxonomy namespace
+    </name>
+    <description>
+    </description>
+    <data>
+      <schema>abc-1.xsd</schema>
+      <instance readMeFirst="true">abc-1-instance4a.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">abc-1-instance4b.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-c">abc-1-instance4c.xml</instance>  
+      <linkbase>abc-formula3.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-1-result4.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>
+        Same as v-03 but each instance has different period, match inst a to inst b prior year to inst c prior-2nd-year
+    </name>
+    <description>
+    </description>
+    <data>
+      <schema>abc-1.xsd</schema>
+      <instance readMeFirst="true">abc-1-instance5a.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">abc-1-instance5b.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-c">abc-1-instance5c.xml</instance>  
+      <linkbase>abc-formula3.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-1-result5.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>
+        Same as v-05 but dimensional, each year different dimensions.  Tests implicit filtering with linkbase changes by year.  No fallback situations.
+    </name>
+    <description>
+        The taxonomy for current, prior 1 year and prior 2 year have same xsd but linkbases have different member hierarchy.  Each year of these taxonomy/linkbases in separate subdirectories.  Implicit filtering by dimension and member.
+    </description>
+    <data>
+      <schema>dim-1-current-yr/dim-1.xsd</schema>
+      <instance readMeFirst="true">dim-1-instance1-currentyr.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">dim-1-instance1-prior1yr.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-c">dim-1-instance1-prior2yr.xml</instance>  
+      <linkbase>dim-1-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>dim-1-result1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>
+        Same as v-06 but summing descendants with different member hierarchy per year, to test that common xsd and separate linkbases are loaded for each instance.
+    </name>
+    <description>
+        The dimension members are current yr: m1-m2-m3, prior-1-yr: m2-m3-m1, prior-2-yr: m3-m1-m2, filters only on m1 and m1 descendants to test that each year takes the right linkbase for the different year even though the same xsd is shared for all years.  Details of calculation in comments of result instance file.
+    </description>
+    <data>
+      <schema>dim-1-current-yr/dim-1.xsd</schema>
+      <instance readMeFirst="true">dim-1-instance2-currentyr.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-b">dim-1-instance1-prior1yr.xml</instance>  
+      <instance readMeFirst="true" name="i:inst-c">dim-1-instance1-prior2yr.xml</instance>  
+      <linkbase>dim-1-formula2.xml</linkbase>
+    </data>
+    <result>
+      <instance>dim-1-result2.xml</instance> 
+    </result>
+  </variation>
+
+
+</testcase>
+
+
+
+
+

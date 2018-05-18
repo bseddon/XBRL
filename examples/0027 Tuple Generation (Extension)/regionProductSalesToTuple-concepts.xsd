@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2008-05-27 15:34).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-05-30 13:56:44
+-->
+<schema
+  xmlns="http://www.w3.org/2001/XMLSchema"
+  xmlns:xbrli="http://www.xbrl.org/2003/instance"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:company="http://www.SampleCompany.com/Company"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:concept="http://xbrl.org/2008/filter/concept"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  targetNamespace="http://www.SampleCompany.com/Company"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+  <annotation>
+    <appinfo>
+      <link:roleType
+        roleURI="http://www.SampleCompany.com/Hypercube"
+        id="Hypercube">
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:roleType
+        roleURI="http://www.SampleCompany.com/PrimaryConcepts"
+        id="PrimaryConcepts">
+        <link:definition>Primary concepts which have hypercubes</link:definition>
+        <link:usedOn>link:definitionLink</link:usedOn>
+      </link:roleType>
+      <link:linkbaseRef xlink:type="simple"
+        xlink:role="http://www.xbrl.org/2003/role/definitionLinkbaseRef"
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="regionProductSalesToTuple-definition.xml"
+        xlink:title="Definition Links, all" />
+    </appinfo>
+  </annotation>
+  <import
+    namespace="http://www.xbrl.org/2003/instance"
+    schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd" />
+  <import
+    namespace="http://xbrl.org/2005/xbrldt"
+    schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd" />
+  <element
+    id="products_AllProducts"
+    name="AllProducts"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="regions_AllRegions"
+    name="AllRegions"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="regions_AsiaRegion"
+    name="AsiaRegion"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="company_ProductDimension"
+    name="ProductDimension"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="duration"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="company_RegionDimension"
+    name="RegionDimension"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:dimensionItem"
+    xbrli:periodType="duration"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="company_Hypercube"
+    name="Hypercube"
+    type="xbrli:stringItemType"
+    substitutionGroup="xbrldt:hypercubeItem"
+    xbrli:periodType="duration"
+    abstract="true"
+    nillable="true" />
+  <element
+    id="products_ConsumerHealthSegment"
+    name="ConsumerHealthSegment"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="ci_Employees"
+    name="Employees"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="regions_EuropeRegion"
+    name="EuropeRegion"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="ci_Forecast"
+    name="Forecast"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    xbrli:balance="credit"
+    nillable="true" />
+  <element
+    id="products_GenericsSegment"
+    name="GenericsSegment"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="ci_Laptops"
+    name="Laptops"
+    type="xbrli:decimalItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="regions_OtherRegions"
+    name="OtherRegions"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="products_OtherSegments"
+    name="OtherSegments"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="products_PharmaceuticalsSegment"
+    name="PharmaceuticalsSegment"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="company_Product"
+    name="Product"
+    substitutionGroup="xbrli:tuple"
+    nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction
+          base="anyType">
+          <choice
+            minOccurs="1"
+            maxOccurs="unbounded">
+            <element
+              ref="company:Employees"
+              minOccurs="0"
+              maxOccurs="1" />
+            <element
+              ref="company:Laptops"
+              minOccurs="0"
+              maxOccurs="1" />
+            <element
+              ref="company:Sales"
+              minOccurs="0"
+              maxOccurs="1" />
+            <element
+              ref="company:Forecast"
+              minOccurs="0"
+              maxOccurs="1" />
+            <element
+              ref="company:ProductId"
+              minOccurs="0"
+              maxOccurs="1" />
+          </choice>
+          <attribute
+            name="id"
+            type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element
+    id="company_ProductId"
+    name="ProductId"
+    type="xbrli:tokenItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="company_Region"
+    name="Region"
+    substitutionGroup="xbrli:tuple"
+    nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction
+          base="anyType">
+          <choice
+            minOccurs="1"
+            maxOccurs="unbounded">
+            <element
+              ref="company:Product"
+              minOccurs="0"
+              maxOccurs="unbounded" />
+            <element
+              ref="company:RegionId"
+              minOccurs="0"
+              maxOccurs="1" />
+          </choice>
+          <attribute
+            name="id"
+            type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element
+    id="company_RegionId"
+    name="RegionId"
+    type="xbrli:tokenItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="company_Report"
+    name="Report"
+    substitutionGroup="xbrli:tuple"
+    nillable="true">
+    <complexType>
+      <complexContent>
+        <restriction
+          base="anyType">
+          <choice
+            minOccurs="1"
+            maxOccurs="unbounded">
+            <element
+              ref="company:Region"
+              minOccurs="0"
+              maxOccurs="1" />
+          </choice>
+          <attribute
+            name="id"
+            type="ID" />
+        </restriction>
+      </complexContent>
+    </complexType>
+  </element>
+  <element
+    id="ci_Sales"
+    name="Sales"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    xbrli:balance="credit"
+    nillable="true" />
+  <element
+    id="regions_USAndCanadaRegion"
+    name="USAndCanadaRegion"
+    type="xbrli:monetaryItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+  <element
+    id="company_ValidByProduct"
+    name="ValidByProduct"
+    type="xbrli:booleanItemType"
+    substitutionGroup="xbrli:item"
+    xbrli:periodType="duration"
+    nillable="true" />
+</schema>

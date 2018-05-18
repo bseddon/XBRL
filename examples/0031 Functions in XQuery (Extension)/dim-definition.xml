@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="a"
+      xlink:href="abc.xsd#a" />
+    <loc xlink:type="locator"
+      xlink:label="b"
+      xlink:href="abc.xsd#b" />
+    <loc xlink:type="locator"
+      xlink:label="c"
+      xlink:href="abc.xsd#c" />
+    <loc xlink:type="locator"
+      xlink:label="s"
+      xlink:href="abc.xsd#s" />
+    <loc xlink:type="locator"
+      xlink:label="t"
+      xlink:href="abc.xsd#t" />
+    <loc xlink:type="locator"
+      xlink:label="hc"
+      xlink:href="abc.xsd#hc" />
+    <loc xlink:type="locator"
+      xlink:label="dim"
+      xlink:href="abc.xsd#dim" />
+    <loc xlink:type="locator"
+      xlink:label="memP1"
+      xlink:href="abc.xsd#memP1" />
+    <loc xlink:type="locator"
+      xlink:label="memC1"
+      xlink:href="abc.xsd#memC1" />
+    <loc xlink:type="locator"
+      xlink:label="memC2"
+      xlink:href="abc.xsd#memC2" />
+    <loc xlink:type="locator"
+      xlink:label="memC3"
+      xlink:href="abc.xsd#memC3" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="a" xlink:to="b"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="a" xlink:to="c"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="a" xlink:to="s"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="a" xlink:to="t"
+      order="1"
+      use="optional" />
+    
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="a" xlink:to="hc"
+      order="1"
+      use="optional"
+      xbrldt:contextElement="segment" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="hc" xlink:to="dim"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="hc" xlink:to="memP1"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="memP1" xlink:to="memC1"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="memP1" xlink:to="memC2"
+      order="1"
+      use="optional" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="memP1" xlink:to="memC3"
+      order="1"
+      use="optional" />
+  </definitionLink>
+</linkbase>
+
+
+

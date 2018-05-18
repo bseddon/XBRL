@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="
+  http://xbrl.org/2008/conformance ../../infrastructure/test.xsd
+  ">
+  <creator>
+    <name>Geoff Shuetrim</name>
+    <email>geoff@galexy.net</email>
+  </creator>
+  <number>0001</number>
+  <name>Balance sheet test</name>
+  <description>
+    Compute true because the balance sheet balances.
+    Note that assertions would be a better way of setting 
+    up this kind of test.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+  <variation id="V-01">
+    <name>Verify reported value of assets</name>
+    <description>
+       Boolean result := (Assets eq (Liabilities + Equity))
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-concept-name-filter"/>
+  <reference specification="GENERICLABELS" id="sec-generic-label"/>
+    <data>
+      <instance readMeFirst="true">input.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output.xml</instance>
+    </result>
+  </variation>
+
+</testcase>

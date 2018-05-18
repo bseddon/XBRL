@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 11:04).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-25 14:31:03
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:ci="http://www.UBmatrix.com/Patterns/Sales" xmlns:eg="http://www.SampleCompany.com/Company" 
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  <link:schemaRef xlink:href="regionProductSalesToTuple-concepts.xsd" xlink:type="simple" />
+
+  <context id="D-2003">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+  </context>
+  <context id="D-2002">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+  </context>
+  <context id="D-2001">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+  </context>
+
+  <unit id="U-Monetary">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <unit id="U-Pure">
+    <measure>pure</measure>
+  </unit>
+
+
+  <eg:Report>
+     <!-- 2001 -->
+     <eg:Region>
+        <eg:RegionId>All</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">32465000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Pharm</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">15275000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Gen</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">1823000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>ConHealth</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">5752000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>OtherSeg</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">9615000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>US</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">10137000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Europe</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">10396000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Asia</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">3210000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>OtherRegions</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2001" unitRef="U-Monetary" decimals="INF">8722000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <!-- 2002 -->
+     <eg:Region>
+        <eg:RegionId>All</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">35805000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Pharm</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">18150000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Gen</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">1973000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>ConHealth</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">6514000</eg:Sales>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>OtherSeg</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">9168000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>US</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">12649000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Europe</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">10374000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Asia</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">4371000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>OtherRegions</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2002" unitRef="U-Monetary" decimals="INF">8411000</eg:Sales>
+        </eg:Product>
+     </eg:Region>
+     <!-- 2003 -->
+     <eg:Region>
+        <eg:RegionId>All</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">32038000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">40000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">10000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">10000</eg:Laptops>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Pharm</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">20181000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">23000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">3000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">3000</eg:Laptops>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>Gen</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">2433000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">4000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">2000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">2000</eg:Laptops>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>ConHealth</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">6675000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">1000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">4000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">4000</eg:Laptops>
+        </eg:Product>
+        <eg:Product>
+           <eg:ProductId>OtherSeg</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">2749000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">12000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">1000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">1000</eg:Laptops>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>US</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">10214000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">10000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">2000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">2000</eg:Laptops>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Europe</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">11901000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">6000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">4000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">4000</eg:Laptops>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>Asia</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">5639000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">22000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">1000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">1000</eg:Laptops>
+        </eg:Product>
+     </eg:Region>
+     <eg:Region>
+        <eg:RegionId>OtherRegions</eg:RegionId>
+        <eg:Product>
+           <eg:ProductId>All</eg:ProductId>
+           <eg:Sales contextRef="D-2003" unitRef="U-Monetary" decimals="INF">4284000</eg:Sales>
+           <eg:Forecast contextRef="D-2003" unitRef="U-Monetary" decimals="INF">2000000</eg:Forecast>
+           <eg:Employees contextRef="D-2003" unitRef="U-Pure" decimals="INF">3000</eg:Employees>
+           <eg:Laptops contextRef="D-2003" unitRef="U-Pure" decimals="INF">3000</eg:Laptops>
+        </eg:Product>
+     </eg:Region>
+  </eg:Report>
+
+</xbrl>
+

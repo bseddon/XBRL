@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2006-07-25 11:04).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2006 UBmatrix inc., All Rights Reserved
+Produced on 2006-07-25 14:31:03
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:ci="http://www.UBmatrix.com/Patterns/Sales" xmlns:eg="http://www.SampleCompany.com/Company" 
+xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd"
+>
+  <link:schemaRef xlink:href="regionProductSalesToTuple-concepts.xsd" xlink:type="simple" />
+  <link:linkbaseRef xlink:href="regionProductSalesToTuple-formulae.xml" xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+  <context id="D-2003-All">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-All">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-All">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-Pharm">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:PharmaceuticalsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-Pharm">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:PharmaceuticalsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-Pharm">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:PharmaceuticalsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-Gen">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:GenericsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-Gen">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:GenericsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-Gen">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:GenericsSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-ConHealth">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:ConsumerHealthSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-ConHealth">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:ConsumerHealthSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-ConHealth">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:ConsumerHealthSegment</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-OtherSeg">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:OtherSegments</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-OtherSeg">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:OtherSegments</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-OtherSeg">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AllRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:OtherSegments</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-US">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:USAndCanadaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-US">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:USAndCanadaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-US">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:USAndCanadaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-Europe">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:EuropeRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-Europe">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:EuropeRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-Europe">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:EuropeRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-Asia">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AsiaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-Asia">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AsiaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-Asia">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:AsiaRegion</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2003-OtherRegions">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2003-01-01</startDate>
+      <endDate>2003-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:OtherRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2002-OtherRegions">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2002-01-01</startDate>
+      <endDate>2002-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:OtherRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <context id="D-2001-OtherRegions">
+    <entity>
+      <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+    </entity>
+    <period>
+      <startDate>2001-01-01</startDate>
+      <endDate>2001-12-31</endDate>
+    </period>
+    <scenario>
+      <xbrldi:explicitMember dimension="eg:RegionDimension">eg:OtherRegions</xbrldi:explicitMember>
+      <xbrldi:explicitMember dimension="eg:ProductDimension">eg:AllProducts</xbrldi:explicitMember>
+    </scenario>
+  </context>
+  <unit id="U-Monetary">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <unit id="U-Pure">
+    <measure>pure</measure>
+  </unit>
+  <eg:Sales contextRef="D-2003-All" unitRef="U-Monetary" decimals="0">32038000</eg:Sales>
+  <eg:Sales contextRef="D-2002-All" unitRef="U-Monetary" decimals="0">35805000</eg:Sales>
+  <eg:Sales contextRef="D-2001-All" unitRef="U-Monetary" decimals="0">32465000</eg:Sales>
+  <eg:Sales contextRef="D-2003-Pharm" unitRef="U-Monetary" decimals="0">20181000</eg:Sales>
+  <eg:Sales contextRef="D-2002-Pharm" unitRef="U-Monetary" decimals="0">18150000</eg:Sales>
+  <eg:Sales contextRef="D-2001-Pharm" unitRef="U-Monetary" decimals="0">15275000</eg:Sales>
+  <eg:Sales contextRef="D-2003-Gen" unitRef="U-Monetary" decimals="0">2433000</eg:Sales>
+  <eg:Sales contextRef="D-2002-Gen" unitRef="U-Monetary" decimals="0">1973000</eg:Sales>
+  <eg:Sales contextRef="D-2001-Gen" unitRef="U-Monetary" decimals="0">1823000</eg:Sales>
+  <eg:Sales contextRef="D-2003-ConHealth" unitRef="U-Monetary" decimals="0">6675000</eg:Sales>
+  <eg:Sales contextRef="D-2002-ConHealth" unitRef="U-Monetary" decimals="0">6514000</eg:Sales>
+  <eg:Sales contextRef="D-2001-ConHealth" unitRef="U-Monetary" decimals="0">5752000</eg:Sales>
+  <eg:Sales contextRef="D-2003-OtherSeg" unitRef="U-Monetary" decimals="0">2749000</eg:Sales>
+  <eg:Sales contextRef="D-2002-OtherSeg" unitRef="U-Monetary" decimals="0">9168000</eg:Sales>
+  <eg:Sales contextRef="D-2001-OtherSeg" unitRef="U-Monetary" decimals="0">9615000</eg:Sales>
+  <eg:Sales contextRef="D-2003-US" unitRef="U-Monetary" decimals="0">10214000</eg:Sales>
+  <eg:Sales contextRef="D-2002-US" unitRef="U-Monetary" decimals="0">12649000</eg:Sales>
+  <eg:Sales contextRef="D-2001-US" unitRef="U-Monetary" decimals="0">10137000</eg:Sales>
+  <eg:Sales contextRef="D-2003-Europe" unitRef="U-Monetary" decimals="0">11901000</eg:Sales>
+  <eg:Sales contextRef="D-2002-Europe" unitRef="U-Monetary" decimals="0">10374000</eg:Sales>
+  <eg:Sales contextRef="D-2001-Europe" unitRef="U-Monetary" decimals="0">10396000</eg:Sales>
+  <eg:Sales contextRef="D-2003-Asia" unitRef="U-Monetary" decimals="0">5639000</eg:Sales>
+  <eg:Sales contextRef="D-2002-Asia" unitRef="U-Monetary" decimals="0">4371000</eg:Sales>
+  <eg:Sales contextRef="D-2001-Asia" unitRef="U-Monetary" decimals="0">3210000</eg:Sales>
+  <eg:Sales contextRef="D-2003-OtherRegions" unitRef="U-Monetary" decimals="0">4284000</eg:Sales>
+  <eg:Sales contextRef="D-2002-OtherRegions" unitRef="U-Monetary" decimals="0">8411000</eg:Sales>
+  <eg:Sales contextRef="D-2001-OtherRegions" unitRef="U-Monetary" decimals="0">8722000</eg:Sales>
+
+
+  <eg:Forecast contextRef="D-2003-All" unitRef="U-Monetary" decimals="0">40000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-Pharm" unitRef="U-Monetary" decimals="0">23000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-Gen" unitRef="U-Monetary" decimals="0">4000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-ConHealth" unitRef="U-Monetary" decimals="0">1000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-OtherSeg" unitRef="U-Monetary" decimals="0">12000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-US" unitRef="U-Monetary" decimals="0">10000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-Europe" unitRef="U-Monetary" decimals="0">6000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-Asia" unitRef="U-Monetary" decimals="0">22000000</eg:Forecast>
+  <eg:Forecast contextRef="D-2003-OtherRegions" unitRef="U-Monetary" decimals="0">2000000</eg:Forecast>
+
+  <eg:Employees contextRef="D-2003-All" unitRef="U-Pure" decimals="0">10000</eg:Employees>
+  <eg:Employees contextRef="D-2003-Pharm" unitRef="U-Pure" decimals="0">3000</eg:Employees>
+  <eg:Employees contextRef="D-2003-Gen" unitRef="U-Pure" decimals="0">2000</eg:Employees>
+  <eg:Employees contextRef="D-2003-ConHealth" unitRef="U-Pure" decimals="0">4000</eg:Employees>
+  <eg:Employees contextRef="D-2003-OtherSeg" unitRef="U-Pure" decimals="0">1000</eg:Employees>
+  <eg:Employees contextRef="D-2003-US" unitRef="U-Pure" decimals="0">2000</eg:Employees>
+  <eg:Employees contextRef="D-2003-Europe" unitRef="U-Pure" decimals="0">4000</eg:Employees>
+  <eg:Employees contextRef="D-2003-Asia" unitRef="U-Pure" decimals="0">1000</eg:Employees>
+  <eg:Employees contextRef="D-2003-OtherRegions" unitRef="U-Pure" decimals="0">3000</eg:Employees>
+
+  <eg:Laptops contextRef="D-2003-All" unitRef="U-Pure" decimals="0">10000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-Pharm" unitRef="U-Pure" decimals="0">3000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-Gen" unitRef="U-Pure" decimals="0">2000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-ConHealth" unitRef="U-Pure" decimals="0">4000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-OtherSeg" unitRef="U-Pure" decimals="0">1000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-US" unitRef="U-Pure" decimals="0">2000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-Europe" unitRef="U-Pure" decimals="0">4000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-Asia" unitRef="U-Pure" decimals="0">1000</eg:Laptops>
+  <eg:Laptops contextRef="D-2003-OtherRegions" unitRef="U-Pure" decimals="0">3000</eg:Laptops>
+
+
+
+</xbrl>
+

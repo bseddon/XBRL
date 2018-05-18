@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+  http://xbrl.org/2008/conformance ../../infrastructure/test.xsd
+  ">
+
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+
+  <number>0023</number>
+
+  <name>Check contexts and units of instance document.</name>
+
+  <description>
+    This example explores two strategies for verifying
+    contexts and units in instance documents.  There are two
+    basic strategies which differ substantively, (1) check
+    all contexts and units reported without regard to whether
+    they are referenced by any fact item (V-01 &amp; V-03) and 
+    (2) check only those contexts and units actually referenced 
+    by fact items (V-02 &amp; V-04). 
+    Independently, for each strategy, examples show (a) value assertion
+    checking (V-01 &amp; V-02) and (b) formulas to output 
+    results of checking into an instance document (V-03 &amp; V-04).  
+    (Note that this example's instances have no segments, scenarios, or
+    dimensions.  If such are used, the commented-out ssf filters, 
+    or dimension-aspect-covering filters, may have to be considered,
+    and in come cases would add more filtering logic or separate passes
+    for seg/scen or dimens cases.  See comment text disabling ssf
+    filters in V-02 and V-04 formulae.)  
+  </description>
+
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="VARIABLES" id="sec-general-variables"/>
+
+  <variation id="V-01">
+    <name>Value assertion, check all contexts and units</name>
+    <description>
+       All contexts and units are checked, whether referenced
+       by fact item or not.  Check is by value assertion.  Approach
+       noted by comments in the formula linkbase is that a general
+       variable binds to all contexts (units), and the value assertion
+       test checks each context's entity scheme and date 
+       (each unit's measure).
+    </description>
+
+    <data>
+      <instance readMeFirst="true">checkAllByAssertion-instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">checkAllByAssertion-formulae.xml</linkbase>
+    </data>
+
+    <result>
+      <assertionTests 
+         assertionID="check_context"
+         countSatisfied="1"
+         countNotSatisfied="1" />
+      <assertionTests 
+         assertionID="check_unit"
+         countSatisfied="2"
+         countNotSatisfied="1" />
+    </result>
+
+  </variation>
+
+  <variation id="V-02">
+    <name>Value assertion, check referenced contexts and units</name>
+    <description>
+       Fact item contexts and units are checked, only those referenced
+       by fact item.  Check is by value assertion.  Approach
+       noted by comments in the formula linkbase is that a general
+       variable binds to each unique contextID (unitID) of the fact
+       items in instance, and one by one each sequence of all matching
+       facts by contextID (or unitID) is checked as above, by
+       examining the first item in the sequence for the entity
+       scheme and instant date (unit measure).
+    </description>
+
+    <data>
+      <instance readMeFirst="true">checkRefedByAssertion-instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">checkRefedByAssertion-formulae.xml</linkbase>
+    </data>
+
+    <result>
+      <assertionTests 
+         assertionID="check_context"
+         countSatisfied="1"
+         countNotSatisfied="1" />
+      <assertionTests 
+         assertionID="check_unit"
+         countSatisfied="2"
+         countNotSatisfied="1" />
+    </result>
+
+  </variation>
+
+  <variation id="V-03">
+    <name>Formula for result instance, check all contexts and units</name>
+    <description>
+       All contexts and units are checked, whether referenced
+       by fact item or not.  Check is by formula.  Result of context
+       checks are true/false (if context passes test) and adopt
+       the context being tested.  Result of unit tests are a decimal
+       which takes numeric equivalent of boolean (0/1), context-1,
+       and unit being tested.  Approach (same as test V-01)
+       noted by comments in the formula linkbase is that a general
+       variable binds to all contexts (units), and the value assertion
+       test checks each context's entity scheme and date 
+       (each unit's measure).
+    </description>
+
+    <data>
+      <instance readMeFirst="true">checkAllByFormula-instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">checkAllByFormula-formulae.xml</linkbase>
+    </data>
+
+    <result>
+      <instance>checkAllByFormula-result.xml</instance>
+    </result>
+
+  </variation>
+
+  <variation id="V-04">
+    <name>Value assertion, check referenced contexts and units</name>
+    <description>
+       Fact item contexts and units are checked, only those referenced
+       by fact items.  Check is by formula.  Result of context
+       checks are true/false (if context passes test) and adopt
+       the context being tested.  Result of unit tests are a decimal
+       which takes numeric equivalent of boolean (0/1), context-1,
+       and unit being tested.  Approach (same as test V-02)
+       noted by comments in the formula linkbase is that a general
+       variable binds to each unique contextID (unitID) of the fact
+       items in instance, and one by one each sequence of all matching
+       facts by contextID (or unitID) is checked as above, by
+       examining the first item in the sequence for the entity
+       scheme and instant date (unit measure).
+    </description>
+
+    <data>
+      <instance readMeFirst="true">checkRefedByFormula-instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">checkRefedByFormula-formulae.xml</linkbase>
+    </data>
+
+    <result>
+      <instance>checkRefedByFormula-result.xml</instance>
+    </result>
+
+  </variation>
+
+</testcase>

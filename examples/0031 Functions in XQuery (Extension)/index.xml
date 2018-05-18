@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:i="http://www.xbrl.org/int/gl/FR-source-instance"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0031</number>
+  <name>Examples of function implementations in XQuery</name>
+  <description>
+    Examples of functions using XQuery to implement the processing
+  </description>
+
+  <variation id="V-01">
+    <name>
+        Formula a = b + c, where a is implemented by a locally defined
+        function.
+    </name>
+    <description>
+      Usage pattern of simple local XQuery-defined function.
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">abc-instance1.xml</instance>  
+     <linkbase>abc-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>
+        Formula a = b + c, where a is implemented by a function defined
+        in a separate linkbase file.
+    </name>
+    <description>
+      Usage pattern of simple local XQuery-defined function.
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">abc-instance2.xml</instance>  
+     <linkbase>abc-formula2.xml</linkbase>
+     <linkbase>abc-function2.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-03">
+    <name>
+        The function in separate linkbase determines decimals
+        precision of result, by looking at the units, and using
+        unique decimals numbers by unit (to test that function
+        is really being called).
+    </name>
+    <description>
+      Usage pattern of simple local XQuery-defined function.
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">abc-instance3.xml</instance>  
+     <linkbase>abc-formula3.xml</linkbase>
+     <linkbase>abc-function3.xml</linkbase>
+    </data>
+    <result>
+      <instance>abc-results3.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-04">
+    <name>
+        The function is a recursive implementation of integer exponentiation
+    </name>
+    <description>
+      Usage pattern of function with recursion
+    </description>
+    <data>
+      <schema>power.xsd</schema>
+      <instance readMeFirst="true">power-instance1.xml</instance>  
+     <linkbase>power-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>power-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-05">
+    <name>
+        Present value calculation
+    </name>
+    <description>
+      Usage pattern of function P = the present value of amount A, due n years from now, at r = the rate of interest.
+For example, someone contracts to pay you $100,000 in ten years. What's that worth right now, if they changed their mind and decided to paid you upfront? 
+At interest compounded annually:
+P = A/(1 + r)**n  This requires the power function from V-04.
+    </description>
+    <data>
+      <schema>present-value.xsd</schema>
+      <instance readMeFirst="true">present-value-instance1.xml</instance>  
+     <linkbase>present-value-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>present-value-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-06">
+    <name>
+        Formula trim($arg) where trim is implemented by a locally defined
+        function.
+    </name>
+    <description>
+      Usage pattern of simple local XQuery-defined function.
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">trim-instance1.xml</instance>  
+     <linkbase>trim-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>trim-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-07">
+    <name>
+        Formula isNumeric($arg) where isNumeric is implemented by a locally defined
+        function.
+    </name>
+    <description>
+      Usage pattern of simple local XQuery-defined function.
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">isNumeric-instance1.xml</instance>  
+     <linkbase>isNumeric-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>isNumeric-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-08">
+    <name>
+        Formula sum($arg) function test where aspects all match their tests.
+    </name>
+    <description>
+      Usage pattern of simple local XPath-defined function.  Compute the sum of the values of the facts in an input sequence checking that all facts are aspect-matched except for a specified explicit dimension and checking that there is exactly one fact in the sequence for each domain member of the explicit dimension with a specified relationship from the explicit dimension domain member with the specified QName. Throws an exception if the explicit dimension does not have the specified domain member. Make sure that the implementation does not throw exceptions if the data types of any of the input facts are numeric but not xs:decimal. 
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">sum-instance1.xml</instance>  
+     <linkbase>dim-definition.xml</linkbase>
+     <linkbase>sum-formula1.xml</linkbase>
+    </data>
+    <result>
+      <instance>isum-results1.xml</instance> 
+    </result>
+  </variation>
+
+  <variation id="V-09">
+    <name>
+        Formula sum($arg) where aspects mismatch concept and unit aspects.
+    </name>
+    <description>
+      See V-08
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">sum-instance1.xml</instance>  
+     <linkbase>dim-definition.xml</linkbase>
+     <linkbase>sum-formula2.xml</linkbase>
+    </data>
+    <result>
+      <error xmlns:eg='http://abc.com/test'>eg:aspect-issues</error> 
+    </result>
+  </variation>
+
+  <variation id="V-10">
+    <name>
+        Formula sum($arg) where an unexpected dimension member is provided (hypercube is open to allow it).
+    </name>
+    <description>
+      See V-08
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">sum-instance1.xml</instance>  
+     <linkbase>dim-definition.xml</linkbase>
+     <linkbase>sum-formula3.xml</linkbase>
+    </data>
+    <result>
+      <error xmlns:xfie="http://www.xbrl.org/2008/function/instance/error">
+         xfie:unrecognisedExplicitDimensionValueQName
+      </error> 
+    </result>
+  </variation>
+
+  <variation id="V-11">
+    <name>
+        Formula sum($arg) where an duplicated dimension member fact is input.
+    </name>
+    <description>
+      See V-08
+    </description>
+    <data>
+      <schema>abc.xsd</schema>
+      <instance readMeFirst="true">sum-instance1.xml</instance>  
+     <linkbase>dim-definition.xml</linkbase>
+     <linkbase>sum-formula4.xml</linkbase>
+    </data>
+    <result>
+      <error xmlns:eg='http://abc.com/test'>eg:aspect-issues</error> 
+    </result>
+  </variation>
+
+
+
+</testcase>
+
+
+
+
+

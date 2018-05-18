@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<xbrl 
+xmlns="http://www.xbrl.org/2003/instance" 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+>
+  
+  <link:schemaRef 
+    xlink:type="simple" 
+    xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" 
+    xlink:href="concepts.xsd"/>
+
+  <context id="Msg">
+    <entity>
+      <identifier scheme="www.belastingdienst.nl/loonheffingennummer">123456782L01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+
+  <bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang contextRef="Msg">true</bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang>
+
+</xbrl>

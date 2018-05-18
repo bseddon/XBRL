@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2005 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Victor Morilla</name>
+    <email>victor.morilla@bde.es</email>
+  </creator>
+  <number>0022</number>
+  <name>Simple existence assertion</name>
+  <description>
+    The example checks the presence of at least a fact for the concept NetIncomes
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+
+  <variation id="V-01">
+    <name>Assertion set with three existence assertions</name>
+    <description>
+      The example shows an assertion set containing three existence assertions.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <instance readMeFirst="true">instance.xml</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">assertions.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="netIncomesMustExist"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="expensesMustNotExist"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="incomesMustExist"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+    </result>
+  </variation>
+ 
+  <variation id="V-02">
+    <name>Assertion sets specifically identified</name>
+    <description>
+      The example shows an assertion set containing three existence assertions.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>         
+    <data>
+      <instance readMeFirst="true"
+        assertionSets="netIncomesAssertionSet incomesAssertionSet"
+        >instance2.xml</instance>
+      <schema readMeFirst="false">concepts2.xsd</schema>
+      <linkbase readMeFirst="false">assertions2.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="netIncomesMustExist"
+         countSatisfied="1"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="expensesMustNotExist"
+         countSatisfied="0"
+         countNotSatisfied="0" />
+      <assertionTests 
+         assertionID="incomesMustExist"
+         countSatisfied="0"
+         countNotSatisfied="1" />
+    </result>
+  </variation>
+ 
+</testcase>

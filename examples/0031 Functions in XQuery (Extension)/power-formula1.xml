@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:cfi="http://xbrl.org/2009/function"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:test="http://abc.com/test1"
+  xmlns:my-fn="http://abc.com/function"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2009/function ../../core_schemas/2008/function.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2009/cfi" xlink:href="../../core_schemas/2008/function.xsd#cfi-relationship" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- formula 1 produces x = power(y,integerExp) -->
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="my-fn:power($y, $expInt)"
+      source="y"
+      aspectModel="dimensional" implicitFiltering="true" >
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>test:x</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- positive integer power function -->
+    <variable:function xlink:type="resource" xlink:label="cust-fn-power-sig"
+       name="my-fn:power"
+       output="xs:decimal" >
+         <variable:input 
+           type="xs:decimal" />
+         <variable:input 
+           type="xs:decimal" />
+    </variable:function>
+
+    <!--  Arc from formula 1 to the implementation -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2009/cfi" 
+      xlink:from="cust-fn-power-sig" xlink:to="cust-fn-power-impl" order="1.0" />
+
+    <!-- positive integer power function -->
+    <cfi:implementation xlink:type="resource" xlink:label="cust-fn-power-impl" >
+        xquery version "1.0" encoding "utf-8";
+        module namespace my-fn = "http://abc.com/function"; 
+        define function my-fn:power ($y as xs:decimal, $exp as xs:decimal) as xs:decimal 
+        { 
+             if ($exp lt 0) then (
+               1 div my-fn:power($y, - $exp)
+             )
+             else (
+               if ($exp lt 1) then 1
+               else ($y * my-fn:power($y,$exp - 1))
+             )
+        };
+    </cfi:implementation>
+
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="variable_y"   bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="variable_expInt"   bindAsSequence="false" />
+
+    <!--  Concept filters for the fact variables -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_y">
+      <cf:concept>
+        <cf:qname>test:y</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <cf:conceptName xlink:type="resource" xlink:label="filter_expInt">
+      <cf:concept>
+        <cf:qname>test:expInt</cf:qname>
+      </cf:concept>
+    </cf:conceptName> 
+
+    <!--  Arc from formula 1 to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="variable_y" order="1.0"
+      name="y" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="variable_expInt" order="3.0"
+      name="expInt" />
+
+    <!--  Arcs from variables to their concept filters -->
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_y" xlink:to="filter_y" order="1.0"/>
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:from="variable_expInt" xlink:to="filter_expInt" order="1.0"/>
+  </generic:link>
+
+</link:linkbase>
+
+
+
+

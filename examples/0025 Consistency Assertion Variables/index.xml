@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  >
+  <creator>
+    <name>Herm Fischer</name>
+    <email>fischer@markv.com</email>
+  </creator>
+  <number>0025</number>
+  <name>Consistency assertion using formula variables</name>
+  <description>
+    Examples of variable set visibility in-scope to consistency expression formulae.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+
+  <variation id="V-01">
+    <name>
+        Consistency assertion radius based on result unit measure
+    </name>
+    <description>
+      Example 0016 (Pharmaceutical aggregation) is modified for
+      aggregation of sales, forecast, employees, and laptops.
+      Accuracy radius expression for consistency depends on what is being
+      aggregated, radius 0 for employees and laptops, and 10000
+      for sales and forecast in monetary units.  Accuracy condition
+      tests the unit measure.  Unit measure of fact result comes from
+      source v:items, which is in-scope visible to consistency assertion.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+    <data>
+      <schema>consisAggregExample-concepts.xsd</schema>
+      <linkbase>consisAggregExample-definition.xml</linkbase>
+      <instance readMeFirst="true">consisAggregExample-radiusByUnit-instance.xml</instance> 
+      <linkbase>consisAggregExample-radiusByUnit-formulae.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="12"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+  <variation id="V-02">
+    <name>
+        Consistency assertion radius based on formula variable concept name
+    </name>
+    <description>
+      Same as V-01 but accuracy expression is based on the local name
+      of the items concept being aggregated.  
+      Accuracy radius for consistency depends on what is being
+      aggregated, radius 0 for employees, 10 for laptops, and 1e4
+      for sales and 1e6 for forecast.  The assertion radius is
+      done by index lookup of the local-name of the factVariable $v:items.
+    </description>
+    <reference specification="FORMULA" id="sec-formula"/>
+    <reference specification="CONSISTENCY-ASSERTION" id="sec-processing-model"/>
+    <data>
+      <schema>consisAggregExample-concepts.xsd</schema>
+      <linkbase>consisAggregExample-definition.xml</linkbase>
+      <instance readMeFirst="true">consisAggregExample-radiusByConcept-instance.xml</instance> 
+      <linkbase>consisAggregExample-radiusByConcept-formulae.xml</linkbase>
+    </data>
+    <result>
+      <assertionTests 
+         assertionID="assertion"
+         countSatisfied="12"
+         countNotSatisfied="0" />
+    </result>
+  </variation>
+
+</testcase>
+
+
+
+
+

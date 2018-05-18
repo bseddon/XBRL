@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema elementFormDefault="qualified" xmlns:xbrll="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/int/gl/gen/2006-10-25" attributeFormDefault="unqualified" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-gen="http://www.xbrl.org/int/gl/gen/2006-10-25">
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <complexType name="accountPurposeCodeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="consolidating"/>
+        <enumeration value="european"/>
+        <enumeration value="ifrs"/>
+        <enumeration value="offsetting"/>
+        <enumeration value="primary"/>
+        <enumeration value="tax"/>
+        <enumeration value="usgaap"/>
+        <enumeration value="japanese"/>
+        <enumeration value="other"/>        
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="accountTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="account"/>
+        <enumeration value="bank"/>
+        <enumeration value="employee"/>
+        <enumeration value="customer"/>
+        <enumeration value="job"/>
+        <enumeration value="vendor"/>
+        <enumeration value="measurable"/>
+        <enumeration value="statistical"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="bookTaxDifferenceItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="permanent"/>
+        <enumeration value="temporary"/>
+        <enumeration value="none"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="identifierOrganizationTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="individual"/>
+        <enumeration value="organization"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="debitCreditCodeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="D"/>
+        <enumeration value="C"/>
+        <enumeration value="debit"/>
+        <enumeration value="credit"/>
+        <enumeration value="undefined"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="documentTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="check"/>
+        <enumeration value="debit-memo"/>
+        <enumeration value="credit-memo"/>
+        <enumeration value="finance-charge"/>
+        <enumeration value="invoice"/>
+        <enumeration value="order-customer"/>
+        <enumeration value="order-vendor"/>
+        <enumeration value="payment-other"/>
+        <enumeration value="reminder"/>
+        <enumeration value="tegata"/>
+        <enumeration value="voucher"/>
+        <enumeration value="shipment"/>
+        <enumeration value="receipt"/>
+        <enumeration value="manual-adjustment"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="invoiceTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="ePos"/>
+        <enumeration value="self-billed"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="entriesTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="account"/>
+        <enumeration value="balance"/>
+        <enumeration value="entries"/>
+        <enumeration value="journal"/>
+        <enumeration value="ledger"/>
+        <enumeration value="assets"/>
+        <enumeration value="trialbalance"/>        
+        <enumeration value="taxtables"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="entryTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="adjusting"/>
+        <enumeration value="budget"/>
+        <enumeration value="comparative"/>
+        <enumeration value="external-accountant"/>
+        <enumeration value="standard"/>
+        <enumeration value="passed-adjusting"/>
+        <enumeration value="eliminating"/>
+        <enumeration value="proposed"/>
+        <enumeration value="recurring"/>
+        <enumeration value="reclassifying"/>
+        <enumeration value="simulated"/>
+        <enumeration value="tax"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+<complexType name="identifierTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="C"/>
+        <enumeration value="customer"/>
+        <enumeration value="E"/>
+        <enumeration value="employee"/>
+        <enumeration value="V"/>
+        <enumeration value="vendor"/>
+        <enumeration value="O"/>
+        <enumeration value="other"/>
+        <enumeration value="I"/>
+        <enumeration value="salesperson-internal"/>
+        <enumeration value="X"/>
+        <enumeration value="salesperson-external"/>
+        <enumeration value="N"/>
+        <enumeration value="contractor"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="mainAccountTypeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="asset"/>
+        <enumeration value="liability"/>
+        <enumeration value="equity"/>
+        <enumeration value="income"/>
+        <enumeration value="gain"/>
+        <enumeration value="expense"/>
+        <enumeration value="loss"/>
+        <enumeration value="contr-to-equity"/>
+        <enumeration value="distr-from-equity"/>
+        <enumeration value="comprehensive-income"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="postingStatusItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="deferred"/>
+        <enumeration value="posted"/>
+        <enumeration value="proposed"/>
+        <enumeration value="simulated"/>
+        <enumeration value="tax"/>
+        <enumeration value="unposted"/>
+        <enumeration value="cancelled"/>
+        <enumeration value="other"/>        
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="qualifierEntryItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="standard"/>
+        <enumeration value="balance-brought-forward"/>
+        <enumeration value="other"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="revisesUniqueIDActionItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="supplement"/>
+        <enumeration value="supersede"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="signOfAmountItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="+"/>
+        <enumeration value="-"/>
+        <enumeration value="plus"/>
+        <enumeration value="minus"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="sourceJournalIDItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="cd"/>
+        <enumeration value="cr"/>
+        <enumeration value="fa"/>
+        <enumeration value="gi"/>
+        <enumeration value="gj"/>
+        <enumeration value="im"/>
+        <enumeration value="jc"/>
+        <enumeration value="pj"/>
+        <enumeration value="pl"/>
+        <enumeration value="sj"/>
+        <enumeration value="se"/>
+        <enumeration value="ud"/>
+        <enumeration value="ot"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="xbrlIncludeItemType">
+    <simpleContent>
+      <restriction base="xbrli:tokenItemType">
+        <enumeration value="beginning_balance"/>
+        <enumeration value="ending_balance"/>
+        <enumeration value="period_change"/>
+      </restriction>
+    </simpleContent>
+  </complexType>
+  <complexType name="phoneNumberDescriptionItemType">
+		<simpleContent>
+			<restriction base="xbrli:tokenItemType">
+				<enumeration value="bookkeeper"/>
+				<enumeration value="controller"/>
+				<enumeration value="direct"/>
+				<enumeration value="fax"/>
+				<enumeration value="investor-relations"/>
+				<enumeration value="main"/>
+				<enumeration value="switchboard"/>
+				<enumeration value="other"/>
+			</restriction>
+		</simpleContent>
+	</complexType>
+</schema>

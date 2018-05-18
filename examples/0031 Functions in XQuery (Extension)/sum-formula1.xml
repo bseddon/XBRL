@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"
+  xmlns:formula="http://xbrl.org/2008/formula"
+  xmlns:cfi="http://xbrl.org/2009/functions"
+  xmlns:variable="http://xbrl.org/2008/variable"
+  xmlns:cf="http://xbrl.org/2008/filter/concept"
+  xmlns:df="http://xbrl.org/2008/filter/dimension"
+  xmlns:ef="http://xbrl.org/2008/filter/entity"
+  xmlns:pf="http://xbrl.org/2008/filter/period"
+  xmlns:tf="http://xbrl.org/2008/filter/tuple"
+  xmlns:uf="http://xbrl.org/2008/filter/unit"
+  xmlns:ca="http://xbrl.org/2008/assertion/consistency"
+  xmlns:label="http://xbrl.org/2008/label"
+  xmlns:xfi="http://www.xbrl.org/2008/function/instance" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:eg="http://abc.com/test"
+
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  http://xbrl.org/2008/assertion/consistency ../../core_schemas/2008/consistency-assertion.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/entity  ../../../core_schemas/2008/entity-filter.xsd
+  http://xbrl.org/2008/filter/tuple  ../../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/unit ../../core_schemas/2008/unit-filter.xsd
+  http://xbrl.org/2008/filter/dimension ../../core_schemas/2008/dimension-filter.xsd
+  http://xbrl.org/2008/label ../../core_schemas/2008/generic-label.xsd
+  http://xbrl.org/2009/functions ../../core_schemas/2008/functions.xsd
+  ">
+  
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:href="../../core_schemas/2008/generic-label.xsd#element-label" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2009/cfi" xlink:href="../../core_schemas/2008/function.xsd#cfi-relationship" xlink:type="simple"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <generic:link xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2008/role/link">
+
+    <!-- sum function -->
+    <formula:formula xlink:type="resource" xlink:label="formula1" 
+      value="eg:sum($f,
+                    QName('http://abc.com/test1','dim'),
+                    QName('http://abc.com/test1','memP1'),
+                    'http://www.xbrl.org/2003/role/link',
+                    'http://xbrl.org/int/dim/arcrole/domain-member',
+                    'child')"
+      aspectModel="dimensional" implicitFiltering="false" >
+      <formula:decimals>0</formula:decimals>
+      <formula:aspects>
+        <formula:concept>
+           <formula:qname>eg:a</formula:qname>
+        </formula:concept>
+        <formula:entityIdentifier
+          scheme="'http://abc.com'"
+          value="'01'"/>
+        <formula:period>
+          <formula:instant value="xs:date('2000-12-31')"/>
+        </formula:period>
+        <formula:unit augment="false">
+          <formula:multiplyBy
+           measure="QName('http://www.xbrl.org/2003/iso4217','iso4217:EUR')" /> 
+        </formula:unit>
+      </formula:aspects>
+    </formula:formula>
+
+    <!-- function definition -->
+    <variable:function xlink:type="resource" xlink:label="cust-fn-sum-sig"
+       name="eg:sum" output="xs:decimal" >
+         <variable:input type="xbrli:item*" />
+         <variable:input type="xs:QName" />
+         <variable:input type="xs:QName" />
+         <variable:input type="xs:anyURI" />
+         <variable:input type="xs:anyURI" />
+         <variable:input type="xs:string" />
+    </variable:function>
+
+    <!--  Arc from formula 1 to the implementation -->
+    <generic:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2009/cfi" 
+      xlink:from="cust-fn-isNumeric-sig" xlink:to="cust-fn-isNumeric-impl" order="1.0" />
+
+    <!-- function implementation:  maybe it can also serves as definition?? -->
+    <!-- checking unit, concept, identifier, period, and only named dimension aspect here -->
+    
+    <cfi:implementation xlink:type="resource" xlink:label="cust-fn-sum-impl" >
+        xquery version "1.0" encoding "utf-8";
+        module namespace eg = "http://abc.com/test"; 
+        define function eg:sum(
+            $facts as xbrli:item*,
+            $dimension as xs:QName,
+            $member as xs:QName,
+            $linkrole as xs:anyURI,
+            $arcrole as xs:anyURI
+            $axis as xs:string
+            ) 
+            as xs:decimal 
+        { 
+            if (empty($facts))
+            then 0
+            else (
+              let $mismatchedUnitAspects :=
+                 for $f1 in $facts[1],
+                     $i in 2 to count($facts),
+                     $fi in $facts[$i] return (
+                     if ( xfi:u-equal($f1,$fi) )
+                     then ()
+                     else concat('unit: ', node-name($f1), '[', $f1/@unitRef, '] -', 
+                                                 node-name($fi), '[', $fi/@unitRef, ']')
+                                                 
+              let $mismatchedConceptAspects" :=
+                 for $f1 in $facts[1],
+                     $cn1 in node-name($f1),
+                     $i in 2 to count($facts),
+                     $fi in $facts[$i] return (
+                     if ( $cn1 eq node-name($fi) )
+                     then ()
+                     else concat('concept: ', node-name($f1), '[', $f1/@contextRef, '] -', 
+                                              node-name($fi), '[', $fi/@contextRef, ']')
+                                              
+              let $mismatchedIdentifierAspects :=
+                 for $f1 in $facts[1],
+                     $i in 2 to count($facts),
+                     $fi in $facts[$i] return (
+                     if ( xfi:fact-identifier-value($f1) eq xfi:fact-identifier-value($fi) and
+                          xfi:fact-identifier-scheme($f1) eq xfi:fact-identifier-scheme($fi) )
+                     then ()
+                     else concat('identifier: ', node-name($f1), '[', $f1/@contextRef, '] -', 
+                                              node-name($fi), '[', $fi/@contextRef, ']')
+
+              let $mismatchedPeriodAspects :=
+                 for $f1 in $facts[1],
+                     $p1 in xfi:period($f1),
+                     $i in 2 to count($facts),
+                     $fi in $facts[$i],
+                     $pi in xfi:period($fi) return (
+                     if ( xfi:is-forever-period($p1) and xfi:is-forever-period($pi) ) then ()
+                     else (    
+                        if ( xfi:is-instant($p1) 
+                             and xfi:is-instant($pi)
+                             and xfi:period-instant($p1) eq xfi:period-instant($pi) ) ()
+                        else (
+                            if ( xfi:is-duration($p1) and xfi:is-duration($pi)
+                                 and xfi:period-start($p1) eq xfi:period-start($pi)
+                                 and xfi:period-end($p1) eq xfi:period-end($pi) ) ()
+                            else (
+                                concat('period: ', node-name($f1), '[', $f1/@contextRef, '] -',
+                                                   node-name($fi), '[', $fi/@contextRef, ']')
+                            )
+                        )
+                     )
+                 )
+      
+              let $membersExpected :=
+                 (: throws exception if the dimension does not have the domain member so change to
+                    test if the dimension has the member in the relevant network before running the function.  
+                    This is probably best encapsulated in a new XFI function that partners the filter-member-network-selection function. :) 
+                distinct-values(
+                   xfi:filter-member-network-selection($dimension,$member,$linkrole,$arcrole,$axis)
+                 )
+ 
+              let $membersReported :=
+                 for $f in $facts return
+                     xfi:fact-explicit-dimension-value($f,$dimension)
+
+              let $missingDimensionMembers :=
+                 foreach $mem in $membersExpected
+                    if ( index-of($membersReported,$mem) )
+                    then ()
+                    else concat('missing member: ', node-name($mem) )
+                    
+              let $unexpectedDimensionMembers := 
+                 foreach $mem in $membersReported
+                    if ( index-of($membersExpected,$mem) )
+                    then ()
+                    else concat('unexpected member: ', node-name($mem) )
+       
+              let $duplicatedReportedMembers :=
+                 foreach $mem in distinct-values($membersReported)
+                    if ( count(index-of($membersReported,$mem)) eq 1 )
+                    then ()
+                    else concat('duplicated member: ', node-name($mem) )
+
+              let $aspect-issues :=
+                 (
+                     $mismatchedUnitAspects,
+                     $mismatchedConceptAspects,
+                     $mismatchedIdentifierAspects,
+                     $mismatchedPeriodAspects,
+                     $missingDimensionMembers,
+                     $unexpectedDimensionMembers,
+                     $duplicatedReportedMembers
+                 )
+       
+              return
+              if (empty($aspect-issues))
+                then sum($facts)
+                else error( QName('http://abc.com/test1','aspect-issues'),
+                            string-join( $aspect-issues, ',') )
+            )
+        };
+     </cfi:implementation>
+
+    <!--  Fact variables.  Note that no general variables are used in this formula. -->
+    <variable:factVariable xlink:type="resource" xlink:label="v_facts"   bindAsSequence="true" />
+
+    <!--  Arc from formula 1 to the variables it depends on -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:from="formula1" xlink:to="v_facts" order="1.0"
+      name="facts" />
+      
+    <!-- fake filters to cover all aspects so aspect-conflicts get into the sequence -->
+    <variable:variableFilterArc xlink:type="arc" xlink:to="cover_all" xlink:from="v_facts"
+      xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" order="1" 
+      complement="false" cover="true" />
+
+    <cf:conceptPeriodType xlink:type="resource" xlink:label="cover_all" periodType="instant" />
+    <df:explicitDimension xlink:type="resource" xlink:label="cover_all">
+      <df:dimension>
+        <df:qname>eg:dim</df:qname>
+      </df:dimension>
+    </df:explicitDimension>
+    <ef:identifier xlink:type="resource" xlink:label="cover_all" test="true()" />
+    <tf:ancestorFilter xlink:type="resource" xlink:label="cover_all">
+      <tf:ancestor><tf:qname>xbrli:xbrl</tf:qname></tf:ancestor>
+    </tf:ancestorFilter>
+    <pf:period xlink:type="resource" xlink:label="cover_all" test="true()" />
+    <uf:generalMeasures xlink:type="resource" xlink:label="cover_all" test="true()" />
+
+  </generic:link>
+
+</link:linkbase>
+

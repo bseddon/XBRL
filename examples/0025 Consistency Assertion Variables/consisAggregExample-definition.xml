@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2008-05-27 15:34).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2008 UBmatrix inc., All Rights Reserved
+Produced on 2008-05-29 22:34:50
+-->
+<linkbase
+  xmlns="http://www.xbrl.org/2003/linkbase"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt"
+  xsi:schemaLocation="
+    http://www.xbrl.org/2003/linkbase 
+      http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+    http://xbrl.org/2005/xbrldt  http://www.xbrl.org/2005/xbrldt-2005.xsd
+    ">
+  <roleRef xlink:type="simple"
+    xlink:href="consisAggregExample-concepts.xsd#Hypercube"
+    roleURI="http://www.SampleCompany.com/Hypercube" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <roleRef xlink:type="simple"
+    xlink:href="consisAggregExample-concepts.xsd#PrimaryConcepts"
+    roleURI="http://www.SampleCompany.com/PrimaryConcepts" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple"
+    xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member"
+    arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.SampleCompany.com/Hypercube">
+    <loc xlink:type="locator"
+      xlink:label="company_CompanyHypercube"
+      xlink:href="consisAggregExample-concepts.xsd#company_CompanyHypercube" />
+    <loc xlink:type="locator"
+      xlink:label="company_ByRegionPlaceholder"
+      xlink:href="consisAggregExample-concepts.xsd#company_ByRegionPlaceholder" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="company_CompanyHypercube"
+      xlink:to="company_ByRegionPlaceholder"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_AllRegions"
+      xlink:href="consisAggregExample-concepts.xsd#regions_AllRegions" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="company_ByRegionPlaceholder"
+      xlink:to="company_AllRegions"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+    <loc xlink:type="locator"
+      xlink:label="company_ByProductPlaceholder"
+      xlink:href="consisAggregExample-concepts.xsd#company_ByProductPlaceholder" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension"
+      xlink:from="company_CompanyHypercube"
+      xlink:to="company_ByProductPlaceholder"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="products_AllProducts"
+      xlink:href="consisAggregExample-concepts.xsd#products_AllProducts" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain"
+      xlink:from="company_ByProductPlaceholder"
+      xlink:to="products_AllProducts"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://www.xbrl.org/2003/role/link" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.SampleCompany.com/PrimaryConcepts">
+    <loc xlink:type="locator"
+      xlink:label="company_Sales"
+      xlink:href="consisAggregExample-concepts.xsd#ci_Sales" />
+    <loc xlink:type="locator"
+      xlink:label="company_CompanyHypercube"
+      xlink:href="consisAggregExample-concepts.xsd#company_CompanyHypercube" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/all"
+      xlink:from="company_Sales" xlink:to="company_CompanyHypercube"
+      order="1"
+      use="optional"
+      xbrldt:targetRole="http://www.SampleCompany.com/Hypercube"
+      xbrldt:contextElement="scenario" />
+    <loc xlink:type="locator"
+      xlink:label="company_Forecast"
+      xlink:href="consisAggregExample-concepts.xsd#ci_Forecast" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_Sales" xlink:to="company_Forecast"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_Employees"
+      xlink:href="consisAggregExample-concepts.xsd#ci_Employees" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_Sales" xlink:to="company_Employees"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_Laptops"
+      xlink:href="consisAggregExample-concepts.xsd#ci_Laptops" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_Sales" xlink:to="company_Laptops"
+      order="4"
+      use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended"
+    xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator"
+      xlink:label="company_AllRegions"
+      xlink:href="consisAggregExample-concepts.xsd#regions_AllRegions" />
+    <loc xlink:type="locator"
+      xlink:label="company_USAndCanadaRegion"
+      xlink:href="consisAggregExample-concepts.xsd#regions_USAndCanadaRegion" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_AllRegions" xlink:to="company_USAndCanadaRegion"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_EuropeRegion"
+      xlink:href="consisAggregExample-concepts.xsd#regions_EuropeRegion" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_AllRegions" xlink:to="company_EuropeRegion"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_AsiaRegion"
+      xlink:href="consisAggregExample-concepts.xsd#regions_AsiaRegion" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_AllRegions" xlink:to="company_AsiaRegion"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="company_OtherRegions"
+      xlink:href="consisAggregExample-concepts.xsd#regions_OtherRegions" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="company_AllRegions" xlink:to="company_OtherRegions"
+      order="4"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="products_AllProducts"
+      xlink:href="consisAggregExample-concepts.xsd#products_AllProducts" />
+    <loc xlink:type="locator"
+      xlink:label="products_PharmaceuticalsSegment"
+      xlink:href="consisAggregExample-concepts.xsd#products_PharmaceuticalsSegment" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="products_AllProducts" xlink:to="products_PharmaceuticalsSegment"
+      order="1"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="products_GenericsSegment"
+      xlink:href="consisAggregExample-concepts.xsd#products_GenericsSegment" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="products_AllProducts" xlink:to="products_GenericsSegment"
+      order="2"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="products_ConsumerHealthSegment"
+      xlink:href="consisAggregExample-concepts.xsd#products_ConsumerHealthSegment" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="products_AllProducts" xlink:to="products_ConsumerHealthSegment"
+      order="3"
+      use="optional" />
+    <loc xlink:type="locator"
+      xlink:label="products_OtherSegments"
+      xlink:href="consisAggregExample-concepts.xsd#products_OtherSegments" />
+    <definitionArc xlink:type="arc"
+      xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member"
+      xlink:from="products_AllProducts" xlink:to="products_OtherSegments"
+      order="4"
+      use="optional" />
+  </definitionLink>
+</linkbase>

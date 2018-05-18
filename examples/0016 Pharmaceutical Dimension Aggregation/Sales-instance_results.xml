@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance"
+    xmlns:ci="http://www.UBmatrix.com/Patterns/Sales"
+    xmlns:company="http://www.SampleCompany.com/Company"
+    xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:products="http://www.SampleCompany.com/Products"
+    xmlns:regions="http://www.SampleCompany.com/Regions"
+    xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+    xmlns:xbrli="http://www.xbrl.org/2003/instance"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd">
+    <link:schemaRef xlink:href="Company.xsd" xlink:type="simple"/>
+    <link:linkbaseRef
+        xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"
+        xlink:href="formulae.xml" xlink:type="simple"/>
+    <context id="D-2001-All">
+        <entity>
+            <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+        </entity>
+        <period>
+            <startDate>2001-01-01</startDate>
+            <endDate>2001-12-31</endDate>
+        </period>
+        <scenario>
+            <xbrldi:explicitMember dimension="company:ByRegionPlaceholder">regions:AllRegions</xbrldi:explicitMember>
+            <xbrldi:explicitMember dimension="company:ByProductPlaceholder">products:AllProducts</xbrldi:explicitMember>
+        </scenario>
+    </context>
+    <context id="D-2002-All">
+        <entity>
+            <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+        </entity>
+        <period>
+            <startDate>2002-01-01</startDate>
+            <endDate>2002-12-31</endDate>
+        </period>
+        <scenario>
+            <xbrldi:explicitMember dimension="company:ByRegionPlaceholder">regions:AllRegions</xbrldi:explicitMember>
+            <xbrldi:explicitMember dimension="company:ByProductPlaceholder">products:AllProducts</xbrldi:explicitMember>
+        </scenario>
+    </context>
+    <context id="D-2003-All">
+        <entity>
+            <identifier scheme="http://www.SampleCompany.com">SAMP</identifier>
+        </entity>
+        <period>
+            <startDate>2003-01-01</startDate>
+            <endDate>2003-12-31</endDate>
+        </period>
+        <scenario>
+            <xbrldi:explicitMember dimension="company:ByRegionPlaceholder">regions:AllRegions</xbrldi:explicitMember>
+            <xbrldi:explicitMember dimension="company:ByProductPlaceholder">products:AllProducts</xbrldi:explicitMember>
+        </scenario>
+    </context>
+    <unit id="U-Monetary">
+        <measure>iso4217:EUR</measure>
+    </unit>
+    <ci:Sales contextRef="D-2003-All" decimals="2" unitRef="U-Monetary">32038000</ci:Sales>
+    <ci:Sales contextRef="D-2002-All" decimals="2" unitRef="U-Monetary">35805000</ci:Sales>
+    <ci:Sales contextRef="D-2001-All" decimals="2" unitRef="U-Monetary">32465000</ci:Sales>
+    <ci:Sales contextRef="D-2003-All" decimals="2" unitRef="U-Monetary">32038000</ci:Sales>
+    <ci:Sales contextRef="D-2002-All" decimals="2" unitRef="U-Monetary">35805000</ci:Sales>
+    <ci:Sales contextRef="D-2001-All" decimals="2" unitRef="U-Monetary">32465000</ci:Sales>
+</xbrl>

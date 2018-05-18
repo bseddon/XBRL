@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Instance Document based on XBRL standard 2.1.
+Created by  1.0.0.0 (2007-09-18 14:07).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-09-19 01:36:55
+-->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:eg="http://xbrl.org/formula/conformance/example" xsi:schemaLocation="http://xbrl.org/formula/conformance/example concepts-test-ending-balance.xsd http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:href="concepts-test-ending-balance.xsd" xlink:type="simple" />
+  <context id="now">
+    <entity>
+      <identifier scheme="http://www.xbrl.org/xbrlgl/sample">SAMPLE</identifier>
+    </entity>
+    <period>
+      <instant>2004-10-03</instant>
+    </period>
+  </context>
+  <eg:EndingBalanceValid contextRef="now">Account 1001 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 1003 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 1100 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 1102 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 3000 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 3100 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 3200 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 3140 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 4100 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 4300 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 4500 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 4400 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 4200 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5010 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5490 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5040 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5091 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5050 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5450 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5600 in balance</eg:EndingBalanceValid>
+  <eg:EndingBalanceValid contextRef="now">Account 5100 in balance</eg:EndingBalanceValid>
+</xbrl>

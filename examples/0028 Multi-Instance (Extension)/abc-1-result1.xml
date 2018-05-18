@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+  xmlns="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:test1="http://abc.com/test1"
+  xsi:schemaLocation=""
+>
+  <link:schemaRef xlink:href="abc-1.xsd" xlink:type="simple" />
+
+  <context id="c1">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+    </period>
+  </context>
+  <context id="c2">
+    <entity>
+      <identifier scheme="http://abc.com">02</identifier>
+    </entity>
+    <period>
+      <instant>2000-12-31</instant>
+    </period>
+  </context>
+  <unit id="u1">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <test1:a    contextRef="c1" unitRef="u1" decimals="0">3002</test1:a> 
+  <test1:b    contextRef="c1" unitRef="u1" decimals="0">3004</test1:b> 
+  <test1:c    contextRef="c1" unitRef="u1" decimals="0">3006</test1:c> 
+
+  <test1:a    contextRef="c2" unitRef="u1" decimals="0">3020</test1:a> 
+  <test1:b    contextRef="c2" unitRef="u1" decimals="0">3040</test1:b> 
+  <!-- this fact has different unit than inst-b, so not matched 
+    <test1:c    contextRef="c2" unitRef="u1" decimals="0">3060</test1:c> 
+   -->
+
+</xbrl>
+
+

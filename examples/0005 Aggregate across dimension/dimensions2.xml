@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<link:linkbase
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:link="http://www.xbrl.org/2003/linkbase"
+  xmlns:generic="http://xbrl.org/2008/generic"  
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrldt="http://xbrl.org/2005/xbrldt" 
+  xsi:schemaLocation="
+  http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd  
+  ">
+
+  <link:arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <link:arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <link:arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <link:arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <link:arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+
+    <!-- Hypercube locator -->
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#cube" xlink:label="cube"/>
+
+    <!-- Relationships from concepts2.to hypercubes -->
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" 
+      xlink:from="concept" xlink:to="cube" order="1.0" xbrldt:contextElement="segment"/>
+
+    <!--  Concept locators -->
+    <link:loc xlink:type="locator" xlink:href="concepts2.xsd#stock" xlink:label="concept"/>
+    <link:loc xlink:type="locator" xlink:href="concepts2.xsd#flow" xlink:label="concept"/>
+
+    <!-- Dimension locator -->
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#dimension" xlink:label="dimension"/>
+
+    <!-- Relationships from hypercube to dimension -->
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" 
+      xlink:from="cube" xlink:to="dimension" order="1.0"/>
+
+    <!-- Member locators -->
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#total" xlink:label="total"/>
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#regionA" xlink:label="regionA"/>
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#regionB" xlink:label="regionB"/>
+
+
+    <!-- Relationships from dimension to members -->
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" 
+      xlink:from="dimension" xlink:to="total" order="1.0"/>
+
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" 
+      xlink:from="total" xlink:to="regionA" order="1.0"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" 
+      xlink:from="total" xlink:to="regionB" order="2.0"/>
+
+  </link:definitionLink>
+
+  <!--  Identify the default dimension member -->
+  <link:definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#dimension" xlink:label="dimension"/>
+    <link:loc xlink:type="locator" xlink:href="dimensions2.xsd#total" xlink:label="total"/>
+    <link:definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default" 
+      xlink:from="dimension" xlink:to="total" order="1.0"/>
+  </link:definitionLink>
+
+</link:linkbase>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Roland Hommes</name>
+    <email>roland@rhocon.nl</email>
+  </creator>
+  <number>0012</number>
+  <name>ConceptName with period filter</name>
+  <description>
+      ConceptName filtering with period Filter; with fn:abs() and fn:sum() and lt.
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="PERIODFILTERS" id="sec-syntax"/>
+
+  <variation id="V-01">
+    <name>ConceptName and Period filtering (ok example)</name>
+    <description>
+      Example using conceptName and period filters and xpath functions abs(), sum() and lt.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="PERIODFILTERS" id="sec-syntax"/>
+    <data>
+      <instance readMeFirst="true">input_OK.xbrl</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output_OK.xml</instance>
+    </result>
+  </variation>
+  
+  <variation id="V-02">
+    <name>ConceptName and Period filtering (error example)</name>
+    <description>
+      Example using conceptName and period filters and xpath functions abs(), sum() and lt, Fails on period filter.
+    </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="PERIODFILTERS" id="sec-syntax"/>
+    <data>
+      <instance readMeFirst="true">input_error.xbrl</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output_error.xml</instance>
+    </result>
+  </variation>
+  
+</testcase>
+

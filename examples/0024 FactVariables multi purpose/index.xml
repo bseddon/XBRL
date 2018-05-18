@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type="text/xsl" href="../../infrastructure/test.xsl"?>
+<testcase
+  xmlns="http://xbrl.org/2008/conformance"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xbrlfe="http://xbrl.org/2008/formula/error"
+  xmlns:binding="http://xbrl.org/2008/binding/errors"
+  xmlns:label="http://xbrl.org/2008/label/errors"
+  xmlns:reference="http://xbrl.org/2008/reference/errors"  
+  xsi:schemaLocation="http://xbrl.org/2008/conformance ../../infrastructure/test.xsd">
+  <creator>
+    <name>Roland Hommes</name>
+    <email>roland@rhocon.nl</email>
+  </creator>
+  <number>0024</number>
+  <name>FactVariables multi purpose</name>
+  <description>
+      FactVariables need to be uniquely named when using different attributes on the factVariable
+  </description>
+  <reference specification="FORMULA" id="sec-formula"/>
+  <reference specification="VARIABLES" id="sec-fact-variables"/>
+  <reference specification="CONCEPTFILTERS" id="sec-syntax"/>
+
+  <variation id="V-01">
+    <name>ConceptName filter only (Instance is ok)</name>
+    <description>
+      Example using conceptName filters and xpath functions fn:abs(), fn:sum() and the lt operator.
+    </description>
+	<reference specification="FORMULA" id="sec-formula"/>
+	<reference specification="VARIABLES" id="sec-fact-variables"/>
+	<reference specification="CONCEPTFILTERS" id="sec-syntax"/>
+    <data>
+      <instance readMeFirst="true">input_OK.xbrl</instance>
+      <schema readMeFirst="false">concepts.xsd</schema>
+      <linkbase readMeFirst="false">formulae.xml</linkbase>
+    </data>
+    <result>
+      <instance>output_OK.xml</instance>
+    </result>
+  </variation>
+  
+</testcase>

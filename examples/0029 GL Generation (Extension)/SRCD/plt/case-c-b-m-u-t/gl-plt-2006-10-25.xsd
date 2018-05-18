@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/int/gl/plt/2006-10-25" attributeFormDefault="unqualified" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-plt="http://www.xbrl.org/int/gl/plt/2006-10-25">
+  <import namespace="http://www.xbrl.org/int/gl/cor/2006-10-25" schemaLocation="gl-cor-content-2006-10-25.xsd"/>
+</schema>

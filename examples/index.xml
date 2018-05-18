@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Copyright 2007 XBRL International. All Rights Reserved. -->
+<?xml-stylesheet type='text/xsl' href='../infrastructure/documentation.xsl'?>
+<documentation 
+  name='Formula Specification Tests and Examples'
+  date='2007-01-23'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' 
+  xsi:noNamespaceSchemaLocation='../infrastructure/documentation.xsd'>
+
+    <examples title='General Examples' root='.'>
+      <example uri='0001 Boolean test of balance sheet/index.xml' />
+      <example uri='0002 Assets equals liabilities plus equity/index.xml' />
+      <example uri='0003 End stock derivation from start stock and flows/index.xml' />
+      <example uri='0004 End stock with restatement date dimension/index.xml' />
+      <example uri='0005 Aggregate across dimension/index.xml' />
+      <example uri='0006 Parameters for filtering/index.xml' />
+      <example uri='0007 Concept data type and precondition filtering/index.xml' />
+      <example uri='0008 Tuple filtering/index.xml' />
+      <example uri='0009 Typed dimension filtering/index.xml' />
+      <example uri='0010 Concept name filter/index.xml' />
+      <example uri='0011 Concept filter with tuple filter/index.xml' />
+      <example uri='0012 Concept filter with period filter/index.xml' />
+      <example uri='0013 Concept filter with unit filter/index.xml' />
+      <example uri='0014 Concept filter with entity filters/index.xml' />
+      <example uri='0014 Concept filter with scenario and segment filters/index.xml' />
+      <example uri='0014 Wagetax example part 5/index.xml' />
+      <example uri='0015 Movement Pattern/index.xml' />
+      <example uri='0016 Pharmaceutical Dimension Aggregation/index.xml' />
+      <example uri='0017 COREP 18 Dimensional Weighted Avg/index.xml' />
+      <example uri='0018 GL Examples/index.xml' />
+      <example uri='0019 Value Assertion/index.xml' />
+      <example uri='0020 Existence Assertion/index.xml' />
+      <example uri='0021 Consistency Assertion/index.xml' />
+      <example uri='0022 Assertion Set/index.xml' />
+      <example uri='0023 Context and Unit checking/index.xml' />
+      <example uri='0024 FactVariables multi purpose/index.xml' />
+      <example uri='0025 Consistency Assertion Variables/index.xml' />
+      <example uri='0026 Formula Chaining (Extension)/index.xml' />
+      <example uri='0027 Tuple Generation (Extension)/index.xml' />
+      <example uri='0028 Multi-Instance (Extension)/index.xml' />
+      <example uri='0029 GL Generation (Extension)/index.xml' />
+      <example uri='0030 Functions in XPath (Extension)/index.xml' />
+    </examples>
+
+</documentation>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2008 XBRL International. All Rights Reserved. -->
+<xbrl 
+  xmlns="http://www.xbrl.org/2003/instance" 
+  xmlns:link="http://www.xbrl.org/2003/linkbase" 
+  xmlns:xlink="http://www.w3.org/1999/xlink" 
+  xmlns:xbrldi="http://xbrl.org/2006/xbrldi"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:iso4217="http://www.xbrl.org/2003/iso4217" 
+  xmlns:test1="http://abc.com/test1"
+  xsi:schemaLocation=""
+>
+  <link:schemaRef xlink:href="dim-1.xsd" xlink:type="simple" 
+   xml:base="dim-1-current-yr" />
+  <link:linkbaseRef xlink:href="dim-1-formula2.xml" xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"  />
+  <context id="c1m1">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m1</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <context id="c1m2">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <context id="c1m3">
+    <entity>
+      <identifier scheme="http://abc.com">01</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <context id="c2m1">
+    <entity>
+      <identifier scheme="http://abc.com">02</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m1</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <context id="c2m2">
+    <entity>
+      <identifier scheme="http://abc.com">02</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m2</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <context id="c2m3">
+    <entity>
+      <identifier scheme="http://abc.com">02</identifier>
+      <segment>
+        <xbrldi:explicitMember dimension="test1:dim">test1:m3</xbrldi:explicitMember>
+      </segment>
+    </entity>
+    <period>
+      <instant>2002-12-31</instant>
+    </period>
+  </context>
+  <unit id="u1">
+    <measure>iso4217:EUR</measure>
+  </unit>
+
+  <test1:a    contextRef="c1m1" unitRef="u1" decimals="0">1001</test1:a> 
+  <test1:a    contextRef="c1m2" unitRef="u1" decimals="0">1002</test1:a> 
+  <test1:a    contextRef="c1m3" unitRef="u1" decimals="0">1003</test1:a> 
+
+  <test1:a    contextRef="c2m1" unitRef="u1" decimals="0">1010</test1:a>
+  <test1:a    contextRef="c2m2" unitRef="u1" decimals="0">1020</test1:a> 
+  <test1:a    contextRef="c2m3" unitRef="u1" decimals="0">1030</test1:a> 
+
+</xbrl>
+
+

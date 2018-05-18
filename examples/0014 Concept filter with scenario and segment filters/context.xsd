@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- This file is part of the Dutch Taxonomy            -->
+<!-- Intellectual Property State of the Netherlands     -->
+<!-- Version NTP Version 2.0                            -->
+<!-- Released by Dutch Taxonomy Project www.xbrl-ntp.nl -->
+<!-- Release date Tue Nov 27 13:42:31 2007   -->
+ 
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:sands="http://www.nltaxonomie.nl/2.0/domein/bd/context/bd-context" targetNamespace="http://www.nltaxonomie.nl/2.0/domein/bd/context/bd-context" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:annotation>
+		<xs:appinfo>
+			<xs:documentation xml:lang="nl">Dit schema geeft de inhoud van de elementen scenario en segment in XBRL instances aan.</xs:documentation>
+		</xs:appinfo>
+	</xs:annotation>
+	<xs:element name="scenarioType" id="sands_scenarioType">
+		<xs:annotation>
+			<xs:documentation xml:lang="nl">Enumeratie op element scenario.</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="Current"/>
+				<xs:enumeration value="Previous"/>
+				<xs:enumeration value="Next"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+	<xs:element name="segmentType" id="sands_segmentType">
+		<xs:annotation>
+			<xs:documentation xml:lang="nl">Enumeratie op element segment.</xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+			<xs:restriction base="xs:string">
+				<xs:enumeration value="Declarant"/>
+				<xs:enumeration value="Partner"/>
+				<xs:enumeration value="Company"/>
+				<xs:enumeration value="HoldingCompany"/>
+				<xs:enumeration value="SubsidiaryCompany"/>
+			</xs:restriction>
+		</xs:simpleType>
+	</xs:element>
+</xs:schema>

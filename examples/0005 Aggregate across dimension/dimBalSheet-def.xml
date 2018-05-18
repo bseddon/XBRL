@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Taxonomy Definition Links linkbase based on XBRL standard Version 2.1.
+Created by UBmatrix Taxonomy Designer 1.0.0.0 (2007-06-01 16:49).  
+Contact www.ubmatrix.com
+Copyright (c) 2002-2007 UBmatrix inc., All Rights Reserved
+Produced on 2007-06-01 23:07:57
+-->
+<linkbase xmlns="http://www.xbrl.org/2003/linkbase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xsi:schemaLocation=" http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2005/xbrldt http://www.xbrl.org/2005/xbrldt-2005.xsd">
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#domain-member" arcroleURI="http://xbrl.org/int/dim/arcrole/domain-member" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#all" arcroleURI="http://xbrl.org/int/dim/arcrole/all" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#hypercube-dimension" arcroleURI="http://xbrl.org/int/dim/arcrole/hypercube-dimension" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-domain" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-domain" />
+  <arcroleRef xlink:type="simple" xlink:href="http://www.xbrl.org/2005/xbrldt-2005.xsd#dimension-default" arcroleURI="http://xbrl.org/int/dim/arcrole/dimension-default" />
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#balanceSheetAbstract" xlink:label="balanceSheetAbstract" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#balanceSheetTable" xlink:label="balanceSheetTable" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#assets" xlink:label="assets" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#currentAssets" xlink:label="currentAssets" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#cashAndCashEquivalents" xlink:label="cashAndCashEquivalents" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#inventories" xlink:label="inventories" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#accountsReceivable" xlink:label="accountsReceivable" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#prepaidExpenses" xlink:label="prepaidExpenses" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#fixedAssets" xlink:label="fixedAssets" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#liabilitiesAndEquity" xlink:label="liabilitiesAndEquity" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#countriesAxis" xlink:label="countriesAxis" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#totalAllCountries" xlink:label="totalAllCountries" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#europe" xlink:label="europe" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#france" xlink:label="france" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#germany" xlink:label="germany" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#spain" xlink:label="spain" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#usa" xlink:label="usa" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/all" xlink:from="balanceSheetAbstract" xlink:to="balanceSheetTable" order="3" use="optional" xbrldt:contextElement="segment" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="balanceSheetAbstract" xlink:to="assets" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="assets" xlink:to="currentAssets" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="currentAssets" xlink:to="cashAndCashEquivalents" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="currentAssets" xlink:to="inventories" order="2" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="currentAssets" xlink:to="accountsReceivable" order="3" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="currentAssets" xlink:to="prepaidExpenses" order="4" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="assets" xlink:to="fixedAssets" order="2" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="assets" xlink:to="liabilitiesAndEquity" order="3" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/hypercube-dimension" xlink:from="balanceSheetTable" xlink:to="countriesAxis" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-domain" xlink:from="countriesAxis" xlink:to="totalAllCountries" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="totalAllCountries" xlink:to="europe" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="europe" xlink:to="france" order="1" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="europe" xlink:to="germany" order="2" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="europe" xlink:to="spain" order="3" use="optional" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/domain-member" xlink:from="totalAllCountries" xlink:to="usa" order="2" use="optional" />
+  </definitionLink>
+  <definitionLink xlink:type="extended" xlink:role="http://www.xbrl.org/2003/role/link">
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#countriesAxis" xlink:label="countriesAxis" />
+    <loc xlink:type="locator" xlink:href="dimBalSheet.xsd#totalAllCountries" xlink:label="totalAllCountries" />
+    <definitionArc xlink:type="arc" xlink:arcrole="http://xbrl.org/int/dim/arcrole/dimension-default" xlink:from="countriesAxis" xlink:to="totalAllCountries" order="1" use="optional" />
+  </definitionLink>
+</linkbase>

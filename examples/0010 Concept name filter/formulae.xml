@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Example Wagetax 2008 Formulae -->
+
+<link:linkbase 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xbrl-gen="http://xbrl.org/2008/generic" 
+xmlns:formula="http://xbrl.org/2008/formula" 
+xmlns:variable="http://xbrl.org/2008/variable" 
+xmlns:cf="http://xbrl.org/2008/filter/concept"
+xmlns:tf="http://xbrl.org/2008/filter/tuple"
+xmlns:fn="http://www.w3.org/2005/xpath-functions" 
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+ http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen concepts.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+" >
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+
+<!-- Opening generic linkbase (not connected to a DTS) -->  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <xbrl-gen:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+<!-- Formula 1 just using conceptName filter -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_TotLnLBPH_vollAang" 
+     value="fn:abs( $TotalWageTaxSocialInsuranceContributions - fn:sum( $WageTaxAndSocialInsuranceContribution ) ) lt 1"
+     aspectModel="non-dimensional" implicitFiltering="false" source="TotalWageTaxSocialInsuranceContributions">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_TotLnLBPH_vollAang</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 1, reserving variabeles for the values in the instance -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWageTaxSocialInsuranceContributions"  bindAsSequence="false"  />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_WageTaxAndSocialInsuranceContribution"  bindAsSequence="true" fallbackValue="()"/>
+
+<!-- Formula 1, the filters are called on conceptName, no filtering on context or tuples -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWageTaxSocialInsuranceContributions">
+      <cf:concept>
+        <cf:qname>bd-lhn:TotalWageTaxSocialInsuranceContributions</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_WageTaxAndSocialInsuranceContribution">
+      <cf:concept>
+        <cf:qname>bd-lhn:WageTaxAndSocialInsuranceContribution</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_parentTuple_CollectiveTaxDeclaration">
+      <tf:parent><tf:qname>bd-lhn:CollectiveTaxDeclaration</tf:qname></tf:parent>
+    </tf:parentFilter>
+    <tf:parentFilter xlink:type="resource" xlink:label="filter_parentTuple_Employee">
+      <tf:parent><tf:qname>bd-lhn:Employee</tf:qname></tf:parent>
+    </tf:parentFilter>
+
+<!-- Formula 1, variables, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnLBPH_vollAang" xlink:to="factVariable_TotalWageTaxSocialInsuranceContributions" order="1" 
+     name="TotalWageTaxSocialInsuranceContributions" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+     xlink:from="formula_CheckNormaalTarief_TotLnLBPH_vollAang" xlink:to="factVariable_WageTaxAndSocialInsuranceContribution" order="2" 
+     name="WageTaxAndSocialInsuranceContribution" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_TotalWageTaxSocialInsuranceContributions" xlink:to="filter_concept_TotalWageTaxSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+     complement="false" cover="true"
+     xlink:from="factVariable_WageTaxAndSocialInsuranceContribution" xlink:to="filter_concept_WageTaxAndSocialInsuranceContribution" order="1" />
+
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_parentTuple_CollectiveTaxDeclaration" xlink:from="factVariable_TotalWageTaxSocialInsuranceContributions" order="3" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_parentTuple_Employee" xlink:from="factVariable_WageTaxAndSocialInsuranceContribution" order="3" />
+
+  </xbrl-gen:link>
+
+</link:linkbase>

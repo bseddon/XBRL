@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Example Wagetax 2008 Formulae -->
+
+<link:linkbase 
+xmlns:link="http://www.xbrl.org/2003/linkbase" 
+xmlns:xbrl-gen="http://xbrl.org/2008/generic" 
+xmlns:formula="http://xbrl.org/2008/formula" 
+xmlns:variable="http://xbrl.org/2008/variable" 
+xmlns:filter="http://xbrl.org/2008/filter" 
+xmlns:fn="http://www.w3.org/2005/xpath-functions" 
+xmlns:cf="http://xbrl.org/2008/filter/concept"
+xmlns:pf="http://xbrl.org/2008/filter/period"
+xmlns:tf="http://xbrl.org/2008/filter/tuple"
+xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+xmlns:xlink="http://www.w3.org/1999/xlink" 
+xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd
+ http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen concepts.xsd
+  http://xbrl.org/2008/filter/concept ../../core_schemas/2008/concept-filter.xsd
+  http://xbrl.org/2008/filter/period ../../core_schemas/2008/period-filter.xsd
+  http://xbrl.org/2008/filter/tuple ../../core_schemas/2008/tuple-filter.xsd
+  http://xbrl.org/2008/formula ../../core_schemas/2008/formula.xsd
+  http://xbrl.org/2008/generic ../../core_schemas/2008/generic-link.xsd
+  http://xbrl.org/2008/variable ../../core_schemas/2008/variable.xsd
+  "
+>
+
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set" xlink:href="../../core_schemas/2008/variable.xsd#variable-set" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-filter" xlink:href="../../core_schemas/2008/variable.xsd#variable-filter" xlink:type="simple"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/variable-set-precondition" xlink:href="../../core_schemas/2008/variable.xsd#variable-set-precondition" xlink:type="simple"/>
+
+<!-- Opening generic linkbase (not connected to a DTS) -->  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:href="../../core_schemas/2008/generic-link.xsd#standard-link-role" xlink:type="simple"/>
+
+  <xbrl-gen:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+
+<!-- Formula 3, using conceptName and period Filter -->
+    <formula:formula xlink:type="resource" xlink:label="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" 
+      value="fn:abs( $TotalWithheldWageTaxAndSocialInsuranceContributions - fn:sum( $WithheldWageTaxAndSocialInsuranceContributions ) ) lt 1"
+      aspectModel="non-dimensional" implicitFiltering="false" source="TotalWithheldWageTaxAndSocialInsuranceContributions">
+      <formula:aspects>
+        <formula:concept>
+          <formula:qname>bd-lhn:CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang</formula:qname>
+        </formula:concept>
+      </formula:aspects>
+    </formula:formula>
+
+<!-- Formula 3, reserving variabeles for the values in the instance -->
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions"  bindAsSequence="false" />
+    <variable:factVariable xlink:type="resource" xlink:label="factVariable_WithheldWageTaxAndSocialInsuranceContributions"  bindAsSequence="true" fallbackValue="()"/>
+
+<!-- Formula 3, the filters are called on conceptName and context not on tuples -->
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_TotalWithheldWageTaxAndSocialInsuranceContributions">
+      <cf:concept>
+        <cf:qname>bd-lhn:TotalWithheldWageTaxAndSocialInsuranceContributions</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <cf:conceptName xlink:type="resource" xlink:label="filter_concept_WithheldWageTaxAndSocialInsuranceContributions">
+      <cf:concept>
+        <cf:qname>bd-lhn:WithheldWageTaxAndSocialInsuranceContributions</cf:qname>
+      </cf:concept>
+    </cf:conceptName>
+    <pf:periodStart xlink:type="resource" xlink:label="filter_periodStart" date="xs:date('2007-01-01')"/>
+    <pf:periodEnd xlink:type="resource" xlink:label="filter_periodEnd" date="xs:date('2007-01-31')"/>
+    <tf:ancestorFilter xlink:type="resource" xlink:label="filter_ancestorTuple_FullTaxDeclaration">
+      <tf:ancestor><tf:qname>bd-lhn:FullTaxDeclaration</tf:qname></tf:ancestor>
+    </tf:ancestorFilter>
+        
+<!-- Formula 3, variabeles, filters, formulae and equotation are linked -->
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:to="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" xlink:from="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" order="1" name="TotalWithheldWageTaxAndSocialInsuranceContributions" />
+    <variable:variableArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-set" 
+      xlink:to="factVariable_WithheldWageTaxAndSocialInsuranceContributions" xlink:from="formula_CheckNormaalTarief_ingeh_LB_premieVVZ_vollAang" order="2" name="WithheldWageTaxAndSocialInsuranceContributions" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_concept_TotalWithheldWageTaxAndSocialInsuranceContributions" xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_concept_WithheldWageTaxAndSocialInsuranceContributions" xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" order="1" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_ancestorTuple_FullTaxDeclaration" xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" order="3" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_ancestorTuple_FullTaxDeclaration" xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" order="3" />
+
+        <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_periodStart" xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_periodEnd" xlink:from="factVariable_WithheldWageTaxAndSocialInsuranceContributions" order="3" />
+        <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_periodStart" xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" order="2" />
+    <variable:variableFilterArc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/variable-filter" 
+      complement="false" cover="true"
+      xlink:to="filter_periodEnd" xlink:from="factVariable_TotalWithheldWageTaxAndSocialInsuranceContributions" order="3" />
+
+  </xbrl-gen:link>
+</link:linkbase>

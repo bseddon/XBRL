@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TotalWageTaxSocialInsuranceContributions instance for test on ConceptFilter -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:bd-lhn="http://www.nltaxonomie.nl/2.0/domein/bd/loonheffingen/bd-loonheffingen">
+  <link:schemaRef xlink:href="concepts.xsd" xlink:type="simple" />
+  <context id="Msg">
+    <entity>
+      <identifier scheme="www.belastingdienst.nl/loonheffingennummer">123456782L01</identifier>
+    </entity>
+    <period>
+      <instant>2007-12-31</instant>
+    </period>
+  </context>
+  <unit id="EURO">
+    <measure>iso4217:EUR</measure>
+  </unit>
+  <unit id="pure">
+    <measure>iso4217:EUR</measure>
+  </unit>
+    <bd-lhn:WageTaxDeclaration>
+          <bd-lhn:CollectiveTaxDeclaration>
+            <bd-lhn:TotalGrossWages contextRef="Msg" unitRef="EURO" decimals="INF">2800</bd-lhn:TotalGrossWages>
+          </bd-lhn:CollectiveTaxDeclaration>
+            <bd-lhn:Employee>
+              <bd-lhn:GrossWage contextRef="Msg" unitRef="EURO" decimals="INF">1000</bd-lhn:GrossWage>
+              <bd-lhn:UnitsProduced contextRef="Msg" unitRef="pure" precision="3">200</bd-lhn:UnitsProduced>
+              <bd-lhn:Function contextRef="Msg">production</bd-lhn:Function>
+            </bd-lhn:Employee>
+            <bd-lhn:Employee>
+              <bd-lhn:GrossWage contextRef="Msg" unitRef="EURO" decimals="INF">1400</bd-lhn:GrossWage>
+              <bd-lhn:Function contextRef="Msg">administrative</bd-lhn:Function>
+            </bd-lhn:Employee>
+            <bd-lhn:Employee>
+              <bd-lhn:GrossWage contextRef="Msg" unitRef="EURO" decimals="INF">400</bd-lhn:GrossWage>
+              <bd-lhn:SickleaveBenefit contextRef="Msg" unitRef="EURO" decimals="INF">800</bd-lhn:SickleaveBenefit>
+              <bd-lhn:UnitsProduced contextRef="Msg" unitRef="pure" precision="3">180</bd-lhn:UnitsProduced>
+              <bd-lhn:Function contextRef="Msg">production</bd-lhn:Function>
+            </bd-lhn:Employee>
+    </bd-lhn:WageTaxDeclaration>
+</xbrl>

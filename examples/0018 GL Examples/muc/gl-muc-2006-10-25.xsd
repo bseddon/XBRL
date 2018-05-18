@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- (c) XBRL International.  See http://www.xbrl.org/legal -->
+<schema elementFormDefault="qualified" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.xbrl.org/int/gl/muc/2006-10-25" attributeFormDefault="unqualified" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:gl-cor="http://www.xbrl.org/int/gl/cor/2006-10-25" xmlns:gl-muc="http://www.xbrl.org/int/gl/muc/2006-10-25">
+  <annotation>
+    <appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-muc-2006-10-25-presentation.xml" xlink:title="Presentation Links, all" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef"/>
+      <link:linkbaseRef xlink:type="simple" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase" xlink:href="gl-muc-2006-10-25-label.xml" xlink:title="Label Links, all" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef"/>
+    </appinfo>
+  </annotation>
+  <import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <element name="amountCurrency" id="gl-muc_amountCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalAmount" id="gl-muc_amountOriginalAmount" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalCurrency" id="gl-muc_amountOriginalCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="defaultCurrency" id="gl-muc_defaultCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalExchangeRate" id="gl-muc_amountOriginalExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalExchangeRateDate" id="gl-muc_amountOriginalExchangeRateDate" type="gl-muc:exchangeRateDateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalExchangeRateComment" id="gl-muc_amountOriginalExchangeRateComment" type="gl-muc:commentItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalExchangeRateSource" id="gl-muc_amountOriginalExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalTriangulationAmount" id="gl-muc_amountOriginalTriangulationAmount" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalTriangulationCurrency" id="gl-muc_amountOriginalTriangulationCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalTriangulationExchangeRate" id="gl-muc_amountOriginalTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalTriangulationExchangeRateSource" id="gl-muc_amountOriginalTriangulationExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountOriginalTriangulationExchangeRateType" id="gl-muc_amountOriginalTriangulationExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originalTriangulationExchangeRate" id="gl-muc_originalTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originalExchangeRateTriangulationSource" id="gl-muc_originalExchangeRateTriangulationSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="originalExchangeRateTriangulationType" id="gl-muc_originalExchangeRateTriangulationType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="multicurrencyDetail" id="gl-muc_multicurrencyDetail" type="gl-muc:multicurrencyDetailComplexType" substitutionGroup="xbrli:tuple" nillable="true"/>
+  <element name="multicurrencyDetailExchangeRateDate" id="gl-muc_multicurrencyDetailExchangeRateDate" type="gl-muc:exchangeRateDateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountRestatedAmount" id="gl-muc_amountRestatedAmount" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountRestatedCurrency" id="gl-muc_amountRestatedCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountRestatedExchangeRate" id="gl-muc_amountRestatedExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountRestatedExchangeRateSource" id="gl-muc_amountRestatedExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountRestatedExchangeRateType" id="gl-muc_amountRestatedExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountTriangulationAmount" id="gl-muc_amountTriangulationAmount" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountTriangulationCurrency" id="gl-muc_amountTriangulationCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountTriangulationExchangeRate" id="gl-muc_amountTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountTriangulationExchangeRateSource" id="gl-muc_amountTriangulationExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="amountTriangulationExchangeRateType" id="gl-muc_amountTriangulationExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="restatedTriangulationExchangeRate" id="gl-muc_restatedTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="restatedExchangeRateTriangulationSource" id="gl-muc_restatedExchangeRateTriangulationSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="restatedExchangeRateTriangulationType" id="gl-muc_restatedExchangeRateTriangulationType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="multicurrencyDetailComment" id="gl-muc_multicurrencyDetailComment" type="gl-muc:commentItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxAmountForeignCurrency" id="gl-muc_taxAmountForeignCurrency" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxCurrency" id="gl-muc_taxCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxExchangeRateDate" id="gl-muc_taxExchangeRateDate" type="gl-muc:exchangeRateDateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxExchangeRate" id="gl-muc_taxExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxExchangeRateSource" id="gl-muc_taxExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxExchangeRateType" id="gl-muc_taxExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxExchangeRateComment" id="gl-muc_taxExchangeRateComment" type="gl-muc:commentItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxAmountTriangulationCurrency" id="gl-muc_taxAmountTriangulationCurrency" type="gl-muc:amountItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxTriangulationCurrency" id="gl-muc_taxTriangulationCurrency" type="gl-muc:currencyItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxTriangulationExchangeRate" id="gl-muc_taxTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxTriangulationExchangeRateSource" id="gl-muc_taxTriangulationExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxTriangulationExchangeRateType" id="gl-muc_taxTriangulationExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxForeignTriangulationExchangeRate" id="gl-muc_taxForeignTriangulationExchangeRate" type="gl-muc:exchangeRateItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxForeignTriangulationExchangeRateSource" id="gl-muc_taxForeignTriangulationExchangeRateSource" type="gl-muc:exchangeRateSourceItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+  <element name="taxForeignTriangulationExchangeRateType" id="gl-muc_taxForeignTriangulationExchangeRateType" type="gl-muc:exchangeRateTypeItemType" substitutionGroup="xbrli:item" nillable="true" xbrli:periodType="instant"/>
+</schema>
