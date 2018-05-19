@@ -1,5 +1,5 @@
 {
-	"name": "lyquidity/XBRL",
+	"name": "lyquidity/xbrl",
 	"description": "Classes that implement the XBRL 2.1, XDT, Formulas, Generics and XFI specifications",
 	"keywords": ["lyquidity", "XBRL", "Dimensions", "Formulas"],
 	"type": "library",
