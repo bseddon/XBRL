@@ -71,7 +71,7 @@ and that any document being used is genuine and unchanged.
 
 ##XBRL Support
 
-This project includes support for the full XBRL 2.1 specification as well as the XBRL Dimensions 1.0, Generics and XBRL Formulas specification. 
+This project includes support for the full XBRL 2.1 specification as well as the XBRL Dimensions 1.0, Generics and XBRL Formulas specification (including the XFI functions). 
 The project allows an application to validate taxonomy and instance documents and is able to report any errors discovered.  Error reports will document 
 each element in a taxonomy or instance document that fails identifying the offending element and it will include a reference to the specification.  
 In the case of the dimensions and formula validation, the message will include the approrpriate error constant as defined in the XDT specification.
