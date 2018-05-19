@@ -1,25 +1,19 @@
 {
-    "name": "lyquidity/XBRL",
-    "description": "Classes that implement the XBRL 2.1, XDT, Formulas, Generics and XFI specifications",
-    "keywords": ["lyquidity", "XBRL", "Dimensions", "Formulas"],
-    "type": "library",
-    "homepage": "https://github.com/lyquidity/XBRL",
-    "license": "GPL version 3.0",
-    "authors": [
-        {
-            "name": "Bill Seddon",
-            "homepage": "https://github.com/orgs/lyquidity/people/bseddon"
-        }
-    ],
-	"repositories": [
+	"name": "lyquidity/XBRL",
+	"description": "Classes that implement the XBRL 2.1, XDT, Formulas, Generics and XFI specifications",
+	"keywords": ["lyquidity", "XBRL", "Dimensions", "Formulas"],
+	"type": "library",
+	"homepage": "https://github.com/lyquidity/XBRL",
+	"license": "GPL-3.0-only",
+	"authors": [
 		{
-			"type": "composer",
-			"url": "file:///D:/GitHub/xbrlquery/core/"
+			"name": "Bill Seddon",
+			"homepage": "https://github.com/orgs/lyquidity/people/bseddon"
 		}
 	],
-    "require": {
-        "php": ">=7.0",
-        "pear/log": ">1.13",
+	"require": {
+		"php": ">=7.0",
+		"pear/log": ">1.13",
 		"lyquidity/utilities" : "dev-master",
 		"lyquidity/xml" : "dev-master",
 		"lyquidity/XPath2" : "dev-master",
@@ -29,6 +23,6 @@
 		"ext-SimpleXML" : "*",
 		"ext-xml" : "*",
 		"lib-libxml" : "*"
-    },
+	},
 	"autoload": { "files": ["./XBRL.php"] }
 }
