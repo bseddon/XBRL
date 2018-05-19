@@ -1,4 +1,4 @@
-# XBRLQuery/core
+# XBRL for PHP
 
 **Table of contents**
 * [Status](#status)
@@ -178,7 +178,7 @@ The example.php file in the examples folder includes illustrations of using the 
 Assuming you have installed the library using composer then this PHP application will run the examples:
 
 ```php
-&lt;?php
+<?php
 require_once __DIR__ . '/vendor/autoload.php';
 include __DIR__ . "/vendor/lyquidity/XBRL/examples/example.php";
 ```
