@@ -7,6 +7,7 @@
 * [Why PHP?](#why-php)
 * [License](#license)
 * [Contributing](#contributing)
+* [Install](#install)
 * [Getting started](#getting-started)
 * [Links](#links)
 
@@ -164,12 +165,27 @@ liabilities.  You are also urged to review our [code of conduct](CODE_OF_CONDUCT
 
 ## Install
 
-Use [composer](https://getcomposer.org/) and the composer.json to install this library and the dependent projects.
+The project can be installed by [composer](https://getcomposer.org/).  Save the following JSON into a file called 'composer.json' in your application folder and run
+the command:
 
-Or fork or download the repository and the dependencies.  The source can be found in the 'source' sub-folder.  The repository includes UK GAAP and US GAAP taxonomies and a small selection of 
-instance documents that have been submitted to the UK Companies House or the US SEC. These are provided so where the source uses these resources they are known
-to reference valid locations.  However, you are encouraged to work with copies of taxonomies and sample instance documents you download.  Links at the end of 
-this document include references to official taxonomy sources.
+```
+composer install --prefer-dist
+```
+
+composer.json
+
+```
+{
+    "require": {
+        "lyquidity/xbrl": "dev-master"
+    },
+	"minimum-stability": "dev",
+	"prefer-stable": false
+}
+```
+
+Or fork or download the repository.  It will also be necessary to download and install the [XML](https://github.com/bseddon/xml), 
+[utilities](https://github.com/bseddon/) and [pear/Log](https://github.com/pear/Log) projects.
 
 ## Getting started
 
