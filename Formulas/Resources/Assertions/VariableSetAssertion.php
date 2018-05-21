@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -119,6 +119,12 @@ class VariableSetAssertion extends VariableSet
 		return $result;
 	}
 
+	/**
+	 * Get any messages defined for the assertion
+	 * @param string $arcRole
+	 * @param string $lang
+	 * @return array
+	 */
 	private function getMessages( $arcRole, $lang = null )
 	{
 		$arcs = $this->xbrlTaxonomy->getGenericArc( $arcRole, $this->extendedLinkRoleUri, $this->label );
@@ -148,9 +154,9 @@ class VariableSetAssertion extends VariableSet
 	}
 
 	/**
-	 * Retrieve and validate any assertion messages
-	 * {@inheritDoc}
-	 * @see \XBRL\Formulas\Resources\Variables\VariableSet::validateMessages()
+	 * Get the satisfied and unsatisfied messages (if any)
+	 * @param string $lang
+	 * @return bool
 	 */
 	public function validateMessages( $lang = null )
 	{
@@ -163,7 +169,6 @@ class VariableSetAssertion extends VariableSet
 	 * Process all the messages in the set using the variables in $vars
 	 * @param array[string] $messageSet
 	 * @param array[FactVariableBinding]
-	 * @param array[string]
 	 * @param XPath2ItemProvider $provider (optional) A specific provider to use.  ExistenceAssertion passes one.
 	 * @param
 	 */

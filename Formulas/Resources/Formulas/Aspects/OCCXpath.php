@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -39,6 +39,10 @@ use lyquidity\XPath2\DOM\DOMXPathNavigator;
  */
 class OCCXPath extends OCCEmpty
 {
+	/**
+	 * A select expression
+	 * @var string $select
+	 */
 	public $select = "";
 
 	/**
@@ -78,7 +82,7 @@ class OCCXPath extends OCCEmpty
 	}
 
 	/**
-	 *
+	 * Get the concept aspect value
 	 * @param VariableSet $variableSet
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log

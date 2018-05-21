@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -81,7 +81,6 @@ class Aspect extends Resource
 	 * Specification [DIMENSIONS], if a segment is contained by the context of the fact. The aspect test for this aspect is:
 	 * @var string $nonXDTSegmentTest
 	 */
-	// public static $nonXDTSegmentTest = "for \$remainder-a in xfi:fact-segment-remainder(\$aspectTest:a), \$remainder-b in xfi:fact-segment-remainder(\$aspectTest:b) return (: (count(\$remainder-a) eq count(\$remainder-b) and ((count(\$remainder-a) eq 0) or (every \$i in 1 to count(\$remainder-a) satisfies xfi:nodes-correspond(\$remainder-a[\$i],\$remainder-b[\$i])))) :) true";
 	public static $nonXDTSegmentTest = "lyquidity:non-XDT-segment-aspect-test(.,\$aspectTest:b)";
 
 	/**
@@ -97,7 +96,6 @@ class Aspect extends Resource
 	 * Specification [DIMENSIONS], if a scenario is contained by the context of the fact. The aspect test for this aspect is:
 	 * @var string $nonXDTScenarioTest
 	 */
-	// public static $nonXDTScenarioTest = "for \$remainder-a in xfi:fact-scenario-remainder(\$aspectTest:a), \$remainder-b in xfi:fact-scenario-remainder(\$aspectTest:b) return (count(\$remainder-a) eq count(\$remainder-b) and ((count(\$remainder-a) eq 0) or (every \$i in 1 to count(\$remainder-a) satisfies xfi:nodes-correspond(\$remainder-a[\$i],\$remainder-b[\$i]) )))";
 	public static $nonXDTScenarioTest = "lyquidity:non-XDT-scenario-aspect-test(.,\$aspectTest:b)";
 
 	// The variables specification defines the following aspect for for numeric items only:
@@ -175,9 +173,7 @@ class Aspect extends Resource
 	 * where #dimension is the QName of the dimension defining the aspect.
 	 * @var string $defaultTypedDimensionTest
 	 */
-	// public static $defaultTypedDimensionTest = "(fn:count(xfi:fact-typed-dimension-value(\$aspectTest:a,#dimension)/*) eq 1) and (fn:count(xfi:fact-typed-dimension-value(\$aspectTest:b,#dimension)/*) eq 1) and (xfi:nodes-correspond(xfi:fact-typed-dimension-value(\$aspectTest:a,#dimension)/*[1],xfi:fact-typed-dimension-value(\$aspectTest:b,#dimension)/*[1]))";
-	public static $defaultTypedDimensionTest = "(for \$fact1 in (xfi:fact-typed-dimension-value(\$aspectTest:a,#dimension)/*), \$fact2 in (xfi:fact-typed-dimension-value(\$aspectTest:b,#dimension)/*) " .
-		"return (fn:count(\$fact1) eq 1) and (fn:count(\$fact2) eq 1) and (xfi:nodes-correspond(\$fact1[1],\$fact2[1])))[1] cast as xs:boolean";
+	public static $defaultTypedDimensionTest = "(for \$fact1 in (xfi:fact-typed-dimension-value(\$aspectTest:a,#dimension)/*), \$fact2 in (xfi:fact-typed-dimension-value(\$aspectTest:b,#dimension)/*) return (fn:count(\$fact1) eq 1) and (fn:count(\$fact2) eq 1) and (xfi:nodes-correspond(\$fact1[1],\$fact2[1])))[1] cast as xs:boolean";
 
 	/**
 	 * The custom typed-dimension aspect test is on defined by an equality definition.
@@ -188,6 +184,10 @@ class Aspect extends Resource
 	 */
 	public static $customTypedDimensionTest = "(fn:count(xfi:fact-typed-dimension-value(\$aspectTest:a,#dimension)/*) eq 1) and (fn:count(xfi:fact-typed-dimension-value(\$aspectTest:b,#dimension)/*) eq 1) and (#custom)";
 
+	/**
+	 * A map of the test to use for each aspect
+	 * @var array
+	 */
 	public static $aspectTests = array();
 
 	/**
@@ -202,6 +202,9 @@ class Aspect extends Resource
 	 */
 	public $source = null;
 
+	/**
+	 * Mock static constructor
+	 */
 	public static function __static()
 	{
 		Aspect::$aspectTests = array(
@@ -278,7 +281,7 @@ class Aspect extends Resource
 	}
 
 	/**
-	 *
+	 * Abstract function overridden to return an aspect value
 	 * @param VariableSet $variableSet
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log
@@ -310,6 +313,10 @@ class Aspect extends Resource
 		return $this->qname;
 	}
 
+	/**
+	 * Get the name of the source to use
+	 * @return string
+	 */
 	public function getSourceName()
 	{
 		$qname = $this->getSourceQName();

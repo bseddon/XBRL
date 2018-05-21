@@ -10,7 +10,7 @@
  *		 |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,6 +33,9 @@ namespace XBRL\Formulas;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 
+/**
+ * A collection of static functions to return values for a DOMXPathNavigator
+ */
 class FactValues
 {
 
@@ -290,7 +293,7 @@ class FactValues
 	/**
 	 * Get the explicit dimension(s) for a segment
 	 * @param VariableSet $variableSet
-	 * @param unknown $seqment
+	 * @param array $segment
 	 * @return array An array of the dimension (keys) and members (values)
 	 */
 	private static function processSegmentForExplicitDimensions( $variableSet, $segment )
@@ -317,7 +320,7 @@ class FactValues
 	/**
 	 * Get the typed dimension(s) for a segment
 	 * @param VariableSet $variableSet
-	 * @param unknown $seqment
+	 * @param array $segment
 	 * @return array An array of the dimension (keys) and members (values)
 	 */
 	private static function processSegmentForTypedDimensions( $variableSet, $segment )

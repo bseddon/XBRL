@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -331,7 +331,8 @@ class XBRL_Formulas extends Resource
 	/**
 	 * Allows the controller class to pass the expected result node to the test class(es) created
 	 * Returns false if there is no problem or an error string to report if there is.
-	 * @param unknown $expectedResultNode The content of the <result> node from the test case.
+	 * @param string $testCaseFolder
+	 * @param array $expectedResultNode The content of the <result> node from the test case.
 	 * 									  The relevant test class will know how to handle its content.
 	 * @return bool|string False if there is no error or a string that describes the failure
 	 */
@@ -412,7 +413,7 @@ class XBRL_Formulas extends Resource
 
 	/**
 	 * Creates a namespace manager for a formula processor
-	 * @param array $namespaces An array of namespace arrays (which is an array of namespaces indexed by prefix)
+	 * @param array $additionalNamespaces An array of namespace arrays (which is an array of namespaces indexed by prefix)
 	 */
 	private function addNamespaces( $additionalNamespaces )
 	{
@@ -1346,7 +1347,8 @@ class XBRL_Formulas extends Resource
 	/**
 	 * Process all the variable filters that are the target of an arc.
 	 * @param XBRL $taxonomy
-	 * @param Variable $variable
+	 * @param string $arcRole
+	 * @param Variable $variable (by reference)
 	 * @param VariableSet $variableSet
 	 * @return bool
 	 */
@@ -1688,7 +1690,6 @@ class XBRL_Formulas extends Resource
 					}
 
 					if ( ! isset( $formula->factsContainer->facts[ $formula->label ] ) ) continue;
-					// TODO Process the consistency assertion rule
 					foreach ( $formula->factsContainer->facts[ $formula->label ] as $key => $derivedFact )
 					{
 						$vars = $formula->factsContainer->vars[ $formula->label ][ $key ];
@@ -1848,6 +1849,8 @@ class XBRL_Formulas extends Resource
 
 	/**
 	 * Evaluate the formula. At the moment the instanceQNames points to the current instance being processed
+	 * @param VariableSet $variableSet
+	 * @return bool
 	 */
 	private function evaluate( $variableSet )
 	{

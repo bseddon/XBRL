@@ -9,7 +9,7 @@
  *		 |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright (C) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -52,8 +52,6 @@ define( "XFI_TUPLE_TUPLES", 5 );
  */
 class InstanceFactsIterator extends XPath2NodeIterator implements \Iterator
 {
-	public static $CLASSNAME = "lyquidity\XPath2\Iterator\InstanceFactsIterator";
-
 	/**
 	 * A local copy of the context
 	 * @var IContextProvider
@@ -96,6 +94,10 @@ class InstanceFactsIterator extends XPath2NodeIterator implements \Iterator
 	 */
 	private $substitutionGroups = null;
 
+	/**
+	 * Records whether the list includes nil facts (false) or excludes them (true)
+	 * @var bool $nonNillOnly
+	 */
 	private $nonNilOnly = false;
 
 	/**

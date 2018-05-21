@@ -3,7 +3,7 @@
 /**
  * From: http://php.net/manual/en/class.dateinterval.php#113091
  * @author Bill Seddon
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

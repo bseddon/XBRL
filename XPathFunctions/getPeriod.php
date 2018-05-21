@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,10 +38,13 @@ use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\XPath2Exception;
 
+/**
+ * Load the required class
+ */
 require_once 'getContext.php';
 
 /**
- * Return the period element of the context matching the supplied item’s contextRef attribute.
+ * Return the period element of the context matching the supplied items contextRef attribute.
  * @param XPath2Context $context
  * @param NodeProvider $provider
  * @param array $args

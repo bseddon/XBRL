@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,9 @@ namespace XBRL\Formulas\Resources\Formulas;
   */
 class Tuple extends Formula
 {
-
+	/**
+	 * Default constructor
+	 */
 	public function __construct()
 	{
 		$this->testValue = false;
@@ -275,9 +277,10 @@ class Tuple extends Formula
 	}
 
 	/**
-	 * Converts a node to an XPath query
-	 *
+	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
+	 * @param FactVariableBinding $factVariableBinding
+	 * @return an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

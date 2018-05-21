@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -106,7 +106,7 @@ class EntityIdentifier extends Aspect
 	}
 
 	/**
-	 *
+	 * Returns an aspect value
 	 * @param Formula $variableSet
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log

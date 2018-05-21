@@ -10,7 +10,7 @@
  *		 |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,9 +32,17 @@ namespace XBRL\Formulas\Resources\Variables;
 
 use XBRL\Formulas\VariableBinding;
 use XBRL\Formulas\Evaluation;
+use XBRL\Formulas\ScopeVariableBinding;
 
+/**
+ * Variable to represent scope result
+ */
 class ScopeVariable extends FactVariable
 {
+	/**
+	 * A binding for the variable
+	 * @var ScopeVariableBinding $binding
+	 */
 	public $binding;
 
 	/**

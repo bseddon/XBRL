@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -59,20 +59,9 @@ class MatchEntityIdentifier extends MatchFilter
 	}
 
 	/**
-	 * Converts a node to an XPath query
-	 *
-	 * @param VariableSet $variableSet
-	 */
-	// public function getAspectsCovered( $variableSet, $factVariableBinding )
-	// {
-	// 	$variable = "{$this->variable['originalPrefix']}:{$this->variable['name']}";
-	// 	return str_replace("\$aspectTest:b", "\$$variable", str_replace("\$aspectTest:a", ".", Aspect::$entityIdentifierTest ) );
-	// }
-
-	/**
 	 * Returns the set of aspects covered by this instance
-	 *
-	 * @var VariableSet $variableSet
+	 * @param VariableSet $variableSet
+	 * @param FactVariableBinding $factVariableBinding
 	 * @return an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )

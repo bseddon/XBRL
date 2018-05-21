@@ -4,8 +4,8 @@
  * US GAAP 2015 taxonomy implementation
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -839,7 +839,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 
 	/**
 	 * Provides a descendant implementation a chance to define whether or not common hypercubes should be accumulated for a node.
-	 * @param array $nodes An array of presentation hierarchy nodes
+	 * @param array $node An array of presentation hierarchy nodes
 	 * @param string $roleRefKey
 	 * @return bool True if primary items are allowed (default: true)
 	 */
@@ -943,9 +943,10 @@ class XBRL_US_GAAP_2015 extends XBRL
 	 * @param string $href  The id of the element for which a description is to be retrieved.  If only the fragment is provided, its assumed to be from the current taxonomy.
 	 * @param null|array[string] (optional) $roles If true include the element text in the result.  If the argument is an array it will be an array of preferred labels.
 	 * @param null|string $lang (optional) a language locale
+	 * @param string $extendedLinkRole (optional) The ELR to apply when calling the parent getTaxonomyDescriptionForId
 	 * @return bool|string A description string or false
 	 */
-	public function getTaxonomyDescriptionForId( $href, $roles = null, $lang = null, $extendedLinkRole = NULL )
+	public function getTaxonomyDescriptionForId( $href, $roles = null, $lang = null, $extendedLinkRole = null )
 	{
 		$result = parent::getTaxonomyDescriptionForId( $href, $roles, $lang, $extendedLinkRole );
 		if ( ! $result )

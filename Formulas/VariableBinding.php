@@ -10,7 +10,7 @@
  *		 |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -71,7 +71,7 @@ class VariableBinding implements \Iterator
 	public $facts;
 
 	/**
-	 *
+	 * A list of instances
 	 * @var array
 	 */
 	public $instances;
@@ -204,6 +204,9 @@ class VariableBinding implements \Iterator
 
 	/** Iterator support */
 
+	/**
+	 * Implements the iterator rewind method
+	 */
 	public function rewind()
 	{
 		if ( is_null( $this->facts ) )
@@ -218,6 +221,9 @@ class VariableBinding implements \Iterator
 		return $result;
 	}
 
+	/**
+	 * Implements the iterator current method
+	 */
 	public function current()
 	{
 		if ( is_null( $this->facts ) )

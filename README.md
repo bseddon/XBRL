@@ -165,23 +165,11 @@ liabilities.  You are also urged to review our [code of conduct](CODE_OF_CONDUCT
 
 ## Install
 
-The project can be installed by [composer](https://getcomposer.org/).  Save the following JSON into a file called 'composer.json' in your application folder and run
-the command:
+The project can be installed by [composer](https://getcomposer.org/).   Assuming Composer is installed and a shortcut to the program is called 'composer'
+then the command to install this project is:
 
 ```
-composer install --prefer-dist
-```
-
-composer.json
-
-```
-{
-    "require": {
-        "lyquidity/xbrl": "dev-master"
-    },
-	"minimum-stability": "dev",
-	"prefer-stable": false
-}
+composer require lyquidity/xbrl:dev-master lyquidity/xpath2:dev-master lyquidity/utilities:dev-master lyquidity/xml:dev-master --prefer-dist
 ```
 
 Or fork or download the repository.  It will also be necessary to download and install the [XML](https://github.com/bseddon/xml), 
@@ -195,6 +183,8 @@ Assuming you have installed the library using composer then this PHP application
 
 ```php
 <?php
+// This MUST be set before the autoload because the XBRL class autoloaded uses it
+global $use_xbrl_functions; $use_xbrl_functions = true;
 require_once __DIR__ . '/vendor/autoload.php';
 include __DIR__ . "/vendor/lyquidity/XBRL/examples/example.php";
 ```

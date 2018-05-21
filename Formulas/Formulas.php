@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -242,7 +242,6 @@ spl_autoload_register( 'XBRL\\Formulas\\formulas_autoload' );
 
   	/**
  	 * Processes a node to extract formula or variable information
- 	 * @param string $name The name of the resource element being processed
  	 * @param \XBRL $taxonomy The taxonomy referencing the linkbase being processed
  	 * @param string $roleUri
  	 * @param string $linkbaseHref

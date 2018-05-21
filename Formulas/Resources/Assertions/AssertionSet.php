@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ namespace XBRL\Formulas\Resources\Assertions;
 
 use XBRL\Formulas\Resources\Resource;
 use lyquidity\xml\exceptions\InvalidOperationException;
+use XBRL\Formulas\FactVariableBinding;
 
 /**
  * Base class for XBRL variable filters
@@ -97,6 +98,8 @@ class AssertionSet extends Resource
 	 * Converts a node to an XPath query
 	 *
 	 * @param VariableSet $variableSet
+	 * @param FactVariableBinding $factVariableBinding
+	 * @throws InvalidOperationException
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

@@ -4,8 +4,8 @@
  * XBRL specification constants
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1670,7 +1670,7 @@ class XBRL_Constants
 	public static $standardRoles = array();
 
 	/**
-	 *
+	 * A list of standard arc roles
 	 * @var array $standardArcRole
 	 */
 	public static $standardArcRoles = array();

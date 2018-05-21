@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ class Evaluation
 	/**
 	 * Evaluate the variable
 	 * @param VariableSet $variableSet
-	 * @param array[array] $hierarchy
+	 * @param array $orderedVariableQNames
 	 * @param array $notBindings
 	 * @param array $uncoveredAspectFacts
 	 */
@@ -75,8 +75,8 @@ class Evaluation
 	/**
 	 * Constructor
 	 * @param VariableSet $variableSet
-	 * @param array[array] $hierarchy
-	 * @param array $uncoveredAspects
+	 * @param array $orderedVariableQNames
+	 * @param array $notBindings
 	 */
 	public function __construct( $variableSet, $orderedVariableQNames, $notBindings )
 	{
@@ -89,6 +89,8 @@ class Evaluation
 
 	/**
 	 * Called to process variables in the hierarchy order
+	 * @param array $uncoveredAspectFacts A list of the uncovered aspect facts
+	 * @return boolean
 	 */
 	public function processVariables( $uncoveredAspectFacts )
 	{

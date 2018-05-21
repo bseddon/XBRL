@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -217,7 +217,7 @@ class ConsistencyAssertion extends AssertionSet
 	private $uniqueInputFactHashes = null;
 
 	/**
-	 *
+	 * Performs the consistency check for a fact
 	 * @param Formula $formula
 	 * @param array $derivedFact [concept(QName), contextRef(string), value(mixed), decimals(int), precision(int), unitRef(string)]
 	 * @param array $vars
@@ -491,7 +491,7 @@ class ConsistencyAssertion extends AssertionSet
 	}
 
 	/**
-	 *
+	 * Rounds a fact value takng into account the fact precision
 	 * @param float $value
 	 * @param int $precision
 	 * @return unknown|number
@@ -509,7 +509,7 @@ class ConsistencyAssertion extends AssertionSet
 	private $radiusValue = null;
 
 	/**
-	 *
+	 * Check the value is wthin the acceptance radius
 	 * @param Formula $variableSet
 	 * @param mixed $derivedValue
 	 * @param XPathNavigator $fact

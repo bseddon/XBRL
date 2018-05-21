@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,8 +35,6 @@ use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\XPath2\NodeProvider;
 use lyquidity\XPath2\Properties\Resources;
 use lyquidity\XPath2\XPath2Context;
-use function XBRL\functions\getNodesCorrespond;
-use function XBRL\functions\getFactScenarioRemainder;
 use lyquidity\xml\exceptions\InvalidOperationException;
 use lyquidity\XPath2\XPath2Exception;
 
@@ -71,8 +69,8 @@ function getNonXDTScenarioAspectTest( $context, $provider, $args )
 
 	try
 	{
-		$remainderA = getFactScenarioRemainder( $context, $provider, array( $args[0] ) );
-		$remainderB = getFactScenarioRemainder( $context, $provider, array( $args[1] ) );
+		$remainderA = \XBRL\functions\getFactScenarioRemainder( $context, $provider, array( $args[0] ) );
+		$remainderB = \XBRL\functions\getFactScenarioRemainder( $context, $provider, array( $args[1] ) );
 
 		$remainderACount = $remainderA->getCount();
 		$remainderBCount = $remainderB->getCount();
@@ -97,7 +95,7 @@ function getNonXDTScenarioAspectTest( $context, $provider, $args )
 				throw new InvalidOperationException( "Unable to move to remainder B in getFactScenarioRemainder" );
 			}
 
-			if ( getNodesCorrespond( $context, $provider, array( $remainderA->current(), $remainderB ) ) == CoreFuncs::$False )
+			if ( \XBRL\functions\getNodesCorrespond( $context, $provider, array( $remainderA->current(), $remainderB ) ) == CoreFuncs::$False )
 			{
 				return CoreFuncs::$False;
 			}

@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -40,15 +40,25 @@ use lyquidity\XPath2\Value\DateValue;
 use lyquidity\XPath2\XPath2Exception;
 
 /**
-		 * @var DateTimeValue $date2
-		 */
+ * Returns true if two arguments are equal in period start dateTime. Each argument may be either a xs:date or an xs:dateTime
+ * (e.g., xbrldi:dateUnion). If arguments are mixed (one xs:date and other xs:dateTime) the xs:date is defined as the xs:dateTime
+ * of the midnight starting the date (00:00 hours of that date).
+ * @param XPath2Context $context
+ * @param NodeProvider $provider
+ * @param array $args
+ * @return XPathNavigator
+ *
+ * This function has two real arguments:
+ *
+ * left		xbrldi:dateUnion	The first date or dateTime.
+ * right	xbrldi:dateUnion	The second date or dateTime.
+ */
 function getStartEqual( $context, $provider, $args )
 {
 	try
 	{
 		// There should be two arguments and each argument should be a node iterator or DateTimeValue
 		// There shold be the same count in each node.
-
 
 		$date1 = null;
 

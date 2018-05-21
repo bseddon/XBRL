@@ -10,7 +10,7 @@
  *		 |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,11 +62,11 @@ class FactVariableBinding extends VariableBinding implements \Iterator
 	public $uncoveredAspectFacts = array();
 
 	/**
+	 * Provides a binding the chance to set a fallback value and return true or return false
 	 * Set a fallback value for the related variable if it has a fallback value
-	 * {@inheritDoc}
-	 * @see \XBRL\Formulas\VariableBinding::setFallbackValue()
 	 * @param VariableSet $variableSet
-	 * @return bool
+	 * @param bool alwaysUseFallbackValue
+	 * @return boolean
 	 */
 	public function setFallbackValue( $variableSet, $alwaysUseFallbackValue = false )
 	{

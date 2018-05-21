@@ -1,13 +1,11 @@
 <?php
 
-use lyquidity\xml\schema\SchemaTypes;
-
 /**
  * Implements class to hold and manage types.
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +21,8 @@ use lyquidity\xml\schema\SchemaTypes;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+use lyquidity\xml\schema\SchemaTypes;
+
 /**
  * Class implementation
  */
@@ -35,6 +35,9 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 	 */
 	private static $filename = "types.json";
 
+	/**
+	 * Mock static constructor
+	 */
 	public static function __static()
 	{
 		parent::__static();
@@ -57,6 +60,9 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 		return $instance;
 	}
 
+	/**
+	 * Default constructor
+	 */
 	public function __construct()
 	{
 		parent::__construct();

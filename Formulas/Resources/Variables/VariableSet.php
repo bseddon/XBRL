@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -50,7 +50,12 @@ use lyquidity\XPath2\XPath2Exception;
  */
 class VariableSet extends Resource
 {
+	/**
+	 * The name of the instance used by this variable set
+	 * @var string $instanceName
+	 */
 	public $instanceName;
+
 	/**
 	 * The name of the aspect model: 'dimensional' or 'non-dimensional'
 	 * @var string $aspectModel
@@ -317,7 +322,7 @@ class VariableSet extends Resource
 	}
 
 	/**
-	 *
+	 * Adds a group filter
 	 * @param Filter $filter
 	 */
 	public function AddFilter( $filter )
@@ -334,8 +339,9 @@ class VariableSet extends Resource
 	}
 
 	/**
-	 * Abstract function to allow descendents to read their messages
+	 * Abstract function to allow descendents to validate their messages
 	 * @param string $lang
+	 * @return bool
 	 */
 	public function validateMessages( $lang = null )
 	{
@@ -648,12 +654,13 @@ class VariableSet extends Resource
 	}
 
 	/**
-	 *
+	 * A list of dimensions
 	 * @var array[\QName]|null
 	 */
 	private $nilFactsDimensions;
+
 	/**
-	 *
+	 * A list of dimensions
 	 * @var array[\QName]|null
 	 */
 	private $factsDimensions;
@@ -671,6 +678,7 @@ class VariableSet extends Resource
 	/**
 	 * Set a list of the dimensions across all dimensions
 	 * @param bool $nils
+	 * @param array $dimensions
 	 * @return array[\QName]|null
 	 */
 	public function setFactsDimensions( $nils, $dimensions )

@@ -1,12 +1,10 @@
 <?php
 
-use lyquidity\xml\schema\SchemaTypes;
-
 /**
  * XBRL specification equality tests
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright (C) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +21,8 @@ use lyquidity\xml\schema\SchemaTypes;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+use lyquidity\xml\schema\SchemaTypes;
 
 /**
  * A static class that provides methods to test the equality of XBRL features
@@ -340,9 +340,9 @@ class XBRL_Equality {
 
 	/**
 	 * <segment> elements are S-Equal (with any missing segment treated as S-Equal to an empty <segment> element).
-	 *
 	 * @param array $s1
 	 * @param array $s2
+	 * @param bool $matchOrdinalPosition
 	 * @return bool
 	 */
 	public static function segment_equal( $s1, $s2, $matchOrdinalPosition = false )
@@ -774,8 +774,8 @@ class XBRL_Equality {
 
 	/**
 	 * Compare arrays using the position of the elements
-	 * @param array $value1
-	 * @param array $value2
+	 * @param array $array1
+	 * @param array $array2
 	 * @return bool
 	 */
 	public static function compare_arrays_ordinal( $array1, $array2 )
@@ -994,7 +994,7 @@ class XBRL_Equality {
 	}
 
 	/**
-	 *
+	 * Returns the XBRL_Equality type for $details
 	 * @param array $details
 	 * @param XBRL_Types $types
 	 * @return number

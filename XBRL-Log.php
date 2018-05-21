@@ -1,13 +1,11 @@
 <?php
 
-use XBRL\Formulas\Exceptions\FormulasException;
-
 /**
  * Implements the a logging class.
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +20,8 @@ use XBRL\Formulas\Exceptions\FormulasException;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+use XBRL\Formulas\Exceptions\FormulasException;
 
 if ( ! class_exists( "\\Log", true ) )
 {
@@ -95,7 +95,7 @@ class XBRL_Log
 	 *							runtime using the ``setIdent()`` method.
 	 * @param array $conf		Associative array of key-value pairs that are
 	 *							used to specify any handler-specific settings.
-	 * @param int $max			Log messages up to and including this level.
+	 * @param int $level		Log messages up to and including this level.
 	 *							This value defaults to ``PEAR_LOG_DEBUG``.
 	 *							See `Log Levels`_ and `Log Level Masks`_.
 	 * @return void

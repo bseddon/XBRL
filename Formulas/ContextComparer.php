@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright (C) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@ class ContextComparer extends TreeComparer
 {
 	/**
 	 * Constructor
+	 * @param XPath2Context $context
 	 * @param string $collation
 	 */
 	public function __construct( $context, $collation = null )
@@ -123,9 +124,11 @@ class ContextComparer extends TreeComparer
 	}
 
 	/**
+	 * Test if two items are equal
 	 * Overridden so dates can be compared taking into account there relationship with the period end
-	 * {@inheritDoc}
-	 * @see \lyquidity\XPath2\TreeComparer::ItemEqual()
+	 * @param XPathItem $item1
+	 * @param XPathItem $item2
+	 * @return bool
 	 */
 	public function ItemEqual( $item1, $item2 )
 	{

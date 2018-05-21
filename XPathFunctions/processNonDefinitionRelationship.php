@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,6 +46,8 @@ use lyquidity\XPath2\Value\QNameValue;
  * @param array $node The current node located for $path
  * @param string $path The path used to locate the node
  * @param array $parentKey The key to the parent of node
+ * @param bool $multipleChildNodes
+ * @param string $arcRole The arcRole of the relationship
  * @param bool True if the 'to' element can have multiple nodes such as when processing generic links but not when processing calculation links
  */
 function processNonDefinitionRelationship( &$context, &$taxonomy, &$nodes, &$parents, &$arcRef, $depth, $generations, $axis, &$node, $path, $parentKey, $multipleChildNodes, $arcRole )

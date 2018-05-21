@@ -1,10 +1,5 @@
 <?php
 
-use XBRL\functions\Formulas;
-use XBRL\Formulas\Resources\Message\Message;
-use lyquidity\xml\QName;
-use lyquidity\xml\schema\SchemaTypes;
-
 /**
  * Main XBRL taxonomy instance
  *
@@ -25,8 +20,8 @@ use lyquidity\xml\schema\SchemaTypes;
  * but the they are not applied to negate dimensions, domains and members
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +37,11 @@ use lyquidity\xml\schema\SchemaTypes;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+use XBRL\functions\Formulas;
+use XBRL\Formulas\Resources\Message\Message;
+use lyquidity\xml\QName;
+use lyquidity\xml\schema\SchemaTypes;
 
 /**
  * Load XBRL class files
@@ -2088,7 +2088,7 @@ class XBRL {
 	 * is only reference to underlying extended link then the role is resolved and the
 	 * underlying one is returned.
 	 *
-	 * @param string $role
+	 * @param string $roleUri
 	 * @return array An array containing the resolved extended link for the role
 	 */
 	public function &getDefinitionRoleRef( $roleUri )
@@ -3953,22 +3953,26 @@ class XBRL {
 	 * Return the description or title for a specific custom role
 	 *
 	 * @param array $role The role for which the description should be returned
+	 * @param string $roleType The role type (eg. link:presentationLink) of the description to retrieve
+	 * @param string $roleTitle The title of the role type description being requested
 	 * @return string
 	 */
-	public function getCustomLinkRoleDescription( $role, $link, $title )
+	public function getCustomLinkRoleDescription( $role, $roleType, $roleTitle )
 	{
-		return $this->getLinkRoleDescription( $role, $link, $title );
+		return $this->getLinkRoleDescription( $role, $roleType, $roleTitle );
 	}
 
 	/**
 	 * Return the description or title for a specific generic role
 	 *
 	 * @param array $role The role for which the description should be returned
+	 * @param string $roleType The role type (eg. link:presentationLink) of the description to retrieve
+	 * @param string $roleTitle The title of the role type description being requested
 	 * @return string
 	 */
-	public function getGenericLinkRoleDescription( $role, $link, $title )
+	public function getGenericLinkRoleDescription( $role, $roleType, $roleTitle )
 	{
-		return $this->getLinkRoleDescription( $role, $link, $title );
+		return $this->getLinkRoleDescription( $role, $roleType, $roleTitle );
 	}
 
 	/**
@@ -4107,7 +4111,7 @@ class XBRL {
 
 	/**
 	 * Get the calculation links array for a role after adjusting for order and probibition
-	 * @param array $filter|string A list of the roles to include in the result.  If no filter is specified all roles are returned.
+	 * @param array|string $filter A list of the roles to include in the result.  If no filter is specified all roles are returned.
 	 * @param bool $sort True if the result list should be sorted
 	 * @return array
 	 */
@@ -4162,7 +4166,7 @@ class XBRL {
 
 	/**
 	 * Get the General special links array for a role
-	 * @param array $filter|string A list of the roles to include in the result.  If no filter is specified all roles are returned.
+	 * @param array|string $filter A list of the roles to include in the result.  If no filter is specified all roles are returned.
 	 * @param bool $sort True if the result list should be sorted
 	 * @return array
 	 */
@@ -4217,7 +4221,7 @@ class XBRL {
 
 	/**
 	 * Get the custom links array for a role
-	 * @param array $filter|string	A list of the roles to include in the result.
+	 * @param array|string $filter	A list of the roles to include in the result.
 	 * 								If no filter is specified all roles are returned.
 	 * @param bool $sort			True if the result list should be sorted
 	 * @return array
@@ -4292,7 +4296,7 @@ class XBRL {
 
 	/**
 	 * Get the custom links array for a role
-	 * @param array $filter|string	A list of the roles to include in the result.
+	 * @param array|string $filter	A list of the roles to include in the result.
 	 * 								If no filter is specified all roles are returned.
 	 * @param bool $sort			True if the result list should be sorted
 	 * @return array
@@ -4383,7 +4387,7 @@ class XBRL {
 
 	/**
 	 * Get the General special links array for a role
-	 * @param array $filter|string A list of the roles to include in the result.  If no filter is specified all roles are returned.
+	 * @param array|string $filter A list of the roles to include in the result.  If no filter is specified all roles are returned.
 	 * @param bool $sort True if the result list should be sorted
 	 * @return array
 	 */
@@ -5089,7 +5093,7 @@ class XBRL {
 
 	/**
 	 * Process the calculation linkbase type.
-	 * @param array $linkbaseType The link base type to process
+	 * @param array $linkbaseType (by reference) The link base type to process
 	 * @return void
 	 */
 	private function processCustomLinkbases( &$linkbaseType )
@@ -5667,6 +5671,13 @@ class XBRL {
 
 	}
 
+	/**
+	 * Get the generic label resource for the give role, label and language
+	 * @param string $searchRole
+	 * @param string $searchLabel
+	 * @param string $searchLang
+	 * @return boolean|unknown[][]|mixed[][]
+	 */
 	public function getGenericLabel( $searchRole, $searchLabel = null, $searchLang = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
@@ -5704,7 +5715,7 @@ class XBRL {
 	}
 
 	/**
-	 *
+	 * Retrieves a list of resources for the generic resource type and sub type requested.  For example 'variable' and 'filter'.
 	 * @param string $resourceType 	This is required and will be variable, variableset or filter
 	 * @param string|null $resourceSubType	This value will be a valid sub type for the resource type passed in $resourceType
 	 * 									such as 'fact' for 'variable' or 'formula' for 'variableset'
@@ -5767,7 +5778,9 @@ class XBRL {
 	 * Get an arc for an arcrole and an optional resource.  If the label of a source resource
 	 * is not supplied all resources associated with an arc role are returned
 	 * @param string $arcRole
+	 * @param string $fromRoleUri
 	 * @param string $fromResourceName
+	 * @return array
 	 */
 	public function getGenericArc( $arcRole, $fromRoleUri, $fromResourceName = null )
 	{
@@ -5811,7 +5824,7 @@ class XBRL {
 	 * @param array[string] $roleRefs
 	 * @param array[string] $arcroleRefs
 	 * @param SimpleXMLElement $linkbase // The linkbase root element
-	 * @param string $href
+	 * @param array $linkbaseRef
 	 * @return boolean
 	 *
 	 * This function is the most recently implemented linkbase processor.  So where it is different to other linkbase
@@ -8449,6 +8462,7 @@ class XBRL {
 	 * @param string $fragment
 	 * @param SimpleXMLElement $xml
 	 * @param XBRL $taxonomy An XBR instance will be passed if the fragment MUST be a concept
+	 * @param string $name (by reference) Will store the name attribtute
 	 * @param DOMNode|string|null $domNode Returns the node pointed to by the fragment if relevant or null
 	 * @return true if the fragment is an XPointer (whether valid or not)
 	 */
@@ -10525,7 +10539,7 @@ class XBRL {
 	/**
 	 * Process a reference linkbase and populate the $this->referenceLinkRoleRefs variable with locators, arcs and labels
 	 * At the moment this does just bare minimum processing to report validation errors
-	 * @param array $linkbaseType The link base type to process
+	 * @param array $linkbaseRef The link details
 	 * @return boolean
 	 */
 	private function processReferenceLinkbase( $linkbaseRef )
@@ -12065,7 +12079,7 @@ class XBRL {
 	/**
 	 * Report a problem with the value of an XLink type attribute
 	 *
-	 * @param string $linkbase
+	 * @param string $section
 	 * @param string $message The message to display
 	 * @param string $linkbase The linkbase type containing the error
 	 * @param string $value  The value of the type
@@ -12608,6 +12622,7 @@ class XBRL {
 	 * and the section titled 'Constraint: No Arc Duplication'
 	 *
 	 * @param string $role
+	 * @param string $arcrole
 	 * @param string $from
 	 * @param string $to
 	 * @return boolean
@@ -12751,7 +12766,7 @@ class XBRL {
 
 	/**
 	 * Process labels and populate the $this->labelLinkRoleRefs variable with locators, arcs and labels
-	 * @param array $linkbaseType The link base type to process
+	 * @param array $linkbaseRef The link details
 	 * @return boolean
 	 */
 	public function processLabelLinkbase( $linkbaseRef )
@@ -15271,8 +15286,8 @@ class XBRL {
 	 * Processes a set of member ids that are to be promoted.  The most important task of this
 	 * function is to make sure an dependents are also promoted.
 	 *
-	 * @param array $newRole An array of elements representing the new role being created
-	 * @param array $targetRole An array of elements representing the role being merged
+	 * @param array $newPrimaryItems An array of elements representing the new role being created
+	 * @param array $targetMembers (by reference) An array of elements representing the role being merged
 	 * @param array $targetRoleUri The uri of the target role
 	 * @param array $membersToPromote An array of member id thay are to be promoted
 	 * @param string $parentId The id of the member's parent.  May be 'false' if the member and parent ids are the same
@@ -15694,6 +15709,10 @@ class XBRL {
 		}
 	}
 
+	/**
+	 * A list of linkbases associated with this taxonomy
+	 * @var array
+	 */
 	private $localLinkbases = array();
 
 	/**

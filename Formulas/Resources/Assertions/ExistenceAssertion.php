@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -200,6 +200,12 @@ class ExistenceAssertion extends VariableSetAssertion
 	 */
 	private $pastEvaluationHashes = null;
 
+	/**
+	 * Common function for evaluation
+	 * @param bool $exists
+	 * @return void
+	 * @throws \Exception
+	 */
 	private function evaluationInternal( $exists )
 	{
 		// \XBRL_Log::getInstance()->info( "Process existence assertion" );
@@ -436,6 +442,7 @@ class ExistenceAssertion extends VariableSetAssertion
 class XPath2ItemProvider implements IContextProvider
 {
 	/**
+	 * Records the current context
 	 * @var XPath2Item $item
 	 */
 	private $item;
@@ -450,7 +457,8 @@ class XPath2ItemProvider implements IContextProvider
 	}
 
 	/**
-	 * @var XPathItem $Context
+	 * Returns the item
+	 * @return XPathItem
 	 */
 	public function getContext()
 	{

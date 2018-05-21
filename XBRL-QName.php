@@ -1,13 +1,11 @@
 <?php
 
-use lyquidity\xml\QName;
-
 /**
  * QName class and factory functions.  This is ported from Arelle.
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +21,8 @@ use lyquidity\xml\QName;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+use lyquidity\xml\QName;
 
 // Now this is implemeted in /xml/QName so the only purpose of this file is to make sure
 // the QName class in loaded

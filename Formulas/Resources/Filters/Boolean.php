@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -132,9 +132,10 @@ class Boolean extends Filter
 	}
 
 	/**
-	 * Return the aspects covered by the set of sub-filters
-	 * {@inheritDoc}
-	 * @see \XBRL\Formulas\Resources\Filters\Filter::getAspectsCovered()
+	 * Returns the set of aspects covered by this instance
+	 * @param VariableSet $variableSet
+	 * @param FactVariableBinding $factVariableBinding
+	 * @return an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

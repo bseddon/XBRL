@@ -4,8 +4,8 @@
  * UK GAAP taxonomy implementation
  *
  * @author Bill Seddon
- * @version 0.1.1
- * @Copyright (C) 2016 Lyquidity Solutions Limited
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -716,7 +716,7 @@ class XBRL_UK_GAAP extends XBRL
 
 	/**
 	 * Provides a descendant implementation a chance to define whether or not common hypercubes should be accumulated for a node.
-	 * @param array $nodes An array of presentation hierarchy nodes
+	 * @param array $node An array of presentation hierarchy nodes
 	 * @param string $roleRefKey
 	 * @return bool True if primary items are allowed (default: true)
 	 */

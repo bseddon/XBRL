@@ -9,7 +9,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright (C) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -102,6 +102,9 @@ class XBRLFilterMemberDRS extends XBRLIterator implements \Iterator
 		$this->axis = (string)$axis;
 	}
 
+	/**
+	 * Creates a copy of this iterator that is independent of the original
+	 */
 	public function CloneInstance()
 	{
 		$result = new XBRLFilterMemberDRS( $this->context, $this->dimension, $this->primaryItem, $this->member, $this->linkRole, $this->axis );
@@ -118,15 +121,20 @@ class XBRLFilterMemberDRS extends XBRLIterator implements \Iterator
 	private $index = null;
 
 	/**
-	 * @var string $memberPaths
+	 * The path to the requested member in the DRS.  Also used a flag to indicate whether the Init() function can been called.
+	 * @var string $memberPath
 	 */
 	private $memberPath = null;
 
 	/**
+	 * A list of the candidates found in the DRS
 	 * @var array $candidates
 	 */
 	private $candidates = null;
 
+	/**
+	 * Handles initialilzation of this instance when called by the ancestor moveNext()
+	 */
 	public function Init()
 	{
 		// If the $memberNodes is null then it is the first time and the member needs to be located

@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -144,11 +144,18 @@ class ConceptRelation extends Filter
 	 */
 	public $qnameXPath2Expression;
 
+	/**
+	 * A list of the compiled expressions
+	 * @var array $expressionsList
+	 */
 	private $expressionsList = array();
 
+	/**
+	 * Default constructor
+	 */
 	public function __construct()
 	{
-		$expressionsList = array(
+		$this->expressionsList = array(
 			'Arc name Expression' 	=> array( 'xpath' => 'arcnameXPath2Expression ',	'expression' => $this->arcnameExpression ),
 			'Arc role Expression' 	=> array( 'xpath' => 'arcroleXPath2Expression ',	'expression' => $this->arcroleExpression ),
 			'Linkname Expression'	=> array( 'xpath' => 'linknameXPath2Expression',	'expression' => $this->linknameExpression ),
@@ -477,9 +484,10 @@ class ConceptRelation extends Filter
 	}
 
 	/**
-	 * Returns the concept aspect value
-	 * {@inheritDoc}
-	 * @see \XBRL\Formulas\Resources\Filters\Filter::getAspectsCovered()
+	 * Returns the set of aspects covered by this instance
+	 * @param VariableSet $variableSet
+	 * @param FactVariableBinding $factVariableBinding
+	 * @return an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

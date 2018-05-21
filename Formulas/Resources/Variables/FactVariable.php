@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -622,7 +622,8 @@ class FactVariable extends Variable
 	 * @param array $testableAspects
 	 * @param array[DOMXPathNavigator] $uncoveredAspectFacts
 	 * @param Formula $variableSet
-	 * @param array[DOMXPathNavigator] $fact (reference) A list of facts to filter
+	 * @param array[DOMXPathNavigator] $facts (by reference) A list of facts to filter
+	 * @param bool $negate
 	 * @param bool $resetCaches When true the caches will be reset.  Might be set to false when its
 	 * 							helpful for them to persist between calls such as in partitionFacts()
 	 * @return NULL
@@ -1141,10 +1142,11 @@ class FactVariable extends Variable
 	}
 
 	/**
+	 * Retrieve the dimension information from a context
 	 * @param Formula $variableSet
-	 * @param QName $dimQName The QName defining the dimension
-	 * @param array $component The segment or scenario containing the member
-	 * @param $bool $typed
+	 * @param QName $dimQName The QName of the defining dimension name
+	 * @param QName $dimElement The QName of the defining dimension member
+	 * @param array $context An array containing contet information
 	 * @return array
 	 */
 	private function getDimensionFromComponent( $variableSet, $dimQName, $dimElement, $context )

@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -131,7 +131,7 @@ class Formula extends VariableSet
 	);
 
 	/**
-	 *
+	 * A list of aspects that are valid for non-dimensional models
 	 * @var array $nonDimensionAspectModelMembers
 	 */
 	public static $nonDimensionAspectModelMembers = array(
@@ -2133,7 +2133,6 @@ class Formula extends VariableSet
 	/**
 	 * Check the context dimensions are valid for the output concept component. The dimensions associated with the component
 	 * of an input primary item maybe valid but not valid for the output primary item.
-	 * @param \XBRL $taxonomy
 	 * @param string $conceptPrimaryItemId
 	 * @param array $componentDimensions
 	 * @param array $primaryItemRoles
@@ -2280,7 +2279,7 @@ class Formula extends VariableSet
 
 	/**
 	 * Get the entity identifier to be used for this fact.  If an entity identifier rule does not exist, use the formula source value
-	 * @param array $context
+	 * @param array $source
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log
 	 * @return array|NULL
@@ -2409,6 +2408,7 @@ class Formula extends VariableSet
 	/**
 	 * Get the typed diemsion to be used for this fact.  If an typed dimension rule does not exist, use the formula source value
 	 * @param array $source
+	 * @param string $componentPath
 	 * @param array $evaluationResult
 	 * @param string $typedDimension
 	 * @param \XBRL_Log $log
@@ -2451,6 +2451,7 @@ class Formula extends VariableSet
 	 * Get the scenario to be used for this fact.  If a scenario rule does not exist, use the formula source value
 	 * @param array $source
 	 * @param string $aspect
+	 * @param string $componentType
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log
 	 * @return array|NULL
@@ -2527,6 +2528,7 @@ class Formula extends VariableSet
 	 * @param array $evaluationResult
 	 * @param string $aspect The aspect identifier to use
 	 * @param \XBRL_Log $log
+	 * @param string $contextRef (reference)
 	 * @return array the resulting context
 	 */
 	private function getContextForSource( $source, $evaluationResult, $aspect, $log, &$contextRef = null )
@@ -2545,11 +2547,12 @@ class Formula extends VariableSet
 	/**
 	 * Common routine to use to retreive the context section for a segment (segments and dimensions)
 	 * @param string $source The source variable to use
-	 * @param array $evaluationResult
 	 * @param array $path An array where the elements represent the path
 	 * @param string $extra An extra string
+	 * @param array $evaluationResult
 	 * @param string $aspect The aspect identifier to use
 	 * @param \XBRL_Log $log
+	 * @param string $contextRef (reference)
 	 * @return
 	 */
 	public function getComponentForPath( $source, $path, $extra, $evaluationResult, $aspect, $log, &$contextRef = null )
@@ -2582,7 +2585,7 @@ class Formula extends VariableSet
 
 	/**
 	 * Get the unit to be used for this fact.  If a unit rule does not exist, use the formula source value
-	 * @param string $unitRef
+	 * @param string $source
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log
 	 * @return array|null

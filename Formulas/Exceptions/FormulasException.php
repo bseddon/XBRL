@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,12 +43,13 @@ class FormulasException extends \Exception
 
 	/**
 	 * QName of the error code being reported
-	 * @var unknown
+	 * @var string $error
 	 */
 	public $error;
 
 	/**
 	 * Create an exception type with a formula type
+	 * @param string QName of the error code being reported
 	 * @param string $formulaType
 	 * @param string $message
 	 * @return \XBRL\Formulas\Resources\FormulasException

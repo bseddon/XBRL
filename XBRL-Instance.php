@@ -1,12 +1,32 @@
 <?php
 
+/**
+ * XBRL Instance
+ * @author Bill Seddon
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 use XBRL\Formulas\Exceptions\FormulasException;
 
 /**
  * XBRL instance document class
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  *
  * Copyright (C) 2016 Lyquidity Solutions Limited
  *
@@ -36,7 +56,6 @@ require_once $utilitiesPath . 'SimpleXMLElementToArray.php';
 require_once $utilitiesPath . 'tuple-dictionary.php';
 
 use lyquidity\xml\schema\SchemaTypes;
-
 
 /**
  * Provides functions to read and interpret instance documents
@@ -311,8 +330,8 @@ class XBRL_Instance
 
 	/**
 	 * Add a namespace to the list
-	 * @var string $prefix
-	 * @var string $namespace
+	 * @param string $prefix
+	 * @param string $namespace
 	 * @return void
 	 */
 	public function addNamespace( $prefix, $namespace )
@@ -429,7 +448,7 @@ class XBRL_Instance
 	}
 
 	/**
-	 *
+	 * Returns true if the $dimension has a default
 	 * @param string $dimension
 	 * @return boolean
 	 */
@@ -688,7 +707,7 @@ class XBRL_Instance
 	/**
 	 * Get an array of explicit dimension member elements for a context
 	 *
-	 * @param array|string $context If a string the name of a context; if an array, one containing the context detail
+	 * @param array|string $contextRef If a string the name of a context; if an array, one containing the context detail
 	 * @param boolean|array[string] $getText If true include the element text in the result.  If the argument is an array it will be an array of preferred labels.
 	 * @param string $elementName The name of the element within the entity element to use [segment|scenario]
 	 * @return False if the requested context id does not exist or the context is not dimensional otherwise any array of dimension member elements
@@ -1106,7 +1125,7 @@ class XBRL_Instance
 
 	/**
 	 * Return the schema prefix corresponding to the prefix use locally
-	 * @param unknown $localPrefix
+	 * @param string $localPrefix
 	 * @return string The updated prefix or the local one if there is no schema
 	 */
 	private function normalizePrefix( $localPrefix )
@@ -2222,7 +2241,7 @@ class XBRL_Instance
 	 * This is a simplified version of the code in XBRL processLabelLinkbase().  Simplified because
 	 * footnote locators can only be to elements in the same document.
 	 *
-	 * @param array $footnoteElement The element containing the link base type to process
+	 * @param array $footnoteLink The element containing the link base type to process
 	 * @return boolean
 	 */
 	private function processFootnoteLinkbase( $footnoteLink )
@@ -2530,6 +2549,9 @@ class XBRL_Instance
 	 *
 	 * @param array $fact The element array carrying the id
 	 * @param string $lang The language code of the footnote to retrieve
+	 * @param string $linkrole
+	 * @param string $arcrole
+	 * @param string $footnoterole
 	 * @return array A list of the footnotes with an arc starting with this fact
 	 */
 	public function getFootnoteForFact( $fact, $lang = null, $linkrole = null, $arcrole = null, $footnoterole = null )
@@ -2735,8 +2757,8 @@ class XBRL_Instance
 	/**
 	 * Generate a presentation of a fact value taking into account decimals and precision settings
 	 *
-	 * @param array $fact The fact entry containing the
-	 * @param string
+	 * @param array $entry (by reference) The fact entry containing the value
+	 * @return string
 	 */
 	function getNumericPresentation( &$entry )
 	{
@@ -5680,7 +5702,7 @@ class ContextsFilter
 
 	/**
 	 * Constructor
-	 * @param XBRL_Instance $instance The XBRL_Instance containing the contexts to filter
+	 * @param XBRL_Instance $instance (by reference) The XBRL_Instance containing the contexts to filter
 	 * @param array $contexts The context to add
 	 */
 	function __construct( &$instance, $contexts )
@@ -6031,7 +6053,7 @@ class InstanceElementsFilter
 	/**
 	 * Constructor
 	 * @param XBRL_Instance $instance The XBRL_Instance containing the elements to filter
-	 * @param array $contexts The elements to add
+	 * @param array $elements The elements to add
 	 */
 	function __construct( &$instance, $elements )
 	{

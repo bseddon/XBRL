@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -41,6 +41,7 @@ use lyquidity\XPath2\CoreFuncs;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Undefined;
+use XBRL\Formulas\Exceptions\FormulasException;
 
  /**
   * A class to process a formula definitions
@@ -118,10 +119,16 @@ class ValueAssertion extends VariableSetAssertion
 	}
 
 	/**
-	 * Check the select and as
 	 * {@inheritDoc}
 	 * @see \XBRL\Formulas\Resources\Resource::validate()
 	 * @param IXmlNamespaceResolver $nsMgr
+	 */
+	/**
+	 * Check the 'select' and 'as'
+	 * @param VariableSet $variableSet
+	 * @param XmlNamespaceManager $nsMgr
+	 * @return bool
+	 * @throws FormulasException
 	 */
 	public function validate( $variableSet, $nsMgr )
 	{

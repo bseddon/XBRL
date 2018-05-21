@@ -10,7 +10,7 @@
  *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
- * @version 0.1.1
+ * @version 0.9
  * @Copyright ( C ) 2017 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
@@ -485,6 +485,7 @@ class GeneratedFacts
 	 * @param DOMXPathNavigator $nav
 	 * @param \XBRL_Instance $xbrlInstance
 	 * @param array $index (by reference) A list of concepts
+	 * @param string $path (by reference)
 	 * @return A list of concepts
 	 */
 	private function indexConcepts( $nav, $xbrlInstance, &$index = array(), $path = "" )
@@ -578,6 +579,8 @@ class GeneratedFacts
 	 * @param array[DOMXPathNavigator] $generatedContexts
 	 * @param array[DOMXPathNavigator] $expectedUnits
 	 * @param array[DOMXPathNavigator] $generatedUnits
+	 * @param bool $expectedConceptNavIsTuple
+	 * @param bool $generatedNavIsTuple
 	 * @return bool
 	 */
 	private function compareConcepts( $expectedNav, $generatedNav, $expectedContexts, $generatedContexts, $expectedUnits, $generatedUnits, $expectedConceptNavIsTuple, $generatedNavIsTuple )
@@ -851,8 +854,10 @@ class GeneratedFacts
 	}
 
 	/**
-	 *
+	 * Move the navigator to the first concept in the document processng all elements along the way
 	 * @param DOMXPathNavigator $nav
+	 * @param array $contexts (by reference)
+	 * @param array $units (by reference)
 	 */
 	private function moveToFirstConcept( $nav, &$contexts, &$units )
 	{
@@ -893,6 +898,7 @@ class GeneratedFacts
 	/**
 	 * An array to which context information should be added
 	 * @param array $document (passed by reference)
+	 * @param string $xbrldiPrefix
 	 */
 	private function addContexts( &$document, $xbrldiPrefix )
 	{
@@ -959,10 +965,11 @@ class GeneratedFacts
 
 	/**
 	 * Add the details for an OCC
-	 * @param string $componentType
-	 * @param array $component
-	 * @param array $docment
-	 * @param string $prefix
+	 * @param string $componentType Scenario or segment
+	 * @param array $component A list of componets for the component type
+	 * @param array $document An array of lines
+	 * @param string $prefix The text (spaces) to add as a prefix to the line
+	 * @param string $xbrldiPrefix The xbrldi prefix to use in this generated document
 	 */
 	private function addComponent( $componentType, $component, &$document, $prefix, $xbrldiPrefix )
 	{
