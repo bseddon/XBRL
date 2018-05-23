@@ -31,6 +31,10 @@ Find much more information in the [wiki](../../wiki).
 
 These tests are performed nightly to provide an overview of the status of the source code.  
 
+### Statistics
+
+This project comprises 70117 lines in 231 files
+
 ## About the project
 
 The XBRLQuery project started as an idea to take the regulatory information companies must produce and extend that use within organizations.  The benefit 
