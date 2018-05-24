@@ -47,6 +47,28 @@ to plan, analyse and react to business driven factors and by doing so via an Ope
 An overview of the project is provided below.  There is more information available in the Wiki including and explanation and documentation of the source code
 and examples of using the source to create reports.
 
+### Specifications supported
+
+* XBRL 2.1 except there is no support for reference linkbases.
+* XBRL Dimensions are supported.
+* XBRL Generics including generic references, generic links and generic labels.
+* XBRL Formulas
+
+XBRL Formulas includes support for:
+
+* All the [recommended specifications](https://specifications.xbrl.org/work-product-index-formula-formula-1.0.html)
+* The [Formula Tuples](http://www.xbrl.org/Specification/formulaTuples/CR-2011-11-30/formulaTuples-CR-2011-11-30.html) and 
+[Variable Scope](http://www.xbrl.org/Specification/variables-scope/CR-2011-11-30/variables-scope-CR-2011-11-30.html) draft specifications.
+* The full set of [functions registry](https://specifications.xbrl.org/registries/functions-registry-1.0/) (XFI) are also supported 
+including both recommended and draft functions. 
+
+### Conformance
+
+The project passes almost all conformance tests, the omissions arising because there is no support for reference linkbases.
+
+A separate project [XBRL-tests](https:github.com/bseddon/XBRL-tests) provides a means to verify the project passes the conformance test.  This
+project is a copy of the test harness we use to run the conformance tests.
+
 ## Purpose
 
 This project has been created by [Lyquidity Solutions Limited](https://www.xbrlquery.com) using the website name of www.xbrlquery.com to 
