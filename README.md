@@ -96,12 +96,13 @@ budgeting and management reporting; to create a platform that uses XBRL as a mea
 a reliable, repeatable way; to create a platform that allows anyone to validate the content of instance documents on which business decisions may be made; 
 and that any document being used is genuine and unchanged.
 
-##XBRL Support
+## XBRL Support
 
 This project includes support for the full XBRL 2.1 specification as well as the XBRL Dimensions 1.0, Generics and XBRL Formulas specification (including the XFI functions). 
 The project allows an application to validate taxonomy and instance documents and is able to report any errors discovered.  Error reports will document 
 each element in a taxonomy or instance document that fails identifying the offending element and it will include a reference to the specification.  
-In the case of the dimensions and formula validation, the message will include the approrpriate error constant as defined in the XDT specification.
+In the case of the dimensions and formula validation, the message will include the approrpriate error constant as defined in the XDT (dimensions) 
+specification.
 
 ## Why PHP?
 
