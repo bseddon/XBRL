@@ -47,6 +47,11 @@ to plan, analyse and react to business driven factors and by doing so via an Ope
 An overview of the project is provided below.  There is more information available in the Wiki including and explanation and documentation of the source code
 and examples of using the source to create reports.
 
+### Validating
+
+The processor can be validating.  Set a variable to true and both the schemas and instance documents are validated.  Set the variable to false and 
+the processor just processes and assumes you know the schemas and instance documents are valid and consistent.
+
 ### Specifications supported
 
 * XBRL 2.1 except there is no support for reference linkbases.
