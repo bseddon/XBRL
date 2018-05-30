@@ -234,11 +234,11 @@ class XBRLFilterMemberNetwork extends XBRLIterator implements \Iterator
 
 				// Make sure there are members for the requested role
 				$members = $dimTaxonomy->getDefinitionRoleDimensionMembers( $this->linkRole );
-				if ( count( $members ) && isset( $members[ "{$memTaxonomy->getTaxonomyXSD()}#{$memElement['id']}" ] ) )
+				if ( is_array( $members ) && count( $members ) && isset( $members[ "{$memTaxonomy->getTaxonomyXSD()}#{$memElement['id']}" ] ) )
 				{
 					foreach ( $members as $key => $member )
 					{
-						if ( ! count( $member['parents'] ) )
+						if ( ! isset( $member['parents'] ) || ! count( $member['parents'] ) )
 						{
 							$roots[ $key ] = $key;
 							continue;
@@ -372,7 +372,7 @@ class XBRLFilterMemberNetwork extends XBRLIterator implements \Iterator
 
 		while ( true )
 		{
-			if ( $this->index >= count( $this->candidates ) )
+			if ( ! is_array( $this->candidates ) || $this->index >= count( $this->candidates ) )
 			{
 				return null;
 			}

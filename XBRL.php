@@ -14083,7 +14083,7 @@ class XBRL {
 						}
 					}
 				}
-				$x = 1;
+
 				$this->log()->taxonomy_validation( "5.2.4.2.1", "A presentation arc preferred label role assigment is not defined as a label",
 					array(
 						'preferred label' => $node['preferredLabel'],
@@ -15340,7 +15340,7 @@ class XBRL {
 	 */
 	private function mergeExtendedRoles( $role, $targetRole, &$mergedRoles, $mergeTargetRoles = true )
 	{
-		if ( ! count( $mergedRoles ) )
+		if ( ! is_array( $mergedRoles ) || ! count( $mergedRoles ) )
 		{
 			$mergedRoles = array( $role['roleUri'] );
 		}
