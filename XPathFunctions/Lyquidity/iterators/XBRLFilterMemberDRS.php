@@ -303,7 +303,7 @@ class XBRLFilterMemberDRS extends XBRLIterator implements \Iterator
 
 		while ( true )
 		{
-			if ( $this->index >= count( $this->candidates ) )
+			if ( is_null( $this->candidates ) || ! is_array( $this->candidates ) || $this->index >= count( $this->candidates ) )
 			{
 				return null;
 			}
