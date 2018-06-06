@@ -49,7 +49,7 @@ if ( ! class_exists( "\\XBRL", true ) )
 	require_once( __DIR__ . '/../XBRL.php' );
 }
 
-$log = XBRL_log::getInstance();
+$log = XBRL_Log::getInstance();
 $log->debugLog();
 
 // $types = XBRL_Types::getInstance();

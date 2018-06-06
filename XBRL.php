@@ -5340,6 +5340,7 @@ class XBRL {
 		$xml_basename = pathinfo( $parts[0], PATHINFO_BASENAME );
 		$fragment = isset( $parts[1] ) ? $parts[1] : "";
 
+		// TODO Change this to use SchemaTypes::resolve_path
 		$path = XBRL::resolve_path( $linkbaseRef['href'], $linkbaseRef['base'] . $xml_basename );
 		// $path = str_replace( "//", "/", pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ) . "/" . $linkbaseRef['base'] . $xml_basename );
 		$xml = XBRL::getXml( $path, $this->context );
@@ -16573,12 +16574,14 @@ class XBRL {
 			$path = $source . "/" . $target;
 
 		// Process the components
+		// BMS 2018-06-06 By ignoring a leading slash the effect is to create relative paths on linux
+		//				  However, its been done to handle http://xxx sources.  But this is not necessary (see below)
 		$parts = explode( '/', $path );
 		$safe = array();
 		foreach ( $parts as $idx => $part )
 		{
-			if ( empty( $part ) || ( '.' === $part ) )
-			// if ( '.' === $part )
+			// if ( empty( $part ) || ( '.' === $part ) )
+			if ( '.' === $part )
 			{
 				continue;
 			}
@@ -16592,6 +16595,9 @@ class XBRL {
 				$safe[] = $part;
 			}
 		}
+
+		// BMS 2108-06-06 See above
+		return implode( '/', $safe );
 
 		// Return the "clean" path
 		return $sourceIsUrl || $targetIsUrl
