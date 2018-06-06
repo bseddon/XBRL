@@ -559,43 +559,43 @@ $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFI
 
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "is-item", 1, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/getIsItem.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/getIsItem.php";
 	return \XBRL\functions\lyquidity\getIsItem( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "is-tuple", 1, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/getIsTuple.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/getIsTuple.php";
 	return \XBRL\functions\lyquidity\getIsTuple( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "context-reference", 1, XPath2ResultType::String, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/getContextRef.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/getContextRef.php";
 	return \XBRL\functions\lyquidity\getContextRef( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "non-XDT-scenario-aspect-test", 2, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/getNonXDTScenarioAspectTest.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/getNonXDTScenarioAspectTest.php";
 	return \XBRL\functions\lyquidity\getNonXDTScenarioAspectTest( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "non-XDT-segment-aspect-test", 2, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/getNonXDTSegmentAspectTest.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/getNonXDTSegmentAspectTest.php";
 	return \XBRL\functions\lyquidity\getNonXDTSegmentAspectTest( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "aspectMatch", 5, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/aspectMatch.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/aspectMatch.php";
 	return \XBRL\functions\lyquidity\aspectMatch( $context, $provider, $args );
 });
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "aspectMatch", 6, XPath2ResultType::Boolean, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/aspectMatch.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/aspectMatch.php";
 	return \XBRL\functions\lyquidity\aspectMatch( $context, $provider, $args );
 });
 
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LYQUIDITY ], "minimized-date-string", 2, XPath2ResultType::String, function( $context, $provider, $args )
 {
-	require_once __DIR__ . "/XPathFunctions/Lyquidity/minimizedDateString.php";
+	require_once __DIR__ . "/XPathFunctions/lyquidity/minimizedDateString.php";
 	return \XBRL\functions\lyquidity\getMinimizedDateString( $context, $provider, $args );
 });
 
