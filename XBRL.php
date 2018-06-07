@@ -16550,6 +16550,20 @@ class XBRL {
 		// $target = urldecode( $target );
 
 		$source = str_replace( '\\', '/', $source );
+		// Remove any // instances as they confuse the path normalizer but take care to
+		// not to remove ://
+		$offset = 0;
+		while ( true )
+		{
+			$pos = strpos( $source, "//", $offset );
+			if ( $pos === false ) break;
+			$offset = $pos + 2;
+			// Ignore :// (eg https://)
+			if ( $pos > 0 && $source[ $pos-1 ] == ":" ) continue;
+			$source = str_replace( "//", "/", $source );
+			$offset--;
+		}
+
 		// Using the extension to determine if the source is a file or directoryy reference is problematic unless it is always terminated with a /
 		// This is because the source directory path may include a period such as x:/myroot/some.dir-in-a-path/
 		$source = pathinfo( $source, PATHINFO_EXTENSION ) === "" //  || is_dir( $source )
