@@ -12151,9 +12151,10 @@ class XBRL {
 	{
 		if ( ! XBRL::isValidating() ) return true;
 
-		if ( ! empty( $value ) && ( ctype_alpha( $value[0] ) || $value[0] == '_' ) ) return true;
+		if ( preg_match( '/^[\pL_]/', $value ) ) return true;
+		// if ( ! empty( $value ) && ( ctype_alpha( $value[0] ) || $value[0] == '_' ) ) return true;
 
-		return $this->reportXLinkTypeError( "3.5.3.7.3", $linkbase, $value );
+		return $this->reportXLinkTypeError( "3.5.3.7.3", "Error validating linkbase", $linkbase, $value );
 	}
 
 	/**
