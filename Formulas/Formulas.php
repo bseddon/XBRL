@@ -58,18 +58,18 @@ define( "ASPECT_DECIMALS", "\\decimals" );
 
 /**
  * Load XBRL class files
- * @param string $classname
+ * @param string $className
  */
-function formulas_autoload( $classname )
+function formulas_autoload( $className )
 {
-	if ( substr( $classname, 0, 13 ) != "XBRL\\Formulas" )
+	if ( substr( $className, 0, 13 ) != "XBRL\\Formulas" )
 	{
 		return false;
 	}
 
-	$classname = ucwords( str_replace( "XBRL\\Formulas", "", $classname . ".php" ) );
+	$className = ucwords( str_replace( "XBRL\\Formulas", "", $className . ".php" ) );
 
-	$filename = __DIR__ . "/" . str_replace( "\\", "/", $classname );
+	$filename = __DIR__ . "/" . str_replace( "\\", "/", $className );
 	if ( ! file_exists( $filename ) )
 	{
 		return false;
