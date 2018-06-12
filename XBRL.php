@@ -751,7 +751,7 @@ class XBRL {
 
 			if ( $xbrlDocument->getName() != "schema" )
 			{
-				XBRL_Log::getInstance()->conformance_issue( "5.1", "The file is not a schema file because the root element is not 'schema'.",
+				XBRL_Log::getInstance()->taxonomy_validation( "5.1", "The file is not a schema file because the root element is not 'schema'.",
 					array(
 						'root' => $xbrlDocument->getName(),
 						'file' => $taxonomyXsdFile,
@@ -6337,12 +6337,29 @@ class XBRL {
 					continue;
 				}
 
+				if ( XBRL::isValidating() && $isGeneric )
+				{
+					// Look for arcs to check there is an arcRoleRef for each arc role used
+					$query = $domLink->getNodePath() . "/*[@{$xlinkPrefix}type = 'arc']";
+					$arcNodes = $link->xpath( $query );
+					$arcroles = array_unique( array_filter( array_map( function( $node ) {
+						$attributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+						return isset( $attributes['arcrole'] ) ? (string)$attributes['arcrole'] : '';
+					}, $arcNodes ) ) );
+
+					$x = array_diff( $arcroles, array_keys($arcroleRefs) );
+					if ( count( $x ) )
+					{
+						$this->log()->taxonomy_validation( "2.2.1", "The arcrole used on an arc element MUST be referenced in an arcroleRef element.", array( 'arcroles' => implode( ", ", $arcroles ) ) );
+					}
+				}
+
 				foreach ( $arcroleTypesCopy as $usedOn => $arcroleType )
 				{
 					$arcQName = $usedOnQNames[ $usedOn ];
 					$preferredLabelArcs = array();
 
-					// Used to catch duplicated from/to label pairs which is not alloed by the XLink specification
+					// Used to catch duplicated from/to label pairs which is not allowed by the XLink specification
 					$fromToPairs = array();
 
 					$processArc = function( $arc, $isPreferredLabelArc = false ) use( $arcroleRefs, $arcQName, $arcroleType, &$preferredLabelEquivalenceHashes, $href, $isGeneric, $linkbaseDescription, $linkbaseIds, $linkQName, $locators, &$preferredLabelArcs, $roleListName, $roleRefs, $roleUri, $usedOn, &$fromToPairs )
@@ -7676,8 +7693,22 @@ class XBRL {
 											if ( $cyclesAllowed == "none" || $cyclesAllowed == "undirected" )
 											{
 												// If the arc is not standard then do not report a taxonomy error.  It qualifies if the arc is in the substitution group xl:arc
-												if ( $this->context->types->resolveToSubstitutionGroup( $node['usedOn'], array( 'xl:arc' ) ) )
-												XBRL_Log::getInstance()->instance_validation( "5.2.6.2.1", "The non-standard arcrole arcs contain directed cycles that are not permitted by the arc role cycles allowed",
+												/**
+												 * @var \lyquidity\xml\QName $arcQName
+												 */
+												$arcQName = qname( $node['usedOn'], $this->context->types->getProcessedSchemas() );
+												$isGenericArc = $this->context->types->resolveToSubstitutionGroup( $node['usedOn'], array( 'gen:arc' ) );
+												$isStandardArc = $arcQName->namespaceURI != XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] &&
+																 isset( XBRL_Constants::$standardLinkElements[ $arcQName->localName ] );
+
+												if ( ! $isGenericArc && ! $isStandardArc )
+												{
+													// Ignore this arc
+													continue;
+													// return false;
+												}
+
+												XBRL_Log::getInstance()->taxonomy_validation( "5.2.6.2.1", "The non-standard arcrole arcs contain directed cycles that are not permitted by the arc role cycles allowed",
 													array(
 														'cyclesAllows' => $cyclesAllowed,
 														'path' => implode( '->', array_merge( $parents, array( $fromId ) ) ),
@@ -7698,14 +7729,32 @@ class XBRL {
 											// Cycles allowed is determined by the arcrole
 											$cyclesAllowed = $arcroleTypes[ $node['usedOn'] ][ $node['arcrole'] ]['cyclesAllowed'];
 
-											if ( $cyclesAllowed == "none" )
+											if ( $cyclesAllowed == "none" || $cyclesAllowed == "undirected" )
 											{
 												// If the arc is not standard then do not report a taxonomy error.  It qualifies if the arc is in the substitution group xl:arc
-												if ( $this->context->types->resolveToSubstitutionGroup( $node['usedOn'], array( 'xl:arc' ) ) )
-												XBRL_Log::getInstance()->instance_validation( "5.2.6.2.1", "The non-standard arcrole arcs contain undirected cycles that are not permitted by the arc role cycles allowed",
+												/**
+												 * @var \lyquidity\xml\QName $arcQName
+												 */
+												$arcQName = qname( $node['usedOn'], $this->context->types->getProcessedSchemas() );
+												$isGenericArc = $this->context->types->resolveToSubstitutionGroup( $node['usedOn'], array( 'gen:arc' ) );
+
+												// Generic arc can be undirected
+												if ( $isGenericArc && $cyclesAllowed == "undirected" ) continue;
+
+												$isStandardArc = $arcQName->namespaceURI != XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] &&
+																 isset( XBRL_Constants::$standardLinkElements[ $arcQName->localName ] );
+
+												if ( ! $isGenericArc && ! $isStandardArc )
+												{
+													// Ignore this arc
+													continue;
+													// return false;
+												}
+
+												XBRL_Log::getInstance()->taxonomy_validation( "5.2.6.2.1", "The non-standard arcrole arcs contain undirected cycles that are not permitted by the arc role cycles allowed",
 													array(
 														'cyclesAllows' => $cyclesAllowed,
-														'path' => implode( ', ', $scra[ $target ] ),
+														'path' => implode( '->', array_merge( $parents, array( $fromId ) ) ),
 													)
 												);
 
@@ -7723,6 +7772,19 @@ class XBRL {
 
 								return false;
 							};
+
+							// Only test on standard links
+							$linkQName = qname( $link, $this->context->types->getProcessedSchemas() );
+
+							if ( is_null( $linkQName ) ) continue;
+							$isStandardLink = $linkQName->namespaceURI != XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] &&
+											  isset( XBRL_Constants::$standardLinkElements[ $linkQName->localName ] );
+							$isGenericLink = $this->context->types->resolveToSubstitutionGroup($linkQName, array( "gen:link" ) );
+
+							if ( ! $isStandardLink && ! $isGenericLink )
+							{
+								continue;
+							}
 
 							foreach ( $roots as $fromId => $target )
 							{
@@ -8419,15 +8481,43 @@ class XBRL {
 				}
 				else
 				{
+					// Is the basename the name of an existing schema?
 					$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
-
 					$taxonomy = $this->getTaxonomyForXSD( $xsd );
 					if ( ! $taxonomy )
 					{
+						// So this gets a iitte complex.  If the path ends in .xsd then the locator
+						// is to a an id in a schema that can be discovered (or not).  If the locator
+						// does not have an extension then it could be to a valid document or fragment
+						// but its not yet known if the referenced document is a discoverable.  This
+						// relevant because of this note in test 70015 V-05:
+						// 	A document referenced by a link:loc element must be contained in a DTS
+						// 	but the document in the test is an XHTML file which can not become a part
+						//	of a DTS because of the following definition:
+						// 	  XBRL2.1 - Table 1. Terms and definitions.  A DTS is a collection of
+						//	  taxonomy schemas and linkbases.
+
 						// Look for the taxonomy and include its contents in the DTS
-						$href = $this->resolve_path( $this->getSchemaLocation(), $xsd );
+
+						// If the path is absolute then just take the path.
+						if ( isset( $parts['schema'] ) || $parts['path'][0] == '/' )
+						{
+							$href = strpos( $locatorHref, "#" ) === false
+								? $locatorHref
+								: strstr( $locatorHref, "#", true );
+						}
+						else
+						{
+							$href = $this->resolve_path( $this->getSchemaLocation(), $xsd );
+						}
+
 						$taxonomy = XBRL::withTaxonomy( $href );
-						if ( ! $taxonomy ) continue;
+						if ( ! $taxonomy )
+						{
+							// It is an error to reference an element or document that is not part of the DTS
+							$this->log()->taxonomy_validation( "3.2", "The locator reference is to an element that is not part of the DTS", array( 'href' => $locatorHref ) );
+							continue;
+						}
 					}
 
 					$reference = $xsd;
@@ -16341,6 +16431,45 @@ class XBRL {
 	 */
 	private function importSchemas( $depth = 0 )
 	{
+		$xsiAttributes = $this->xbrlDocument->attributes( SCHEMA_INSTANCE_NAMESPACE );
+
+		// BMS 2018-06-09 Add this code to interpret any schema location atttibute
+		//					because generics test 70012 failed because the generics
+		//					was not being loaded otherwise.
+		// Load any schemas specified in the schema location attribute.
+		if ( isset( $xsiAttributes['schemaLocation'] ) )
+		{
+			$parts = array_filter( preg_split( "/\s/s",  (string)$xsiAttributes['schemaLocation'] ) );
+
+			$key = "";
+			foreach ( $parts as $part )
+			{
+				if ( empty( $key ) )
+				{
+					$key = $part;
+				}
+				else
+				{
+					// Only load the schema if it is not already loaded
+					$basename = basename( $part );
+					if ( ! isset( $this->context->schemaFileToNamespace[ $basename ] ) )
+					{
+						$schemaLocation = XBRL::resolve_path( $this->schemaLocation, trim( $part ) );
+
+						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
+						{
+							$this->log()->info( str_repeat( "\t", $depth ) . "$schemaLocation" );
+
+							$this->importSchema( $schemaLocation, $depth );
+						}
+					}
+
+					$key = "";
+				}
+			}
+
+		}
+
 		foreach ( $this->xbrlDocument->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA ] )->import as $key => $node )
 		{
 			$attributes = $node->attributes();
