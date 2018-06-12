@@ -142,7 +142,7 @@ function formatNumber( $context, $provider, $args )
 		$locale = localeconv();
 
 		$decimalSeparator = empty( $locale['decimal_point'] ) ? "." : $locale['decimal_point'];
-		$groupSeparator = empty( $locale['thousands_sep'] ) ? "," : $locale['decimal_point'];
+		$groupSeparator = empty( $locale['thousands_sep'] ) ? "," : $locale['thousands_sep'];
 		$percentSign = "%";
 		$digitSign = "#";
 		$zeroDigitSign = "0";
