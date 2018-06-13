@@ -21,6 +21,8 @@ Find much more information in the [wiki](../../wiki).
 ![Build status load_instances](https://www.xbrlquery.com/tests/status.php?test=load_instances&x=y "Can instance documents be loaded")
 ![Build status reports](https://www.xbrlquery.com/tests/status.php?test=reports&x=y "Can the test reports be run")
 
+Conformance suite tests
+
 ![XBRL 2.1 conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_21&x=y "XBRL 2.1 conformance suite tests")
 ![XBRL dimensions conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_xdt&x=y "XBRL Dimensions conformance suite tests")
 ![XPath 2.0 conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_xpath20&x=y "XPath 2.0 conformance suite tests")
@@ -29,7 +31,8 @@ Find much more information in the [wiki](../../wiki).
 
 ![Build status last run date](https://www.xbrlquery.com/tests/status.php?test=date "The date of the last run")
 
-These tests are performed nightly to provide an overview of the status of the source code.  
+These tests are performed nightly to provide an overview of the status of the source code.  All tests have been run on Linux and Windows.  
+This project does not support HHVM.
 
 ### Statistics
 
