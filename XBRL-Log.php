@@ -85,6 +85,44 @@ class XBRL_Log
 	}
 
 	/**
+	 * Attach an observer to the log
+	 * @param \Log_observer $observer
+	 * @return boolean
+	 */
+	public function attach( &$observer )
+	{
+		return $this->log->attach( $observer );
+	}
+
+	/**
+	 * Detch the observer from the log
+	 * @param \Log_observer $observer
+	 * @return boolean
+	 */
+	public function detach( &$observer )
+	{
+		return $this->log->detach( $observer );
+	}
+
+	/**
+	 * Set the log reporting priority
+	 * @param int $priority
+	 */
+	public function setPriority( $priority = PEAR_LOG_ALL )
+	{
+		$this->log->setPriority( $priority );
+	}
+
+	/**
+	 * Set a mask
+	 * @param int $mask
+	 */
+	public function setMask( $mask = PEAR_LOG_ALL )
+	{
+		return $this->log->setMask( $mask );
+	}
+
+	/**
 	 * This creates a specific type of log instance
 	 * @param string $handler	The type of Log handler to construct
 	 * @param string $name 		The name of the log resource to which the events
