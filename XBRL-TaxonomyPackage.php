@@ -58,18 +58,7 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 	 * Name of the meta folder
 	 * @var string
 	 */
-	const MetaFolderName = "META-INF";
-
-	/**
-	 * @var ZipArchive $zipArchive
-	 */
-	private $zipArchive;
-
-	/**
-	 * The meta file as a SimpleXMLElement
-	 * @var SimpleXMLElement
-	 */
-	private $metaFile;
+	const metaFolderName = "META-INF";
 
 	/**
 	 *
@@ -176,56 +165,9 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 	 * Default constructor
 	 * @param ZipArchive $zipArchive
 	 */
-	public function __construct(ZipArchive $zipArchive  )
+	public function __construct( ZipArchive $zipArchive  )
 	{
 		parent::__construct( $zipArchive );
-	}
-
-	/**
-	 * Clean up
-	 */
-	function __destruct()
-	{
-		if ( ! $this->zipArchive ) return;
-		$this->zipArchive->close();
-	}
-
-	/**
-	 * Open a package from a file
-	 * @param string $filename
-	 * @return boolean
-	 * @throws Exception
-	 */
-	public static function fromFile( string $filename )
-	{
-		$zipArchive = new ZipArchive();
-
-		try
-		{
-			$zipArchive->open( $filename );
-			return self::fromZip( $zipArchive );
-		}
-		catch ( Exception $ex )
-		{
-			$zipArchive->close();
-			throw XBRL_TaxonomyPackageException::withError( "tpe:invalidArchiveFormat", $ex->getMessage() );
-		}
-
-		return false;
-	}
-
-	/**
-	 * Read a taxonpmy package represented by $zipArchive
-	 * @param ZipArchive $zipArchive
-	 * return XBRL_TaxonomyPackage
-	 */
-	public static function fromZip( ZipArchive $zipArchive )
-	{
-		/**
-		 * @var XBRL_TaxonomyPackage $instance
-		 */
-		$instance = new XBRL_TaxonomyPackage( $zipArchive );
-		return $instance;
 	}
 
 	/**
@@ -237,24 +179,34 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 	{
 		// A taxonomy package has a file called TaxonoomyPackage.xml in a META-INF folder
 
-		// There should be one directory under the root
-		if ( count( $this->contents ) != 1 )
+		try
 		{
-			throw XBRL_TaxonomyPackageException::withError( "tpe:invalidDirectoryStructure", "More than one directory exists at the root of the zip file" );
+			// There should be one directory under the root
+			if ( count( $this->contents ) != 1 )
+			{
+				throw XBRL_TaxonomyPackageException::withError( "tpe:invalidDirectoryStructure", "More than one directory exists at the root of the zip file" );
+			}
+
+			$topLevelName = key( $this->contents );
+			if ( ! isset( $this->contents[ $topLevelName ][ XBRL_TaxonomyPackage::metaFolderName ] ) )
+			{
+				throw XBRL_TaxonomyPackageException::withError( "tpe:metadataDirectoryNotFound", "The package does not contain a META-INF directory" );
+			}
+
+			if ( ! in_array( XBRL_TaxonomyPackage::taxonomyPackageFilename, $this->contents[ $topLevelName ]['META-INF'] ) )
+			{
+				throw XBRL_TaxonomyPackageException::withError( "tpe:metadataFileNotFound", "The package does not contain a taxonomyPackage.xml file" );
+			}
+
+			return $this->isValidMetaFile() && $this->isValidCatalogFile();
+		}
+		catch ( Exception $ex )
+		{
+			$code = $ex instanceof XBRL_TaxonomyPackageException ? $ex->error : $ex->getCode();
+			$this->errors[ $code ] = $ex->getMessage();
 		}
 
-		$topLevelName = key( $this->contents );
-		if ( ! isset( $this->contents[ $topLevelName ][ XBRL_TaxonomyPackage::MetaFolderName ] ) )
-		{
-			throw XBRL_TaxonomyPackageException::withError( "tpe:metadataDirectoryNotFound", "The package does not contain a META-INF directory" );
-		}
-
-		if ( ! in_array( XBRL_TaxonomyPackage::taxonomyPackageFilename, $this->contents[ $topLevelName ]['META-INF'] ) )
-		{
-			throw XBRL_TaxonomyPackageException::withError( "tpe:metadataFileNotFound", "The package does not contain a taxonomyPackage.xml file" );
-		}
-
-		return true;
+		return false;
 	}
 
 	/**
@@ -264,7 +216,7 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 	{
 		if ( $this->metaFile ) return true;
 
-		$metaFilePath = key( $this->contents ) . "/" . XBRL_TaxonomyPackage::MetaFolderName . "/" . XBRL_TaxonomyPackage::taxonomyPackageFilename;
+		$metaFilePath = key( $this->contents ) . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . XBRL_TaxonomyPackage::taxonomyPackageFilename;
 
 		try
 		{
@@ -476,10 +428,10 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 	public function isValidCatalogFile()
 	{
 		if ( $this->catalog || !
-			 isset( $this->contents[ key( $this->contents ) ][ XBRL_TaxonomyPackage::MetaFolderName ] ) ||
-			 ! in_array( XBRL_TaxonomyPackage::catalogFilename, $this->contents[ key( $this->contents ) ][ XBRL_TaxonomyPackage::MetaFolderName ] ) ) return true;
+			 isset( $this->contents[ key( $this->contents ) ][ XBRL_TaxonomyPackage::metaFolderName ] ) ||
+			 ! in_array( XBRL_TaxonomyPackage::catalogFilename, $this->contents[ key( $this->contents ) ][ XBRL_TaxonomyPackage::metaFolderName ] ) ) return true;
 
-		$catalogFilePath = key( $this->contents ) . "/" . XBRL_TaxonomyPackage::MetaFolderName . "/" . XBRL_TaxonomyPackage::catalogFilename;
+		$catalogFilePath = key( $this->contents ) . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . XBRL_TaxonomyPackage::catalogFilename;
 
 		try
 		{
@@ -572,6 +524,117 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 		}
 	}
 
+	/**
+	 * Save the taxonomy from the package to the cache location
+	 * @param string $cacheLocation
+	 * @return boolean
+	 */
+	public function saveTaxonomy( $cacheLocation )
+	{
+		$getActualUri = function( $uri )
+		{
+			foreach ( $this->rewriteURIs as $prefix => $rewriteUri )
+			{
+				if ( strpos( $uri, $prefix ) !== 0 ) continue;
+				$actualUri =  str_replace( $prefix, $rewriteUri, $uri );
+				$actualUri = XBRL::normalizePath( $this->getFirstFolderName() . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . $actualUri );
+				return $actualUri;
+			}
+
+			return $uri;
+		};
+
+		// Initialize the context
+		$context = XBRL_Global::getInstance();
+		$context->useCache = true;
+		$context->cacheLocation = $cacheLocation;
+		$context->initializeCache();
+
+		$schemaFilesList = array_reduce( $this->entryPoints, function( $carry, $entryPoint ) {
+			$schemaFiles = array_filter( $entryPoint['entryPointDocument'], function( $entryPointDocument ) {
+				return XBRL::endsWith( $entryPointDocument, ".xsd" );
+			} );
+			return array_merge( $carry, $schemaFiles );
+		}, array() );
+
+		if ( count( $schemaFilesList ) == 0 )
+		{
+			throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain a schema (.xsd) file" );
+		}
+
+		foreach ( $schemaFilesList as $schemaFile )
+		{
+			$actualUri = $getActualUri( $schemaFile );
+			$content = $this->getFile( $actualUri );
+			if ( $content )
+			{
+				$this->schemaNamespace = $this->getTargetNamespace( $schemaFile, $content );
+				$this->schemaFile = $schemaFile;
+			}
+
+			if ( $context->findCachedFile( $schemaFile ) )
+			{
+				$this->errors[] = "The schema file '$schemaFile' already exists in the cache.";
+				return false;
+			}
+		}
+
+		// Look at the entry points and remap them to their location in the zip file
+		foreach ( $this->entryPoints as $index => $entryPoint )
+		{
+			// $entryPoint is an array with one of the elements called entryPointDocument being an array of uris
+			foreach ( $entryPoint['entryPointDocument'] as $uri )
+			{
+				// Is there a rewrite?
+				$actualUri = $getActualUri( $uri );
+
+				// If there is a rewrite or the entry point uri is relative it is to an address in the package
+				$parts = parse_url( $actualUri );
+				if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) // absolute
+				{
+					$xml = XBRL::getXml( $actualUri, $context );
+				}
+				else
+				{
+					// Handle the relative case
+					// $actualUri = XBRL::normalizePath( $this->getFirstFolderName() . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . $actualUri );
+					$folder = $this->getElementForPath( dirname( $actualUri ) );
+
+					// Create a copy of all files and folder in the cache location
+					$copy = function( $folder, $path, $uri ) use( &$copy, &$context )
+					{
+						foreach ( $folder as $index => $item )
+						{
+							// if $index is numeric then $item is a file
+							if ( is_numeric( $index ) )
+							{
+								$content = $this->getFile( "$path/$item" );
+								if ( ! $content ) continue;
+
+								$context->saveCacheFile( "$uri/$item", $content );
+							}
+							else
+							{
+								// Handle any directories
+								$url .= "/$index";
+								$path .= "/$index";
+								$copy( $item, $path, $url );
+							}
+						}
+					};
+
+					$copy( $folder, dirname( $actualUri ),  dirname( $uri ) );
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * A list of countries indexed by their 2-letter code
+	 * @var array[string]
+	 */
 	private static $countries = array(
 		'US' => 'United States',
 		'CA' => 'Canada',

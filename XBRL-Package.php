@@ -1,7 +1,5 @@
 <?php
 
-use lyquidity\XPath2\NameBinder;
-
 /**
  * XBRL Package interface
  *
@@ -24,6 +22,8 @@ use lyquidity\XPath2\NameBinder;
  *
  */
 
+use function lyquidity\xml\isXml;
+
 /**
  * Implements an abstract base class to be extended by classes that
  * handle a type of package (zip file).  The type may be an XBRL Taxonomy
@@ -31,6 +31,74 @@ use lyquidity\XPath2\NameBinder;
  */
 abstract class XBRL_Package
 {
+	/**
+	 * Factory to create a package class instance
+	 * @param unknown $taxonomyPackage
+	 * @throws Exception
+	 * @return XBRL_Package
+	 */
+	public static function getPackage( $taxonomyPackage )
+	{
+		$packageClasses = array( 'XBRL_TaxonomyPackage', 'XBRL_SEC_JSON_Package', 'XBRL_SEC_XML_Package', 'XBRL_SimplePackage' );
+
+		foreach ( $packageClasses as $packageClassName )
+		{
+			// $package = $packageClass::fromFile( $taxonomyPackage );
+			$package = XBRL_Package::fromFile( $taxonomyPackage, $packageClassName );
+			if ( ! $package->isPackage() ) continue;
+
+			return $package;
+		}
+
+		if ( ! $found )
+		{
+			$zip = basename( $taxonomyPackage );
+			throw new Exception( "The contents of file '$zip' do not match any of the supported taxonomy package formats" );
+		}
+	}
+
+	/**
+	 * Open a package from a file
+	 * @param string $filename
+	 * @param string $className
+	 * @return boolean
+	 * @throws Exception
+	 */
+	public static function fromFile( string $filename, $className )
+	{
+		$zipArchive = new ZipArchive();
+
+		try
+		{
+			if ( $zipArchive->open( $filename ) !== true )
+			{
+				$zipArchive = false;
+				throw new Exception("An attempt has been made to open an invalid zip file");
+			}
+			return self::fromZip( $zipArchive, $className );
+		}
+		catch ( Exception $ex )
+		{
+			if ( $zipArchive ) $zipArchive->close();
+			throw XBRL_TaxonomyPackageException::withError( "tpe:invalidArchiveFormat", $ex->getMessage() );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Read a taxonpmy package represented by $zipArchive
+	 * @param ZipArchive $zipArchive
+	 * @param string $className
+	 * return XBRL_Package
+	 */
+	public static function fromZip( ZipArchive $zipArchive, $className )
+	{
+		$instance = new $className( $zipArchive );
+		return $instance;
+	}
+
+
 	/**
 	 * @var ZipArchive $zipArchive
 	 */
@@ -43,10 +111,46 @@ abstract class XBRL_Package
 	protected $contents;
 
 	/**
+	 * The meta file as a SimpleXMLElement
+	 * @var string
+	 */
+	protected  $metaFile;
+
+	/**
+	 * The name of the meta file
+	 * @var string
+	 */
+	protected $metaFilename;
+
+	/**
+	 * Name of the instance document
+	 * @var string
+	 */
+	protected $instanceDocument;
+
+	/**
+	 * Schema file
+	 * @var string
+	 */
+	protected  $schemaFile;
+
+	/**
+	 * Target namespace of the schema
+	 * @var string
+	 */
+	protected $schemaNamespace;
+
+	/**
+	 * A list of errors parsing the package
+	 * @var array
+	 */
+	public $errors = array();
+
+	/**
 	 * Default constructor
 	 * @param ZipArchive $zipArchive
 	 */
-	public function __construct(ZipArchive $zipArchive  )
+	public function __construct( ZipArchive $zipArchive  )
 	{
 		$this->zipArchive = $zipArchive;
 
@@ -80,6 +184,15 @@ abstract class XBRL_Package
 
 		}
 
+	}
+
+	/**
+	 * Clean up
+	 */
+	function __destruct()
+	{
+		if ( ! $this->zipArchive ) return;
+		$this->zipArchive->close();
 	}
 
 	/**
@@ -120,7 +233,7 @@ abstract class XBRL_Package
 	}
 
 	/**
-	 * Traverses the contents folders and files calling $callbackf for each node
+	 * Traverses the contents folders and files calling $callback for each node
 	 * @param Funtion $callback Three arguents will be passed to the the callback:
 	 * 		The path preceding the Name
 	 * 		The name
@@ -158,4 +271,157 @@ abstract class XBRL_Package
 
 		$traverse( $this->contents );
 	}
+
+	/**
+	 * Gets the content element corresponding to $path
+	 * @param string $path
+	 * @return array
+	 */
+	public function getElementForPath( string $path )
+	{
+		$path = trim( $path, '/' );
+		$parts = explode( '/', $path );
+
+		$current = &$this->contents;
+
+		foreach ( $parts as $part )
+		{
+			if ( ! isset( $current[ $part ] ) ) return false;
+			$current = &$current[ $part ];
+		}
+
+		return $current;
+	}
+
+	/**
+	 * Get the instance document xml
+	 */
+	public function getInstanceDocument()
+	{
+		if ( $this->instanceDocument )
+		{
+			$xml = $this->getFileAsXML( $this->instanceDocument );
+			return $xml;
+		}
+
+		$xml = null;
+		$this->traverseContents( function( $path, $name, $type ) use( &$xml ) {
+			if ( $type == PATHINFO_DIRNAME ) return true;
+			$extension = pathinfo( $name, PATHINFO_EXTENSION );
+			if ( ! in_array( $extension, array( 'xml', 'xbrl' ) ) ) return true;
+
+			$path = $path ? "$path$name" : $name;
+			$xml = $this->getFileAsXML( $path );
+			if ( ! $xml instanceof SimpleXMLElement ) return true;
+
+			if ( $xml->getName() != "xbrl" )
+			{
+				$xml = null;
+				return true;
+			}
+
+			$this->instanceDocument = $path;
+			return false;
+		} );
+
+		return $xml;
+	}
+
+	/**
+	 * Save the taxonomy from the package to the cache location
+	 * @param string $cacheLocation
+	 * @return boolean
+	 */
+	public function saveTaxonomy( $cacheLocation )
+	{
+		return true;
+	}
+
+	/**
+	 * Retrieves the taret namespace from $content which is expected to be an XM schema document
+	 * @param string $schemaName Name of the schema represented by $content
+	 * @param bytes $content Expected to be an XML schema
+	 * @param bool $throwException True if an exception should be thrown on error or false is returned otherwise
+	 * @return bool
+	 * @throws \Exception
+	 */
+	protected function getTargetNamespace( $schemaName, $content, $throwException = true )
+	{
+		/** @var \SimpleXMLElement $xml */
+		$xml = @simplexml_load_string( $content );
+		if ( ! $xml )
+		{
+			if ( ! $throwException ) return false;
+			throw new \Exception( __( "The schema file '{$schemaName}' is not a valid XML document", 'xbrl_validate' ) );
+		}
+
+		$xsAttributes = $xml->attributes();
+		if ( ! isset( $xsAttributes->targetNamespace ) )
+		{
+			if ( ! $throwException ) return false;
+			throw new \Exception( __( 'The schema document does not contain a target namespace', 'xbrl_validate' ) );
+		}
+
+		return (string)$xsAttributes->targetNamespace;
+	}
+
+	/**
+	 * Processes the schema document in a consistent way
+	 * @param \XBRL_Global A reference to the global context
+	 * @param string $schemaName Name of the schema represented by $content
+	 * @param bytes $content Expected to be an XML schema
+	 * @param bool $throwException True if an exception should be thrown on error or false is returned otherwise
+	 * @return bool
+	 * @throws \Exception
+	 */
+	protected function processSchemaDocument( $context, $schemaName, $content, $throwException = true )
+	{
+		if ( ! isXml( $content, $throwException ) ) return false;
+
+		$namespace = $this->getTargetNamespace( $schemaName,  $content, $throwException );
+		if ( ! $namespace )
+		{
+			$msg = "Unable to find the taxonomy namespace";
+			$this->errors[] = $msg;
+
+			if ( $throwException )
+			{
+				throw new \Exception( $msg );
+			}
+
+			return false;
+		}
+
+		$this->schemaNamespace = $namespace;
+		$this->schemaFile = "$namespace/$schemaName";
+
+		if ( $context->findCachedFile( $this->schemaFile ) )
+		{
+			$msg = "The taxonomy already exists in the cache";
+			$this->errors[] = $msg;
+
+			if ( $throwException )
+			{
+				throw new \Exception( $msg );
+			}
+
+			return false;
+		}
+
+		if ( ! $context->saveCacheFile( $this->schemaFile, $content ) )
+		{
+			$msg = "Unable to save the schema file ('$schemaName')";
+			$this->errors[] = $msg;
+
+			if ( $throwException )
+			{
+				throw new \Exception( $msg );
+			}
+
+			return false;
+		}
+
+		return $namespace;
+	}
+
 }

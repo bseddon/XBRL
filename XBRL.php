@@ -17052,6 +17052,20 @@ class XBRL {
 		return false;
 	}
 
+	public static function normalizePath($path)
+	{
+		// Test this function using these paths
+
+		// $path = '/var/.////./user/./././..//.//../////../././.././test/////';
+		// $path = '/a/b/c/../../../d/e/file.txt'; // should resolve to /d/e/file.txt
+		// $path = '/a/b/c/../../d/e/file.txt'; // which resolves to /a/d/e/file.txt
+		// $path = 'a/b/../c';
+
+		$patterns = array('~/{2,}~', '~/(\./)+~', '~([^/\.]+/(?R)*\.{2,}/)~', '~\.\./~');
+	    $replacements = array('/', '/', '', '');
+	    return preg_replace($patterns, $replacements, $path);
+	}
+
 	/**
 	 * Returns a reference to the log function
 	 *
