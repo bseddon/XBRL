@@ -1342,6 +1342,28 @@ class XBRL {
 	}
 
 	/**
+	 * See if there are compiled files for the base name
+	 * @param string $compiledDir
+	 * @param string $basename
+	 * @return false|string
+	 */
+	public static function isCompiled( $compiledDir, $basename )
+	{
+		$extensions = array( 'json', 'zip' );
+		// Make sure the dir ends in /
+		$compiledDir = rtrim( $compiledDir, '/' ) . "/";
+
+		foreach ( $extensions as $extension )
+		{
+			$compiledFile = "$compiledDir$basename.$extension";
+			if ( ! file_exists( $compiledFile ) ) continue;
+			return $compiledFile;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Compile a taxonomy into an a collection of arrays then convert to JSON and save to a file.
 	 *
 	 * @param string $taxonomy_file The name of the taxonomy file (xsd) to load
@@ -16694,7 +16716,7 @@ class XBRL {
 			$offset--;
 		}
 
-		// Using the extension to determine if the source is a file or directoryy reference is problematic unless it is always terminated with a /
+		// Using the extension to determine if the source is a file or directory reference is problematic unless it is always terminated with a /
 		// This is because the source directory path may include a period such as x:/myroot/some.dir-in-a-path/
 		$source = pathinfo( $source, PATHINFO_EXTENSION ) === "" //  || is_dir( $source )
 			? $source

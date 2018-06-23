@@ -32,6 +32,15 @@ use function lyquidity\xml\isXml;
 abstract class XBRL_Package
 {
 	/**
+	 * Notes about using this package instance
+	 * @var string
+	 */
+	const notes = <<<EOT
+Each package implementation should include a 'notes' constant to record any useful information
+relating to the use of the implementation.\n\n
+EOT;
+
+	/**
 	 * Factory to create a package class instance
 	 * @param unknown $taxonomyPackage
 	 * @throws Exception
@@ -126,19 +135,19 @@ abstract class XBRL_Package
 	 * Name of the instance document
 	 * @var string
 	 */
-	protected $instanceDocument;
+	public $instanceDocument;
 
 	/**
 	 * Schema file
 	 * @var string
 	 */
-	protected  $schemaFile;
+	public  $schemaFile;
 
 	/**
 	 * Target namespace of the schema
 	 * @var string
 	 */
-	protected $schemaNamespace;
+	public $schemaNamespace;
 
 	/**
 	 * A list of errors parsing the package
@@ -295,9 +304,17 @@ abstract class XBRL_Package
 
 	/**
 	 * Get the instance document xml
+	 * @param bool $asSimpleXML
+	 * @return SimpleXMLElement|string
 	 */
-	public function getInstanceDocument()
+	public function getInstanceDocument( $asSimpleXML = true )
 	{
+		if ( ! $this->schemaFile || ! $this->schemaNamespace )
+		{
+			echo "The saveTaxonomy function must be called before using this function";
+			return false;
+		}
+
 		if ( $this->instanceDocument )
 		{
 			$xml = $this->getFileAsXML( $this->instanceDocument );
@@ -305,7 +322,8 @@ abstract class XBRL_Package
 		}
 
 		$xml = null;
-		$this->traverseContents( function( $path, $name, $type ) use( &$xml ) {
+		$this->traverseContents( function( $path, $name, $type ) use( &$xml )
+		{
 			if ( $type == PATHINFO_DIRNAME ) return true;
 			$extension = pathinfo( $name, PATHINFO_EXTENSION );
 			if ( ! in_array( $extension, array( 'xml', 'xbrl' ) ) ) return true;
@@ -324,7 +342,7 @@ abstract class XBRL_Package
 			return false;
 		} );
 
-		return $xml;
+		return $asSimpleXML ? $xml : $this->getFile( $this->instanceDocument );
 	}
 
 	/**
@@ -334,7 +352,7 @@ abstract class XBRL_Package
 	 */
 	public function saveTaxonomy( $cacheLocation )
 	{
-		return true;
+		return false;
 	}
 
 	/**
@@ -424,4 +442,39 @@ abstract class XBRL_Package
 		return $namespace;
 	}
 
+	/**
+	 * Implements a Url map that allows a simple xsd name to map to a path that can be found in the cache
+	 */
+	protected function setUrlMap()
+	{
+		if ( ! $this->schemaNamespace ) return;
+
+		global $mapUrl;
+		$previousMap = $mapUrl;
+
+		$mapUrl = function( $url ) use( &$previousMap )
+		{
+			if ( $url == basename( $this->schemaFile ) )
+			{
+				$url = $this->schemaFile;
+			}
+			else if ( $previousMap )
+			{
+				$url = $previousMap( $url );
+			}
+
+			return $url;
+		};
+
+	}
+
+	/**
+	 * Returns the schema file base name without the extension
+	 * @param string $extension
+	 * @return string
+	 */
+	public function getSchemaFileBasename( $extension = "")
+	{
+		return basename( $this->schemaFile, '.xsd' ) . $extension;
+	}
 }

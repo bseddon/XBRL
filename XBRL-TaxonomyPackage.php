@@ -31,6 +31,16 @@ use function lyquidity\xml\isXml;
 class XBRL_TaxonomyPackage extends XBRL_Package
 {
 	/**
+	 * Notes about using this package instance
+	 * @var string
+	 */
+	const notes = <<<EOT
+Uses the path of the entry point in the taxonomyPackage.xml file to determine the path to use in the cache.
+This should be the same as the value used in the schemaRef element in the instance document.
+The 'identifier' value in the taxonomyPackage.xml file appears to be the namespace of the taxonomy.\n\n
+EOT;
+
+	/**
 	 * Name of the meta file root eleent
 	 * @var string
 	 */
@@ -570,6 +580,8 @@ class XBRL_TaxonomyPackage extends XBRL_Package
 			{
 				$this->schemaNamespace = $this->getTargetNamespace( $schemaFile, $content );
 				$this->schemaFile = $schemaFile;
+
+				$this->setUrlMap();
 			}
 
 			if ( $context->findCachedFile( $schemaFile ) )

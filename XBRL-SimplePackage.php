@@ -28,6 +28,17 @@
 class XBRL_SimplePackage extends XBRL_Package
 {
 	/**
+	 * Notes about using this package instance
+	 * @var string
+	 */
+	const notes = <<<EOT
+Simple package implementations will use the namespace of the schema document to create a path to use in the cache.
+If a path is not used in the instance document <schemaRef> (so the instance document expects to be in the same
+folder as the taxonomy) it is likely that a mapped URL will need to be used so the correct schema can be accessed
+from the cache.\n\n
+EOT;
+
+	/**
 	 * Returns true if the zip file represents an SEC package
 	 * {@inheritDoc}
 	 * @see XBRL_IPackage::isPackage()
@@ -91,11 +102,15 @@ class XBRL_SimplePackage extends XBRL_Package
 		// Find the schema document
 		$content = trim( $this->getFile( $this->schemaFile ) );
 
-		if ( ! ( $namespace = $this->processSchemaDocument( $context, $this->schemaFile, $content, false ) ) )
+		$result = $this->processSchemaDocument( $context, $this->schemaFile, $content, false );
+		$this->setUrlMap();
+
+		if ( ! $result )
 		{
 			$this->errors[] = "Unable to process the schema document";
 			return false;
 		}
+
 
 		// Look for the schema file
 		$this->traverseContents( function( $path, $name, $type ) use( &$context )

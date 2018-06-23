@@ -28,6 +28,18 @@
 class XBRL_SEC_XML_Package extends XBRL_SEC_JSON_Package
 {
 	/**
+	 * Notes about using this package instance
+	 * @var string
+	 */
+	const notes = <<<EOT
+The SEC implementations use the namespace of the schema document to create a path to use in the cache.
+The namespace format appears to be <domain>/<period> where <period> is the value of the EDGAR period.
+A path is not used in the instance document <schemaRef> so the instance document expects to be in the
+same folder as the taxonomy.  It is likely that a mapped URL will need to be used so the correct
+schema can be accessed from the cache.\n\n
+EOT;
+
+	/**
 	 * Name of the manifest file
 	 */
 	const manifestFilename = "manifext.xml";

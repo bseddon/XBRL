@@ -1025,6 +1025,8 @@ class XBRL_Instance
 			return false;
 		}
 
+		$base = "";
+
 		if ( is_null( $taxonomy_file ) )
 		{
 			$taxonomy_files = array();
@@ -1043,6 +1045,14 @@ class XBRL_Instance
 				}
 
 				$schemaFilename = (string) $xlinkAttributes['href'];
+				// Adjust the url if necessary.  This will be important if the schemaRef is taken
+				// from an instance document contained in a package and the schemaRef is local
+				// (into the package) but the schema has been added to the cache.
+				global $mapUrl;  // A map url function may have been created by one of the package classes.
+				if ( $mapUrl )
+				{
+					$schemaFilename = $mapUrl( $schemaFilename );
+				}
 				$resolvedPath = XBRL::resolve_path( $this->document_name, $schemaFilename );
 
 				// Maybe a base as well
