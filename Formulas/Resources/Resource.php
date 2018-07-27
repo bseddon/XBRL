@@ -45,6 +45,13 @@ use XBRL\Formulas\Resources\Assertions\ExistenceAssertion;
 class Resource
 {
 	/**
+	 * The severity to report for decendant assertions.
+	 * Defaults to error as required by the Assertion Severity specfication
+	 * @var string $severity
+	 */
+	public $severity = ASSERTION_SEVERITY_ERROR;
+
+	/**
 	 * Populate an instance with values from an array
 	 * @param array $source An array of values to add to the class
 	 * @return Resource

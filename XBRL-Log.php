@@ -293,7 +293,9 @@ class XBRL_Log
 	{
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
-		return $this->log->warning( sprintf( "[dimension] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) ) );
+		$msg = sprintf( "[dimension] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $msg, 'source' => $source ) );
+		return $this->log->warning( $msg );
 	}
 
 	/**
@@ -311,7 +313,9 @@ class XBRL_Log
 	{
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
-		return $this->log->warning( sprintf( "[taxonomy] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) ) );
+		$msg = sprintf( "[taxonomy] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $msg, 'source' => $source ) );
+		return $this->log->warning( $msg );
 	}
 
 	/**
@@ -330,6 +334,7 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
 		$errorMessage = sprintf( "[formula] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $errorMessage, 'source' => $source ) );
 		$this->log->warning( $errorMessage );
 		if ( isset( $source['error'] ) )
 		{
@@ -354,6 +359,7 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
 		$errorMessage = $this->log->warning( sprintf( "[consistency assertion] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $errorMessage, 'source' => $source ) );
 		if ( isset( $source['error'] ) )
 		{
 			throw FormulasException::withType( $source['error'], "consistency-assertion", $errorMessage );
@@ -377,6 +383,7 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
 		$errorMessage = $this->log->warning( sprintf( "[value assertion] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $errorMessage, 'source' => $source ) );
 		if ( isset( $source['error'] ) )
 		{
 			throw FormulasException::withType( $source['error'], "value-assertion", $errorMessage );
@@ -400,6 +407,7 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
 		$errorMessage = sprintf( "[existence assertion] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $errorMessage, 'source' => $source ) );
 		$this->log->warning( $errorMessage );
 		if ( isset( $source['error'] ) )
 		{
@@ -424,7 +432,9 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->instanceValidationWarning = true;
 		// Concatenate the key and the value
-		return $this->log->warning( sprintf( "[instance] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) ) );
+		$msg = sprintf( "[instance] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'priority' => PEAR_LOG_WARNING, 'message' => $msg, 'source' => $source ) );
+		return $this->log->warning( $msg );
 	}
 
 	/**

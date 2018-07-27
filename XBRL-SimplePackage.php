@@ -39,7 +39,7 @@ from the cache.\n\n
 EOT;
 
 	/**
-	 * Returns true if the zip file represents an SEC package
+	 * Returns true if the zip file represents no other specific package
 	 * {@inheritDoc}
 	 * @see XBRL_IPackage::isPackage()
 	 */
@@ -49,6 +49,7 @@ EOT;
 		try
 		{
 			$found = false;
+
 			$this->traverseContents( function( $path, $name, $type ) use( &$found )
 			{
 				if ( $type == PATHINFO_DIRNAME ) return true;
@@ -66,7 +67,7 @@ EOT;
 			{
 				if ( $type == PATHINFO_DIRNAME ) return true;
 				$found = $name == XBRL::endsWith( $name, '.xsd' );
-				if ( $found ) $this->schemaFile = ( $path ? "$path/" : "" ) . $name;
+				if ( $found ) $this->schemaFile = XBRL::normalizePath( ( $path ? "$path/" : "" ) . $name );
 				return ! $found;
 			} );
 
@@ -87,6 +88,54 @@ EOT;
 	}
 
 	/**
+	 * Workout which file is the schema file
+	 * @return void
+	 * @throws "tpe:schemaFileNotFound"
+	 */
+	protected function determineSchemaFile()
+	{
+		if ( $this->schemaFile && $this->schemaNamespace ) return;
+
+		$schemaFileList = array();
+		$this->traverseContents( function( $path, $name, $type) use( &$schemaFileList )
+		{
+			if ( $type == PATHINFO_DIRNAME ) return true;
+			$extension = pathinfo( $name, PATHINFO_EXTENSION );
+			if ( $extension != 'xsd' ) return true;
+			$schemaFileList[] = "$path$name";
+			return true;
+		} );
+
+		if ( count( $schemaFileList ) != 1 )
+		{
+			throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain just one schema (.xsd) file" );
+		}
+
+		$this->schemaFile = reset( $schemaFileList );
+		$content = $this->getFile( $this->schemaFile );
+		$this->schemaNamespace = $this->getTargetNamespace( $this->schemaFile, $content );
+		if ( ! XBRL::endsWith( $this->schemaNamespace, '/' ) )
+		{
+			$this->schemaNamespace.= "/";
+		}
+
+		// Fix up the schema file
+		$scheme = parse_url( $this->schemaFile, PHP_URL_SCHEME );
+		if ( $scheme ) return;
+		$this->schemaFile = $this->schemaNamespace . $this->schemaFile;
+	}
+
+	/**
+	 * Returns a localized version of the schema file path
+	 * @param string $uri
+	 * @return string
+	 */
+	protected function getActualUri( $uri )
+	{
+		return str_replace( $this->schemaNamespace, '', $uri );
+	}
+
+	/**
 	 * Save the taxonomy from the package to the cache location
 	 * @param string $cacheLocation
 	 * @return boolean
@@ -99,10 +148,20 @@ EOT;
 		$context->cacheLocation = $cacheLocation;
 		$context->initializeCache();
 
-		// Find the schema document
-		$content = trim( $this->getFile( $this->schemaFile ) );
+		$this->determineSchemaFile();
 
-		$result = $this->processSchemaDocument( $context, $this->schemaFile, $content, false );
+		if ( ! $this->schemaFile || ! $this->schemaNamespace )
+		{
+			$this->errors[] = "Unable to process the schema document";
+			return false;
+		}
+
+		// $this->determineSchemaFile();
+
+		// Find the schema document
+		$content = trim( $this->getFile( $this->getActualUri( $this->schemaFile ) ) );
+
+		$result = $this->processSchemaDocument( $context, $content, false );
 		$this->setUrlMap();
 
 		if ( ! $result )
@@ -111,17 +170,17 @@ EOT;
 			return false;
 		}
 
-
-		// Look for the schema file
+		// Look for the non-schema file
 		$this->traverseContents( function( $path, $name, $type ) use( &$context )
 		{
 			if ( $type == PATHINFO_DIRNAME ) return true;
 			$extension = pathinfo( $name, PATHINFO_EXTENSION );
-			if ( ! in_array( $extension, array( 'xml', 'xbrl' ) ) ) return true;
-			$path = $path ? "$path/$name" : $name;
+			if ( ! in_array( $extension, array( 'xml', 'xbrl', 'xsd' ) ) ) return true;
+			$path = $path ? "$path$name" : $name;
+			$common = $this->getCommonRootFolder( $path, $this->schemaFile );
 			$content = $this->getFile( $path );
-			if ( ! $context->findCachedFile( "{$this->schemaNamespace}/$path" ) ) return true;
-			$context->saveCacheFile( "{$this->schemaNamespace}/$path", $content );
+			if ( $context->findCachedFile( $common['uri'] ) ) return true;
+			$context->saveCacheFile( $common['uri'], $content );
 			return true;
 		} );
 

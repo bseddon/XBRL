@@ -38,10 +38,18 @@
  *
  */
 
-use XBRL\functions\Formulas;
+use XBRL\Formulas\Formulas;
 use XBRL\Formulas\Resources\Message\Message;
 use lyquidity\xml\QName;
 use lyquidity\xml\schema\SchemaTypes;
+
+if ( ! function_exists("__") )
+{
+	function __( $message, $domain )
+	{
+		return "$message\n";
+	}
+}
 
 /**
  * Load XBRL class files
@@ -61,6 +69,10 @@ function xbrl_autoload( $classname )
 		return false;
 	}
 
+	if ( strpos( $classname, 'XBRL\\' ) === 0 )
+	{
+		$classname = substr( $classname, 5 );
+	}
 	$filename = __DIR__ . "/" . str_replace( "_", "-", $classname . ".php" );
 	if ( ! file_exists( $filename ) )
 	{
@@ -282,6 +294,13 @@ class XBRL {
 	 * @var array $definitionRoleRefs
 	 */
 	private $definitionRoleRefs					= array();
+
+	/**
+	 * A list of role ref details for roles that are maintained in another taxonomy
+	 * These willl be saved with a compiled taxonomy or removed.
+	 * @var array
+	 */
+	protected $foreignDefinitionRoleRefs		= array();
 
 	/**
 	 * A list of role refs from the schema
@@ -675,7 +694,7 @@ class XBRL {
 			return false;
 		}
 
-		$xbrl = XBRL::fromJSON( $json );
+		$xbrl = XBRL::fromJSON( $json, dirname( $file ) );
 		if ( $xbrl === false )
 		{
 			XBRL_Log::getInstance()->err( "The taxonomy DTS contained in the file could not be created" );
@@ -727,6 +746,10 @@ class XBRL {
 
 		if ( ! is_array( $taxonomy_xsd ) )
 		{
+			// Make sure any fragments are removed
+			$parts = explode( "#", $taxonomy_xsd );
+			$taxonomy_xsd = $parts[0];
+
 			if ( empty( $taxonomy_xsd ) )
 			{
 				XBRL_Log::getInstance()->warning( "The taxonomy file name supplied is empty" );
@@ -905,9 +928,10 @@ class XBRL {
 	/**
 	 * Load a taxonomy from a store created from a .json file of an extension taxonomy (has a valid 'baseTaxonomy' element).
 	 * @param array $store
+	 * @param string $compiledFolder (optional)
 	 * @return boolean|XBRL The resulting taxonomy instance or false if one cannot be created
 	 */
-	private static function fromExtensionTaxonomy( $store )
+	private static function fromExtensionTaxonomy( $store, $compiledFolder = null )
 	{
 		$baseTaxonomy = $store['baseTaxonomy']; // e.g.	us-gaap-2015-01-31.xsd
 		$compiledBaseTaxonomy = XBRL::compiled_taxonomy_for_xsd( $baseTaxonomy );
@@ -918,7 +942,12 @@ class XBRL {
 			return false;
 		}
 
-		$xbrl = XBRL::load_taxonomy( "$compiledBaseTaxonomy.json" );
+		if ( $compiledFolder && ! XBRL::endsWith( $compiledFolder, "/" ) )
+		{
+			$compiledFolder .= "/";
+		}
+
+		$xbrl = XBRL::load_taxonomy( "$compiledFolder$compiledBaseTaxonomy.json" );
 
 		if ( $xbrl === false )
 		{
@@ -939,7 +968,10 @@ class XBRL {
 		);
 
 		$xbrl->swapLabels( $labelSet );
-		$xbrl->swapTypes( $store['context']['types'] );
+
+		// BMS 2018-07-17
+		// $xbrl->swapTypes( $store['context']['types'] );
+		$xbrl->context->types->mergeTypes( $store['context']['types'] );
 
 		// Add the supplied taxonomy as a
 		$namespace = $store['mainNamespace'];
@@ -1002,8 +1034,24 @@ class XBRL {
 
 		$taxonomy->setBaseTaxonomy( $baseTaxonomy );
 
-		$xbrl->context->importedSchemas[ $namespace ] =& $taxonomy;
-		$xbrl->context->schemaFileToNamespace[ $taxonomy->getTaxonomyXSD() ] = $namespace;
+		$context->importedSchemas[ $namespace ] =& $taxonomy;
+		$context->schemaFileToNamespace[ $taxonomy->getTaxonomyXSD() ] = $namespace;
+
+		foreach ( $store['schemas'] as $schemaNamespace => $data )
+		{
+			if ( $schemaNamespace === $namespace ) continue;
+
+			$classname = XBRL::class_from_namespace( $schemaNamespace );
+
+			/**
+			 * @var XBRL $xbrl
+			 */
+			$xbrl = new $classname();
+			$xbrl->context =& $context;
+			$xbrl->fromStore( $data );
+			$context->importedSchemas[ $schemaNamespace ] = $xbrl;
+			$context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $schemaNamespace;
+		}
 
 		$xbrl->rebuildLabelsByHRef();
 
@@ -1028,18 +1076,21 @@ class XBRL {
 	 * @param string $className The name of the XBRL taxonomy class to load
 	 * @param string $namespace The namespace of the extension taxonomy.
 	 * @param string $output_basename A name to use as the base for output files. 'xxx' will result in 'xxx.zip' and 'xxx.json' output files. If a name is not supplied, the basename of the schema file will be used.
+	 * @param string $compiledPath
 	 * @return boolean|XBRL <false, XBRL>
 	 */
-	public static function compileExtensionXSD( $taxonomy_file, $className, $namespace = null, $output_basename = null )
+	public static function compileExtensionXSD( $taxonomy_file, $className, $namespace = null, $output_basename = null, $compiledPath = null )
 	{
-		$taxonomy = XBRL::loadExtensionXSD( $taxonomy_file, $className, $namespace );
+		$taxonomy = XBRL::loadExtensionXSD( $taxonomy_file, $className, $namespace, $compiledPath );
 		if ( ! $taxonomy ) return false;
 
 		$namespace = $taxonomy->getNamespace();
 
 		// This is the folder in which the generated zip file will be saved.
 		$pathinfo = pathinfo( $taxonomy_file );
-		$output_path = isset( $pathinfo['dirname'] ) ? $pathinfo['dirname'] : ".";
+		$output_path = is_null( $compiledPath )
+			? ( isset( $pathinfo['dirname'] ) ? $pathinfo['dirname'] : "." )
+			: $compiledPath;
 
 		// Get the basename from the taxonomy if one is not supplied but if one is, make sure only the basename is used even if a full path has been specified.
 		$output_basename = $output_basename === null ? $pathinfo['filename'] : basename( $output_basename );
@@ -1062,7 +1113,8 @@ class XBRL {
 		$taxonomy->context->labels[ XBRL_Constants::$defaultLinkRole ] = $labels;
 
 		// Delete the other schemas
-		$taxonomy->context->importedSchemas = array( $namespace => $taxonomy );
+		// $taxonomy->context->importedSchemas = array( $namespace => $taxonomy );
+		$taxonomy->context->importedSchemas = array_diff_key( $taxonomy->context->importedSchemas, $taxonomy->previouslyImportedSchemas );
 
 		// Create and save the JSON
 		$json = $taxonomy->toJSON( $taxonomy->baseTaxonomy );
@@ -1087,13 +1139,24 @@ class XBRL {
 	 *
 	 * @param string $taxonomy_file The name of the taxonomy file (xsd) to load
 	 * @param string $className The name of the XBRL taxonomy class to load
-	 * @param string $namespace The namespace of the extension taxonomy.
+	 * @param string $namespace The namespace of the extension taxonomy
+	 * @param string $compiledPath The location of compiled taxonomies
 	 * @return boolean|XBRL The loaded taxonomy or or false
 	 */
-	public static function loadExtensionXSD( $taxonomy_file, $className, $namespace = null )
+	public static function loadExtensionXSD( $taxonomy_file, $className, $namespace = null, $compiledPath = null )
 	{
 		// Create an instance to load the PHP
 		$class = new $className();
+
+		// Check the taxonomy location
+		$context = XBRL_Global::getInstance();
+		if ( $context->useCache )
+		{
+			if ( ( $path = $context->findCachedFile( $taxonomy_file ) ) !== false )
+			{
+				$taxonomy_file = $path;
+			}
+		}
 
 		if ( ! file_exists( $taxonomy_file ) )
 		{
@@ -1121,7 +1184,7 @@ class XBRL {
 			foreach ( $imports as $element => $import )
 			{
 				$attributes = $import->attributes();
-				echo (string) $attributes['schemaLocation'] . "\n";
+				// echo (string) $attributes['schemaLocation'] . " (" . (string)$attributes['namespace'] . ")\n";
 				if ( XBRL::class_from_entries_map( (string) $attributes['namespace'] ) === false ) continue;
 				$path = parse_url( trim( (string) $attributes['schemaLocation'], PHP_URL_PATH ) );
 				if ( ! $path )
@@ -1146,6 +1209,11 @@ class XBRL {
 
 		$compiledBaseTaxonomy = XBRL::compiled_taxonomy_for_xsd( $baseTaxonomy );
 
+		if ( ! is_null( $compiledPath ) )
+		{
+			$compiledBaseTaxonomy = $compiledPath . $compiledBaseTaxonomy;
+		}
+
 		// Add the supplied taxonomy as a
 		XBRL::add_namespace_to_class_map_entries( array( $namespace ), $className );
 
@@ -1164,8 +1232,11 @@ class XBRL {
 
 		// $xbrl->importSchema( $taxonomy_file, 0, true );
 
-		$xbrl->context->setIsExtensionTaxonomy();
-		$xbrl->context->types->clearElements();
+		$context->setIsExtensionTaxonomy();
+		// BMS 2018-07-17 Don't remember why elements are being cleared.  Maybe to save space?
+		//				  The existing elements are needed by at least some extension taxonomies.
+		// $context->types->clearElements();
+		$importedSchemas = $context->importedSchemas;
 
 		$taxonomy = XBRL::withTaxonomy( $taxonomy_file );
 		if ( $taxonomy === false )
@@ -1173,6 +1244,8 @@ class XBRL {
 			XBRL_Log::getInstance()->err( "Extension taxonomy failed to load" );
 			return false;
 		}
+
+		$taxonomy->previouslyImportedSchemas = $importedSchemas;
 
 		// $taxonomy->loadLinkbases();
 
@@ -1242,9 +1315,10 @@ class XBRL {
 	 * been loaded
 	 *
 	 * @param string $json
+	 * @param string $compiledFolder (optional)
 	 * @return boolean|NULL|XBRL
 	 */
-	public static function fromJSON( $json )
+	public static function fromJSON( $json, $compiledFolder = null )
 	{
 		$store = json_decode( $json, true );
 		if ( json_last_error() !== JSON_ERROR_NONE )
@@ -1258,7 +1332,7 @@ class XBRL {
 		// If there is, this is an extension taxonomy so load it as one.
 		if ( isset( $store['baseTaxonomy'] ) && $store['baseTaxonomy'] )
 		{
-			return XBRL::fromExtensionTaxonomy( $store );
+			return XBRL::fromExtensionTaxonomy( $store, $compiledFolder );
 		}
 
 		$context = XBRL_Global::getInstance();
@@ -1335,7 +1409,8 @@ class XBRL {
 
 		if ( isset( $store['context']['types'] ) )
 		{
-			$context->types->fromArray( $store['context']['types'] );
+			// $context->types->fromArray( $store['context']['types'] );
+			$context->types->mergeTypes( $store['context']['types'] );
 		}
 
 		return $instance;
@@ -3101,14 +3176,23 @@ class XBRL {
 		$this->linkbaseTypes		=& $data['linkbaseTypes'];
 		$this->definitionRoleRefs	=& $data['definitionRoleRefs'];
 		$this->referenceRoleRefs	=& $data['referenceRoleRefs'];
-		$this->stringsLoaded		= $data['stringsLoaded'];
-		$this->documentPrefixes		= $data['documentPrefixes'];
+		$this->stringsLoaded		=  $data['stringsLoaded'];
+		$this->documentPrefixes		=  $data['documentPrefixes'];
 		$this->xdtTargetRoles		=& $data['xdtTargetRoles'];
 		$this->genericRoles			=& $data['genericRoles'];
 		$this->variableSetNames		=& $data['variableSetNames'];
 		$this->linkbaseIds			=& $data['linkbaseIds'];
 		$this->hasFormulas			=& $data['hasFormulas'];
 		$this->linkbases			=& $data['linkbases'];
+
+		if ( ( $key = array_search( $this->namespace, $this->documentPrefixes ) ) !== false )
+		{
+			$this->prefix = $key;
+		}
+		else
+		{
+			$this->log()->warning("A prefix cannot be found among the document prefixes for the namespace '{$this->namespace}'");
+		}
 
 		if ( isset( $data['extraElements'] ) )
 		{
@@ -3120,6 +3204,17 @@ class XBRL {
 				$newElementTaxonomy = $this->getTaxonomyForXSD( $newElementLabel );
 				$elements =& $newElementTaxonomy->getElements();
 				$elements[ substr( strstr( $newElementLabel, '#' ), 1 ) ] = $elements[ $element['id'] ];
+			}
+		}
+
+		if ( isset( $data['foreignDefinitionRoleRefs'] ) && $data['foreignDefinitionRoleRefs'] )
+		{
+			foreach( $data['foreignDefinitionRoleRefs'] as $definitionRoleRefKey => $definitionRoleRef )
+			{
+				$home_taxonomy = $this->getTaxonomyForXSD( $definitionRoleRef['href'] );
+				$roleRef =& $home_taxonomy->getDefinitionRoleRef( $definitionRoleRef['roleUri'] );
+				$roleRef = $this->mergeExtendedRoles( $roleRef, $definitionRoleRef, $mergedRoles, false );
+				$this->context->setPrimaryItemsCache( null );
 			}
 		}
 
@@ -3237,24 +3332,25 @@ class XBRL {
 	public function toStore( $encode = false, $prettyPrint = false )
 	{
 		$store = array(
-			'elementIndex'			=> &$this->elementIndex,
-			'elementHypercubes' 	=> &$this->elementHypercubes,
-			'elementDimensions' 	=> &$this->elementDimensions,
-			'schemaLocation'		=> &$this->schemaLocation,
-			'namespace'				=> &$this->namespace,
-			'roleTypes'				=> &$this->roleTypes,
-			'arcroleTypes'			=> &$this->arcroleTypes,
-			'linkbaseTypes'			=> &$this->linkbaseTypes,
-			'definitionRoleRefs'	=> &$this->definitionRoleRefs,
-			'referenceRoleRefs'		=> &$this->referenceRoleRefs,
-			'xdtTargetRoles'		=> &$this->xdtTargetRoles,
-			'stringsLoaded'			=> $this->stringsAreLoaded(),
-			'documentPrefixes'		=> $this->documentPrefixes,
-			'genericRoles'			=> $this->genericRoles,
-			'variableSetNames'		=> $this->variableSetNames,
-			'linkbaseIds'			=> $this->linkbaseIds,
-			'hasFormulas'			=> $this->hasFormulas,
-			'linkbases'				=> $this->linkbases,
+			'elementIndex'				=> &$this->elementIndex,
+			'elementHypercubes' 		=> &$this->elementHypercubes,
+			'elementDimensions' 		=> &$this->elementDimensions,
+			'schemaLocation'			=> &$this->schemaLocation,
+			'namespace'					=> &$this->namespace,
+			'roleTypes'					=> &$this->roleTypes,
+			'arcroleTypes'				=> &$this->arcroleTypes,
+			'linkbaseTypes'				=> &$this->linkbaseTypes,
+			'definitionRoleRefs'		=> &$this->definitionRoleRefs,
+			'referenceRoleRefs'			=> &$this->referenceRoleRefs,
+			'xdtTargetRoles'			=> &$this->xdtTargetRoles,
+			'stringsLoaded'				=> $this->stringsAreLoaded(),
+			'documentPrefixes'			=> $this->documentPrefixes,
+			'genericRoles'				=> $this->genericRoles,
+			'variableSetNames'			=> $this->variableSetNames,
+			'linkbaseIds'				=> $this->linkbaseIds,
+			'hasFormulas'				=> $this->hasFormulas,
+			'linkbases'					=> $this->linkbases,
+			'foreignDefinitionRoleRefs'	=> &$this->foreignDefinitionRoleRefs,
 		);
 
 		if ( $this->context->isExtensionTaxonomy() && $this->extraElements )
@@ -5749,19 +5845,21 @@ class XBRL {
 	 * Callback will return true if no further processing is required. The arguments passed to the callback are:
 	 * $roleUri, $linkbase, $resourceName, $index, $resource
 	 */
-	public function getGenericResource( $resourceType, $resourceSubType, $callback = null )
+	public function getGenericResource( $resourceType, $resourceSubType, $callback = null, $roleUri = null, $label = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
 
 		$results = array();
 
-		foreach ( $this->genericRoles['roles'] as $roleUri => $role )
+		foreach ( ( $roleUri ? array( $roleUri => $this->genericRoles['roles'][ $roleUri ] ) : $this->genericRoles['roles'] ) as $roleUri => $role )
 		{
 			if ( ! isset( $role['resources'] ) ) continue;
 
 			foreach ( $role['resources'] as $linkbase => $linkbaseResources )
 			{
-				foreach ( $linkbaseResources as $resourceName => $resourceGroup )
+				if ( ! is_null( $label ) && ! isset( $linkbaseResources[ $label ] ) ) continue;
+
+				foreach ( ( $label ? array( $label => $linkbaseResources[ $label ] ) : $linkbaseResources ) as $resourceName => $resourceGroup )
 				{
 					foreach ( $resourceGroup as $index => $resource )
 					{
@@ -6290,12 +6388,19 @@ class XBRL {
 					{
 						$x = $roleListName == 'genericRoles'
 							? array(
-									array(
-										'type' => 'resource',
-										'text' => implode( "", $content ),
-									)
-							  )
+									$namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SEVERITY ]
+										? array(
+											 'type' => 'resource',
+											'resourceType' => "severity",
+											'label' => (string)$xlinkAttributes->label
+										)
+										: array(
+											'type' => 'resource',
+											'text' => implode( "", $content ),
+										)
+							)
 							: implode( "", $content );
+
 
 						if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_REFERENCE ] )
 						{
@@ -6923,7 +7028,7 @@ class XBRL {
 											// arc MUST:
 											// 		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-formula
 											//		have a consistency-assertion at the starting resource of the arc
-											//		have a formula at the ending resource of the arc
+											//		have a formula as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
 												! $testAnyResources( $toResources, 'variableset', 'variablesetType', 'formula' )
@@ -6946,7 +7051,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-parameter
 											//		have a consistency-assertion at the starting resource of the arc
-											//		have a parameter at the ending resource of the arc
+											//		have a parameter as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
 												! $testAllResources( $toResources, 'variable', 'variableType', 'parameter' )
@@ -6969,7 +7074,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
 											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable at the ending resource of the arc
+											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'variableset', null, null ) ||
 												! $testAllResources( $toResources, 'variable', 'variableType', array( 'factVariable', 'generalVariable', 'parameter' ) )
@@ -6992,7 +7097,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
 											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable at the ending resource of the arc
+											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'variable', null, null ) || // From a variable
 												! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
@@ -7015,7 +7120,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
 											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable at the ending resource of the arc
+											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
 												! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
@@ -7038,7 +7143,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/element-label
 											//		have an XML element [XML] at the starting resource of the arc
-											//		have the generic label at the ending resource of the arc
+											//		have the generic label as the ending resource of the arc
 											if (
 												! ( $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
 													$testAllResources( $fromResources, 'assertionset', null, null ) || // From any assertion-set element
@@ -7066,7 +7171,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set-precondition
 											//		have a variable-set resource at the starting resource of the arc
-											//		have a precondition at the ending resource of the arc
+											//		have a precondition as the ending resource of the arc
 
 											if (
 												! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
@@ -7090,7 +7195,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
 											//		have an assertion at the starting resource of the arc
-											//		have a message at the ending resource of the arc
+											//		have a message as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
 												! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
@@ -7113,7 +7218,7 @@ class XBRL {
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
 											//		have an assertion at the starting resource of the arc
-											//		have a message at the ending resource of the arc
+											//		have a message as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
 												! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
@@ -7131,18 +7236,42 @@ class XBRL {
 											}
 											break;
 
+										case \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity:
+
+											// arc MUST:
+											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-severity
+											//		have an assertion at the starting resource of the arc
+											//		have a severity as the ending resource of the arc
+
+											if (
+												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
+												! $testAllResources( $toResources, 'resource', 'resourceType', 'severity' ) // To any severity resource
+											)
+											{
+												$this->log()->taxonomy_validation( "Severity level", "The arc MUST be from a variable-set resource element to a severity resource element",
+													array(
+														'role' => $roleUri,
+														'arcrole' => $arcrole,
+														'fromLabel' => $from,
+														'toLabel' => $to,
+														// 'error' => 'xbrlcae:variablesNotAllowed',
+													)
+												);
+											}
+											break;
+
 										case \XBRL_Constants::$arcRoleCustomFunctionImplementation:
 
 											// arc MUST:
 											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/function-implementation
 											//		have the custom function signature at the starting resource of the arc
-											//		have the custom function implementation at the ending resource of the arc
+											//		have the custom function implementation as the ending resource of the arc
 											if (
 												! $testAllResources( $fromResources, 'customfunction', 'customfunctionType', 'signature' ) || // From any variable-set element
 												! $testAllResources( $toResources, 'customfunction', 'customfunctionType', 'implementation' ) // To any precondition
 											)
 											{
-												$this->log()->taxonomy_validation( "Validation message", "The arc MUST be from a variable-set resource element to a message resource element",
+												$this->log()->taxonomy_validation( "Custom function message", "The arc MUST be from a variable-set resource element to a message resource element",
 													array(
 														'role' => $roleUri,
 														'arcrole' => $arcrole,
@@ -7438,7 +7567,11 @@ class XBRL {
 									$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
 									if ( isset( $this->variableSetNames[ $qName->clarkNotation() ] ) )
 									{
-										$findName =	function( $arc ) use( $from ) { return ! isset( $arc['from'] ) || $arc['from'] == $from; };
+										// To be equivalent the names must have the same source and role
+										$findName =	function( $arc ) use( $from, $roleUri )
+										{
+											return ! isset( $arc['from'] ) || ! isset( $arc['role'] ) || ( $arc['from'] == $from && $arc['role'] == $roleUri );
+										};
 
 										if( array_filter( $this->variableSetNames[ $qName->clarkNotation() ], $findName ) )
 										{
@@ -8451,11 +8584,17 @@ class XBRL {
 					// It's a linkbase reference
 					if ( ! isset( $this->linkbaseIds[ basename( $parts['path'] ) ] ) )
 					{
+						// This syntax will only work in PHP 7.0 or later
+						$linkbaseHref = strpos( $locatorHref, "#" ) === false
+								? $locatorHref
+								: strstr( $locatorHref, "#", true );
 						$linkbaseRef = array(
 							'type' => (string) $xlinkAttributes->type,
 							// BMS 2017-10-27 This makes the linkbase relative to the location of the schema file which is not correct
 							// 'href' => XBRL::resolve_path( $taxonomy->getSchemaLocation(), $href ),
-							'href' => XBRL::resolve_path( $href, $parts['path'] ),
+							// This one assumes all linkbases are relative but severities.xml is an example of one that is not
+							// 'href' => XBRL::resolve_path( $href, $parts['path'] ),
+							'href' => XBRL::resolve_path( $href, $linkbaseHref ),
 							'role' => $linkType,
 							'arcrole' => \XBRL_Constants::$arcRoleLinkbase,
 							'title' => '',
@@ -9943,7 +10082,9 @@ class XBRL {
 									{
 										$hypercubes[ $targetIsHypercube ? $to : $from ] = array(
 											'dimensions' => array(),
-											'namespace' => $this->getNamespace(),
+											// BMS 2018-07-24
+											// 'namespace' => $this->getNamespace(),
+											'namespace' => $home_taxonomy->getNamespace(),
 											'role' => $roleRefsKey,
 											'href' => $targetIsHypercube ? $to : $from,
 											'nodeclass' => 'hypercube',
@@ -10312,51 +10453,102 @@ class XBRL {
 
 						case XBRL_Constants::$arcRoleDomainMember:
 
+							$updateReferences = function( $nodeKey, $parentKey, $parent ) use( &$updateReferences, &$hypercubes, &$nodes, &$primaryItems )
+							{
+								$nodes[ $nodeKey ]['nodeclass'] = $nodes[ $parentKey ]['nodeclass'];
+
+								if ( isset( $primaryItems[ $nodeKey ] ) )
+								{
+									// If the hypercube already exists then the task is to add
+									// the hypercube to the list of existing hypercubes
+									$primaryItems[ $nodeKey ]['parents'][ $parentKey ] = $parent;
+								}
+								else
+								{
+									$primaryItems[ $nodeKey ] = array(
+										// 'source' => $parentKey,
+										// 'arcrole' => $parent['arcrole'],  // all/notAll
+										'parents' => array( $parentKey => $parent ),
+									);
+								}
+
+								if ( isset( $primaryItems[ $parentKey ]['hypercubes'] ) )
+								{
+
+									// Add this primary item as a parent of its hypercubes
+									foreach ( $primaryItems[ $parentKey ]['hypercubes'] as $hypercubeId )
+									{
+										if ( ! isset( $hypercubes[ $hypercubeId ]['parents'] ) ) continue;
+
+										$parentCopy = $parent;
+										$parentCopy['arcrole']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['arcrole'];
+										if ( isset( $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['targetRole'] ) )
+										{
+											$parentCopy['targetRole']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['targetRole'];
+										}
+										$parentCopy['contextElement']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['contextElement'];
+										$primaryItems[ $nodeKey ]['hypercubes'][] = $hypercubeId;
+										if ( isset( $hypercubes[ $hypercubeId ] ) )
+										{
+											$hypercubes[ $hypercubeId ]['parents'][ $nodeKey ] = $parentCopy;
+										}
+
+										unset( $parentCopy );
+									}
+
+								}
+
+							};
+
 							// The relationship of $parent with $node is a domain member
 							// If the parent has nodeclass primary then this is primary as well
 							// This one inherits any hypercubes from the parent
-							if ( ! isset( $nodes[ $parentKey ]['nodeclass'] ) ) continue;
-
-							$nodes[ $nodeKey ]['nodeclass'] = $nodes[ $parentKey ]['nodeclass'];
-
-							if ( isset( $primaryItems[ $nodeKey ] ) )
+							if ( ! isset( $nodes[ $parentKey ]['nodeclass'] ) /* && isset( $nodes[ $parentKey ]['parents'] ) */ )
 							{
-								// If the hypercube already exists then the task is to add
-								// the hypercube to the list of existing hypercubes
-								$primaryItems[ $nodeKey ][ 'parents' ][ $parentKey ] = $parent;
-							}
-							else
-							{
-								$primaryItems[ $nodeKey ] = array(
-									// 'source' => $parentKey,
-									// 'arcrole' => $parent['arcrole'],  // all/notAll
-									'parents' => array( $parentKey => $parent ),
-								);
-							}
-
-							if ( isset( $primaryItems[ $parentKey ]['hypercubes'] ) )
-							{
-
-								// Add this primary item as a parent of its hypercubes
-								foreach ( $primaryItems[ $parentKey ]['hypercubes'] as $hypercubeId )
+								if ( ! isset( $nodes[ $parentKey ]['parents'] ) )
 								{
-									if ( ! isset( $hypercubes[ $hypercubeId ]['parents'] ) ) continue;
-
-									$parentCopy = $parent;
-									$parentCopy['arcrole']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['arcrole'];
-									if ( isset( $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['targetRole'] ) )
-									{
-										$parentCopy['targetRole']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['targetRole'];
-									}
-									$parentCopy['contextElement']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['contextElement'];
-									$primaryItems[ $nodeKey ]['hypercubes'][] = $hypercubeId;
-									if ( isset( $hypercubes[ $hypercubeId ] ) )
-									{
-										$hypercubes[ $hypercubeId ]['parents'][ $nodeKey ] = $parentCopy;
-									}
+									continue;
 								}
 
+								// Look up the hierarhcy to see if a parent is a primary item
+								$parentsArePrimary = function( $memberNodes ) use ( &$parentsArePrimary, &$updateReferences, &$nodes, &$primaryItems )
+								{
+									foreach ( $memberNodes as $key => $memberNode )
+									{
+										if ( $memberNode['arcrole'] == XBRL_Constants::$arcRoleHypercubeDimension ||
+											 $memberNode['arcrole'] == XBRL_Constants::$arcRoleDimensionDomain )
+										{
+											return false;
+										}
+
+										$node = $nodes[ $key ];
+
+										if ( isset( $node['nodeclass'] ) )
+										{
+											if ( $node['nodeclass'] == 'primary' )
+											{
+												return $key;
+											}
+										}
+
+										if ( ! isset( $node['parents'] ) ) continue;
+
+										if ( ( $parentNodeKey = $parentsArePrimary( $node['parents'] ) ) !== false )
+										{
+											$updateReferences( $key, $parentNodeKey, $nodes[$parentNodeKey] );
+											return $key;
+										}
+									}
+
+									return false;
+								};
+
+								if ( ( $parentNodeKey = $parentsArePrimary( $nodes[$parentKey]['parents'] ) ) === false ) continue;
+
+								$updateReferences( $parentKey, $parentNodeKey, $nodes[ $parentNodeKey ] );
 							}
+
+							$updateReferences( $nodeKey, $parentKey, $parent );
 
 							break;
 
@@ -10441,6 +10633,7 @@ class XBRL {
 			// but it can be inferred from the arcroles of the children
 			// This function will return the inferred role or false if the role cannot be
 			// inferred because there are no children or it is ambiguous
+			// NOTE: This is not used
 			$inferNodeParentArcrole = function( $node ) {
 
 				if ( ! isset( $node['children'] ) ) return false; // Should never happen
@@ -10580,7 +10773,7 @@ class XBRL {
 				{
 					// It does exist so locate the node and add $node in the correct location
 					$this->processNodeByPath( $hierarchy, $roleRef['paths'][ $fragment ], $nodeKey,
-						function( &$node, $path, $parentKey ) use( &$hierarchy )
+						function( &$node, $path, $parentKey ) use( &$hierarchy, &$roleRef )
 						{
 							// Add the target node to $hierarchy
 							$hierarchy = XBRL::mergeHierarchies( $roleRef['hierarchy'], $hierarchy );
@@ -10589,18 +10782,24 @@ class XBRL {
 				}
 			}
 
-			$roleRef = $this->mergeExtendedRoles(
-				$roleRef,
-				array(
-					'type' => $roleRef['type'],
-					'href' => $roleRef['href'],
-					'roleUri' => $roleRef['roleUri'],
-					'members' => $members,
-					'hypercubes' => $hypercubes,
-					'primaryitems' => $primaryItems,
-					'dimensions' => $dimensions
-				), $mergedRoles, false
+			$role = array(
+				'type' => $roleRef['type'],
+				'href' => $roleRef['href'],
+				'roleUri' => $roleRef['roleUri'],
+				'members' => $members,
+				'hypercubes' => $hypercubes,
+				'primaryitems' => $primaryItems,
+				'dimensions' => $dimensions
 			);
+
+			if ( $this->getNamespace() != $home_taxonomy->getNamespace() )
+			{
+				// Record this so that if the taxonomy is being compiled is can
+				// be saved to be used when the taxonomy is subsequently restored.
+				$this->foreignDefinitionRoleRefs[] = $role;
+			}
+
+			$roleRef = $this->mergeExtendedRoles( $roleRef, $role, $mergedRoles, false );
 
 			unset( $roleRef );
 		}
@@ -11238,6 +11437,8 @@ class XBRL {
 			$taxonomy = $this->getTaxonomyForXSD( $roleRefHref );
 			if ( ! $taxonomy )
 			{
+				$taxonomy = $this->withTaxonomy( $roleRefHref, true );
+				if ( ! $taxonomy )
 				if ( XBRL::isValidating() )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "The role taxonomy cannot be located",
@@ -14348,7 +14549,6 @@ class XBRL {
 						}
 						else
 						{
-							$x = 1;
 							$this->log()->taxonomy_validation(
 								"1.4",
 								"Unable to find the type for an item concept",
@@ -15647,8 +15847,35 @@ class XBRL {
 						// Add any additional hypercubes
 						foreach ( $targetRole['hypercubes'] as $hypercubeKey => $hypercube )
 						{
-							if ( isset( $newRole['hypercubes'][ $hypercubeKey ] ) ) continue;
-							$newRole['hypercubes'][ $hypercubeKey ] = $hypercube;
+							if ( isset( $newRole['hypercubes'][ $hypercubeKey ] ) )
+							{
+								foreach ( $hypercube as $key => $items )
+								{
+									switch ( $key )
+									{
+										case 'namespace':
+										case 'role':
+										case 'href':
+										case 'nodeclass':
+											continue;
+
+										default:
+											if ( ! isset( $newRole['hypercubes'][ $hypercubeKey ][ $key ] ) )
+											{
+												$newRole['hypercubes'][ $hypercubeKey ][ $key ] = array();
+											}
+
+											$newRole['hypercubes'][ $hypercubeKey ][ $key ] = array_merge(
+												$newRole['hypercubes'][ $hypercubeKey ][ $key ],
+												$items
+											);
+									}
+								}
+							}
+							else
+							{
+								$newRole['hypercubes'][ $hypercubeKey ] = $hypercube;
+							}
 						}
 					}
 				}

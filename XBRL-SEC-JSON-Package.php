@@ -171,7 +171,59 @@ EOT;
 		}
 
 		return false;
+	}
 
+	/**
+	 * Returns the name of the class implementing the XBRL instance implied by this taxonomy
+	 * return string
+	 */
+	public function getXBRLClassname()
+	{
+		return "XBRL_US_GAAP_2015";
+	}
+
+	/**
+	 * Workout which file is the schema file
+	 * @return void
+	 * @throws "tpe:schemaFileNotFound"
+	 */
+	protected function determineSchemaFile()
+	{
+		if ( is_string( $this->schemaFile ) && ! empty( $this->schemaFile ) ) return;
+
+		$schemaFileList = array_filter( $this->files, function( $item ) {
+			return XBRL::endsWith( $item, '.xsd' );
+		} );
+
+		if ( count( $schemaFileList ) != 1 )
+		{
+			throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain just one schema (.xsd) file" );
+		}
+
+		$this->schemaFile = reset( $schemaFileList );
+		$content = $this->getFile( $this->schemaFile );
+		$this->schemaNamespace = $this->getTargetNamespace( $this->schemaFile, $content );
+
+		// The schema file should always be a fully qualified URL
+		$part = parse_url( $this->schemaFile, PHP_URL_SCHEME );
+		$prefix = empty( $part ) ? $this->schemaNamespace . "/" : "";
+		$this->schemaFile = "$prefix{$this->schemaFile}";
+	}
+
+	/**
+	 * Return the contents of a file given a path
+	 * @param string $path
+	 * @return string
+	 * @throws Exception if the requested file does not exist
+	 */
+	public function getFile( $path )
+	{
+		return parent::getFile( $this->getActualUri( $path ) );
+	}
+
+	public function getActualUri( $uri )
+	{
+		return basename( $uri );
 	}
 
 	/**
@@ -201,17 +253,7 @@ EOT;
 				$this->$name = $value;
 			}
 
-			$schemaFileList = array_filter( $this->files, function( $item ) {
-				return XBRL::endsWith( $item, '.xsd' );
-			} );
-
-			if ( count( $schemaFileList ) != 1 )
-			{
-				throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain a schema (.xsd) file" );
-			}
-
-			$this->schemaFile = reset( $schemaFileList );
-
+			$this->determineSchemaFile();
 		}
 		catch ( XBRL_TaxonomyPackageException $ex )
 		{
@@ -238,10 +280,12 @@ EOT;
 		$context->cacheLocation = $cacheLocation;
 		$context->initializeCache();
 
+		$this->determineSchemaFile();
+
 		// Find the schema document
 		$content = trim( $this->getFile( $this->schemaFile ) );
 
-		$result = $this->processSchemaDocument( $context, $this->schemaFile, $content, false );
+		$result = $this->processSchemaDocument( $context, $content, false );
 
 		$this->setUrlMap();
 

@@ -27,6 +27,10 @@
  */
 require_once( 'XBRL-QName.php' );
 
+define( "ASSERTION_SEVERITY_OK", "OK" );
+define( "ASSERTION_SEVERITY_ERROR", "ERROR" );
+define( "ASSERTION_SEVERITY_WARNING", "WARNING" );
+
 define( "STANDARD_PREFIX_XBRL", "xbrl" );
 define( "STANDARD_PREFIX_XBRLI", "xbrli" );
 define( "STANDARD_PREFIX_LINK", "link" );
@@ -98,6 +102,7 @@ define( "STANDARD_PREFIX_IMPLICIT_FILTER_ERROR", "xbrlife" );
 define( "STANDARD_PREFIX_INSTANCES", "instances" );
 define( "STANDARD_PREFIX_LYQUIDITY", "lyquidity" );
 define( "STANDARD_PREFIX_ASPECT", "aspect" );
+define( "STANDARD_PREFIX_SEVERITY", "sev" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -207,6 +212,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_IMPLICIT_FILTER_ERROR	=> "http://xbrl.org/2008/filter/implicit/error",
 		STANDARD_PREFIX_INSTANCES				=> "http://xbrl.org/2010/variable/instance",
 		STANDARD_PREFIX_LYQUIDITY				=> "http://lyquidity.com/2017/functions",
+		STANDARD_PREFIX_SEVERITY				=> "http://xbrl.org/2016/assertion-severity",
 	);
 
 	/**
@@ -853,6 +859,12 @@ class XBRL_Constants
 	 */
 	public static $arcRoleAssertionUnsatisfiedMessage = "http://xbrl.org/arcrole/2010/assertion-unsatisfied-message";
 
+	/**
+	 * http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity
+	 * @var string $arcRoleAssertionUnsatisfiedSeverity
+	 */
+	public static $arcRoleAssertionUnsatisfiedSeverity = "http://xbrl.org/arcrole/2016/assertion-unsatisfied-severity";
+
 	/* Generic message roles */
 
 	/**
@@ -954,6 +966,14 @@ class XBRL_Constants
 	 * @var string $arcRoleVariablesScope
 	 */
 	public static $arcRoleVariablesScope = "http://xbrl.org/arcrole/2010/variables-scope";
+
+	/* -----------------------------------------------------------------------------
+	 * Severity values
+	 * -----------------------------------------------------------------------------
+	 */
+	public static $severityOK = ASSERTION_SEVERITY_OK;
+	public static $severityERROR = ASSERTION_SEVERITY_ERROR;
+	public static $severityWARNING = ASSERTION_SEVERITY_WARNING;
 
 	/* -----------------------------------------------------------------------------
 	 * Generic links

@@ -135,7 +135,7 @@ class VariableSetAssertion extends VariableSet
 		{
 			$this->xbrlTaxonomy->getGenericResource( 'message', 'message', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$messages, $arc, $lang )
 			{
-				if ( $resource['label'] != $arc['to'] ) return true;
+				// if ( $resource['label'] != $arc['to'] ) return true;
 				if ( ! is_null( $lang ) )
 				{
 					if ( $resource['lang'] != $lang && $resource['lang'] != strstr( $lang, "-", true ) )
@@ -147,7 +147,7 @@ class VariableSetAssertion extends VariableSet
 				$messages[ $arc['to'] ] = $resource['message'];
 
 				return true;
-			} );
+			}, $arc['toRoleUri'], $arc['to'] );
 		}
 
 		return $messages;
@@ -162,6 +162,34 @@ class VariableSetAssertion extends VariableSet
 	{
 		$this->satisfiedMessages = $this->getMessages( \XBRL_Constants::$arcRoleAssertionSatisfiedMessage, $lang );
 		$this->unsatisfiedMessages = $this->getMessages( \XBRL_Constants::$arcRoleAssertionUnsatisfiedMessage, $lang );
+
+		$severityArcs = $this->xbrlTaxonomy->getGenericArc( \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity, $this->extendedLinkRoleUri, $this->label );
+
+		foreach ( $severityArcs as $arc )
+		{
+			$this->xbrlTaxonomy->getGenericResource( 'resource', 'severity', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$arc )
+			{
+				// if ( $resource['label'] != $arc['to'] ) return true;
+
+				switch( $resource['label'] )
+				{
+					case 'error':
+						$this->severity = ASSERTION_SEVERITY_ERROR;
+						return false;
+
+					case 'ok':
+						$this->severity = ASSERTION_SEVERITY_OK;
+						return false;
+
+					case 'warning':
+						$this->severity = ASSERTION_SEVERITY_WARNING;
+						return false;
+				}
+
+				return true;
+			}, $arc['toRoleUri'] , $arc['to'] );
+		}
+
 		return true;
 	}
 

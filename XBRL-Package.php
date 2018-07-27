@@ -48,14 +48,36 @@ EOT;
 	 */
 	public static function getPackage( $taxonomyPackage )
 	{
-		$packageClasses = array( 'XBRL_TaxonomyPackage', 'XBRL_SEC_JSON_Package', 'XBRL_SEC_XML_Package', 'XBRL_SimplePackage' );
+		$packageClassesFile = __DIR__ . '/TaxonomyPackageTypes.json';
+		$packageClasses = null;
+		if ( file_exists( __DIR__ . '/TaxonomyPackageTypes.json' ) )
+		{
+			// echo file_get_contents( __DIR__ . '/TaxonomyPackageTypes.json' );
+			$json = json_decode( file_get_contents( __DIR__ . '/TaxonomyPackageTypes.json' ), true );
+			if ( $json && isset( $json['classNames'] ) )
+			{
+				$packageClasses = $json['classNames'];
+			}
+			else
+			{
+				echo "Unable to load the package classes JSON file" . XBRL::json_last_error_msg() , "\n";
+			}
+		}
+
+		if ( ! $packageClasses )
+		{
+			$packageClasses = array( 'XBRL_TaxonomyPackage', 'XBRL_SEC_JSON_Package', 'XBRL_SEC_XML_Package', 'XBRL_SimplePackage' );
+		}
 
 		foreach ( $packageClasses as $packageClassName )
 		{
-			// $package = $packageClass::fromFile( $taxonomyPackage );
+			/** @var XBRL_Package $package */
 			$package = XBRL_Package::fromFile( $taxonomyPackage, $packageClassName );
 			if ( ! $package->isPackage() ) continue;
 
+			// Load the XBRL class
+			$className = $package->getXBRLClassname();
+			class_exists( $className, true );
 			return $package;
 		}
 
@@ -70,7 +92,7 @@ EOT;
 	 * Open a package from a file
 	 * @param string $filename
 	 * @param string $className
-	 * @return boolean
+	 * return XBRL_Package
 	 * @throws Exception
 	 */
 	public static function fromFile( string $filename, $className )
@@ -106,7 +128,6 @@ EOT;
 		$instance = new $className( $zipArchive );
 		return $instance;
 	}
-
 
 	/**
 	 * @var ZipArchive $zipArchive
@@ -205,10 +226,116 @@ EOT;
 	}
 
 	/**
+	 * Compile a taxonmy
+	 * @param string $output_basename Name of the compiled taxonomy to create
+	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function compile( $output_basename = null, $compiledPath = null )
+	{
+		if ( $this->isExtensionTaxonmy() )
+		{
+			return XBRL::compileExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $output_basename, $compiledPath );
+		}
+		else
+		{
+			return XBRL::compile(
+				$this->schemaFile,
+				$this->schemaNamespace,
+				$compiledPath . ( is_null( $output_basename ) ? $this->getSchemaFileBasename() : $output_basename )
+			);
+		}
+	}
+
+	/**
 	 * An implementation will return true if the package can be processed
 	 * by its implementation.
 	 */
 	public function isPackage() {}
+
+	/**
+	 * Returns true if the taxonomy in the package is compiled
+	 * @param string $compiledDir Path to the compiled taxonomies folder
+	 * @return bool
+	 */
+	public function isCompiled( $compiledDir, $basename = null )
+	{
+		if ( is_null( $basename ) )
+		{
+			$basename = $this->getSchemaFileBasename();
+		}
+
+		return XBRL::isCompiled( $compiledDir, $basename );
+	}
+
+	/**
+	 * Cache value for the flag
+	 * @var bool
+	 */
+	private $isExtensionTaxonomy = null;
+
+	/**
+	 * Returns true if the package contains an extension taxonomy
+	 * @return bool
+	 * @final
+	 */
+	public function isExtensionTaxonmy()
+	{
+		if ( is_null( $this->isExtensionTaxonomy ) )
+		{
+			$this->isExtensionTaxonomy = $this->getIsExtensionTaxonomy();
+		}
+		return $this->isExtensionTaxonomy;
+	}
+
+	/**
+	 * Workout which file is the schema file
+	 * @return void
+	 * @throws "tpe:schemaFileNotFound"
+	 */
+	protected function determineSchemaFile()
+	{
+		throw new Exception("The function 'determineSchemaFile' MUST be implemented by a concrete instance of XBRL_Package");
+	}
+
+	/**
+	 * Can be implemented by concrete classes to return true if the taxonomy is an extension taxonomy
+	 * This default implementation looks at the XBRL class name advertised by the class to determine
+	 * if the schema file contains one of the entry points of the XBRL class.
+	 * @return bool
+	 * @abstract
+	 */
+	protected function getIsExtensionTaxonomy()
+	{
+		$this->determineSchemaFile();
+
+		// If the schema in the package imports one of the schemas with an entry point namespace then an extension compilation should be used
+		$xml = $this->getFileAsXML( $this->getActualUri( $this->schemaFile ) );
+		$xml->registerXPathNamespace( SCHEMA_PREFIX, SCHEMA_NAMESPACE );
+		foreach ( $xml->xpath("/xs:schema/xs:import") as $tag => /** @var SimpleXMLElement $element */ $element )
+		{
+			$attributes = $element->attributes();
+			if ( ! isset( $attributes['namespace'] ) ) continue;
+			// echo "{$attributes['namespace']}\n";
+			$nameOfXBRLClass = $this->getXBRLClassname();
+			if ( ( $className = $nameOfXBRLClass::class_from_namespace( (string)$attributes['namespace'] ) ) == "XBRL" ) continue;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns the name of the class implementing the relevant XBRL instance
+	 * @return string
+	 * @throws Exception
+	 */
+	public function getXBRLClassname()
+	{
+		return "XBRL"; // The default
+	}
 
 	/**
 	 * Return the contents of a file given a path
@@ -218,6 +345,7 @@ EOT;
 	 */
 	public function getFile( $path )
 	{
+		if ( empty( $path ) ) return false;
 		return $this->zipArchive->getFromName( $path );
 	}
 
@@ -239,6 +367,14 @@ EOT;
 	public function getFirstFolderName()
 	{
 		return key( $this->contents );
+	}
+
+	/**
+	 * Returns an array of schema file names defined as entry points
+	 */
+	public function getSchemaEntryPoints()
+	{
+		return array();
 	}
 
 	/**
@@ -282,6 +418,41 @@ EOT;
 	}
 
 	/**
+	 * Returns a localized version of the schema file path
+	 * @param string $uri
+	 * @return string
+	 */
+	protected function getActualUri( $uri )
+	{
+		return $uri;
+	}
+
+	/**
+	 * Returns an array containing the root folder for the actual uri and the url
+	 * @param string $actualUri
+	 * @param string $uri
+	 * @return string[]
+	 */
+	public function getCommonRootFolder( $actualUri, $uri )
+	{
+		$uriParts = array_reverse( explode( "/", $uri ) );
+		$actualUriParts = array_reverse( explode( "/", $actualUri ) );
+
+		$count = min( array( count( $uriParts ), count( $actualUriParts ) ) );
+
+		for( $i = 0; $i < $count; $i++ )
+		{
+			if ( $uriParts[ $i ] != $actualUriParts[ $i ] ) break;
+
+		}
+
+		return array(
+			'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i -1 ) ) ),
+			'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i -1 ) ) )
+		);
+	}
+
+	/**
 	 * Gets the content element corresponding to $path
 	 * @param string $path
 	 * @return array
@@ -303,6 +474,36 @@ EOT;
 	}
 
 	/**
+	 * Retruns the instance document contents as named memory stream file
+	 * @return boolean|string
+	 */
+	public function getInstanceDocumentAsMemoryFile()
+	{
+		// If this returns null there is no instance document
+		$xbrl = $this->getInstanceDocument( false );
+		if ( ! $xbrl ) return false;
+
+		$instanceFilename = "mem://{$this->instanceDocument}";
+
+		if ( ! class_exists("MemoryStream", true ) )
+		{
+			/**
+			 * Load the dictionary class
+			 */
+			$utiltiesPath = isset( $_ENV['UTILITY_LIBRARY_PATH'] )
+				? $_ENV['UTILITY_LIBRARY_PATH']
+				: ( defined( 'UTILITY_LIBRARY_PATH' ) ? UTILITY_LIBRARY_PATH : __DIR__ . "/../utilities" );
+			require_once "$utiltiesPath/MemoryStream.php";
+		}
+
+		$f = fopen( $instanceFilename, "w+" );
+		fwrite( $f, $xbrl );
+		fclose( $f );
+
+		return $instanceFilename;
+	}
+
+	/**
 	 * Get the instance document xml
 	 * @param bool $asSimpleXML
 	 * @return SimpleXMLElement|string
@@ -317,7 +518,9 @@ EOT;
 
 		if ( $this->instanceDocument )
 		{
-			$xml = $this->getFileAsXML( $this->instanceDocument );
+			$xml = $asSimpleXML
+				? $this->getFileAsXML( $this->instanceDocument )
+				: $this->getFile( $this->instanceDocument );
 			return $xml;
 		}
 
@@ -342,7 +545,11 @@ EOT;
 			return false;
 		} );
 
-		return $asSimpleXML ? $xml : $this->getFile( $this->instanceDocument );
+		if ( ! $xml instanceof SimpleXMLElement ) return null;
+
+		return $asSimpleXML
+			? $xml
+			: $this->getFile( $this->instanceDocument );
 	}
 
 	/**
@@ -392,28 +599,32 @@ EOT;
 	 * @return bool
 	 * @throws \Exception
 	 */
-	protected function processSchemaDocument( $context, $schemaName, $content, $throwException = true )
+	protected function processSchemaDocument( $context, $content, $throwException = true )
 	{
 		if ( ! isXml( $content, $throwException ) ) return false;
 
-		$namespace = $this->getTargetNamespace( $schemaName,  $content, $throwException );
-		if ( ! $namespace )
+		if ( is_null( $this->schemaNamespace ) )
 		{
-			$msg = "Unable to find the taxonomy namespace";
-			$this->errors[] = $msg;
-
-			if ( $throwException )
+			$this->schemaNamespace = $this->getTargetNamespace( $this->schemaFile,  $content, $throwException );
+			if ( ! $this->schemaNamespace )
 			{
-				throw new \Exception( $msg );
-			}
+				$msg = "Unable to find the taxonomy namespace";
+				$this->errors[] = $msg;
 
-			return false;
+				if ( $throwException )
+				{
+					throw new \Exception( $msg );
+				}
+
+				return false;
+			}
 		}
 
-		$this->schemaNamespace = $namespace;
-		$this->schemaFile = "$namespace/$schemaName";
+		$part = parse_url( $this->schemaFile, PHP_URL_SCHEME );
+		$prefix = empty( $part ) ? $this->schemaNamespace . "/" : "";
+		$schemaFile = "$prefix{$this->schemaFile}";
 
-		if ( $context->findCachedFile( $this->schemaFile ) )
+		if ( $context->findCachedFile( "$schemaFile" ) )
 		{
 			$msg = "The taxonomy already exists in the cache";
 			$this->errors[] = $msg;
@@ -426,9 +637,9 @@ EOT;
 			return false;
 		}
 
-		if ( ! $context->saveCacheFile( $this->schemaFile, $content ) )
+		if ( ! $context->saveCacheFile( "$schemaFile", $content ) )
 		{
-			$msg = "Unable to save the schema file ('$schemaName')";
+			$msg = "Unable to save the schema file ('$schemaFile')";
 			$this->errors[] = $msg;
 
 			if ( $throwException )
@@ -439,7 +650,7 @@ EOT;
 			return false;
 		}
 
-		return $namespace;
+		return $this->schemaNamespace;
 	}
 
 	/**
@@ -451,12 +662,13 @@ EOT;
 
 		global $mapUrl;
 		$previousMap = $mapUrl;
+		$schemaFile = $this->schemaFile;
 
-		$mapUrl = function( $url ) use( &$previousMap )
+		$mapUrl = function( $url ) use( &$previousMap, $schemaFile )
 		{
-			if ( $url == basename( $this->schemaFile ) )
+			if ( $url == basename( $schemaFile ) )
 			{
-				$url = $this->schemaFile;
+				$url = $schemaFile;
 			}
 			else if ( $previousMap )
 			{
@@ -473,8 +685,33 @@ EOT;
 	 * @param string $extension
 	 * @return string
 	 */
-	public function getSchemaFileBasename( $extension = "")
+	public function getSchemaFileBasename( $replacementExtension = "")
 	{
-		return basename( $this->schemaFile, '.xsd' ) . $extension;
+		return basename( $this->schemaFile, '.xsd' ) . $replacementExtension;
+	}
+
+	/**
+	 * Load the taxonomy associated with this package
+	 * @param string $compiledPath
+	 * @return boolean|XBRL
+	 */
+	public function loadTaxonomy( $compiledPath = null )
+	{
+		if ( $this->isExtensionTaxonmy() )
+		{
+			return XBRL::loadExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $compiledPath );
+		}
+		else
+		{
+			if ( $this->isCompiled( $compiledPath, $this->getSchemaFileBasename() ) )
+			{
+				return XBRL::load_taxonomy(
+					"$compiledPath/" . $this->getSchemaFileBasename(".json"),
+					false
+				);
+			}
+
+			return XBRL::withTaxonomy( $this->schemaFile );
+		}
 	}
 }

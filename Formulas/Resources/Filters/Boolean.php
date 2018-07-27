@@ -97,7 +97,7 @@ class Boolean extends Filter
 		{
 			$variableSet->xbrlTaxonomy->getGenericResource( 'filter', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$filters, $arc )
 			{
-				if ( $resource['label'] != $arc['to'] ) return true;
+				// if ( $resource['label'] != $arc['to'] ) return true;
 
 				if ( $arc['attributes'] )
 				{
@@ -115,7 +115,7 @@ class Boolean extends Filter
 				$filters[] = $className::fromArray( $resource );
 
 				return true;
-			} );
+			}, $arc['toRoleUri'], $arc['to'] );
 		}
 
 		foreach ( $filters as $filter )

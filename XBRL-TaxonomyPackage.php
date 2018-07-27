@@ -181,6 +181,18 @@ EOT;
 	}
 
 	/**
+	 * Compile a taxonmy
+	 * @param string $output_basename Name of the compiled taxonomy to create
+	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @return bool
+	 * @throws Exception
+	 */
+	public function compile( $output_basename = null, $compiledPath = null )
+	{
+		return parent::compile( $output_basename, $compiledPath );
+	}
+
+	/**
 	 * Returns true if the zip file represents a package that meets the taxonomy package specification
 	 * {@inheritDoc}
 	 * @see XBRL_IPackage::isPackage()
@@ -217,6 +229,15 @@ EOT;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the name of the class implementing the XBRL instance implied by this taxonomy
+	 * return string
+	 */
+	public function getXBRLClassname()
+	{
+		return "XBRL";
 	}
 
 	/**
@@ -524,7 +545,7 @@ EOT;
 	{
 		try
 		{
-			$xml = $this->getFile( $path );
+			$xml = $this->getFile( $this->getActualUri( $path ) );
 			isXml( $xml );
 			return simplexml_load_string( $xml );
 		}
@@ -535,37 +556,28 @@ EOT;
 	}
 
 	/**
-	 * Save the taxonomy from the package to the cache location
-	 * @param string $cacheLocation
-	 * @return boolean
+	 * Returns an array of schema file names defined as entry points
 	 */
-	public function saveTaxonomy( $cacheLocation )
+	public function getSchemaEntryPoints()
 	{
-		$getActualUri = function( $uri )
-		{
-			foreach ( $this->rewriteURIs as $prefix => $rewriteUri )
-			{
-				if ( strpos( $uri, $prefix ) !== 0 ) continue;
-				$actualUri =  str_replace( $prefix, $rewriteUri, $uri );
-				$actualUri = XBRL::normalizePath( $this->getFirstFolderName() . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . $actualUri );
-				return $actualUri;
-			}
-
-			return $uri;
-		};
-
-		// Initialize the context
-		$context = XBRL_Global::getInstance();
-		$context->useCache = true;
-		$context->cacheLocation = $cacheLocation;
-		$context->initializeCache();
-
-		$schemaFilesList = array_reduce( $this->entryPoints, function( $carry, $entryPoint ) {
+		return array_reduce( $this->entryPoints, function( $carry, $entryPoint ) {
 			$schemaFiles = array_filter( $entryPoint['entryPointDocument'], function( $entryPointDocument ) {
 				return XBRL::endsWith( $entryPointDocument, ".xsd" );
 			} );
 			return array_merge( $carry, $schemaFiles );
 		}, array() );
+	}
+
+	/**
+	 * Workout which file is the schema file
+	 * @return void
+	 * @throws "tpe:schemaFileNotFound"
+	 */
+	protected function determineSchemaFile()
+	{
+		if ( ! is_null( $this->schemaFile ) ) return;
+
+		$schemaFilesList = $this->getSchemaEntryPoints();
 
 		if ( count( $schemaFilesList ) == 0 )
 		{
@@ -574,7 +586,7 @@ EOT;
 
 		foreach ( $schemaFilesList as $schemaFile )
 		{
-			$actualUri = $getActualUri( $schemaFile );
+			$actualUri = $this->getActualUri( $schemaFile );
 			$content = $this->getFile( $actualUri );
 			if ( $content )
 			{
@@ -583,12 +595,60 @@ EOT;
 
 				$this->setUrlMap();
 			}
+		}
+	}
 
-			if ( $context->findCachedFile( $schemaFile ) )
+	protected function getActualUri( $uri )
+	{
+		foreach ( $this->rewriteURIs as $prefix => $rewriteUri )
+		{
+			if ( strpos( $uri, $prefix ) !== 0 ) continue;
+			$actualUri =  str_replace( $prefix, $rewriteUri, $uri );
+			$actualUri = XBRL::normalizePath( $this->getFirstFolderName() . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . $actualUri );
+			return $actualUri;
+		}
+
+		return $uri;
+	}
+
+	/**
+	 * Save the taxonomy from the package to the cache location
+	 * @param string $cacheLocation
+	 * @return boolean
+	 */
+	public function saveTaxonomy( $cacheLocation )
+	{
+		$getCommonRootFolder = function( $actualUri, $uri )
+		{
+			$uriParts = array_reverse( explode( "/", $uri ) );
+			$actualUriParts = array_reverse( explode( "/", $actualUri ) );
+
+			$count = min( array( count( $uriParts ), count( $actualUriParts ) ) );
+
+			for( $i = 0; $i < $count; $i++ )
 			{
-				$this->errors[] = "The schema file '$schemaFile' already exists in the cache.";
-				return false;
+				if ( $uriParts[ $i ] != $actualUriParts[ $i ] ) break;
+
 			}
+
+			return array(
+				'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i -1 ) ) ),
+				'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i -1 ) ) )
+			);
+		};
+
+		// Initialize the context
+		$context = XBRL_Global::getInstance();
+		$context->useCache = true;
+		$context->cacheLocation = $cacheLocation;
+		$context->initializeCache();
+
+		$this->determineSchemaFile();
+
+		if ( $context->findCachedFile( $this->schemaFile ) )
+		{
+			$this->errors[] = "The schema file '{$this->schemaFile}' already exists in the cache.";
+			return false;
 		}
 
 		// Look at the entry points and remap them to their location in the zip file
@@ -598,19 +658,23 @@ EOT;
 			foreach ( $entryPoint['entryPointDocument'] as $uri )
 			{
 				// Is there a rewrite?
-				$actualUri = $getActualUri( $uri );
+				$actualUri = $this->getActualUri( $uri );
 
 				// If there is a rewrite or the entry point uri is relative it is to an address in the package
 				$parts = parse_url( $actualUri );
-				if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) // absolute
-				{
-					$xml = XBRL::getXml( $actualUri, $context );
-				}
-				else
+				if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) continue; // absolute
+
+				$commonRootFolder = $getCommonRootFolder( $actualUri, $uri );
+
+				// if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) // absolute
+				// {
+				//	$xml = XBRL::getXml( $actualUri, $context );
+				// }
+				// else
 				{
 					// Handle the relative case
-					// $actualUri = XBRL::normalizePath( $this->getFirstFolderName() . "/" . XBRL_TaxonomyPackage::metaFolderName . "/" . $actualUri );
-					$folder = $this->getElementForPath( dirname( $actualUri ) );
+					// $folder = $this->getElementForPath( dirname( $actualUri ) );
+					$folder = $this->getElementForPath( $commonRootFolder['actual'] );
 
 					// Create a copy of all files and folder in the cache location
 					$copy = function( $folder, $path, $uri ) use( &$copy, &$context )
@@ -622,20 +686,21 @@ EOT;
 							{
 								$content = $this->getFile( "$path/$item" );
 								if ( ! $content ) continue;
-
+								if ( $context->findCachedFile( "$uri/$item" ) ) continue;
 								$context->saveCacheFile( "$uri/$item", $content );
 							}
 							else
 							{
 								// Handle any directories
-								$url .= "/$index";
-								$path .= "/$index";
-								$copy( $item, $path, $url );
+								$newUri = "$uri/$index";
+								$newPath = "$path/$index";
+								$copy( $item, $newPath, $newUri );
 							}
 						}
 					};
 
-					$copy( $folder, dirname( $actualUri ),  dirname( $uri ) );
+					// $copy( $folder, dirname( $actualUri ),  dirname( $uri ) );
+					$copy( $folder, $commonRootFolder['actual'],  $commonRootFolder['uri'] );
 				}
 			}
 		}
@@ -648,6 +713,7 @@ EOT;
 	 * @var array[string]
 	 */
 	private static $countries = array(
+		'EU' => 'European Union',
 		'US' => 'United States',
 		'CA' => 'Canada',
 		'GB' => 'United Kingdom',

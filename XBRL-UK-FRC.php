@@ -32,8 +32,10 @@ require_once('XBRL.php');
  * @var array
  */
 $entrypoint_namespaces = array(
-	"http://xbrl.frc.org.uk/fr/2014-09-01/core",
-	"http://xbrl.frc.org.uk/fr/2014-09-01/core-full",
+	// "http://xbrl.frc.org.uk/fr/2014-09-01/core",
+	XBRL_UK_FRC::$frc_GAAP_NS,
+	// "http://xbrl.frc.org.uk/fr/2014-09-01/core-full",
+	XBRL_UK_FRC::$frc_GAAP_FULL_NS,
 );
 
 /**
@@ -372,7 +374,7 @@ class XBRL_UK_FRC extends XBRL
 	 */
 	public function treatAsText( $key, $type )
 	{
-		if ( in_array( $key, XBRL_UK_GAAP::$textItems ) ) return true;
+		if ( in_array( $key, XBRL_UK_FRC::$textItems ) ) return true;
 		return parent::treatAsText( $key, $type );
 	}
 
@@ -384,7 +386,7 @@ class XBRL_UK_FRC extends XBRL
 	 */
 	public function treatAsLabel( $key )
 	{
-		if ( isset( XBRL_UK_GAAP::$labelItems[ $key ] ) ) return XBRL_UK_GAAP::$labelItems[ $key ];
+		if ( isset( XBRL_UK_FRC::$labelItems[ $key ] ) ) return XBRL_UK_FRC::$labelItems[ $key ];
 		return parent::treatAsLabel( $key );
 	}
 
@@ -418,15 +420,15 @@ class XBRL_UK_FRC extends XBRL
 		"frs-bus_MainBusiness"					=> "frs-bus-2009-09-01.xsd#frs-bus_MainBusiness",
 		"frs-bus_PublicRelations"				=> "frs-bus-2009-09-01.xsd#frs-bus_PublicRelations",
 		"frs-bus_InvestorRelations"				=> "frs-bus-2009-09-01.xsd#frs-bus_InvestorRelations",
-		"frs-bus_MediaRelations"					=> "frs-bus-2009-09-01.xsd#frs-bus_MediaRelations",
-		"frs-bus_SalesMarketing"					=> "frs-bus-2009-09-01.xsd#frs-bus_SalesMarketing",
+		"frs-bus_MediaRelations"				=> "frs-bus-2009-09-01.xsd#frs-bus_MediaRelations",
+		"frs-bus_SalesMarketing"				=> "frs-bus-2009-09-01.xsd#frs-bus_SalesMarketing",
 	);
 	/**
 	 * A set of locators to add to the presentation hierarchy
 	 * @var array
 	 */
 	private $proxyAddressHeading = array(
-		"frs-bus_AddressHeading"					=> "frs-bus-2009-09-01.xsd#frs-bus_AddressHeading",
+		"frs-bus_AddressHeading"				=> "frs-bus-2009-09-01.xsd#frs-bus_AddressHeading",
 	);
 	/**
 	 * A set of locators to add to the presentation hierarchy

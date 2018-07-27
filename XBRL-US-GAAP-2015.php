@@ -31,21 +31,51 @@ require_once('XBRL.php');
  * Define the namespaces of the entry points supported by this taxonomy
  * @var array
  */
-$entrypoint_namespaces_2015 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
-);
-
 $entrypoint_namespaces_2014 = array(
 	XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_ALL_NS,
 	XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_STD_NS,
 	XBRL_US_GAAP_2015::$us_GAAP_2014_ALL_NS,
 	XBRL_US_GAAP_2015::$us_GAAP_2014_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
+	// XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
 );
+
+$entrypoint_namespaces_2015 = array(
+	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_STD_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2015_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2015_NS,
+	// XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
+);
+
+$entrypoint_namespaces_2016 = array(
+	XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_STD_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2016_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2016_NS,
+	// XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
+);
+
+$entrypoint_namespaces_2017 = array(
+	XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_STD_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2017_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2017_NS,
+	// XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
+);
+
+$entrypoint_namespaces_2018 = array(
+	XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_STD_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2018_ALL_NS,
+	XBRL_US_GAAP_2015::$us_GAAP_2018_NS,
+	// XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
+);
+
+XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2015" );
+XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
+XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
+XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
+XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
 
 /**
  * Register xsd to class map entries
@@ -310,15 +340,32 @@ XBRL::add_namespace_to_class_map_entries( array_merge( array(
 	"ttp://xbrl.sec.gov/stpr/2011-01-31",
 ), $entrypoint_namespaces_2014 ), "XBRL_US_GAAP_2015" );
 XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2014" );
+XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
+XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
+XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
 
 /**
  * Register XSD to compiled taxonomy entries
  */
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2015-01-31.xsd" ), "us-gaap-entire-2015" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-all-2015" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-2017-01-31" );
 
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2014-01-31.xsd" ), "us-gaap-entire-2014" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-all-2014" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2017-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-all-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-2017-01-31" );
+
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2016-01-31.xsd" ), "us-gaap-entire-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-all-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-2016-01-31" );
+
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2015-01-31.xsd" ), "us-gaap-entire-2015-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-all-2015-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-2015-01-31" );
+
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2014-01-31.xsd" ), "us-gaap-entire-2014-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-all-2014-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-2014-01-31" );
 
 /**
  * Implements an XBRL descendent for the US GAAP taxonomy.
@@ -377,7 +424,88 @@ class XBRL_US_GAAP_2015 extends XBRL
 	 * http://fasb.org/us-roles/2014-01-31
 	 * @var string
 	 */
-	public static $us_GAAP_2014_ROLES_NS				= "http://fasb.org/us-roles/2014-01-31";
+	public static $us_GAAP_2014_ROLES_NS			= "http://fasb.org/us-roles/2014-01-31";
+
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2016-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2016_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2016-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2016-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2016_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2016-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2016-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2016_ALL_NS				= "http://fasb.org/us-gaap-all/2016-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2016-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2016_NS					= "http://fasb.org/us-gaap/2016-01-31";
+	/**
+	 * http://fasb.org/us-roles/2016-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2016_ROLES_NS			= "http://fasb.org/us-roles/2016-01-31";
+
+
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2017-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2017_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2017-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2017-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2017_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2017-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2017-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2017_ALL_NS				= "http://fasb.org/us-gaap-all/2017-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2017-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2017_NS					= "http://fasb.org/us-gaap/2017-01-31";
+	/**
+	 * http://fasb.org/us-roles/2017-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2017_ROLES_NS			= "http://fasb.org/us-roles/2017-01-31";
+
+
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2018-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2018_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2018-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2018-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2018_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2018-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2018-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2018_ALL_NS				= "http://fasb.org/us-gaap-all/2018-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2018-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2018_NS					= "http://fasb.org/us-gaap/2018-01-31";
+	/**
+	 * http://fasb.org/us-roles/2018-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2018_ROLES_NS			= "http://fasb.org/us-roles/2018-01-31";
+
 
 	/**
 	 * An array of element ids that when they appear in a report their values should be treated as text.
@@ -583,19 +711,65 @@ class XBRL_US_GAAP_2015 extends XBRL
 	public function afterMainTaxonomy()
 	{
 		// Run the pruning process over the roles taxonomy
+		$map = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2014_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2014_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
+
+			XBRL_US_GAAP_2015::$us_GAAP_2015_NS => XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2015_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
+
+			XBRL_US_GAAP_2015::$us_GAAP_2016_NS => XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2016_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
+
+			XBRL_US_GAAP_2015::$us_GAAP_2017_NS => XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2017_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
+
+			XBRL_US_GAAP_2015::$us_GAAP_2018_NS => XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2018_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
+		);
+
 		/**
 		 * @var XBRL $taxonomy
 		 */
-		$taxonomy = $this->getTaxonomyForNamespace( XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS );
+		$taxonomy = false;
+		if ( isset( $map[ $this->getNamespace() ] ) )
+		{
+			$taxonomy = $this->getTaxonomyForNamespace( $map[ $this->getNamespace() ] );
+		}
+
 		if ( ! $taxonomy )
 		{
-			$taxonomy = $this->getTaxonomyForNamespace( XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS );
+			foreach ( array_unique( array_values( $map ) ) as $namespace => $roleNamespace )
+			{
+				if ( ! ( $taxonomy = $this->getTaxonomyForNamespace( $roleNamespace ) ) ) continue;
+				break;
+			}
+
 			if ( ! $taxonomy )
 			{
-				$this->log()->err( "The Roles schema cannot be located for 2014 or 2015" );
+				$this->log()->err( "The Roles schema cannot be located for taxonomy with namespace '{$this->getNamespace()}'" );
 				exit;
 			}
 		}
+
+		// /**
+		//  * @var XBRL $taxonomy
+		//  */
+		// $taxonomy = $this->getTaxonomyForNamespace( XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS );
+		// if ( ! $taxonomy )
+		// {
+		// 	$taxonomy = $this->getTaxonomyForNamespace( XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS );
+		// 	if ( ! $taxonomy )
+		// 	{
+		// 		$this->log()->err( "The Roles schema cannot be located for 2014 or 2015" );
+		// 		exit;
+		// 	}
+		// }
 
 		if ( $this->context->isExtensionTaxonomy() )
 		{

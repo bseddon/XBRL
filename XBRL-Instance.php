@@ -975,6 +975,19 @@ class XBRL_Instance
 			$this->instance_namespaces = $this->instance_xml->getDocNamespaces( true );
 		}
 
+		// BMS 2018-07-20 Make sure the xbrli namespace exists and is first in the list so units and contexts are read before elements
+		$xbrliPrefix = array_search( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ], $this->instance_namespaces );
+		if ( $xbrliPrefix === false )
+		{
+			$xbrliPrefix = "xbrli";
+		}
+		else
+		{
+			unset( $this->instance_namespaces[ $xbrliPrefix ] );
+		}
+
+		$this->instance_namespaces = array( $xbrliPrefix => XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ) + $this->instance_namespaces;
+
 		$xsiAttributes = $this->instance_xml->attributes( SCHEMA_INSTANCE_NAMESPACE );
 
 		// Load any schemas specified in the schema location attribute.  Not sure if
@@ -1496,6 +1509,8 @@ class XBRL_Instance
 		return $component;
 	}
 
+	private $duplicateFacts = null;
+
 	/**
 	 * Process the elements to create an array of instance elements.
 	 * Any contexts and unit refs are extracted.
@@ -1509,6 +1524,7 @@ class XBRL_Instance
 	 */
 	private function processElement( $base, $rootElement = null, $parent = null, $indent = "" )
 	{
+		// BMS 2018-07-20 Don't know why this variable is used since $this->elements is updated anyway
 		$elements = array();
 		$tupleIds = array();
 		$tupleRefs = array();
@@ -1517,6 +1533,7 @@ class XBRL_Instance
 		$roleRefs = array();
 
 		if ($rootElement === null) $rootElement = $this->instance_xml;
+		if ( ! $this->duplicateFacts ) $this->duplicateFacts = new TupleDictionary();
 
 		$linkbasesLoaded = false;
 
@@ -1947,7 +1964,6 @@ class XBRL_Instance
 			foreach ( $rootElement->children( $namespace ) as $elementKey => $element )
 			{
 				// $this->log()->err( "$indent$elementKey" );
-
 				$guid = XBRL::GUID();
 
 				$domNode = dom_import_simplexml( $element );
@@ -2076,7 +2092,6 @@ class XBRL_Instance
 
 						if ( ! isset( $taxonomy_element['tuple_elements'] ) || ! $tuple_defined( $type, $tuple_key, $taxonomy_element['tuple_elements'] ) )
 						{
-							$x = 1;
 							$this->log()->instance_validation( "4.9", "Oops! The tuple member is not defined in the taxonomy",
 								array(
 									'element' => $elementKey,
@@ -2201,6 +2216,44 @@ class XBRL_Instance
 					if ( property_exists( $xsiAttributes, 'nil' ) )
 					{
 						$instance_element['nil'] = (string) $xsiAttributes->nil;
+					}
+
+					// Make sure the element is not a duplicate
+
+					foreach ( $elements[ $elementKey ] as $guid => $fact )
+					{
+						if (  $fact['parent'] != $instance_element['parent'] ||
+							  ! XBRL_Equality::unit_equal( $fact['unitRef'], $instance_element['unitRef'], $types, $namespaces ) ||
+							  ( $fact['contextRef'] ) != $instance_element['contextRef'] &&
+								! XBRL_Equality::context_equal( $this->getContext( $fact['contextRef'] ), $this->getContext( $instance_element['contextRef'] )
+							  )
+						)
+						{
+							continue;
+						}
+
+						// if ( $numeric )
+						// {
+						// 	if ( $this->getNumericPresentation( $fact ) != $this->getNumericPresentation( $instance_element ) )
+						// 	{
+						// 		continue;
+						// 	}
+						// }
+						// else
+						// {
+						// 	if ( $fact['value'] != $instance_element['value'] )
+						// 	{
+						// 		continue;
+						// 	}
+						// }
+
+						$elements[ $elementKey ][ $guid ]['duplicate'] = true;
+						$this->elements[ $elementKey ][ $guid ]['duplicate'] = true;
+						$instance_element['duplicate'] = true;
+						$this->duplicateFacts->addValue( [ $instance_element['taxonomy_element']['id'], $instance_element['parent'], $instance_element['contextRef'], $instance_element['unitRef'], $instance_element['guid'] ], 1 );
+						$this->duplicateFacts->addValue( [ $fact['taxonomy_element']['id'], $fact['parent'], $fact['contextRef'], $fact['unitRef'], $fact['guid'] ], 1 );
+						// continue 2;
+
 					}
 
 					// Store the element
@@ -2793,7 +2846,9 @@ class XBRL_Instance
 		$instance_taxonomy = $this->getInstanceTaxonomy();
 		$types = $instance_taxonomy->context->types;
 		// Create a collection of prefixes from this document and the backing schema(s)
-		$prefixes = $this->instance_namespaces + $this->getInstanceTaxonomy()->getDocumentNamespaces() + array( STANDARD_PREFIX_XBRLI => XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] );
+		$prefixes = array_flip( array_map( function( $taxonomy ) { return $taxonomy->getPrefix(); }, $instance_taxonomy->getImportedSchemas() ) );
+
+		$prefixes = $this->instance_namespaces + $prefixes + array( STANDARD_PREFIX_XBRLI => XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] );
 
 		if ( is_null( $types ) )
 		{
@@ -3209,21 +3264,21 @@ class XBRL_Instance
 		 * ---------------------------------------------------------
 		 */
 
-		$this->validRequiresElementArcs( $types );
+		$this->validateRequiresElementArcs( $types );
 
 		/* ---------------------------------------------------------
 		 * Validate essence alias
 		 * ---------------------------------------------------------
 		 */
 
-		$this->validEssenceAliasArcs( $types );
+		$this->validateEssenceAliasArcs( $types );
 
 		/* ---------------------------------------------------------
 		 * Validate calculations
 		 * ---------------------------------------------------------
 		 */
 
-		$this->validCalculations( $types );
+		$this->validateCalculations( $types );
 
 		/* ---------------------------------------------------------
 		 * Validate GeneralSpecial
@@ -3238,6 +3293,8 @@ class XBRL_Instance
 		 */
 
 		$this->validateNonDimensionalArcRoles( $types, $this->getInstanceTaxonomy() );
+
+		return ! $this->log()->hasInstanceValidationWarning();
 	}
 
 	/**
@@ -3251,7 +3308,7 @@ class XBRL_Instance
 	private function validateFacts( $elements, $parent, &$types, &$prefixes )
 	{
 		$instanceTaxonomy = $this->getInstanceTaxonomy();
-		$primaryItems = $instanceTaxonomy->getDefinitionPrimaryItems( );
+		$primaryItems = $instanceTaxonomy->getDefinitionPrimaryItems( false );
 
 		foreach ( $elements as $factKey => $fact )
 		{
@@ -3280,7 +3337,7 @@ class XBRL_Instance
 	 * @param XBRL_Types $types
 	 * @return boolean
 	 */
-	private function validRequiresElementArcs( XBRL_Types &$types )
+	private function validateRequiresElementArcs( XBRL_Types &$types )
 	{
 
 		$arcs = $this->getInstanceTaxonomy()->getRequireElementsList();
@@ -3375,7 +3432,7 @@ class XBRL_Instance
 	 * @param XBRL_Types $types
 	 * @return boolean
 	 */
-	private function validEssenceAliasArcs( XBRL_Types &$types )
+	private function validateEssenceAliasArcs( XBRL_Types &$types )
 	{
 
 		$arcs = $this->getInstanceTaxonomy()->getEssenceAliasList();
@@ -4021,7 +4078,7 @@ class XBRL_Instance
 	 *
 	 * @param XBRL_Types $types
 	 */
-	private function validCalculations( XBRL_Types &$types )
+	private function validateCalculations( XBRL_Types &$types )
 	{
 		// Get the calculation links array for a role after adjusting for order and probibition
 		$roles =& $this->getInstanceTaxonomy()->getCalculationRoleRefs();
@@ -4146,6 +4203,11 @@ class XBRL_Instance
 
 				foreach ( $fromFact as $fromFactKey => $fromFactEntry )
 				{
+					if ( isset( $fromFactEntry['duplicate'] ) && $fromFactEntry['duplicate'] )
+					{
+						continue;
+					}
+
 					$fromValue = $this->getNumericPresentation( $fromFactEntry );
 
 					// Create a key to test if this source has been used before.  Values are not included.
@@ -4186,6 +4248,7 @@ class XBRL_Instance
 					$itemCombinations = new TupleDictionary(); // Detect duplicates
 					$itemValues = array();
 					$hasDuplicates = false;
+					$missingItemFacts = array();
 
 					foreach ( $items as $itemKey => $item )
 					{
@@ -4259,8 +4322,27 @@ class XBRL_Instance
 
 						if ( ! $itemFact ) continue;
 
+						// Only select fact entries that have the same context ref
+						$itemFact = array_filter( $itemFact, function( $itemFactEntry ) use( $fromFactEntry )
+						{
+							return	$itemFactEntry['contextRef'] == $fromFactEntry['contextRef'] ||
+									XBRL_Equality::context_equal( $this->getContext( $fromFactEntry['contextRef'] ), $this->getContext( $itemFactEntry['contextRef'] ) );
+						} );
+
+						if ( ! $itemFact )
+						{
+							$missingItemFacts[ $itemElement['id'] ] = $itemElement;
+							continue;
+						}
+
 						foreach ( $itemFact as $itemFactKey => $itemFactEntry )
 						{
+							if ( isset( $itemFactEntry['duplicate'] ) && $itemFactEntry['duplicate'] )
+							{
+								$hasDuplicates = true;
+								break;
+							}
+
 							// The item cannot be nil valued
 							if ( ! XBRL_Instance::isEmpty( $itemFactEntry, 'nil' ) && filter_var( $itemFactEntry['nil'], FILTER_VALIDATE_BOOLEAN ) ) continue;
 
@@ -4315,7 +4397,8 @@ class XBRL_Instance
 
 								// Ignore the duplicate but if there is a duplicate the comparison is aborted
 								$hasDuplicates = true;
-								break;
+								// BMS 2018-07-20 A duplicate item means the calculation is void (section 5.2.5.2) so move to the next calculation
+								break 2;
 							}
 
 							$itemCombinations->addValue( $key, array(
@@ -4367,7 +4450,8 @@ class XBRL_Instance
 							{
 								if ( ! XBRL_Equality::context_equal( $this->getContext( $itemFactEntry['contextRef'] ), $this->getContext( $fromFactEntry['contextRef'] ) ) )
 								{
-									$x = 1;
+									// TODO
+									// $x = 1;
 								}
 							}
 
@@ -4376,6 +4460,7 @@ class XBRL_Instance
 
 						if ( $hasDuplicates )
 						{
+							// BMS 2018-07-20 A duplicate item means the calculation is void (section 5.2.5.2) so move to the next calculation
 							break;
 						}
 
@@ -4402,7 +4487,7 @@ class XBRL_Instance
 					$flattenedValues = array_map( function( $item ) {
 						return "[" . join( ',', $item ) . "]";
 					}, $itemValues );
-
+$x = 1;
 					$this->log()->instance_validation( "5.2.5.2" , "The calculation source and corresponding items are not equivalent",
 						array(
 							'from' => $from,
@@ -4411,6 +4496,9 @@ class XBRL_Instance
 							'item total' => $sum,
 							'comparison total' => $comparisonTotal,
 							'item values' => $this->log()->arrayToDescription( $flattenedValues ),
+							'missing items' => $missingItemFacts
+								? implode( ", ", array_map( function( $item ) { return $item['id']; }, $missingItemFacts ) )
+								: 'None',
 						)
 					);
 
