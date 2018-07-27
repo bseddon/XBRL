@@ -1,0 +1,13 @@
+{
+	"version": "1.0",
+	"description": "Defines the list and order of taxonomy package classes that will be tested against a prospective package file to determine its type",
+	"classNames": [
+		"XBRL_ESMA_ESEF_Package",
+		"XBRL_IFRS_Package",
+		"XBRL_TaxonomyPackage", 
+		"XBRL_SEC_JSON_Package", 
+		"XBRL_SEC_XML_Package", 
+		"XBRL_US_TaxonomyPackage",
+		"XBRL_SimplePackage"
+	]
+}

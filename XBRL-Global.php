@@ -330,7 +330,7 @@ class XBRL_Global
 
 		if ( isset( $parts['scheme'] ) ) $path .= "/{$parts['scheme']}";
 		if ( isset( $parts['host'] ) ) $path .= "/{$parts['host']}";
-		if ( isset( $parts['path'] ) ) $path .= "{$parts['path']}";
+		if ( isset( $parts['path'] ) ) $path .= "/{$parts['path']}";
 
 		return $path;
 	}

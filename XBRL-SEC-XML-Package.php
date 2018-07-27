@@ -130,8 +130,8 @@ EOT;
 				throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain a schema (.xsd) file" );
 			}
 
-			$this->schemaFile = reset( $schemaFileList );
-
+			// $this->schemaFile = reset( $schemaFileList );
+			$this->determineSchemaFile();
 		}
 		catch ( XBRL_TaxonomyPackageException $ex )
 		{
