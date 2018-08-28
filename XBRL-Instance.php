@@ -1101,7 +1101,11 @@ class XBRL_Instance
 			if ( count( $taxonomy_files ) )
 			{
 				$xbrl = XBRL::load_taxonomy( $taxonomy_files );
-				if ( ! $xbrl ) return false;
+				if ( ! $xbrl )
+				{
+					XBRL_Log::getInstance()->instance_validation( "Taxonomy", "Unable to load the taxonomy", array( 'taxonomies' => implode( ',', $taxonomy_files ) ) );
+					return false;
+				}
 
 				XBRL_Instance::$instance_taxonomy[ $xbrl->getSchemaLocation() ] = $xbrl;
 
@@ -2846,7 +2850,9 @@ class XBRL_Instance
 		$instance_taxonomy = $this->getInstanceTaxonomy();
 		$types = $instance_taxonomy->context->types;
 		// Create a collection of prefixes from this document and the backing schema(s)
-		$prefixes = array_flip( array_map( function( $taxonomy ) { return $taxonomy->getPrefix(); }, $instance_taxonomy->getImportedSchemas() ) );
+		// BMS 2018-08-22 Added the array_filter() call so that taxonomies without a prefix do not cause a log notice
+		// $prefixes = array_flip( array_map( function( $taxonomy ) { return $taxonomy->getPrefix(); }, $instance_taxonomy->getImportedSchemas() ) );
+		$prefixes = array_flip( array_filter( array_map( function( $taxonomy ) { return $taxonomy->getPrefix(); }, $instance_taxonomy->getImportedSchemas() ) ) );
 
 		$prefixes = $this->instance_namespaces + $prefixes + array( STANDARD_PREFIX_XBRLI => XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] );
 
@@ -4487,11 +4493,12 @@ class XBRL_Instance
 					$flattenedValues = array_map( function( $item ) {
 						return "[" . join( ',', $item ) . "]";
 					}, $itemValues );
-$x = 1;
+
 					$this->log()->instance_validation( "5.2.5.2" , "The calculation source and corresponding items are not equivalent",
 						array(
 							'from' => $from,
 							'from value' => $fromValue,
+							'contextRef' => $fromFactEntry['contextRef'],
 							'precision' => $this->getPrecision( $fromFactEntry ) ,
 							'item total' => $sum,
 							'comparison total' => $comparisonTotal,
