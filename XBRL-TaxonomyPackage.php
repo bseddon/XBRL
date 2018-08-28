@@ -631,9 +631,16 @@ EOT;
 
 			}
 
+			if ( $uriParts[ $i ] === '' && isset( $uriParts[ $i + 1 ] ) && preg_match_all( "/https?:/", $uriParts[ $i + 1 ] ) )
+			{
+				$i--;
+			}
+
 			return array(
-				'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i -1 ) ) ),
-				'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i -1 ) ) )
+				// 'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i -1 ) ) ),
+				// 'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i -1 ) ) )
+				'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i ) ) ),
+				'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i ) ) )
 			);
 		};
 
@@ -691,6 +698,8 @@ EOT;
 							}
 							else
 							{
+								if ( $index == "META-INF" ) continue;
+
 								// Handle any directories
 								$newUri = "$uri/$index";
 								$newPath = "$path/$index";

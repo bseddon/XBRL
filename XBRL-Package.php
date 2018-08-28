@@ -466,8 +466,17 @@ EOT;
 
 		foreach ( $parts as $part )
 		{
-			if ( ! isset( $current[ $part ] ) ) return false;
-			$current = &$current[ $part ];
+			if ( isset( $current[ $part ] ) )
+			{
+				$current = &$current[ $part ];
+				continue;
+			}
+
+			return false;
+
+			return in_array( $part, $current )
+				? $current
+				: false;
 		}
 
 		return $current;
@@ -656,13 +665,27 @@ EOT;
 	/**
 	 * Implements a Url map that allows a simple xsd name to map to a path that can be found in the cache
 	 */
-	protected function setUrlMap()
+	protected function setUrlMap( $schemaNamespace = null, $schemaFile = null )
 	{
-		if ( ! $this->schemaNamespace ) return;
+		if ( $schemaNamespace && ! $schemaFile || $schemaFile && ! $schemaNamespace )
+		{
+			throw  new Exception('setUrlMap: If a schema file or schema namespace is provided to the setUrlMapo function then both MUST be provided.');
+		}
 
-		global $mapUrl;
+		if ( ! $schemaFile )
+		{
+			$schemaFile = $this->schemaFile;
+		}
+		if ( ! $schemaNamespace )
+		{
+			$schemaNamespace = $this->schemaNamespace;
+		}
+
+		if ( ! $schemaNamespace ) return;
+
+		global $mapUrl;  // This is a function assigned below.  Effectively a change of url maps is creatged.
 		$previousMap = $mapUrl;
-		$schemaFile = $this->schemaFile;
+		// $schemaFile = $this->schemaFile;
 
 		$mapUrl = function( $url ) use( &$previousMap, $schemaFile )
 		{
