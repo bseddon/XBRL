@@ -278,10 +278,22 @@ class XBRL {
 	private $arcroleTypes						= array();
 
 	/**
+	 * A list of arcrole type ids from the schema
+	 * @var array $arcroleTypeIds The array is indexed by id with the value being a path that identifies the specific arcroleType
+	 */
+	private $arcroleTypeIds						= array();
+
+	/**
 	 * A list of role types from the schema
 	 * @var array $roleTypes
 	 */
 	private $roleTypes							= array();
+
+	/**
+	 * A list of role type ids from the schema
+	 * @var array $roleTypeIds The array is indexed by id with the value being a path that identifies the specific roleType
+	 */
+	private $roleTypeIds						= array();
 
 	/**
 	 * A list of linkbase types from the schema
@@ -665,7 +677,7 @@ class XBRL {
 			$json = file_get_contents( $file );
 			if ( ! $json )
 			{
-				XBRL_Log::getInstance()->err( "Failed to open JSON store" );
+				XBRL_Log::getInstance()->warning( "Failed to open JSON store" );
 				return false;
 			}
 		}
@@ -3172,7 +3184,15 @@ class XBRL {
 		$this->schemaLocation		=& $data['schemaLocation'];
 		$this->namespace			=& $data['namespace'];
 		$this->roleTypes			=& $data['roleTypes'];
+		if ( isset( $data['roleTypeIds'] ) )
+		{
+			$this->roleTypeIds			=& $data['roleTypeIds'];
+		}
 		$this->arcroleTypes			=& $data['arcroleTypes'];
+		if ( isset( $data['arcroleTypeIds'] ) )
+		{
+			$this->arcroleTypeIds		=& $data['arcroleTypeIds'];
+		}
 		$this->linkbaseTypes		=& $data['linkbaseTypes'];
 		$this->definitionRoleRefs	=& $data['definitionRoleRefs'];
 		$this->referenceRoleRefs	=& $data['referenceRoleRefs'];
@@ -3338,7 +3358,9 @@ class XBRL {
 			'schemaLocation'			=> &$this->schemaLocation,
 			'namespace'					=> &$this->namespace,
 			'roleTypes'					=> &$this->roleTypes,
+			'roleTypeIds'				=> &$this->roleTypeIds,
 			'arcroleTypes'				=> &$this->arcroleTypes,
+			'arcroleTypeIds'			=> &$this->arcroleTypeIds,
 			'linkbaseTypes'				=> &$this->linkbaseTypes,
 			'definitionRoleRefs'		=> &$this->definitionRoleRefs,
 			'referenceRoleRefs'			=> &$this->referenceRoleRefs,
@@ -3717,7 +3739,21 @@ class XBRL {
 	public function getTaxonomyForNamespace( $namespace )
 	{
 		if ( ! isset( $this->context->importedSchemas[ $namespace ] ) )
-			return false;
+		{
+			if ( XBRL::endsWith( $namespace, '/' ) )
+			{
+				$namespace = substr( $namespace, 0, strlen( $namespace ) - 1 );
+			}
+			else if ( ! XBRL::endsWith( $namespace, '/' ) )
+
+			{
+				$namespace .= '/';
+			}
+			if ( ! isset( $this->context->importedSchemas[ $namespace ] ) )
+			{
+				return false;
+			}
+		}
 
 		return $this->context->importedSchemas[ $namespace ];
 	}
@@ -6496,6 +6532,13 @@ class XBRL {
 						$xlinkAttributes = $arc->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 						$attributes = $arc->attributes();
 						$arcrole = (string) $xlinkAttributes->arcrole;
+
+						// BMS 2018-08-25 References are not supported so element-reference roles are not supported
+						if ( $arcrole == XBRL_Constants::$genericElementReference )
+						{
+							return true;
+						}
+
 						$preferredLabelRole = (string)$arc->attributes( XBRL_Constants::$genericPreferredLabel );
 
 						// If the arcrole is not one of the standard roles then there MUST be an arcroleRef.
@@ -6826,7 +6869,11 @@ class XBRL {
 												$el = $types->getAttribute( $fromParts['fragment'], $tax->getPrefix() );
 											}
 
-											if ( is_array( $el ) )
+											// BMS 2018-08-25 The from id could also be in the annoations (role/arcrole types) of the schema
+											if ( is_array( $el ) ||
+												 isset( $tax->roleTypeIds[ $fromParts['fragment'] ] ) ||
+												 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] )
+											)
 											{
 												// The equaity definition 'from' identifier needs to be the path + fragment
 												// Perhaps all should but for now just the equality definition
@@ -12731,9 +12778,13 @@ class XBRL {
 		{
 			// BMS 2018-04-16	This is required by the XBRL 2.1 specification (see test 2012 V-02)
 			$element =& $taxonomy->getElementById( $locatorParts['fragment'] );
-			if ( ! $element )
+			if ( ! $element &&
+				 ! isset( $taxonomy->roleTypeIds[ $locatorParts['fragment'] ] ) &&
+				 ! isset( $taxonomy->arcroleTypeIdsp[ $locatorParts['fragment'] ] )
+			)
 			{
-				$this->log()->taxonomy_validation( "3.5.3.9.2", "The concept of the locator does not exist in the DTS",
+
+				$this->log()->taxonomy_validation( "3.5.3.9.2", "The id of the locator does not exist in the DTS",
 					array(
 						'href' => basename( $linkbaseUrl ),
 						'linkbase' => $linkbaseName,
@@ -16298,6 +16349,7 @@ class XBRL {
 								$this->roleTypes[ $usedOn ] = array();
 							}
 
+							$this->roleTypeIds[ $id ] = "$usedOn/$roleUri";
 							$this->roleTypes[ $usedOn ][ $roleUri ] = $rt;
 							$rolesByUse[ $roleUri ][] = $usedOn;
 						}
@@ -16519,6 +16571,7 @@ class XBRL {
 								$this->arcroleTypes[ $usedOn ] = array();
 							}
 
+							$this->arcroleTypeIds[ $id ] = "$usedOn/$arcroleUri";
 							$this->arcroleTypes[ $usedOn ][ $arcroleUri ] = $art;
 							$arcrolesByUse[ $arcroleUri ][ $id ][ $cyclesAllowed ][] = $usedOn;
 						}
@@ -16964,7 +17017,10 @@ class XBRL {
 		}
 		// Relative to source
 		else
+		{
+			if ( XBRL::endsWith( $source, ":" ) ) $source .= "/";
 			$path = $source . "/" . $target;
+		}
 
 		// Process the components
 		// BMS 2018-06-06 By ignoring a leading slash the effect is to create relative paths on linux
