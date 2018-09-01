@@ -671,6 +671,7 @@ EOT;
 				$parts = parse_url( $actualUri );
 				if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) continue; // absolute
 
+				// Should call XBRL_Package::getCommonRootFolder()
 				$commonRootFolder = $getCommonRootFolder( $actualUri, $uri );
 
 				// if ( isset( $parts['scheme'] ) || $parts['path'][0] == '/' ) // absolute

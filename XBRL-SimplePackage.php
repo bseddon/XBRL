@@ -176,11 +176,11 @@ EOT;
 			if ( $type == PATHINFO_DIRNAME ) return true;
 			$extension = pathinfo( $name, PATHINFO_EXTENSION );
 			if ( ! in_array( $extension, array( 'xml', 'xbrl', 'xsd' ) ) ) return true;
-			$path = $path ? "$path$name" : $name;
-			$common = $this->getCommonRootFolder( $path, $this->schemaFile );
+			$path = $path ? "$path$name" : "$name";
 			$content = $this->getFile( $path );
-			if ( $context->findCachedFile( $common['uri'] ) ) return true;
-			$context->saveCacheFile( $common['uri'], $content );
+			$uri = XBRL::resolve_path( $this->schemaFile, $path ); // $common = $this->getCommonRootFolder( $path, $this->schemaFile );
+			if ( $context->findCachedFile( $uri ) ) return true;
+			$context->saveCacheFile( $uri, $content );
 			return true;
 		} );
 

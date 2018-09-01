@@ -443,12 +443,16 @@ EOT;
 		for( $i = 0; $i < $count; $i++ )
 		{
 			if ( $uriParts[ $i ] != $actualUriParts[ $i ] ) break;
+		}
 
+		if ( $uriParts[ $i ] === '' && isset( $uriParts[ $i + 1 ] ) && preg_match_all( "/https?:/", $uriParts[ $i + 1 ] ) )
+		{
+			$i--;
 		}
 
 		return array(
-			'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i -1 ) ) ),
-			'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i -1 ) ) )
+			'actual' => implode( "/", array_reverse( array_slice( $actualUriParts, $i ) ) ),
+			'uri'    => implode( "/", array_reverse( array_slice( $uriParts, $i ) ) )
 		);
 	}
 
