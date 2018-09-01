@@ -9538,7 +9538,9 @@ class XBRL {
 			if ( ! $taxonomy )
 			{
 				// Look for the taxonomy and include its contents in the DTS
-				$xsd = $this->resolve_path( $this->getSchemaLocation(), $roleRefHref );
+				// BMS 2018-09-01 Seems like this is the better thing to do
+				// $xsd = $this->resolve_path( $this->getSchemaLocation(), $roleRefHref );
+				$xsd = $this->resolve_path( $linkbaseRef['href'], $roleRefHref );
 
 				$taxonomy = XBRL::withTaxonomy( strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd );
 
