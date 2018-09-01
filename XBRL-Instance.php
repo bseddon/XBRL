@@ -4538,8 +4538,115 @@ class XBRL_Instance
 	 */
 	private function validateElementEntry( $entry, $factKey, $parent, $types, $prefixes, $primaryItem, $drsHypercubes )
 	{
+		// This should support extensible enumerations 2.0 as well as 1.0 but until there is a conformance suite to validate that assertion...
+		if ( $types->resolvesToBaseType( $entry['taxonomy_element']['type'], array( XBRL_Constants::$enumItemType, XBRL_Constants::$enumSetItemType ) ) )
+		{
+			// Although the type is correct, the enumeration defintion must be valid to be processed.
+			// Any errors will have been reported in taxonomy validation.
+			if ( $entry['value'] && ! isset( $entry['nil'] ) &&
+				 isset( $entry['taxonomy_element']['enumDomain'] ) &&
+				 isset( $entry['taxonomy_element']['enumLinkrole'] ) &&
+				 isset( $entry['taxonomy_element']['enumHeadUsable'] )
+			)
+			{
+				$valid = false;
 
-		if ( XBRL::isTuple( $entry['taxonomy_element'] ) )
+				$domainQname = qname( $entry['taxonomy_element']['enumDomain'], $this->getInstanceNamespaces() );
+				if ( $domainQname )
+				{
+					$taxonomy = $this->getTaxonomyForNamespace( $domainQname->namespaceURI );
+					if ( $taxonomy )
+					{
+						$members = $taxonomy->getDefinitionRoleDimensionMembers( $entry['taxonomy_element']['enumLinkrole'] );
+						$mergedMembers = $members;
+
+						// Pull in any target role members
+						foreach ( $members as $memberId => $member )
+						{
+							foreach ( $member['parents'] as $parentId => $parent )
+							{
+								if ( ! isset( $parent['targetRole'] ) ) continue;
+								$targetMembers = $taxonomy->getDefinitionRoleDimensionMembers( $parent['targetRole'] );
+								$mergedMembers = array_merge( $targetMembers, $mergedMembers );
+								unset( $mergedMembers[ $memberId ]['parents'][ $parentId ]['targetRole'] );
+							}
+						}
+
+						$members = $mergedMembers;
+						unset( $mergedMembers );
+
+						$domainElement = $taxonomy->getElementByName( $domainQname->localName );
+
+						if ( $domainElement )
+						{
+							$domainId = "{$taxonomy->getTaxonomyXSD()}#{$domainElement['id']}";
+
+							// In extensible enumerations 2.0 there can be more that one value in a 'token'
+							// which means the parts can be separated by any number of white space chars
+							$values = array_filter( preg_split("/[\s\t\r\n]+/", $entry['value'] ) );
+							foreach ( $values as $value )
+							{
+								$valueQname = qname( $value, $this->getInstanceNamespaces() );
+								if ( $valueQname )
+								{
+									if ( $domainQname->namespaceURI == $valueQname->namespaceURI )
+									{
+										$memberElement = $taxonomy->getElementByName( $valueQname->localName );
+										if ( $memberElement )
+										{
+											$memberId = "{$taxonomy->getTaxonomyXSD()}#{$memberElement['id']}";
+
+											// Look for a domain member with an id the same as the member element id
+											if ( isset( $members[ $memberId ] ) )
+											{
+												// If the entry concept domain does not equal the member element id then it must equal a parent of the member element
+												$valid = $memberId == $domainId;
+												if ( $valid && ! $entry['taxonomy_element']['enumHeadUsable'] )
+												{
+													$valid = false;
+												}
+												else
+												{
+													if ( ! $valid )
+													{
+														$traverseParents = function( $member, $needle ) use ( &$traverseParents, &$members )
+														{
+															foreach ( $member['parents'] as $parentId => $parent )
+															{
+																if ( isset( $parent['usable'] ) && ! $parent['usable'] ) continue;
+																if ( $parentId == $needle ) return true;
+																if ( ! isset( $members[ $parentId ] ) ) continue;
+																if ( $traverseParents( $members[ $parentId ], $needle ) ) return true;
+															}
+
+															return false;
+														};
+
+														$valid = $traverseParents( $members[ $memberId ], $domainId );
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if ( ! $valid )
+				{
+					$this->log()->instance_validation( 'extensible enumeration', '',
+						array(
+							'id' => $entry['taxonomy_element']['id'],
+							'value' => $entry['value'],
+							'error' => 'enumie:InvalidFactValue',
+						)
+					);
+				}
+			}
+		}
+		else if ( XBRL::isTuple( $entry['taxonomy_element'] ) )
 		{
 			// echo "Tuple";
 			// 4.9 The tuple entry MUST NOT have a context ref or unit ref

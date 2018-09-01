@@ -437,6 +437,12 @@ class XBRL {
 	private $linkbases							= array();
 
 	/**
+	 * A temporary collection of discovered enumeration concept ids
+	 * @var array
+	 */
+	private $enumerations						= array();
+
+	/**
 	 * Return the valiation state
 	 * @return boolean
 	 */
@@ -14207,6 +14213,57 @@ class XBRL {
 			{
 				$this->elementLinkTypes[] = $name;
 			}
+			// else if ( $element['type'] == XBRL_Constants::$enumItemType || $element['type'] == XBRL_Constants::$enumSetItemType )
+			else if ( $types->resolvesToBaseType( $element['type'], array( XBRL_Constants::$enumItemType, XBRL_Constants::$enumSetItemType ), false ) )
+			{
+				// Record that this element is an extensible enumeration concept
+				$this->enumerations[  $id ] = $id;
+
+				// Make sure there is a linkrole and domain attribute
+				$enumAttributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_ENUMERATIONS ] );
+
+				if ( property_exists( $enumAttributes, 'domain' ) )
+				{
+					$element['enumDomain'] = (string)$enumAttributes['domain'];
+				}
+				else
+				{
+					if ( $this->isValidating() )
+					{
+						$this->log()->taxonomy_validation( "Extensible enumerations", "The extensible concept does not include a domain",
+							array(
+								'id' => $id,
+								'name' => $name,
+								'type' => $element['substitutionGroup'],
+								'error' => 'enumte:MissingDomainError'
+							)
+						);
+					}
+				}
+
+				if ( property_exists( $enumAttributes, 'linkrole' ) )
+				{
+					$element['enumLinkrole'] = (string)$enumAttributes['linkrole'];
+				}
+				else
+				{
+					if ( $this->isValidating() )
+					{
+						$this->log()->taxonomy_validation( "Extensible enumerations", "The extensible concept does not include a linkrole",
+							array(
+								'id' => $id,
+								'name' => $name,
+								'type' => $element['substitutionGroup'],
+								'error' => 'enumte:MissingLinkRoleError'
+							)
+						);
+					}
+				}
+
+				$element['enumHeadUsable'] = property_exists( $enumAttributes, 'headUsable' )
+					? filter_var( $enumAttributes['headUsable'], FILTER_VALIDATE_BOOLEAN )
+					: false;
+			}
 		}
 
 	}
@@ -15022,6 +15079,49 @@ class XBRL {
 			}
 		}
 
+		// Make sure the extensible enumerations contain valid references after all elements are in and the dimension information is available
+		foreach ( $this->enumerations as $id )
+		{
+			// Get the element
+			$element = $this->getElementById( $id );
+			$valid = false; // Be pessimistic
+
+			if ( $element )
+			{
+				// This condition has been reported already
+				if ( ! isset( $element['enumDomain'] ) || ! isset( $element['enumLinkrole'] ) ) continue;
+
+				$parts = explode( ":", $element['enumDomain'] );
+				if ( count( $parts ) == 2 )
+				{
+					$namespace = $this->getNamespaceForPrefix( $parts[0] );
+					if ( $namespace)
+					{
+						$taxonomy = $this->getTaxonomyForNamespace( $namespace );
+						$domainElement = $taxonomy->getElementByName( $parts[1] );
+						if ( $domainElement )
+						{
+							$valid = ! $this->context->types->resolveToSubstitutionGroup( $domainElement['substitutionGroup'], array( 'xbrldt:hypercubeItem', 'xbrldt:dimensionItem', 'xbrli:tuple' ) );
+						}
+					}
+				}
+			}
+
+			if ( ! $valid )
+			{
+				$this->log()->taxonomy_validation( "extensible enumerations", "The domain value does not point to a valid domain member",
+					array(
+						'id' => $id,
+						'domain' => $element['enumDomain'],
+						'substitutionGroup' => $domainElement['substitutionGroup'],
+						'error' => 'enumte:InvalidDomainError',
+					)
+				);
+			}
+		}
+
+		$this->enumerations = array();
+
 		if ( ! $main ) return;
 
 		// Resolve all the primary item DRSs. This will force the target roles to be tested again.
@@ -15063,7 +15163,8 @@ class XBRL {
 									"A primary item source of a hypercube is also a member of an explicit dimension's domain",
 									array(
 										'primaryitem' => "'$primaryItemId'",
-										'role' => "'$roleUri'",
+
+											'role' => "'$roleUri'",
 										'error' => 'xbrldte:PrimaryItemPolymorphismError',
 									)
 								);

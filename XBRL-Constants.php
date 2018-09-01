@@ -103,6 +103,13 @@ define( "STANDARD_PREFIX_INSTANCES", "instances" );
 define( "STANDARD_PREFIX_LYQUIDITY", "lyquidity" );
 define( "STANDARD_PREFIX_ASPECT", "aspect" );
 define( "STANDARD_PREFIX_SEVERITY", "sev" );
+define( "STANDARD_PREFIX_ENUMERATIONS", "enum" );
+define( "STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS", "enumte" );
+define( "STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS", "enumie" );
+/** PWD */
+define( "STANDARD_PREFIX_ENUMERATIONS_20", "enum20" );
+define( "STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20", "enumte20" );
+define( "STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS_20", "enumie20" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -213,6 +220,12 @@ class XBRL_Constants
 		STANDARD_PREFIX_INSTANCES				=> "http://xbrl.org/2010/variable/instance",
 		STANDARD_PREFIX_LYQUIDITY				=> "http://lyquidity.com/2017/functions",
 		STANDARD_PREFIX_SEVERITY				=> "http://xbrl.org/2016/assertion-severity",
+		STANDARD_PREFIX_ENUMERATIONS					=> "http://xbrl.org/2014/extensible-enumerations",
+		STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS	=> "http://xbrl.org/2014/extensible-enumerations/instance-errors",
+		STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS	=> "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
+		STANDARD_PREFIX_ENUMERATIONS_20					=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0",
+		STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS_20	=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0/instance-errors",
+		STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20	=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0/taxonomy-errors",
 	);
 
 	/**
@@ -1193,11 +1206,28 @@ class XBRL_Constants
 	 */
 	public static $xlinkTypeLocator			= 'locator';
 
-		/**
+	/**
 	 * The 'resource' element type attribute value
 	 * @var array
 	 */
 	public static $xlinkTypeResource		= 'resource';
+
+	/* -----------------------------------------------------------------------------
+	 * Extensible enumerations
+	 * -----------------------------------------------------------------------------
+	 */
+
+	/**
+	 * Returns enum:enumerationItemType
+	 * @var string $enumItemType
+	 */
+	public static $enumItemType				= "enum:enumerationItemType";
+
+	/**
+	 * Returns enum:enumerationSetItemType
+	 * @var string $enumSetItemType
+	 */
+	public static $enumSetItemType			= "enum:enumerationSetItemType";
 
 	/* -----------------------------------------------------------------------------
 	 * Inline-XBRL
