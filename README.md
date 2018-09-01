@@ -28,6 +28,7 @@ Conformance suite tests
 ![XPath 2.0 conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_xpath20&x=y "XPath 2.0 conformance suite tests")
 ![XBRL functions registry conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_functions&x=y "XBRL functions registry conformance suite tests")
 ![XBRL Formulas conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_formulas&x=y "XBRL Formulas conformance suite tests")
+![XBRL Enumerations conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_enumerations&x=y "XBRL Enumerations conformance suite tests")
 
 ![Build status last run date](https://www.xbrlquery.com/tests/status.php?test=date "The date of the last run")
 
@@ -59,8 +60,10 @@ the processor just processes and assumes you know the schemas and instance docum
 
 * XBRL 2.1 except there is no support for reference linkbases.
 * XBRL Dimensions are supported.
-* XBRL Generics including generic references, generic links and generic labels.
-* XBRL Formulas
+* XBRL Generics including generic references, generic links, generic labels and assertions.
+* XBRL Formulas.
+* XBRL Taxonomy Packages (including support for the various legacy SEC packages).
+* XBRL Extensible Enumerations 1.0 and 2.0 PWD.
 
 XBRL Formulas includes support for:
 
@@ -76,6 +79,12 @@ The project passes almost all conformance tests, the omissions arising because t
 
 A separate project [XBRL-tests](https:github.com/bseddon/XBRL-tests) provides a means to verify the project passes the conformance test.  This
 project is a copy of the test harness we use to run the conformance tests.
+
+### Signing
+
+Instance documents and taxonomies can also be signed.  The signing techniques used are similar to those use to sign Word or PDF documents or emails.  Documents are signed using the private key of a certificate you have so that others are able to verify the contents of a document have not changed since you created it.
+
+Signing does not impact the original document but is important for recipients of a taxonomy to know they are working with an unaltered copy of the relevant taxonomy and for recipients of instance documents to know the contents have not be altered since the document was prepared.
 
 ## Purpose
 
