@@ -1005,6 +1005,7 @@ class XBRL {
 		$data = $store['schemas'][ $namespace ];
 		$taxonomy->fromStore( $data );
 
+		// Fixup the cotext when the taxonomy extends one or more base taxonomies
 		$context =& $taxonomy->context;
 		if ( ! empty( $store['context']['calculationRoleRefs'] ) )
 		{
@@ -1070,6 +1071,8 @@ class XBRL {
 			$context->importedSchemas[ $schemaNamespace ] = $xbrl;
 			$context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $schemaNamespace;
 		}
+
+		XBRL::fixupForeignDefinitionsFromStrore( $store['schemas'] );
 
 		$xbrl->rebuildLabelsByHRef();
 
@@ -1425,6 +1428,8 @@ class XBRL {
 			if ( $namespace === $store['mainNamespace'] ) $instance = $xbrl;
 		}
 
+		XBRL::fixupForeignDefinitionsFromStrore( $store['schemas'] );
+
 		if ( isset( $store['context']['types'] ) )
 		{
 			// $context->types->fromArray( $store['context']['types'] );
@@ -1432,6 +1437,35 @@ class XBRL {
 		}
 
 		return $instance;
+	}
+
+	/**
+	 * The
+	 * @param array $schemas
+	 */
+	private static function fixupForeignDefinitionsFromStrore( $schemas )
+	{
+		$context = XBRL_Global::getInstance();
+
+		foreach ( $schemas as $namespace => $data )
+		{
+			if ( ! isset( $data['foreignDefinitionRoleRefs'] ) || ! $data['foreignDefinitionRoleRefs'] ) continue;
+
+			$schemaTaxonomy = $context->getTaxonomyForXSD( $data['schemaLocation'] );
+			foreach( $data['foreignDefinitionRoleRefs'] as $definitionRoleRefKey => $definitionRoleRef )
+			{
+				$home_taxonomy = $context->getTaxonomyForXSD( $definitionRoleRef['href'] );
+				if ( ! $home_taxonomy )
+				{
+					$ex = new \Exception("Unable to locate taxonomy instance for '{$definitionRoleRef['href']}'");
+					// error_log($ex->getTraceAsString());
+					throw $ex;
+				}
+				$roleRef =& $home_taxonomy->getDefinitionRoleRef( $definitionRoleRef['roleUri'] );
+				$roleRef = $schemaTaxonomy->mergeExtendedRoles( $roleRef, $definitionRoleRef, $mergedRoles, false );
+				$context->setPrimaryItemsCache( null );
+			}
+		}
 	}
 
 	/**
@@ -3233,17 +3267,23 @@ class XBRL {
 			}
 		}
 
-		if ( isset( $data['foreignDefinitionRoleRefs'] ) && $data['foreignDefinitionRoleRefs'] )
-		{
-			foreach( $data['foreignDefinitionRoleRefs'] as $definitionRoleRefKey => $definitionRoleRef )
-			{
-				$home_taxonomy = $this->getTaxonomyForXSD( $definitionRoleRef['href'] );
-				$roleRef =& $home_taxonomy->getDefinitionRoleRef( $definitionRoleRef['roleUri'] );
-				$roleRef = $this->mergeExtendedRoles( $roleRef, $definitionRoleRef, $mergedRoles, false );
-				$this->context->setPrimaryItemsCache( null );
-			}
-		}
-
+		// BMS 2018-09-09 Moved to $this->fixupForeignDefinitionsFromStrore($schemas)
+		// if ( isset( $data['foreignDefinitionRoleRefs'] ) && $data['foreignDefinitionRoleRefs'] )
+		// {
+		// 	foreach( $data['foreignDefinitionRoleRefs'] as $definitionRoleRefKey => $definitionRoleRef )
+		// 	{
+		// 		$home_taxonomy = $this->getTaxonomyForXSD( $definitionRoleRef['href'] );
+		// 		if ( ! $home_taxonomy )
+		// 		{
+		// 			$ex = new \Exception("Unable to locate taxonomy instance for '{$definitionRoleRef['href']}'");
+		// 			// error_log($ex->getTraceAsString());
+		// 			throw $ex;
+		// 		}
+		// 		$roleRef =& $home_taxonomy->getDefinitionRoleRef( $definitionRoleRef['roleUri'] );
+		// 		$roleRef = $this->mergeExtendedRoles( $roleRef, $definitionRoleRef, $mergedRoles, false );
+		// 		$this->context->setPrimaryItemsCache( null );
+		// 	}
+		// }
 	}
 
 	/**
