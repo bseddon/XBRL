@@ -4140,6 +4140,7 @@ class XBRL_Instance
 				{
 					$this->log()->instance_validation( "5.2.5.2.2", "The taxonomy of the summation source does not exist in the DTS",
 						array(
+							'role' => $roleKey,
 							'from' => $from,
 						)
 					);
@@ -4157,7 +4158,8 @@ class XBRL_Instance
 				{
 					$this->log()->instance_validation( "5.2.5.2.2", "The concept of the summation source does not exist in the DTS",
 						array(
-							'essence' => $from,
+							'role' => $roleKey,
+							'from' => $from,
 						)
 					);
 					continue;
@@ -4168,8 +4170,9 @@ class XBRL_Instance
 				{
 					$this->log()->instance_validation( "5.2.5.2.2" , "Cannot locate type information for the summation item",
 						array(
+							'role' => $roleKey,
 							'type' => $fromElement['type'],
-							'element' => $from,
+							'from' => $from,
 						)
 					);
 					continue;
@@ -4179,8 +4182,9 @@ class XBRL_Instance
 				{
 					$this->log()->instance_validation( "5.2.5.2.2" , "The summation item type is not numeric",
 						array(
+							'role' => $roleKey,
 							'type' => $fromElement['type'],
-							'element' => $from,
+							'from' => $from,
 						)
 					);
 					continue;
@@ -4263,6 +4267,7 @@ class XBRL_Instance
 						{
 							$this->log()->instance_validation( "5.2.5.2.1", "A weight must exist on the calculation link",
 								array(
+									'role' => $roleKey,
 									'from' => $from,
 									'item' => $item['to'],
 								)
@@ -4278,6 +4283,7 @@ class XBRL_Instance
 						{
 							$this->log()->instance_validation( "5.2.5.2.2", "The taxonomy of the alias does not exist in the DTS",
 								array(
+									'role' => $roleKey,
 									'item' => $item['to'],
 								)
 							);
@@ -4290,6 +4296,7 @@ class XBRL_Instance
 						{
 							$this->log()->instance_validation( "5.2.5.2.2", "The concept of the alias does not exist in the DTS",
 								array(
+									'role' => $roleKey,
 									'item' => $item['to'],
 								)
 							);
@@ -4302,6 +4309,7 @@ class XBRL_Instance
 						{
 							$this->log()->instance_validation( "5.2.5.2.2" , "Cannot locate type information for the summation item",
 								array(
+									'role' => $roleKey,
 									'type' => $itemElement['type'],
 									'element' => $item['to'],
 								)
@@ -4441,6 +4449,7 @@ class XBRL_Instance
 								{
 									$this->log()->instance_validation( "5.1.1.2" , "Calculation arc weight not valid for the 'from' and 'to' concept balance values",
 										array(
+											'role' => $roleKey,
 											'from' => $fromElement['id'],
 											'to' => $itemElement['id'],
 											'from balance' => $fromElement['balance'],
@@ -4496,6 +4505,7 @@ class XBRL_Instance
 
 					$this->log()->instance_validation( "5.2.5.2" , "The calculation source and corresponding items are not equivalent",
 						array(
+							'role' => $roleKey,
 							'from' => $from,
 							'from value' => $fromValue,
 							'contextRef' => $fromFactEntry['contextRef'],
@@ -5556,7 +5566,7 @@ class XBRL_Instance
 		// To finish when doing dimensional validation
 		if ( is_null( $data ) ) $data = array();
 
-		// Anyone dimension should appear only once in a component
+		// Anyone dimension should appear only once in a component (3.1.4..2 (1))
 		if ( isset( $data[ $component['dimension'] ] ) )
 		{
 			$this->log()->dimension_validation(
@@ -5571,6 +5581,9 @@ class XBRL_Instance
 
 			return false;
 		}
+
+		// 3.1.4.2 (2) (xbrldie:DefaultValueUsedInInstanceError)
+		// is handled when evaluating primary items
 
 		// Record this for any future iteration
 		$data[ $component['dimension'] ] = true;
@@ -5599,10 +5612,13 @@ class XBRL_Instance
 
 		foreach ( $component['member'] as $type => $codes )
 		{
-			// 3.1.4.4.3 The typed dimension content [Def, 15] MUST be an instantiation of the element
+			// 3.1.4.4.3 (3) The typed dimension content [Def, 15] MUST be an instantiation of the element
 			// pointed to by the @xbrldt:typedDomainRef of the typed dimension indicated in the @dimension
 			// attribute of the xbrldi:typedMember element. A dimensional processor MUST raise an error
 			// xbrldie:IllegalTypedDimensionContentError if this rule is violated.
+			// Note:
+			// 3.1.4.4.3 (1) Should be checked when reading the context
+			// 3.1.4.4.3 (2) Should be checked when validaing the fact value
 
 			$typeElement = $types->getElement( $type );
 			if ( ! $typeElement ||
@@ -5625,23 +5641,51 @@ class XBRL_Instance
 			$typedDomainRef = $dimension['element']['typedDomainRef'];
 			// The typedDomainRef will be something like xxx.xsd#elementName whereas the
 			// instance Xml element will be ns:elementName.  The two address forms need to
-			// be normalize so the domain ref value and element can be compared.
-			$domainTaxonomy = XBRL::startsWith( $typedDomainRef, '#')
-				? $this->getInstanceTaxonomy()
-				: $this->getInstanceTaxonomy()->getTaxonomyForXSD( $typedDomainRef );
+			// be normalized so the domain ref value and element can be compared.
 
 			$validContentElement = false;
+
+			// BMS 2018-09-09 The existing implementation (immediately below) is too restrictive and wrong
+			// It sees $this->getInstanceTaxonomy as the default taxonomy if the $typedDomainRef which is not correct.
+			// $domainTaxonomy = XBRL::startsWith( $typedDomainRef, '#')
+			//	 ? $this->getInstanceTaxonomy()
+			//	 : $this->getInstanceTaxonomy()->getTaxonomyForXSD( $typedDomainRef );
+
+			// If there is no explicit schema the taxonomy of the typedDomainRef is defined by $dimension['namespace']
+			$domainTaxonomy = XBRL::startsWith( $typedDomainRef, '#')
+				? $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $dimension['namespace'] )
+				: $this->getInstanceTaxonomy()->getTaxonomyForXSD( $typedDomainRef );
+			if ( ! $domainTaxonomy )
+			{
+				$this->log()->dimension_validation(
+					"3.1.4.4.3",
+					"The dimension type member MUST be defined by the DTS",
+					array(
+						'context' => "'$contextId'",
+						'dimension' => "'{$dimension['element']['id']}'",
+						'namespace' => $dimension['namespace'],
+						'type' => "'$type'",
+						'error' => 'xbrldie:IllegalTypedDimensionContentError',
+					)
+				);
+
+			}
+
 			if ( $domainTaxonomy )
 			{
-				$domainNamespace = $domainTaxonomy->getNamespace();
-				$prefix = strstr( $type, ':', true );
-				$elementNamespace = $domainTaxonomy->getNamespaceForPrefix( $prefix );
-
+				// $domainNamespace = $domainTaxonomy->getNamespace();
+				// $prefix = strstr( $type, ':', true );
+				// $elementNamespace = $domainTaxonomy->getNamespaceForPrefix( $prefix );
 				$domainId = substr( strstr( $typedDomainRef, '#' ), 1 );
-				$domainElementType = $types->getTypeById( $domainId, $domainTaxonomy->getPrefix() );
-				$elementName = substr( strstr( $type, ':' ), 1 );
+				$domainElement = $domainTaxonomy->getElementById( $domainId );
 
-				$validContentElement = isset( $domainElementType['name'] ) && $domainNamespace == $elementNamespace && $domainElementType['name'] == $elementName;
+				// The requirement of this test is for the qname of the typed member to be the same as the qname of the $typedDomainRef
+				$typeQName = qname( $type, $this->getInstanceNamespaces() );
+				$validContentElement = $typeQName && $typeQName->namespaceURI == $domainTaxonomy->getNamespace() && $typeQName->localName == $domainElement['name'];
+				// $domainElementType = $types->getTypeById( $domainId, $domainTaxonomy->getPrefix() );
+				// $elementName = substr( strstr( $type, ':' ), 1 );
+
+				// $validContentElement = isset( $domainElementType['name'] ) && $domainNamespace == $elementNamespace && $domainElementType['name'] == $elementName;
 			}
 
 			if ( ! $validContentElement )
