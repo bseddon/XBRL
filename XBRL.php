@@ -786,7 +786,10 @@ class XBRL {
 			$xbrlDocument = XBRL::getXml( $taxonomyXsdFile, $context );
 			if ( ! $xbrlDocument instanceof SimpleXMLElement)
 			{
-				XBRL_Log::getInstance()->warning( "Unable to load taxonomy: $taxonomyXsdFile" );
+				// XBRL_Log::getInstance()->warning( "Unable to load taxonomy: $taxonomyXsdFile" );
+				XBRL_Log::getInstance()->instance_validation('4.2', "The schema file cannot be located relative to the instance document", array(
+					'name' => $taxonomyXsdFile
+				) );
 				return null;
 			}
 
@@ -1072,7 +1075,7 @@ class XBRL {
 			$context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $schemaNamespace;
 		}
 
-		XBRL::fixupForeignDefinitionsFromStrore( $store['schemas'] );
+		XBRL::fixupForeignDefinitionsFromStore( $store['schemas'] );
 
 		$xbrl->rebuildLabelsByHRef();
 
@@ -1428,7 +1431,7 @@ class XBRL {
 			if ( $namespace === $store['mainNamespace'] ) $instance = $xbrl;
 		}
 
-		XBRL::fixupForeignDefinitionsFromStrore( $store['schemas'] );
+		XBRL::fixupForeignDefinitionsFromStore( $store['schemas'] );
 
 		if ( isset( $store['context']['types'] ) )
 		{
@@ -1443,7 +1446,7 @@ class XBRL {
 	 * The
 	 * @param array $schemas
 	 */
-	private static function fixupForeignDefinitionsFromStrore( $schemas )
+	private static function fixupForeignDefinitionsFromStore( $schemas )
 	{
 		$context = XBRL_Global::getInstance();
 
@@ -3267,7 +3270,7 @@ class XBRL {
 			}
 		}
 
-		// BMS 2018-09-09 Moved to $this->fixupForeignDefinitionsFromStrore($schemas)
+		// BMS 2018-09-09 Moved to $this->fixupForeignDefinitionsFromStore($schemas)
 		// if ( isset( $data['foreignDefinitionRoleRefs'] ) && $data['foreignDefinitionRoleRefs'] )
 		// {
 		// 	foreach( $data['foreignDefinitionRoleRefs'] as $definitionRoleRefKey => $definitionRoleRef )
