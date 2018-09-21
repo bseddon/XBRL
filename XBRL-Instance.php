@@ -225,6 +225,109 @@ class XBRL_Instance
 	}
 
 	/**
+	 * Creates an instance object from a JSON string, perhaps in a zip file
+	 * @param string $output_path
+	 * @param string $cache_basename
+	 * @param string $taxonomyNamespace
+	 * @param string $compiledTaxonomyFile
+	 * @return XBRL_Instance
+	 */
+	public static function FromInstanceCache( $cache_path, $cache_basename, $taxonomyNamespace, $compiledTaxonomyFile )
+	{
+		$xbrl = XBRL::load_taxonomy( $compiledTaxonomyFile );
+		if ( ! $xbrl ) return false;
+
+		$json = null;
+
+		if ( XBRL::endsWith( $cache_basename, '.zip' ) )
+		{
+			$zip = new \ZipArchive();
+			$zip->open( "$cache_path/$cache_basename" );
+			$json = $zip->getFromName( basename( $cache_basename, '.zip' ) . '.json' );
+		}
+		else
+		{
+			$json = file_get_contents( "$cache_path/$cache_basename" );
+		}
+
+		$instance = new XBRL_Instance();
+
+		$array = json_decode( $json, true );
+
+		$instance->allowNested = $array['allowNested'];
+		$instance->contextDimensionMemberList = $array['contextDimensionMemberList'];
+		$instance->contexts = $array['contexts'];
+		$instance->document_name = $array['document_name'];
+		$instance->duplicateFacts = TupleDictionary::fromJSON( $array['duplicateFacts'] );
+		$instance->elements = $array['elements'];
+		$instance->error = $array['error'];
+		$instance->footnotes = $array['footnotes'];
+		$instance->guid = $array['guid'];
+		$instance->instance_namespaces = $array['instance_namespaces'];
+		$instance->segments = $array['segments'];
+		$instance->tupleRefs = $array['tupleRefs'];
+		$instance->uniqueFactIds = $array['uniqueFactIds'];
+		$instance->units = $array['units'];
+		$instance->usedContexts = $array['usedContexts'];
+		$instance->instance_xml = simplexml_load_file( $instance->document_name );
+
+		$taxonomy = $xbrl->getTaxonomyForNamespace( $taxonomyNamespace );
+		XBRL_Instance::$instance_taxonomy[ $taxonomy->getSchemaLocation() ] = $taxonomy;
+		$instance->schemaFilename = $taxonomy->getSchemaLocation();
+		$instance->defaultCurrency = $taxonomy->getDefaultCurrency();
+		$instance->taxonomyToNamespaceMap = $taxonomy->getImportedSchemas();
+
+		return $instance;
+	}
+
+	/**
+	 * Perist an instance to a file containing a JSON representation
+	 * @param string $output_path
+	 * @param string $output_basename
+	 * @return bool
+	 */
+	public function toInstanceCache( $output_path, $output_basename )
+	{
+		$json = json_encode( array(
+			// 'instance_taxonomy' => $this->instance_taxonomy,
+			'allowNested' => $this->allowNested,
+			// 'cacheContextElements' => $this->cacheContextElements,
+			// 'cacheDocumentNamespaces' => $this->cacheDocumentNamespaces,
+			// 'cacheNamespaces' => $this->cacheNamespaces,
+			'contextDimensionMemberList' => $this->contextDimensionMemberList,
+			'contexts' => $this->contexts,
+			// 'defaultCurrency' => $this->defaultCurrency,
+			'document_name' => $this->document_name,
+			'duplicateFacts' => $this->duplicateFacts->toJSON(),
+			'elements' => $this->elements,
+			'error' => $this->error,
+			'footnotes' => $this->footnotes,
+			'guid' => $this->guid,
+			'instance_namespaces' => $this->instance_namespaces,
+			// 'instance_xml' => $this->instance_xml,
+			// 'schemaFilename' => $this->schemaFilename,
+			'segments' => $this->segments,
+			// 'taxonomyToNamespaceMap' => array_keys( $this->taxonomyToNamespaceMap ),
+			'tupleRefs' => $this->tupleRefs,
+			'uniqueFactIds' => $this->uniqueFactIds,
+			'units' => $this->units,
+			'usedContexts' => $this->usedContexts,
+		) );
+
+		file_put_contents( "$output_path/$output_basename.json", $json );
+		$zip = new ZipArchive();
+		$zip->open( "$output_path/$output_basename.zip", ZipArchive::CREATE | ZipArchive::OVERWRITE );
+		$zip->addFile( "$output_path/$output_basename.json", "$output_basename.json" );
+
+		if ( $zip->close() === false )
+		{
+			XBRL_Log::getInstance()->err( "Error closing zip file" );
+			XBRL_Log::getInstance()->err( $zip->getStatusString() );
+		}
+
+	}
+
+	/**
 	 * Returns the type of the element
 	 * @param string $element The element from which to access the type
 	 * @return the type as a string
@@ -1978,8 +2081,8 @@ class XBRL_Instance
 						// Standard attributes like contextRef, unitRef, precision and decimals will have no prefix
 						if ( ! $attributeNode->prefix ) continue;
 
-						$prefix = $this->normalizePrefix( $attributeNode->prefix );
-						$attribute = $types->getAttribute( $attributeNode->localName, $prefix );
+						$attrPrefix = $this->normalizePrefix( $attributeNode->prefix );
+						$attribute = $types->getAttribute( $attributeNode->localName, $attrPrefix );
 
 						if ( isset( $attribute['types'][0] ) && $types->resolvesToBaseType( $attribute['types'][0], array( 'xs:decimal' ) ) )
 						{
