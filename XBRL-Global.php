@@ -267,7 +267,7 @@ class XBRL_Global
 	{
 		if ( ! $this->useCache ) return false;
 
-		$path = $this->createPathFromUrl( $url );
+		$path = XBRL_Global::createPathFromUrl( $url, $this->cacheLocation );
 
 		return file_exists( $path )
 			? $path
@@ -322,11 +322,11 @@ class XBRL_Global
 	 * @param string $url
 	 * @return string
 	 */
-	private function createPathFromUrl( $url )
+	public static function createPathFromUrl( $url, $cacheLocation )
 	{
 		$parts = parse_url( $url );
 
-		$path = str_replace( '\\', '/', rtrim( $this->cacheLocation, '\\/' ) );
+		$path = str_replace( '\\', '/', rtrim( $cacheLocation, '\\/' ) );
 
 		if ( isset( $parts['scheme'] ) ) $path .= "/{$parts['scheme']}";
 		if ( isset( $parts['host'] ) ) $path .= "/{$parts['host']}";
@@ -356,7 +356,7 @@ class XBRL_Global
 			return false;
 		}
 
-		$path = $this->createPathFromUrl( $url );
+		$path = XBRL_Global::createPathFromUrl( $url, $this->cacheLocation );
 
 		$dir = pathinfo( $path, PATHINFO_DIRNAME );
 		if ( ! file_exists( $dir ) )
