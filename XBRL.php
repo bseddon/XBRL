@@ -3914,7 +3914,7 @@ class XBRL {
 	 * Returns a description for an element identified by href and optionally a role and language
 	 * If a label cannot be found using the options and the options are not already the defaults, try the defaults.
 	 * @param string $href  The id of the element for which a description is to be retrieved.  If only the fragment is provided, its assumed to be from the current taxonomy.
-	 * @param null|string[] (optional) $roles If true include the element text in the result.  If the argument is an array it will be an array of preferred labels.
+	 * @param null|string[] $roles (optional) If true include the element text in the result.  If the argument is an array it will be an array of preferred labels.
 	 * @param null|string $lang (optional) a language locale
 	 * @param string $extendedLinkRole (optional)
 	 * @return bool|string A description string or false
