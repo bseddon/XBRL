@@ -20,6 +20,8 @@
  */
 
 use XBRL\Formulas\Exceptions\FormulasException;
+use lyquidity\xml\schema\SchemaTypes;
+use lyquidity\xml\QName;
 
 /**
  * XBRL instance document class
@@ -53,8 +55,6 @@ $utilitiesPath = isset( $_ENV['UTILITIIES_LIBRARY_PATH'] )
 
 require_once $utilitiesPath . 'SimpleXMLElementToArray.php';
 require_once $utilitiesPath . 'tuple-dictionary.php';
-
-use lyquidity\xml\schema\SchemaTypes;
 
 /**
  * Provides functions to read and interpret instance documents
@@ -6088,6 +6088,18 @@ class ContextsFilter
 	}
 
 	/**
+	 * Get a specific context by reference
+	 * @param unknown $ref
+	 * @return boolean|Array
+	 */
+	public function getContext( $ref )
+	{
+		return isset( $this->contexts[ $ref ] )
+			? $this->contexts[ $ref ]
+			: false;
+	}
+
+	/**
 	 * Returns all contexts that include $date in their date range
 	 * @param string|DateTime $date
 	 * @return ContextsFilter
@@ -6144,6 +6156,24 @@ class ContextsFilter
 		}  );
 
 		return new ContextsFilter( $this->instance, $filtered );
+	}
+
+	/**
+	 * Return context with a specified number of months duration
+	 * @param int $months
+	 */
+	public function ContextWithDuration( $months )
+	{
+		$durationContexts = $this->DurationContexts();
+		$oneDay = new DateInterval("P1D");
+		return new ContextsFilter( $instance, array_filter( $durationContexts->getContexts(), function( $context ) use( $months, $oneDay )
+		{
+			$interval = date_diff(
+				new DateTime( $context["period"]["startDate"] ),
+				(new DateTime( $context["period"]["endDate"] ))->add( $oneDay ) );
+
+			return $months == ( $interval->m + ( $interval->y * 12 ) );
+		} ) );
 	}
 
 	/**
@@ -6330,14 +6360,103 @@ class ContextsFilter
 
 		$result = array_reduce( array_keys( $this->contexts ), function( $carry, $context ) use( &$contexts ) {
 
-			if ( ! isset( $contexts[ $context ]['entity']['identifier']['value'] ) || isset( $carry[ $contexts[ $context ]['entity']['identifier']['value'] ] )  ) return $carry;
+			if ( ! isset( $contexts[ $context ]['entity']['identifier']['value'] ) ) return $carry;
 
-			$carry[ $contexts[ $context ]['entity']['identifier']['value'] ] = 1;
+			/**
+			 * @var \lyquidity\xml\QName $qname
+			 */
+			$qname = new QName(  null, $contexts[ $context ]['entity']['identifier']['scheme'], $contexts[ $context ]['entity']['identifier']['value'] );
+
+			if ( isset( $carry[ $qname->clarkNotation() ] ) ) return $carry;
+
+			$carry[ $qname->clarkNotation() ] = 1;
 			return $carry;
 
 		}, array() );
 
 		return array_keys( $result );
+	}
+
+	/**
+	 * Return an array of all explicit dimensions used by the contexts
+	 * @return array of strings
+	 */
+	public function AllExplicitDimensions()
+	{
+		// In PHP 7.0 $this is passed to closure functions automatically but not in earlier versions
+		$contexts = &$this->contexts;
+		$namespaces = $this->instance->getInstanceNamespaces();
+
+		$result = array_reduce( array_keys( $this->contexts ), function( $carry, $context ) use( &$contexts, &$namespaces )
+		{
+			$ctx = $contexts[ $context ];
+			$explicitMembers = isset( $ctx['entity']['segment']['explicitMember'] )
+				? $ctx['entity']['segment']['explicitMember']
+				: ( isset( $ctx['segment']['explicitMember'] )
+					  ? $ctx['segment']['explicitMember']
+					  : ( isset( $ctx['entity']['scenario']['explicitMember'] )
+							? $ctx['entity']['scenario']['explicitMember']
+							: ( isset( $ctx['scenario']['explicitMember'] )
+					  			? $ctx['scenario']['explicitMember']
+								: null
+							  )
+					  	)
+				  );
+
+			if ( ! $explicitMembers ) return $carry;
+
+			foreach ( $explicitMembers as $explicitMember )
+			{
+				$qname = qname( $explicitMember['dimension'], $namespaces );
+				$carry[ $qname->clarkNotation() ][] = $context;
+			}
+
+			return $carry;
+
+		}, array() );
+
+		return $result;
+	}
+
+	/**
+	 * Return an array of all typed dimensions used by the contexts
+	 * @return array of strings
+	 */
+	public function AllTypedDimensions()
+	{
+		// In PHP 7.0 $this is passed to closure functions automatically but not in earlier versions
+		$contexts = &$this->contexts;
+		$namespaces = $this->instance->getInstanceNamespaces();
+
+		$result = array_reduce( array_keys( $this->contexts ), function( $carry, $context ) use( &$contexts, &$namespaces )
+		{
+			$ctx = $contexts[ $context ];
+			$typedMembers = isset( $ctx['entity']['segment']['typedMember'] )
+				? $ctx['entity']['segment']['typedMember']
+				: ( isset( $ctx['segment']['typedMember'] )
+					  ? $ctx['segment']['typedMember']
+					  : ( isset( $ctx['entity']['scenario']['typedMember'] )
+							? $ctx['entity']['scenario']['typedMember']
+							: ( isset( $ctx['scenario']['typedMember'] )
+					  			? $ctx['scenario']['typedMember']
+								: null
+							  )
+					  	)
+				  );
+
+			if ( ! $typedMembers ) return $carry;
+
+			foreach ( $typedMembers as $typedMember )
+			{
+				$qname = qname( $typedMember['dimension'], $namespaces );
+				$carry[ $qname->clarkNotation() ][] = $context;
+			}
+
+			return $carry;
+
+		}, array() );
+
+		return $result;
 	}
 
 	/**
