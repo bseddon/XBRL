@@ -6133,24 +6133,24 @@ class ContextsFilter
 	 * @param int|string $year
 	 * @return ContextsFilter
 	 */
-	public function ContextsForYear( $year )
+	public function ContextsForYear( $year, $matchEndDate = true )
 	{
-		$filtered = array_filter( $this->contexts, function ( $context ) use( $year ) {
+		$filtered = array_filter( $this->contexts, function ( $context ) use( $year, $matchEndDate ) {
 
 			// The context may be invalid in which case exclude
 			if ( ! isset( $context['period'] ) ) return false;
 
 			// All contexts have start so get the year
-			$parts = explode( "-", $context['period']['startDate'] );
+			$parts = explode( "-", $context['period'][ $matchEndDate ? 'endDate' : 'startDate' ] );
 
 			// If the year matches then it's good
-			if ( $parts[0] == $year ) return true;
+			// if ( $parts[0] == $year ) return true;
 
-			// If the context is an instant then start == end and since the start failed the end will also fail
-			if ( $context['period']['is_instant'] ) return false;
-
-			// Its a duration so check the end
-			$parts = explode( "-", $context['period']['endDate'] );
+			// // If the context is an instant then start == end and since the start failed the end will also fail
+			// if ( $context['period']['is_instant'] ) return false;
+            //
+			// // Its a duration so check the end
+			// $parts = explode( "-", $context['period']['C'] );
 			return $parts[0] == $year;
 
 		}  );
