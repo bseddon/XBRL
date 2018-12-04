@@ -349,7 +349,7 @@ EOT;
 						foreach ( $element->children( $namespace ) as $entryPointName => $entryPoint )
 						{
 							$elementXmlAttributes = $entryPoint->attributes( 'xml', true );
-							$elementLang = isset( $elementXmlAttributes['lang'] ) ? (string)$elementXmlAttributes['lang'] : $elementLang;
+							$elementLang2 = isset( $elementXmlAttributes['lang'] ) ? (string)$elementXmlAttributes['lang'] : $elementLang;
 
 							$entryPoints[] = array();
 							$index = count( $entryPoints ) - 1;
@@ -362,19 +362,19 @@ EOT;
 									case 'description':
 
 										$elementXmlAttributes = $element->attributes( 'xml', true );
-										$elementLang = isset( $elementXmlAttributes['lang'] ) ? (string)$elementXmlAttributes['lang'] : $elementLang;
+										$elementLang3 = isset( $elementXmlAttributes['lang'] ) ? (string)$elementXmlAttributes['lang'] : $elementLang2;
 
-										if ( empty( $elementLang ) )
+										if ( empty( $elementLang3 ) )
 										{
 											throw XBRL_TaxonomyPackageException::withError( "tpe:missingLanguageAttribute", "The language code must not be empty") ;
 										}
 
-										if ( isset( $entryPoints[ $index ][ $elementName ][ $elementLang ] ) )
+										if ( isset( $entryPoints[ $index ][ $elementName ][ $elementLang3 ] ) )
 										{
 											throw XBRL_TaxonomyPackageException::withError( "tpe:duplicateLanguagesForElement", "The language must be unique across all names");
 										}
 
-										$entryPoints[ $index ][ $elementName ][ $elementLang ] = (string)$element;
+										$entryPoints[ $index ][ $elementName ][ $elementLang3 ] = (string)$element;
 
 										unset( $elementXmlAttributes );
 										break;
@@ -690,7 +690,8 @@ EOT;
 						foreach ( $folder as $index => $item )
 						{
 							// if $index is numeric then $item is a file
-							if ( is_numeric( $index ) )
+							// if ( is_numeric( $index ) && $index < 2000) // The index might be 2015 or 20161001
+							if ( ! is_array( $item ) )
 							{
 								$content = $this->getFile( "$path/$item" );
 								if ( ! $content ) continue;
