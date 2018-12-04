@@ -3820,7 +3820,7 @@ class XBRL {
 	}
 
 	/**
-	 * Convert a QName of an element (concept, dimension, member, etc.) in its ID
+	 * Convvert a QName of a element (concept, dimension, member, etc.) in its ID
 	 * @param QName|string $qname
 	 * @return string
 	 */
@@ -6946,10 +6946,11 @@ class XBRL {
 											// BMS 2018-08-25 The from id could also be in the annoations (role/arcrole types) of the schema
 											if ( is_array( $el ) ||
 												 isset( $tax->roleTypeIds[ $fromParts['fragment'] ] ) ||
-												 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] )
+												 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] ) ||
+												 $types->getTypeById( $fromParts['fragment'], $tax->getPrefix() )
 											)
 											{
-												// The equaity definition 'from' identifier needs to be the path + fragment
+												// The equality definition 'from' identifier needs to be the path + fragment
 												// Perhaps all should but for now just the equality definition
 												// BMS 2018-03-29 Test 61100 V-41 requires the full 'from' identifier
 												// $from = $arcrole == XBRL_Constants::$arcRoleVariableEqualityDefinition
@@ -7094,7 +7095,7 @@ class XBRL {
 
 									$testAllResources = function( $resources, $resourceType, $setType, $typeTest )
 									{
-										if ( ! count( $resources ) ) return false;
+										if ( is_null( $resources ) || ! count( $resources ) ) return false;
 
 										// Make sure $typeTest is null or an array
 										if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
@@ -7119,7 +7120,7 @@ class XBRL {
 
 									$testAnyResources = function( $resources, $resourceType, $setType, $typeTest )
 									{
-										if ( ! count( $resources ) ) return false;
+										if ( is_null( $resources ) || ! count( $resources ) ) return false;
 
 										// Make sure $typeTest is null or an array
 										if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
@@ -13481,15 +13482,16 @@ class XBRL {
 
 				if ( isset( $this->roleTypes['link:labelLink'][ $roleUri ] ) )
 				{
-					$this->context->labelLinkRoleRefs[ (string) $roleRefAttributes->roleURI ] = array(
+					$this->context->labelLinkRoleRefs[ $roleUri ] = array(
 						'type' => (string) $xlinkAttributes->type,
 						'href' => XBRL::resolve_path( $linkbaseRef['href'], (string) $xlinkAttributes->href ),
 						'roleUri' => $roleUri,
 					);
 				}
-				else
+
+				if ( isset( $this->roleTypes['link:label'][ $roleUri ] ) )
 				{
-					$this->context->labelRoleRefs[ (string) $roleRefAttributes->roleURI ] = array(
+					$this->context->labelRoleRefs[ $roleUri ] = array(
 						'type' => (string) $xlinkAttributes->type,
 						'href' => XBRL::resolve_path( $linkbaseRef['href'], (string) $xlinkAttributes->href ),
 						'roleUri' => $roleUri,
