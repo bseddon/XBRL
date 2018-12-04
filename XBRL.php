@@ -2042,8 +2042,11 @@ class XBRL {
 			// Get the text for the node if not already retrieved
 			if ( ! isset( $pathNode['text'] ) )
 			{
-				$element_xsd = parse_url( $pathNode['label'], PHP_URL_PATH );
-				$key = "$element_xsd#{$pathNode['taxonomy_element']['id']}";
+				// $element_xsd = parse_url( $pathNode['label'], PHP_URL_PATH );
+				// $key = "$element_xsd#{$pathNode['taxonomy_element']['id']}";
+
+				$taxonomy = $this->getTaxonomyForXSD( $pathNode['label'] );
+				$key = $pathNode['label'];
 
 				$pathNode['text'] = $this->getTaxonomyDescriptionForIdWithDefaults(
 					$key,
@@ -3814,6 +3817,28 @@ class XBRL {
 	public function getImportedSchemas()
 	{
 		return $this->context->importedSchemas;
+	}
+
+	/**
+	 * Convert a QName of an element (concept, dimension, member, etc.) in its ID
+	 * @param QName|string $qname
+	 * @return string
+	 */
+	public function getIdForQName( $qname )
+	{
+		if ( ! $qname instanceof QName )
+		{
+			$qname = qname( $qname, $this->getDocumentNamespaces() );
+		}
+
+		if ( ! $qname )
+		{
+			throw new Exception("Unable to resolve the QName '$qname'");
+		}
+
+		$taxonomy = $this->getTaxonomyForNamespace( $qname->namespaceURI );
+		$taxonomy_element = $taxonomy->getElementByName( $qname->localName );
+		return "{$taxonomy->getTaxonomyXSD()}#{$taxonomy_element['id']}";
 	}
 
 	/**
@@ -12285,7 +12310,7 @@ class XBRL {
 	 * Iterate over a set of nodes calling a callback for each one
 	 *
 	 * @param array $nodes		A root node collection to process
-	 * @param string $callback	A function called for each node.  The node and id are passed.$this
+	 * @param string $callback	A function called for each node.  The node and id are passed.
 	 * 							If the function returns false the processing will stop
 	 */
 	public function processAllNodes( &$nodes, $callback = false )
@@ -12831,7 +12856,8 @@ class XBRL {
 			$element =& $taxonomy->getElementById( $locatorParts['fragment'] );
 			if ( ! $element &&
 				 ! isset( $taxonomy->roleTypeIds[ $locatorParts['fragment'] ] ) &&
-				 ! isset( $taxonomy->arcroleTypeIdsp[ $locatorParts['fragment'] ] )
+				 ! isset( $taxonomy->arcroleTypeIdsp[ $locatorParts['fragment'] ] ) &&
+				 ! $taxonomy->context->types->getTypeById( $locatorParts['fragment'], $taxonomy->getPrefix() )
 			)
 			{
 
