@@ -234,7 +234,7 @@ EOT;
 	 */
 	public function compile( $output_basename = null, $compiledPath = null )
 	{
-		if ( $this->isExtensionTaxonmy() )
+		if ( $this->isExtensionTaxonomy() )
 		{
 			return XBRL::compileExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $output_basename, $compiledPath );
 		}
@@ -280,7 +280,7 @@ EOT;
 	 * @return bool
 	 * @final
 	 */
-	public function isExtensionTaxonmy()
+	public function isExtensionTaxonomy()
 	{
 		if ( is_null( $this->isExtensionTaxonomy ) )
 		{
@@ -724,7 +724,7 @@ EOT;
 	 */
 	public function loadTaxonomy( $compiledPath = null )
 	{
-		if ( $this->isExtensionTaxonmy() )
+		if ( $this->isExtensionTaxonomy() )
 		{
 			return XBRL::loadExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $compiledPath );
 		}
