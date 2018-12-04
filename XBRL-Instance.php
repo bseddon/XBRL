@@ -6001,7 +6001,8 @@ class XBRL_Instance
 				{
 					if ( isset( $type['values'] ) )
 					{
-						if ( in_array( $component['member'], $type['values'] ) )
+						// if ( in_array( $component['member'], $type['values'] ) )
+						if ( in_array( $component['member'], array_map( function( $value ) { return $value['value']; }, $type['values'] ) ) )
 						{
 							return true;
 						}
