@@ -8692,6 +8692,10 @@ class XBRL {
 				$this->validateXLinkLabel( $linkType, $label );
 
 				$locatorHref = (string) $xlinkAttributes->href;
+				if ( $locatorHref )
+				{
+					$locatorHref = strpos( trim( $locatorHref ), '#' ) === 0 ? "$href$locatorHref" : XBRL::resolve_path( $href, $locatorHref );
+				}
 				$parts = parse_url( $locatorHref );
 				if ( ! isset( $parts['path'] ) || empty( $parts['path'] ) )
 				{
@@ -8765,7 +8769,8 @@ class XBRL {
 				else
 				{
 					// Is the basename the name of an existing schema?
-					$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
+					// $xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
+					$xsd = strpos( $locatorHref, '#' ) === false ? $locatorHref : strstr( $locatorHref, '#', true );
 					$taxonomy = $this->getTaxonomyForXSD( $xsd );
 					if ( ! $taxonomy )
 					{
@@ -8803,7 +8808,7 @@ class XBRL {
 						}
 					}
 
-					$reference = $xsd;
+					$reference = basename( $xsd );
 				}
 
 				if ( $this->isPointer( $fragment, $taxonomy->xbrlDocument, $taxonomy, $name, $domNode ) )
@@ -9528,7 +9533,7 @@ class XBRL {
 			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
 			if ( ! $taxonomy )
 			{
-				$xsd = strstr( $arcroleRefHref, '#', true );
+				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
 				if ( empty( $xsd ) || ! isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -11082,7 +11087,7 @@ class XBRL {
 			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
 			if ( ! $taxonomy )
 			{
-				$xsd = strstr( $arcroleRefHref, '#', true );
+				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
 				if ( empty( $xsd ) || ! isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -11558,10 +11563,12 @@ class XBRL {
 			$linkbaseRoleRefs[ "$usedOn:$roleUri" ] = $roleRefHref;
 			$this->linkbaseRoleTypes[ $xml_basename ][ "$usedOn:$roleUri" ] = $roleRefHref;
 
+			$roleRefHref =  XBRL::resolve_path( $linkbaseRef['href'], $roleRefHref );
+
 			$taxonomy = $this->getTaxonomyForXSD( $roleRefHref );
 			if ( ! $taxonomy )
 			{
-				$taxonomy = $this->withTaxonomy( $roleRefHref, true );
+				$taxonomy = $this->withTaxonomy( strstr( $roleRefHref, '#', true ), true );
 				if ( ! $taxonomy )
 				if ( XBRL::isValidating() )
 				{
@@ -11572,6 +11579,16 @@ class XBRL {
 						)
 					);
 				}
+
+				if ( ! isset( $this->context->presentationRoleRefs[ $roleUri ] ) )
+				{
+					$this->context->presentationRoleRefs[ $roleUri ] = array(
+						'type' => (string) $xlinkAttributes->type,
+						'href' => $roleRefHref,
+						'roleUri' => $roleUri,
+					);
+				}
+
 				continue;
 			}
 
@@ -11581,9 +11598,15 @@ class XBRL {
 			{
 				if ( ! isset( $taxonomy->roleTypes[ $usedOn ][ $roleUri ] ) )
 				{
-					$scheme = parse_url( $roleRefHref, PHP_URL_SCHEME );
+					// Make sure this one is really used
+					$el = dom_import_simplexml( $xml );
+					$xpath = new DOMXPath( $el->ownerDocument );
+					$xpath->registerNamespace( 'link', XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] );
+					$nodes = $xpath->query( "/link:linkbase/link:presentationLink[@xlink:role='$roleUri']", $el );
+					if ( ! $nodes->length ) continue;
 
-					if ( ! in_array( $scheme, array( 'http', 'https' ) ) )
+					// $scheme = parse_url( $roleRefHref, PHP_URL_SCHEME );
+					// if ( ! in_array( $scheme, array( 'http', 'https' ) ) )
 					{
 						$this->log()->taxonomy_validation( "5.1.3.4", "This role is not defined to be used on the presentation linkbase",
 							array(
@@ -11597,7 +11620,8 @@ class XBRL {
 
 			$this->context->presentationRoleRefs[ $roleUri ] = array(
 				'type' => (string) $xlinkAttributes->type,
-				'href' => XBRL::resolve_path( $linkbaseRef['href'], $roleRefHref ),
+				// 'href' => XBRL::resolve_path( $linkbaseRef['href'], $roleRefHref ),
+				'href' => $roleRefHref,
 				'roleUri' => $roleUri,
 			);
 		}
