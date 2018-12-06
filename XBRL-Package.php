@@ -687,7 +687,7 @@ EOT;
 
 		if ( ! $schemaNamespace ) return;
 
-		global $mapUrl;  // This is a function assigned below.  Effectively a change of url maps is creatged.
+		global $mapUrl;  // This is a function assigned below.  Effectively a change of url maps is created.
 		$previousMap = $mapUrl;
 		// $schemaFile = $this->schemaFile;
 
