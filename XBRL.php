@@ -15631,9 +15631,10 @@ class XBRL {
 				{
 					$this->log()->dimension_validation( "2.4.3", "The dimension cannot be located in the dimensions collection of the target role",
 						array(
-							'target role' => "'{$targetRole['roleUri']}'",
+							'target role' => "'{$parent['targetRole']}'",
 							'dimension' => "'$dimensionId'",
-							'error' => 'xbrldte:TargetRoleNotResolvedError',
+							'location' => 'resolvePrimaryItemHypercubeDRS',
+							'error' => 'xbrldte:TargetRoleNotResolvedError'
 						)
 					);
 					continue;
@@ -16168,8 +16169,10 @@ class XBRL {
 					{
 						$this->log()->dimension_validation( "2.4.3", "The dimension cannot be located in the dimensions collection of the target role",
 							array(
-								'target role' => "'{$targetRole['roleUri']}'",
+								'target role' => "'{$parent['targetRole']}'",
 								'dimension' => "'$dimensionId'",
+								'location' => 'mergeExtendedRoles',
+								'error' => 'xbrldte:TargetRoleNotResolvedError',
 							)
 						);
 						continue;
