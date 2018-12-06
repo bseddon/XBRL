@@ -42,12 +42,18 @@ EOT;
 
 	/**
 	 * Factory to create a package class instance
-	 * @param unknown $taxonomyPackage
+	 * @param string $taxonomyPackage
+	 * @param array $additionalPackageClasses (optional) A list of other packaging classes that could be valid
 	 * @throws Exception
 	 * @return XBRL_Package
 	 */
-	public static function getPackage( $taxonomyPackage )
+	public static function getPackage( $taxonomyPackage, $additionalPackageClasses = array() )
 	{
+		if ( ! is_array( $additionalPackageClasses ) )
+		{
+			$additionalPackageClasses = array();
+		}
+
 		$packageClassesFile = __DIR__ . '/TaxonomyPackageTypes.json';
 		$packageClasses = null;
 		if ( file_exists( __DIR__ . '/TaxonomyPackageTypes.json' ) )
@@ -68,6 +74,10 @@ EOT;
 		{
 			$packageClasses = array( 'XBRL_TaxonomyPackage', 'XBRL_SEC_JSON_Package', 'XBRL_SEC_XML_Package', 'XBRL_SimplePackage' );
 		}
+
+		// Any additional package classes should be evaluated first.
+		// Additional classes should make sure there is validation so they are not used when they are really not suitable
+		$packageClasses = $additionalPackageClasses + $packageClasses;
 
 		foreach ( $packageClasses as $packageClassName )
 		{
