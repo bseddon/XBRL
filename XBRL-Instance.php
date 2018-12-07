@@ -6040,6 +6040,97 @@ class XBRL_Instance
 			? "$this->schemaFilename"
 			: "<unknown>";
 	}
+
+	/* ------------------------------------------------
+	 * Dimension validation functions
+	 * ------------------------------------------------*/
+
+	/**
+	 * Get a list of the dimensions and associated member for a context
+	 * @param array $context
+	 * @return array
+	 */
+	public function getContextDimensions( $context )
+	{
+		if ( isset( $context['entity']['segment'] ) )
+			return $this->getComponentDimensions( $context['entity']['segment'] );
+		elseif ( isset( $context['segment'] ) )
+			return $this->getComponentDimensions( $context['segment'] );
+		elseif ( isset( $context['entity']['scenario'] ) )
+			return $this->getComponentDimensions( $context['entity']['scenario'] );
+		elseif ( isset( $context['scenario'] ) )
+			return $this->getComponentDimensions( $context['scenario'] );
+		else
+			return array();
+	}
+
+	/**
+	 * Get a list of the dimensions and associated member for a scenario or segment context component
+	 * @param array $component
+	 * @return array
+	 */
+	public function getComponentDimensions( $component )
+	{
+		$result = array();
+
+		if ( isset( $component['explicitMember'] ) )
+			$dimensions = $component['explicitMember'];
+		else if ( isset( $component['typedMember'] ) )
+			$dimensions = $component['typedMember'];
+		else return $result;
+
+		foreach (  $dimensions as $dimension )
+		{
+			$result[ $dimension['dimension'] ] = $dimension['member'];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests whether a context is valid for the contexts of a primary item
+	 * @param array $context
+	 * @param array $hypercubeDimensions
+	 * @param boolean $closed
+	 * @return boolean
+	 */
+	function isDimensionallyValid( $context, $hypercubeDimensions, $closed )
+	{
+		// The context dimensions must be hypercube dimensions
+		$contextDimensions = $this->getContextDimensions( $context );
+		// $hypercubeDimensions = $details['details']['dimensions'];
+
+		$invalidDimensions = array_diff_key( $contextDimensions, $hypercubeDimensions );
+
+		// If there are any dimensions required by the context that are
+		// not supported by the hypercube then the context is not valid
+		if ( $invalidDimensions ) return false;
+
+		// The dimension validity must take into account that any
+		// of the hypercube dimension may have a default member
+		$validDimensions = array_intersect_key( $contextDimensions, $hypercubeDimensions );
+
+		if ( count( $validDimensions ) < count( $hypercubeDimensions ) )
+		{
+			// The order of the parameters is important.  The result should
+			// have the missing members of the $reportInfoDimensions array.
+			$missingDimensions = array_diff_key( $hypercubeDimensions, $validDimensions );
+
+			// If there are no defaults an all missing dimensions then lose this context
+			foreach ( $missingDimensions as $dimensionId => $dimension )
+			{
+				if ( ! isset( $dimension['default'] ) ) return false;
+			}
+		}
+		elseif ( count( $contextDimensions ) > count( $hypercubeDimensions ) )
+		{
+			// If there are more context dimensions than report info dimensions then the dimension match is wrong
+			return false;
+		}
+
+		return true;
+	}
+
 }
 
 /**
