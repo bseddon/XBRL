@@ -1095,7 +1095,7 @@ class XBRL_Instance
 
 		// Load any schemas specified in the schema location attribute.  Not sure if
 		// this should come before or after processing the schemaRef value
-		if ( isset( $xsiAttributes['schemaLocation'] ) )
+		if ( ! $taxonomy_file && isset( $xsiAttributes['schemaLocation'] ) )
 		{
 			$parts = array_filter( preg_split( "/\s/s",  (string)$xsiAttributes['schemaLocation'] ) );
 
