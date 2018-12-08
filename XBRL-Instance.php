@@ -6094,8 +6094,13 @@ class XBRL_Instance
 	 * @param boolean $closed
 	 * @return boolean
 	 */
-	function isDimensionallyValid( $context, $hypercubeDimensions, $closed )
+	public function isDimensionallyValid( $context, $hypercubeDimensions, $closed )
 	{
+		if ( is_string( $context ) )
+		{
+			$context = $instance->getContext( $context );
+		}
+
 		// The context dimensions must be hypercube dimensions
 		$contextDimensions = $this->getContextDimensions( $context );
 		// $hypercubeDimensions = $details['details']['dimensions'];
