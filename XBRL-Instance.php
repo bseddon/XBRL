@@ -6089,7 +6089,7 @@ class XBRL_Instance
 
 	/**
 	 * Tests whether a context is valid for the dimensions of a hypercube
-	 * @param array $context
+	 * @param array|string $context
 	 * @param array $hypercubeDimensions
 	 * @param boolean $closed
 	 * @return boolean
@@ -6098,7 +6098,7 @@ class XBRL_Instance
 	{
 		if ( is_string( $context ) )
 		{
-			$context = $instance->getContext( $context );
+			$context = $this->getContext( $context );
 		}
 
 		// The context dimensions must be hypercube dimensions
@@ -6138,7 +6138,7 @@ class XBRL_Instance
 
 	/**
 	 * Tests whether a context is valid for a hypercube
-	 * @param array $context
+	 * @param array|string $context A context ref or an array for a specific context
 	 * @param array $hypercube
 	 * @param boolean $closed
 	 * @return boolean
@@ -6156,6 +6156,32 @@ class XBRL_Instance
 		}, array() );
 
 		return $this->isDimensionallyValid( $context, $hypercubeDimensions, $closed );
+	}
+
+	/**
+	 * Returns true if ANY hypercube in a DRS is valid for the context
+	 * @param array $fact An array for a specific fact
+	 * @param array $drs A DRS array returned by a call to getPrimaryItemDRS
+	 * @return boolean
+	 */
+	public function isDRSValidForFact( $fact,  $drs)
+	{
+		foreach ( $drs as $hypercube => $roles )
+		{
+			foreach ( $roles as $role => $hypercubeItems )
+			{
+				if ( ! isset( $hypercubes[ $hypercube ][ $role ] ) )
+				{
+					$closed = isset( $hypercubeItems['parents'][ $fact['label'] ]['closed'] ) && $hypercubeItems['parents'][ $fact['label'] ]['closed'];
+
+					if ( ! $this->isHypercubeDimensionallyValid( $fact['contextRef'], $hypercubeItems, $closed ) ) continue;
+
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
 
