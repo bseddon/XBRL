@@ -6088,7 +6088,7 @@ class XBRL_Instance
 	}
 
 	/**
-	 * Tests whether a context is valid for the contexts of a primary item
+	 * Tests whether a context is valid for the dimensions of a hypercube
 	 * @param array $context
 	 * @param array $hypercubeDimensions
 	 * @param boolean $closed
@@ -6136,6 +6136,27 @@ class XBRL_Instance
 		return true;
 	}
 
+	/**
+	 * Tests whether a context is valid for a hypercube
+	 * @param array $context
+	 * @param array $hypercube
+	 * @param boolean $closed
+	 * @return boolean
+	 */
+	public function isHypercubeDimensionallyValid( $context, $hypercube, $closed )
+	{
+		// Convert the array of dimensions into one indexed by qname as required by the isDimensionallyValid function
+		$hypercubeDimensions = array_reduce( $hypercube['dimensions'], function( $carry, $dimension ) use( &$hypercubeDimensions )
+		{
+			$dimTaxonomy = $this->getInstanceTaxonomy()->getTaxonomyForXSD( $dimension['label'] );
+			$element = $dimTaxonomy->getElementById( $dimension['label'] );
+
+			$carry[ "{$dimTaxonomy->getPrefix()}:{$element['name']}" ] = $dimension;
+			return $carry;
+		}, array() );
+
+		return $this->isDimensionallyValid( $context, $hypercubeDimensions, $closed );
+	}
 }
 
 /**
