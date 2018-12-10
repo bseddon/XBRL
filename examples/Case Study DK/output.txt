@@ -1,0 +1,253 @@
+Array
+(
+    [Omsaetning] => Array
+        (
+            [name] => Revenue
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_Revenue
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 
+                            [unit] => 
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 
+                            [unit] => 
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 
+                            [unit] => 
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 
+                            [unit] => 
+                        )
+
+                )
+
+        )
+
+    [Bruttofortjeneste] => Array
+        (
+            [name] => GrossProfitLoss
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_GrossProfitLoss
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 33152550
+                            [unit] => DKK
+                            [en] => Gross profit (loss)
+                            [da] => Bruttofortjeneste/Bruttotab
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 33144016
+                            [unit] => DKK
+                            [en] => Gross profit (loss)
+                            [da] => Bruttofortjeneste/Bruttotab
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 35195839
+                            [unit] => DKK
+                            [en] => Gross profit (loss)
+                            [da] => Bruttofortjeneste/Bruttotab
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 43927837
+                            [unit] => DKK
+                            [en] => Gross profit (loss)
+                            [da] => Bruttofortjeneste/Bruttotab
+                        )
+
+                )
+
+        )
+
+    [Resultat f�r skat] => Array
+        (
+            [name] => ProfitLossFromOrdinaryActivitiesBeforeTax
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_ProfitLossFromOrdinaryActivitiesBeforeTax
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 8549491
+                            [unit] => DKK
+                            [en] => Profit (loss) from ordinary activities before tax
+                            [da] => Ordinært resultat før skat
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 3966979
+                            [unit] => DKK
+                            [en] => Profit (loss) from ordinary activities before tax
+                            [da] => Ordinært resultat før skat
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 6722151
+                            [unit] => DKK
+                            [en] => Profit (loss) from ordinary activities before tax
+                            [da] => Ordinært resultat før skat
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 8973732
+                            [unit] => DKK
+                            [en] => Profit (loss) from ordinary activities before tax
+                            [da] => Ordinært resultat før skat
+                        )
+
+                )
+
+        )
+
+    [�rets resultat] => Array
+        (
+            [name] => ProfitLoss
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_ProfitLoss
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 6484447
+                            [unit] => DKK
+                            [en] => Profit (loss)
+                            [da] => Årets resultat
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 3114557
+                            [unit] => DKK
+                            [en] => Profit (loss)
+                            [da] => Årets resultat
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 5233092
+                            [unit] => DKK
+                            [en] => Profit (loss)
+                            [da] => Årets resultat
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 6982701
+                            [unit] => DKK
+                            [en] => Profit (loss)
+                            [da] => Årets resultat
+                        )
+
+                )
+
+        )
+
+    [Egenkapital] => Array
+        (
+            [name] => Equity
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_Equity
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 7104265
+                            [unit] => DKK
+                            [en] => Equity
+                            [da] => Egenkapital
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 10218822
+                            [unit] => DKK
+                            [en] => Equity
+                            [da] => Egenkapital
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 15451914
+                            [unit] => DKK
+                            [en] => Equity
+                            [da] => Egenkapital
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 22434615
+                            [unit] => DKK
+                            [en] => Equity
+                            [da] => Egenkapital
+                        )
+
+                )
+
+        )
+
+    [Balance] => Array
+        (
+            [name] => Assets
+            [namespace] => http://xbrl.dcca.dk/fsa
+            [id] => fsa.xsd#fsa_Assets
+            [values] => Array
+                (
+                    [2014] => Array
+                        (
+                            [value] => 35481282
+                            [unit] => DKK
+                            [en] => Assets
+                            [da] => Aktiver
+                        )
+
+                    [2015] => Array
+                        (
+                            [value] => 38409205
+                            [unit] => DKK
+                            [en] => Assets
+                            [da] => Aktiver
+                        )
+
+                    [2016] => Array
+                        (
+                            [value] => 41513469
+                            [unit] => DKK
+                            [en] => Assets
+                            [da] => Aktiver
+                        )
+
+                    [2017] => Array
+                        (
+                            [value] => 60234129
+                            [unit] => DKK
+                            [en] => Assets
+                            [da] => Aktiver
+                        )
+
+                )
+
+        )
+
+)
