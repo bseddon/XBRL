@@ -10,6 +10,7 @@
 * [Install](#install)
 * [Getting started](#getting-started)
 * [Links](#links)
+* [Case Study](../../wiki/Case-Study)
 
 Find much more information in the [wiki](../../wiki).
 
