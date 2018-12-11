@@ -45,6 +45,12 @@ use lyquidity\xml\schema\SchemaTypes;
 
 if ( ! function_exists("__") )
 {
+	/**
+	 * A polyfill for the getText __() function
+	 * @param string $message
+	 * @param string $domain
+	 * @return string
+	 */
 	function __( $message, $domain )
 	{
 		return "$message\n";
@@ -5950,6 +5956,8 @@ class XBRL {
 	 * 									such as 'fact' for 'variable' or 'formula' for 'variableset'
 	 * 									If null then any resource of the type $resourceType will be returned.
 	 * @param Function $callback			(optional) A callback to process results (see below)
+	 * @param string $roleUri
+	 * @param string $label
 	 * @return boolean|array[]
 	 *
 	 * Callback will return true if no further processing is required. The arguments passed to the callback are:
@@ -17558,6 +17566,11 @@ class XBRL {
 		return false;
 	}
 
+	/**
+	 * Strips out and resolves ./ and ../ parts of the string
+	 * @param string $path
+	 * @return mixed
+	 */
 	public static function normalizePath($path)
 	{
 		// Test this function using these paths

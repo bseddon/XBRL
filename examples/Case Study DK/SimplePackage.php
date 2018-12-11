@@ -3,6 +3,12 @@
 /**
  * DCCA packages from before 2016 do not follow the XBRL Taxonomy Package specification
  * so this class allows the earlier packages to be treated in the same way as new packages
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
  * @version 1.0
@@ -10,6 +16,7 @@
  * @License: GPL 3.0
  *
  */
+
 namespace lyquidity\dfb;
 
 /**
@@ -56,6 +63,13 @@ EOT;
 		return parent::isPackage();
 	}
 
+	/**
+	 * Returns the actual path (in the package) for the $uri
+	 * @param string $uri
+	 * @return string
+	 * {@inheritDoc}
+	 * @see XBRL_SimplePackage::getActualUri()
+	 */
 	protected function getActualUri( $uri )
 	{
 		return $this->getFirstFolderName() . str_replace( self::prefix, '', $uri );

@@ -3,6 +3,12 @@
 /**
  * Example to read instance documents for the Danish Business Authority (Erhvervsstyrelsen)
  * Uses compiled taxonomies to improve performance
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
  * @version 1.0

@@ -140,6 +140,7 @@ EOT;
 	}
 
 	/**
+	 * A reference to the archive hosting the package
 	 * @var ZipArchive $zipArchive
 	 */
 	private $zipArchive;
@@ -267,6 +268,7 @@ EOT;
 	/**
 	 * Returns true if the taxonomy in the package is compiled
 	 * @param string $compiledDir Path to the compiled taxonomies folder
+	 * @param string $basename Specifies an explicit basename.  Otherwise the basename of the schema name is used.
 	 * @return bool
 	 */
 	public function isCompiled( $compiledDir, $basename = null )
@@ -615,8 +617,7 @@ EOT;
 
 	/**
 	 * Processes the schema document in a consistent way
-	 * @param \XBRL_Global A reference to the global context
-	 * @param string $schemaName Name of the schema represented by $content
+	 * @param \XBRL_Global $context A reference to the global context
 	 * @param bytes $content Expected to be an XML schema
 	 * @param bool $throwException True if an exception should be thrown on error or false is returned otherwise
 	 * @return bool
@@ -678,6 +679,9 @@ EOT;
 
 	/**
 	 * Implements a Url map that allows a simple xsd name to map to a path that can be found in the cache
+	 * @param string $schemaNamespace
+	 * @param string $schemaFile
+	 * @throws Exception
 	 */
 	protected function setUrlMap( $schemaNamespace = null, $schemaFile = null )
 	{
@@ -719,7 +723,7 @@ EOT;
 
 	/**
 	 * Returns the schema file base name without the extension
-	 * @param string $extension
+	 * @param string $replacementExtension
 	 * @return string
 	 */
 	public function getSchemaFileBasename( $replacementExtension = "")

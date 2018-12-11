@@ -3,6 +3,12 @@
 /**
  * Example to compile taxonomies of the the Danish Business Authority (Erhvervsstyrelsen)
  * Uses compilation to improve performance.
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
  * @version 0.9
@@ -39,7 +45,7 @@
 
 namespace lyquidity\dfb;
 
-/* ------------------------------------------------------------
+/** ------------------------------------------------------------
  * Change some environment parameters
  * ------------------------------------------------------------ */
 // Set the maximum execution time to three minutes

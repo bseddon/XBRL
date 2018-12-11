@@ -5723,11 +5723,15 @@ class XBRL_Instance
 			// 3.1.4.4.3 (1) Should be checked when reading the context
 			// 3.1.4.4.3 (2) Should be checked when validaing the fact value
 
-			$typeElement = $types->getElement( $type );
+			// Need to map the local prefix to the source taxonomy prefix
+			$parts = explode( ":", $type );
+			$parts[0] = $this->normalizePrefix( $parts[0] );
+			$typeElement = $types->getElement( implode( ":", $parts ) );
 			if ( ! $typeElement ||
 				 ! count( $typeElement['types'] )
 			)
 			{
+				$x = 1;
 				$this->log()->dimension_validation(
 					"3.1.4.4.3",
 					"The type element of the member MUST be defined by the schema document",

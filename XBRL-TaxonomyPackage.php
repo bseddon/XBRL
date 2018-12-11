@@ -71,7 +71,7 @@ EOT;
 	const metaFolderName = "META-INF";
 
 	/**
-	 *
+	 * A reference to the catalog in the package
 	 * @var SimpleXMLElement
 	 */
 	private $catalog;
@@ -598,6 +598,11 @@ EOT;
 		}
 	}
 
+	/**
+	 * Returns a localized version of the schema file path
+	 * @param string $uri
+	 * @return string
+	 */
 	protected function getActualUri( $uri )
 	{
 		foreach ( $this->rewriteURIs as $prefix => $rewriteUri )

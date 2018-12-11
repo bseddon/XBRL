@@ -2,6 +2,12 @@
 
 /**
  * An log observer used to capture taxonomy validation messages so they can be reported by the app
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
  *
  * @author Bill Seddon
  * @version 1.0
@@ -9,6 +15,7 @@
  * @License: GPL 3.0
  *
  */
+
 namespace lyquidity\dfb;
 
 /**
@@ -16,7 +23,10 @@ namespace lyquidity\dfb;
  */
 class Observer extends \Log_observer
 {
-	// A list of any issue found
+	/**
+	 * A list of any issue found
+	 * @var array
+	 */
 	private $issues = array();
 
 	/**
@@ -45,7 +55,7 @@ class Observer extends \Log_observer
 
 	/**
 	 * Add extra entries into the session
-	 * @param string $section
+	 * @param string $name
 	 * @param array $data
 	 */
 	public function addItem( $name, $data )

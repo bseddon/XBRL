@@ -320,6 +320,7 @@ class XBRL_Global
 	/**
 	 * Create a path to the parallel folder for a url
 	 * @param string $url
+	 * @param string $cacheLocation
 	 * @return string
 	 */
 	public static function createPathFromUrl( $url, $cacheLocation )

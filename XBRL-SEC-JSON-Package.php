@@ -221,6 +221,11 @@ EOT;
 		return parent::getFile( $this->getActualUri( $path ) );
 	}
 
+	/**
+	 * Returns a localized version of the schema file path
+	 * @param string $uri
+	 * @return string
+	 */
 	public function getActualUri( $uri )
 	{
 		return basename( $uri );

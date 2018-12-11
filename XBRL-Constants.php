@@ -984,8 +984,17 @@ class XBRL_Constants
 	 * Severity values
 	 * -----------------------------------------------------------------------------
 	 */
+	/**
+	 * @var string Returns 'OK'
+	 */
 	public static $severityOK = ASSERTION_SEVERITY_OK;
+	/**
+	 * @var string Returns 'ERROR'
+	 */
 	public static $severityERROR = ASSERTION_SEVERITY_ERROR;
+	/**
+	 * @var string Returns 'WARNING'
+	 */
 	public static $severityWARNING = ASSERTION_SEVERITY_WARNING;
 
 	/* -----------------------------------------------------------------------------

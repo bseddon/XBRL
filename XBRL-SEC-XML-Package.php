@@ -147,7 +147,7 @@ EOT;
 
 	/**
 	 * Grab the values from the XML
-	 * @param SimpleXMLElement $element
+	 * @param SimpleXMLElement $elements
 	 */
 	private function processElement( $elements )
 	{
