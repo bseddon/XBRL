@@ -417,6 +417,26 @@ class XBRL_Log
 	}
 
 	/**
+	 * A convenience function for logging a formula evaluation result event.
+	 * It will log a message at the PEAR_LOG_INFO log level.
+	 *
+	 * PEAR_LOG_INFO
+	 *
+	 * @param string $section	The specification section reference
+	 * @param string $message	String or object containing the message to log.
+	 * @param array $source		An array containing details about the source such as the element id, link base, etc.
+	 * @return  boolean True if the message was successfully logged.
+	 */
+	public function formula_evaluation( $section, $message, $source )
+	{
+		if ( ! $this->log ) return;
+		$message = "$section $message";
+		$this->log->_announce( array( 'section' => $section, 'priority' => PEAR_LOG_INFO, 'message' => $message, 'source' => $source ) );
+		$this->log->info( $message );
+		return $message;
+	}
+
+	/**
 	 * A convenience function for logging an event about an XBRL instance specification conformance issue.
 	 * It will log a message at the PEAR_LOG_DEBUG log level.
 	 *

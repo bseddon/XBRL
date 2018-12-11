@@ -265,7 +265,16 @@ class ValueAssertion extends VariableSetAssertion
 		$satisfied = count( $this->satisfied );
 		$unsatisfied = count( $this->unsatisfied );
 
-		\XBRL_Log::getInstance()->info("Value assertion result for '{$this->label}': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.");
+		// \XBRL_Log::getInstance()->info("Value assertion result for '{$this->label}': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.");
+		\XBRL_Log::getInstance()->formula_evaluation(
+			"Value assertion",
+			"Result for '{$this->label}': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.",
+			array(
+				'formula' => $this->label,
+				'satisfied' => $satisfied,
+				'unsatisfied' => $unsatisfied
+			)
+		);
 	}
 
 	/**

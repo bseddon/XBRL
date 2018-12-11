@@ -295,7 +295,17 @@ class ExistenceAssertion extends VariableSetAssertion
 		{
 			$this->success = $countSatisfied > 0 || $countNotSatisfied > 0;
 			$message = $this->success ? "succeeded" : "failed";
-			\XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
+			// \XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
+			\XBRL_Log::getInstance()->formula_evaluation(
+				"Existence assertion",
+				"Result for '{$this->label}' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
+				array(
+					'formula' => $this->label,
+					'state' => $message,
+					'countSatisfied' => $countSatisfied,
+					'countNotSatisfied' => $countNotSatisfied
+				)
+			);
 		}
 		else
 		{
@@ -306,7 +316,18 @@ class ExistenceAssertion extends VariableSetAssertion
 			$this->notSatisfied = $this->success ? array() : array( true );
 			$countSatisfied = count( $this->satisfied );
 			$countNotSatisfied = count( $this->notSatisfied );
-			\XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
+			// \XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
+			\XBRL_Log::getInstance()->formula_evaluation(
+				"Existence assertion",
+				"Result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
+				array(
+					'formula' => $this->label,
+					'state' => $message,
+					'countSatisfied' => $countSatisfied,
+					'countNotSatisfied' => $countNotSatisfied,
+					'test' => $this->test
+				)
+			);
 		}
 
 		$vars[ "{{$this->namespace}}test-expression" ] = $this->test;
