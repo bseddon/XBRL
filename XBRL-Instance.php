@@ -5731,7 +5731,6 @@ class XBRL_Instance
 				 ! count( $typeElement['types'] )
 			)
 			{
-				$x = 1;
 				$this->log()->dimension_validation(
 					"3.1.4.4.3",
 					"The type element of the member MUST be defined by the schema document",
