@@ -16507,6 +16507,15 @@ class XBRL {
 								$qname->prefix = STANDARD_PREFIX_LINK;
 							}
 
+							if ( $qname->localName == 'label' && ! isset( $this->context->labelRoleRefs[ $roleUri ] ) )
+							{
+								$this->context->labelRoleRefs[ $roleUri ] = array(
+									'type' => 'simple',
+									'href' => basename( $this->schemaLocation ) . "#$id",
+									'roleUri' => $roleUri,
+								);
+							}
+
 							$roleUseOnList[] = "{$qname->prefix}:{$qname->localName}";
 						}
 
@@ -17003,7 +17012,8 @@ class XBRL {
 				continue;
 			}
 
-			$schemaLocation = XBRL::resolve_path( pathinfo( $this->schemaLocation, PATHINFO_DIRNAME ), trim( (string) $attributes['schemaLocation'] ) );
+			// $schemaLocation = XBRL::resolve_path( pathinfo( $this->schemaLocation, PATHINFO_DIRNAME ), trim( (string) $attributes['schemaLocation'] ) );
+			$schemaLocation = XBRL::resolve_path( $this->schemaLocation, trim( (string) $attributes['schemaLocation'] ) );
 
 			// $taxonomiesToIgnore is a list of the XML and XBRL core taxonomies that are taken as read so do not need to be processed.
 			if ( isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) ) continue;
