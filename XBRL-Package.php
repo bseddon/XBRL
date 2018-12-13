@@ -211,7 +211,8 @@ EOT;
 
 				if ( $i == count( $parts ) - 1 ) // Leaf
 				{
-					$current[] = $part;
+					// Don't let this array increment automatically
+					$current[ count( $current ) ] = $part;
 					continue;
 				}
 
@@ -409,7 +410,7 @@ EOT;
 
 			foreach ( $nodes as $name => $children )
 			{
-				if ( is_numeric( $name ) ) // It's a file
+				if ( ! is_array( $children ) ) // It's a file
 				{
 					if ( ! $traverse( $children, $path ) ) return false;
 					continue;
@@ -613,6 +614,20 @@ EOT;
 		}
 
 		return (string)$xsAttributes->targetNamespace;
+	}
+
+	/**
+	 * Return the namepace for the document which is identified by $uri
+	 * @param string $uri
+	 * @return boolean|string
+	 */
+	public function getNamespaceForSchema( $uri )
+	{
+		$actualUri = $this->getActualUri( $uri );
+		$content = $this->getFile( $actualUri );
+		if ( ! $content ) return false;
+
+		return $this->getTargetNamespace( $uri, $content );
 	}
 
 	/**
