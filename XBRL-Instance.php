@@ -226,7 +226,7 @@ class XBRL_Instance
 
 	/**
 	 * Creates an instance object from a JSON string, perhaps in a zip file
-	 * @param string $output_path
+	 * @param string $cache_path
 	 * @param string $cache_basename
 	 * @param string $taxonomyNamespace
 	 * @param string $compiledTaxonomyFile
@@ -1259,6 +1259,8 @@ class XBRL_Instance
 	 */
 	private function normalizePrefix( $localPrefix )
 	{
+		if ( $localPrefix == 'xml' )
+			return $localPrefix;
 		$namespace = $this->getInstanceNamespaces()[ $localPrefix ];
 		$taxonomy = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $namespace );
 		return $taxonomy
@@ -1616,6 +1618,10 @@ class XBRL_Instance
 		return $component;
 	}
 
+	/**
+	 * A list of duplicate facts.  Duplicate facts require a validate warning.
+	 * @var array
+	 */
 	private $duplicateFacts = null;
 
 	/**
@@ -6236,7 +6242,7 @@ class ContextsFilter
 
 	/**
 	 * Get a specific context by reference
-	 * @param unknown $ref
+	 * @param string $ref
 	 * @return boolean|Array
 	 */
 	public function getContext( $ref )
@@ -6278,6 +6284,7 @@ class ContextsFilter
 	/**
 	 * Return a list of the context with start or end date in $year
 	 * @param int|string $year
+	 * @param bool $matchEndDate True if the year should match only the end date.  Otherwise the start date is compared as well.
 	 * @return ContextsFilter
 	 */
 	public function ContextsForYear( $year, $matchEndDate = true )
