@@ -3817,6 +3817,36 @@ class XBRL {
 	}
 
 	/**
+	 * Get the taxonomy that has the prefix used in the QName
+	 * @param string|\QName $prefix
+	 * @return XBRL
+	 */
+	public function getTaxonomyForQName( $qname )
+	{
+		$prefix = $qname instanceof \QName
+			? $qname->localName
+			: strstr( $qname, ":", true );
+		return $this->getTaxonomyForPrefix( $prefix );
+	}
+
+	/**
+	 * Get the taxonomy for the prefix.  Taxonomies have unique prefixes.
+	 * @param string $prefix
+	 * @return XBRL
+	 */
+	public function getTaxonomyForPrefix( $prefix )
+	{
+		if ( ! $prefix ) return null;
+
+		$taxonomies = array_filter(
+			$this->getImportedSchemas(),
+			function( $taxonomy ) use( $prefix ) { return $taxonomy->getPrefix() == $prefix; }
+		);
+		if ( ! $taxonomies ) return null;
+		return reset( $taxonomies );
+	}
+
+	/**
 	 * Get a list of imported schemas
 	 * @return an array of all loaded schemas
 	 */
