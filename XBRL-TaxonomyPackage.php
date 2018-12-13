@@ -569,6 +569,17 @@ EOT;
 	}
 
 	/**
+	 * Return the url for the 'all' entry point
+	 */
+	public function getAllEntryPoint()
+	{
+		$entryPoints = $this->getSchemaEntryPoints();
+		$alls = array_filter( $entryPoints, function( $entryPoint ) { return strpos( $entryPoint, "entryAll" ) !== false; } );
+		return $alls ? reset( $alls ) : false;
+	}
+
+
+	/**
 	 * Workout which file is the schema file
 	 * @return void
 	 * @throws "tpe:schemaFileNotFound"
