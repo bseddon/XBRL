@@ -2,22 +2,7 @@
 
 /**
  * Example to compile taxonomies of the the Danish Business Authority (Erhvervsstyrelsen)
- * Uses compilation to improve performance.
- *  _					   _	 _ _ _
- * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
- * | |  | | | |/ _` | | | | |/ _` | | __| | | |
- * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
- * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
- *	     |___/	  |_|					 |___/
- *
- * @author Bill Seddon
- * @version 0.9
- * @Copyright (C) 2018 Lyquidity Solutions Limited
- * @License: GPL 3.0
- *
- * Taxonomies are available here:
- * https://erhvervsstyrelsen.dk/tidligere-versioner
- *
+ * Uses compilation to improve performance
  * The taxonomies can be viewed here using Yeti:
  * https://yeti2.corefiling.com/yeti/resources/yeti-gwt/Yeti.jsp
  *
@@ -45,7 +30,7 @@
 
 namespace lyquidity\dfb;
 
-/** ------------------------------------------------------------
+/* ------------------------------------------------------------
  * Change some environment parameters
  * ------------------------------------------------------------ */
 // Set the maximum execution time to three minutes
@@ -54,6 +39,10 @@ set_time_limit(180);
 ini_set( 'memory_limit', '512M' );
 // Allow deep nesting which may be required for the XPath 2.0 processor when XDebug is used
 ini_set('xdebug.max_nesting_level', 512);
+
+// Allow formulas to be captured
+global $use_xbrl_functions;
+$use_xbrl_functions = true;
 
 /* ------------------------------------------------------------
  *  In lieu of implementing this as a class, use globals for
@@ -79,6 +68,10 @@ $taxonomiesLocation = __DIR__ . "/taxonomies"; // !!! Change this
 
 // The current set of taxonomies to process
 $taxonomies = array(
+	'DK-IFRS_20141220.zip',
+	'DK-IFRS_20161220_20161129_0932.zip',
+	'DK-IFRS_20171220_29171213_1431.zip',
+	'XBRL20131220_IFRS.zip',
 	'xbrl20130401_20140515_1004.zip',
 	'xbrl20140701_20140820_1339.zip',
 	'xbrl20151001_20151209_0903_0.zip',
@@ -91,7 +84,8 @@ $taxonomies = array(
  * ------------------------------------------------------------ */
 require_once __DIR__ . '/vendor/autoload.php';  // !!! Change this
 require_once __DIR__ . '/Observer.php';
-require_once __DIR__ . '/SimplePackage.php';
+require_once __DIR__ . '/DKDBAPackage.php';
+require_once __DIR__ . '/DKIFRSPackage.php';
 
 // Make it a validating processor
 \XBRL::setValidationState();
@@ -109,7 +103,8 @@ try
 	{
 		echo "Processing taxonomy '$taxonomyPackageFile'";
 		// Pass the name of the custom package as an alternative format to try
-		$package = \XBRL_Package::getPackage( "$taxonomiesLocation/$taxonomyPackageFile", array( '\lyquidity\dfb\SimplePackage' ) );
+		$ns = __NAMESPACE__;
+		$package = \XBRL_Package::getPackage( "$taxonomiesLocation/$taxonomyPackageFile", array( DKDBAPackage::class, DKIFRSPackage::class ) );
 		if ( ! $package )
 		{
 			echo "The package '$taxonomyPackageFile' is not valid\n";
@@ -167,10 +162,36 @@ function processTaxonomyPackage( $observer, $file, $package )
 
 	$observer->addItem( "action", 'taxonomy saved' );
 
-	$year = substr( $package->getFirstFolderName(), 4 );
-	$entryAllBasename = "entryAll";
+	$matches = null;
 
-	if ( ( $compiledTaxonomy = \XBRL::isCompiled( $compiledLocation, "$entryAllBasename$year" ) ) == false )
+	$entryAllBasename = "entryAll";
+	$all = $package->getAllEntryPoint();
+	// I have been trying to avoid this sort of exceptional condition.
+	// However the correctly packaged DBA taxonomies do not include
+	// 'entryAll.xsd' amoung the advertised entry points even though
+	// the file exists in the schema.  The alternative is to created
+	// yet another packaging class just to handle this condition.
+	if ( ! $all && $package instanceof \XBRL_TaxonomyPackage )
+	{
+		// Use a valid entry point to create the prefix
+		$entryPoints = $package->getSchemaEntryPoints();
+		$all = dirname( reset( $entryPoints ) ) . "/$entryAllBasename.xsd";
+	}
+
+	if ( ! $all )
+	{
+		$observer->addItem("error", "There is no 'all' entry point in the taxonomy package '$file'");
+		return;
+	}
+
+	if ( ! preg_match( "/^http:\/\/archprod\.service\.eogs\.dk\/taxonomy\/(?<version>\d{8})\/.*\.xsd$/", $all, $matches ) )
+	{
+		$observer->addItem("error", "Unable to find the version number for the taxonomy");
+		return false;
+	}
+	$version = $matches['version'];
+
+	if ( ( $compiledTaxonomy = \XBRL::isCompiled( $compiledLocation, "$entryAllBasename$version" ) ) == false )
 	{
 		$observer->addItem( "action", 'compiling' );
 
@@ -179,10 +200,17 @@ function processTaxonomyPackage( $observer, $file, $package )
 			mkdir( $compiledLocation );
 		}
 
-		// ALways compile the 'all' entry point. This makes sure the compiled taxonomy is a superset of all the other entry points
-		if ( ! \XBRL::compile( dirname( $package->schemaFile ) . "/$entryAllBasename.xsd", "http://xbrl.dcca.dk/$entryAllBasename", $compiledLocation . "/$entryAllBasename$year" ) )
+		$namespace = $package->getNamespaceForSchema( $all );
+		if ( ! $namespace )
 		{
-			$observer->addItem( "action", "taxonomy $year failed to compile" );
+			$observer->addItem("error", "Unable to access content for entry point: '$all'");
+			return;
+		}
+
+		// ALways compile the 'all' entry point. This makes sure the compiled taxonomy is a superset of all the other entry points
+		if ( ! \XBRL::compile( $all, $namespace, $compiledLocation . "/$entryAllBasename$version" ) )
+		{
+			$observer->addItem( "action", "taxonomy $version failed to compile" );
 			return false;
 		}
 		if ( \XBRL_Log::getInstance()->hasConformanceIssueWarning() )

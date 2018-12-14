@@ -1,23 +1,8 @@
 <?php
 
 /**
- * Example to read instance documents for the Danish Business Authority (Erhvervsstyrelsen)
+ * Example to read instance documents for the Danish Business Authority
  * Uses compiled taxonomies to improve performance
- *  _					   _	 _ _ _
- * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
- * | |  | | | |/ _` | | | | |/ _` | | __| | | |
- * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
- * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
- *	     |___/	  |_|					 |___/
- *
- * @author Bill Seddon
- * @version 1.0
- * @Copyright (C) 2018 Lyquidity Solutions Limited
- * @License: GPL 3.0
- *
- * Taxonomies are available here:
- * https://erhvervsstyrelsen.dk/tidligere-versioner
- *
  * The taxonomies can be viewed here using Yeti:
  * https://yeti2.corefiling.com/yeti/resources/yeti-gwt/Yeti.jsp
  *
@@ -76,18 +61,32 @@ $compiledLocation = __DIR__ . "/compiled"; // !!! Change this
 // The location of the instances to be reported.  It could be a non-local location such as a web site.
 $instancesLocation = __DIR__ . "/instances"; // !!! Change this
 
+// Allow formulas to be evaluated
+global $use_xbrl_functions;
+$use_xbrl_functions = true;
+
 /* ------------------------------------------------------------
  *  Taxonomies and instances
  * ------------------------------------------------------------ */
 
 // The set of instance documents to report
 // There needs to be some mechanism to generate sets of company files.
-$instances = array( // !!! Change this
-	'and co 2014.xml',
-	'and co 2015.xml',
-	'and co 2016.xml',
-	'and co 2017.xml'
+$instanceGroupss = array( // !!! Change this
+	'aarsrapport' => array(
+		'10403782.2016.AARSRAPPORT.xml',
+		// '15505281.2015.AARSRAPPORT.xml',
+		// '49260016.2017.AARSRAPPORT.xml',
+		// '81822514.2017.AARSRAPPORT.xml',
+	),
+	'andco' => array(
+		'and co 2014.xml',
+		'and co 2015.xml',
+		'and co 2016.xml',
+		'and co 2017.xml'
+	)
 );
+
+$instances = $instanceGroupss['aarsrapport'];
 
 /* ------------------------------------------------------------
  * Make the processor code accessible
@@ -105,13 +104,44 @@ require_once __DIR__ . '/Observer.php';
 $observer = new Observer();
 \XBRL_Log::getInstance()->attach( $observer );
 
+/**
+ * List of qnames of values to report
+ * @var array $concepts
+ */
 $concepts = array(
-	'Omsaetning' => 'fsa.xsd#fsa_Revenue',
-	'Bruttofortjeneste' => 'fsa.xsd#fsa_GrossProfitLoss',
-	'Resultat før skat' => 'fsa.xsd#fsa_ProfitLossFromOrdinaryActivitiesBeforeTax',
-	'Årets resultat' => 'fsa.xsd#fsa_ProfitLoss',
-	'Egenkapital' => 'fsa.xsd#fsa_Equity',
-	'Balance' => 'fsa.xsd#fsa_Assets'
+	'dba' => array(
+		'Omsaetning' => 'fsa:Revenue',
+		'Bruttofortjeneste' => 'fsa:GrossProfitLoss',
+		'Resultat før skat' => 'fsa:ProfitLossFromOrdinaryActivitiesBeforeTax',
+		'Årets resultat' => 'fsa:ProfitLoss',
+		'Egenkapital' => 'fsa:Equity',
+		'Balance' => 'fsa:Assets'
+	),
+	'ifrs' => array(
+		'Omsaetning' => 'ifrs-full:Revenue',
+		'Bruttofortjeneste' => 'ifrs-full:GrossProfit',
+		'Resultat før skat' => 'ifrs-full:ProfitLossBeforeTax',
+		'Årets resultat' => 'ifrs-full:ProfitLoss',
+		'Egenkapital' => 'ifrs-full:Equity',
+		'Balance' => 'ifrs-full:Assets'
+	)
+);
+
+/**
+ * Map instance document taxonomy version number
+ * @var array $versionToTaxonomyType
+ */
+$versionToTaxonomyType = array(
+	'20130401' => 'dba',
+	'20131220' => 'ifrs',
+	'20140701' => 'dba',
+	'20141220' => 'ifrs',
+	'20151001' => 'dba',
+	'20151220' => 'ifrs',
+	'20161001' => 'dba',
+	'20161220' => 'ifrs',
+	'20171001' => 'dba',
+	'20171220' => 'ifrs'
 );
 
 // Data in the form [concept][year][value]
@@ -160,33 +190,57 @@ try
 		{
 			$schemaHRef = getInstanceTaxonomyHRef( "$instancesLocation/$instanceFilename" );
 
-			// Get the version year from the href
-			$parts = explode( '/', $schemaHRef );
-			if ( count( $parts ) != 6 )
+			$pattern = '/^http:\/\/archprod\.service\.eogs\.dk\/taxonomy\/(?<version>\d{8})\/.*\.xsd$/';
+			if ( ! preg_match( $pattern, $schemaHRef, $matches ) )
 			{
-				$observer->addItem( "error", "instance document taxonomy namespace has an invalid structure '$schemaHRef'" );
+				$observer->addItem("error", "The schema ref of '$instanceBasename.xml' is not valid: '$schemaHRef'");
 				continue;
 			}
 
+			$version = $matches['version'];
+
 			// Use the version year to choose the correct compiled taxonomy
-			$compiledTaxonomyFilename = "$compiledLocation/entryAll{$parts[4]}.json";
+			$compiledTaxonomyFilename = "$compiledLocation/entryAll$version.json";
 			if ( ! file_exists( $compiledTaxonomyFilename ) )
 			{
-				$observer->addItem( "error", "instance document taxonomy namespace is not a supported version '$parts[4]'" );
+				$observer->addItem( "error", "instance document taxonomy namespace is not a supported version '$version'" );
 				continue;
 			}
 
 			// Pass $compiledTaxonmyFilename which will reference the compiled taxonomy
 			$instance = \XBRL_Instance::FromInstanceDocument( "$instancesLocation/$instanceFilename", $compiledTaxonomyFilename );
-			$instance->toInstanceCache( $compiledLocation, $instanceBasename );
-			$metadata = array(
-				'taxonomy' => basename( $compiledTaxonomyFilename ),
-				'namespace' => $instance->getInstanceTaxonomy()->getNamespace(),
-				'instance' => $instanceBasename
-			);
 
-			$json = json_encode( $metadata );
-			file_put_contents( "$compiledLocation/$instanceBasename.meta", $json );
+			$validateInstance = false;
+			if ( $validateInstance )
+			{
+				$instance->validate();
+
+				if ( $use_xbrl_functions && $instance->getInstanceTaxonomy()->getHasFormulas( true ) )
+				{
+					// Time to evaluate formulas
+					$formulas = new \XBRL_Formulas();
+					$parameters = array();
+					if ( ! $formulas->processFormulasAgainstInstances( $instance, $instance->getInstanceXml()->getDocNamespaces( true ), $parameters ) )
+					{
+						// Report the failure
+						$observer->addItem( "Error", "The formula test failed to complete" );
+					}
+				}
+			}
+
+			$saveInstanceCache = true;
+			if ( $saveInstanceCache )
+			{
+				$instance->toInstanceCache( $compiledLocation, $instanceBasename );
+				$metadata = array(
+					'taxonomy' => basename( $compiledTaxonomyFilename ),
+					'namespace' => $instance->getInstanceTaxonomy()->getNamespace(),
+					'instance' => $instanceBasename
+				);
+
+				$json = json_encode( $metadata );
+				file_put_contents( "$compiledLocation/$instanceBasename.meta", $json );
+			}
 		}
 
 		// Get the year of the ending balance - there's only one ending balance so there should only be one fact
@@ -203,27 +257,49 @@ try
 		$primaryItems = $instance->getInstanceTaxonomy()->getDefinitionPrimaryItems();
 
 		// Build the data array
-		foreach ( $concepts as $concept => $conceptId )
+		foreach ( $concepts[ $versionToTaxonomyType[ $version ] ] as $conceptName => $conceptQName )
 		{
-			// Handy reference to the concept taxonomy
-			$conceptTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $conceptId );
-			$conceptElement = $conceptTaxonomy->getElementById( $conceptId );
+			$prefix = strstr( $conceptQName, ":", true );
+			$taxonomies = array_filter( $instance->getInstanceTaxonomy()->getImportedSchemas(), function( $taxonomy ) use( $prefix ) { return $taxonomy->getPrefix() == $prefix; } );
+			if ( ! $taxonomies )
+			{
+				$observer->addItem("error", "No taxonomy exists for '$conceptQName'");
+				continue;
+			}
+
+			/**
+			 * Handy reference to the concept taxonomy
+			 * @var \XBRL $conceptTaxonomy
+			 */
+			$conceptTaxonomy = reset( $taxonomies );
+			// $conceptTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $conceptQName );
+
+			$qname = qname( $conceptQName, $conceptTaxonomy->getDocumentNamespaces() );
+
+			// $conceptElement = $conceptTaxonomy->getElementById( $conceptQName );
+			$conceptElement = $conceptTaxonomy->getElementByName( $qname->localName );
+			if ( ! $conceptElement )
+			{
+				$observer->addItem("error", "No taxonomy element exists for '$conceptQName'");
+				continue;
+			}
 
 			// This is how to access the concept description
+			$conceptId = $conceptTaxonomy->getTaxonomyXSD() . "#{$conceptElement['id']}";
 			$descriptionEN = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $conceptId );
 			$descriptionDA = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $conceptId, null, 'da' );
 
 			// If the conceot has not been used yet, add namespace, name and id
-			if ( ! isset( $data[ $concept ] ) )
+			if ( ! isset( $data[ $conceptName ] ) )
 			{
-				$data[ $concept ] = array(
+				$data[ $conceptName ] = array(
 					'name' => $conceptElement['name'],
 					'namespace' => $conceptTaxonomy->getNamespace(),
-					'id' => $conceptId
+					'qname' => $conceptQName
 				);
 			}
 			// Add a default value to show the cell has been processed even if there is no data
-			$data[ $concept ]['values'][ $year ] = array( 'value' => null, 'unit' => null );
+			$data[ $conceptName ]['values'][ $year ] = array( 'value' => null, 'unit' => null );
 
 			// This will be non-null if the dimensional relationshipset (DRS) for a primary
 			// item has been evaluated.  There can be many facts for each concept and some
@@ -255,11 +331,11 @@ try
 						if ( ! $instance->isDRSValidForFact( $fact, $drsHypercubes ) ) continue;
 					}
 
-					$qname = qname( $instance->getUnit($fact['unitRef'] ), $instance->getInstanceNamespaces() );
+					$unitQNname = qname( $instance->getUnit($fact['unitRef'] ), $instance->getInstanceNamespaces() );
 
-					$data[ $concept ]['values'][ $year ] = array(
+					$data[ $conceptName ]['values'][ $year ] = array(
 						'value' => $fact['value'],
-						'unit' => $qname->localName,
+						'unit' => $unitQNname->localName,
 						'en' => $descriptionEN,
 						'da' => $descriptionDA
 					);
