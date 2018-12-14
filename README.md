@@ -74,6 +74,28 @@ XBRL Formulas includes support for:
 * The full set of [functions registry](https://specifications.xbrl.org/registries/functions-registry-1.0/) (XFI) are also supported 
 including both recommended and draft functions. 
 
+### Taxonomy package support
+
+There are many instances of zip files containing taxonomies.  If a zip file content follows the 
+[XBRL Taxonomy Package specification](https://www.xbrl.org/Specification/taxonomy-package/REC-2016-04-19/taxonomy-package-REC-2016-04-19.html) 
+then the processor will support it.  However, there are many instances of zip files that contain taxonomies
+which were packaged this way long before the packaging specification existed.  The US SEC packages are an example.  In fact
+there are two versions of legacy packages available from the SEC: one that uses a JSON file to catalog the package content;
+and one that uses an XML file. The processor supports both.  
+
+In addition, the Danish IFRS package is supported as is the taxonomy from the Danish Business Agency (Erhvervsstyrelsen). 
+Neither of these packages support the XBRL Taxonomy Packaging specification though the taxonomies are provided in a zip file.
+
+Sometimes it is helpful to extend the core XBRL processinging class to add specific functionality for a taxonomy.  This
+is especially true when a taxonomy may be extended.  Examples of extended XBRL processing classes are IFRS and 
+[ESMA ESEF](https://www.esma.europa.eu/policy-activities/corporate-disclosure/european-single-electronic-format) taxonomies.  
+In these cases, the base packaging class, such as XBRL_TaxonomyPackage can be extended to return the name of the XBRL processor 
+class to use to processes the taxonomies.  Examples provided include:
+
+* XBRL-US-TaxonomyPackage.php
+* XBRL-IFRS-Package.php
+* XBRL-ESMA-ESEF-Package.php
+
 ### Conformance
 
 The project passes almost all conformance tests, the omissions arising because there is no support for reference linkbases.
@@ -246,3 +268,5 @@ instance documents and present their contents.
 [EIOPA Reporting Formats](https://eiopa.europa.eu/Pages/Supervision/Insurance/Reporting-formats.aspx)<br/>
 [Bank of England CRD](http://www.bankofengland.co.uk/pra/Pages/regulatorydata/crdfirmstaxonomy.aspx)<br/>
 [EBA Reporting Frameworks](https://www.eba.europa.eu/risk-analysis-and-data/reporting-frameworks)<br/>
+[ESMA European Single Electronic Format](https://www.esma.europa.eu/policy-activities/corporate-disclosure/european-single-electronic-format)
+[Taxonomy package specification](https://www.xbrl.org/Specification/taxonomy-package/REC-2016-04-19/taxonomy-package-REC-2016-04-19.html)<br/>
