@@ -88,8 +88,8 @@ Neither of these packages support the XBRL Taxonomy Packaging specification thou
 
 Sometimes it is helpful to extend the core XBRL processinging class to add specific functionality for a taxonomy.  This
 is especially true when a taxonomy may be extended.  Examples of extended XBRL processing classes are IFRS and 
-[ESMA ESEF](https://www.esma.europa.eu/policy-activities/corporate-disclosure/european-single-electronic-format) taxonomies.  
-In these cases, the base packaging class, such as XBRL_TaxonomyPackage can be extended to return the name of the XBRL processor 
+[ESMA ESEF](https://www.esma.europa.eu/policy-activities/corporate-disclosure/european-single-electronic-format) taxonomies.  In these 
+cases, the base packaging class, such as XBRL_TaxonomyPackage can be extended to return the name of the XBRL processor 
 class to use to processes the taxonomies.  Examples provided include:
 
 * XBRL-US-TaxonomyPackage.php
@@ -105,9 +105,17 @@ project is a copy of the test harness we use to run the conformance tests.
 
 ### Signing
 
-Instance documents and taxonomies can also be signed.  The signing techniques used are similar to those use to sign Word or PDF documents or emails.  Documents are signed using the private key of a certificate you have so that others are able to verify the contents of a document have not changed since you created it.
+Instance documents and taxonomies can also be signed.  The signing techniques used are similar to those use to sign Word or PDF documents 
+or emails.  Documents are signed using the private key of a certificate you have so that others are able to verify the contents of a document 
+have not changed since you created it.
 
-Signing does not impact the original document but is important for recipients of a taxonomy to know they are working with an unaltered copy of the relevant taxonomy and for recipients of instance documents to know the contents have not be altered since the document was prepared.
+Signing does not impact the original document but is important for recipients of a taxonomy to know they are working with an unaltered 
+copy of the relevant taxonomy and for recipients of instance documents to know the contents have not be altered since the document was 
+prepared.
+
+Signing uses only open standards for encryption and verification such as public/private key certificates.  Although the project provides
+code to verify a signed instance document, the same process is possible using a standard distribution of most programming languages
+such as, but not limited to, Java, C#, Python and C++.
 
 ## Purpose
 
