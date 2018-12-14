@@ -210,6 +210,7 @@ class XBRL_Formulas extends Resource
 	public function processFormulasAgainstInstances( $instances, $additionalNamespaces = null, $contextParameters = null )
 	{
 		$this->canEvaluate = true;
+		$result = true;
 
 		if ( ! is_null( $instances ) && ! is_array( $instances ) )
 		{
@@ -224,82 +225,93 @@ class XBRL_Formulas extends Resource
 		foreach ( $instances as /** @var XBRL_Instance $xbrlInstance */ $xbrlInstance )
 		{
 			// Reset for this instance
-			$taxonomy = $xbrlInstance->getInstanceTaxonomy();
-			if ( ! $taxonomy->getHasFormulas() ) return true;
+			$instanceTaxonomy = $xbrlInstance->getInstanceTaxonomy();
+			if ( ! $instanceTaxonomy->getHasFormulas( true ) ) return true;
 
-			$this->parameterQnames = array();
-			$this->nsMgr = new XmlNamespaceManager();
+			// BMS 2018-12-13
+			$schemasWithFormulas = array_filter( $instanceTaxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
 
-			// Begin loading the namespaces
-			$this->addNamespaces( array( XBRL_Constants::$standardPrefixes, $additionalNamespaces, $xbrlInstance->getInstanceNamespaces() ) );
+			// // For now, take just one of the taxonomies with formulas
+			// // $taxonomy = reset( $schemasWithFormulas );
 
-			// Set the instance
-			$this->instanceQName = qname( "instances:standard-input-instance", $this->nsMgr->getNamespaces() );
-			$this->instanceQNames[ "standard-input-instance" ] = $this->instanceQName ;
-			$this->instances[ (string)$this->instanceQName ] = $xbrlInstance;
-
-			// Look for any non-standard instances
-			$instanceResources = $taxonomy->getGenericResource( "variable", "instance" );
-			foreach ( $instanceResources as $instanceKey => $instanceResource )
+			foreach ( $schemasWithFormulas as $namespace => $taxonomy )
 			{
-				/**
-				 * @var Instance $instance
-				 */
-				$instance = Instance::fromArray( $instanceResource['variable'] );
-				$this->instanceQNames[ $instance->label ] = $instance->getQName();
+				$this->parameterQnames = array();
+				$this->nsMgr = new XmlNamespaceManager();
 
-				// TODO Add any extra instances instance
-				// $name = $instance['variable']['name'];
-				// Check there is an instance name in the list of global parameters
-				$clark = $instance->getQName()->clarkNotation();
-				// if ( ! isset( $contextParameters[ $clark ] ) )
+				// Begin loading the namespaces
+				$this->addNamespaces( array( XBRL_Constants::$standardPrefixes, $additionalNamespaces, $xbrlInstance->getInstanceNamespaces() ) );
+
+				// Set the instance
+				$this->instanceQName = qname( "instances:standard-input-instance", $this->nsMgr->getNamespaces() );
+				$this->instanceQNames[ "standard-input-instance" ] = $this->instanceQName ;
+				$this->instances[ (string)$this->instanceQName ] = $xbrlInstance;
+
+				// Look for any non-standard instances
+				$instanceResources = $taxonomy->getGenericResource( "variable", "instance" );
+				foreach ( $instanceResources as $instanceKey => $instanceResource )
+				{
+					/**
+					 * @var Instance $instance
+					 */
+					$instance = Instance::fromArray( $instanceResource['variable'] );
+					$this->instanceQNames[ $instance->label ] = $instance->getQName();
+
+					// TODO Add any extra instances instance
+					// $name = $instance['variable']['name'];
+					// Check there is an instance name in the list of global parameters
+					$clark = $instance->getQName()->clarkNotation();
+					// if ( ! isset( $contextParameters[ $clark ] ) )
+					// {
+					// 	XBRL_Log::getInstance()->formula_validation(
+					// 		"Instance",
+					// 		"A resource that references an instance QName does not exist as a global property",
+					// 		array(
+					// 			'QName' => $clark,
+					// 			// 'error' => 'xbrlvarinste:missingInstanceProperty'
+					// 			'error' => 'xbrlvarscopee:differentInstances'
+					// 		)
+					// 	);
+					// }
+
+					// $xbrlInstance = \XBRL_Instance::FromInstanceDocument( $contextParameters[ $clark ] );
+					// $this->instances[ $clark ] = $xbrlInstance;
+				}
+
+				// // DO NOT DELETE
+				// // This block is handy to run XPath 2.0 processor debug tests against an instance document
+				// $formula = new Formula();
+				// $formula->xbrlInstance = $xbrlInstance;
+				// $formula->nsMgr = $this->nsMgr;
+	            //
+				// // $facts = $this->evaluateXPath( $formula, "xfi:non-nil-facts-in-instance(/xbrli:xbrl)[@contextRef]", array() );
+				// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/concept:c1/@contextRef eq /xbrli:xbrl/concept:n1/@contextRef", array() );
+				// // $facts = $this->evaluateXPath( $formula, "/", array() );
+				// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/context[1]/@id", array() );
+				// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl", array() );
+				// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/xbrli:context[@id=/xbrli:xbrl/context[1]/@id]/entity", array() );
+				// // $facts = $this->evaluateXPath( $formula, "(for \$unitRef in (concat(/xbrli:xbrl/concept:C1[1]/@unitRef, '')) return \$unitRef)[1] cast as xs:string", array() );
+				// // $facts = $this->evaluateXPath( $formula, "1 instance of node()", array() );
+				// // $count = $facts->getCount();
+	            //
+				// $facts = $this->evaluateXPath( $formula, $query, array() );
+				// $count = $facts->getCount();
+				// foreach ( $facts as $fact )
 				// {
-				// 	XBRL_Log::getInstance()->formula_validation(
-				// 		"Instance",
-				// 		"A resource that references an instance QName does not exist as a global property",
-				// 		array(
-				// 			'QName' => $clark,
-				// 			// 'error' => 'xbrlvarinste:missingInstanceProperty'
-				// 			'error' => 'xbrlvarscopee:differentInstances'
-				// 		)
-				// 	);
+				// 	$x = 1;
 				// }
+				// exit();
 
-				// $xbrlInstance = \XBRL_Instance::FromInstanceDocument( $contextParameters[ $clark ] );
-				// $this->instances[ $clark ] = $xbrlInstance;
-			}
-
-			// // DO NOT DELETE
-			// // This block is handy to run XPath 2.0 processor debug tests against an instance document
-			// $formula = new Formula();
-			// $formula->xbrlInstance = $xbrlInstance;
-			// $formula->nsMgr = $this->nsMgr;
-            //
-			// // $facts = $this->evaluateXPath( $formula, "xfi:non-nil-facts-in-instance(/xbrli:xbrl)[@contextRef]", array() );
-			// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/concept:c1/@contextRef eq /xbrli:xbrl/concept:n1/@contextRef", array() );
-			// // $facts = $this->evaluateXPath( $formula, "/", array() );
-			// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/context[1]/@id", array() );
-			// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl", array() );
-			// // $facts = $this->evaluateXPath( $formula, "/xbrli:xbrl/xbrli:context[@id=/xbrli:xbrl/context[1]/@id]/entity", array() );
-			// // $facts = $this->evaluateXPath( $formula, "(for \$unitRef in (concat(/xbrli:xbrl/concept:C1[1]/@unitRef, '')) return \$unitRef)[1] cast as xs:string", array() );
-			// // $facts = $this->evaluateXPath( $formula, "1 instance of node()", array() );
-			// // $count = $facts->getCount();
-            //
-			// $facts = $this->evaluateXPath( $formula, $query, array() );
-			// $count = $facts->getCount();
-			// foreach ( $facts as $fact )
-			// {
-			// 	$x = 1;
-			// }
-			// exit();
-
-			if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
-			{
-				return false;
+				if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
+				{
+					$result = false;
+					// return false;
+				}
 			}
 		}
 
-		return true;
+		return $result;
+		// return true;
 	}
 
 	/**
