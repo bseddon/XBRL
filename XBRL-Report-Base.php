@@ -781,9 +781,7 @@ abstract class XBRL_Report_Base
 												/**
 												 * @var XBRL $tax
 												 */
-												$tax = $instance_taxonomy->getNamespace() === $dimension['default']['namespace']
-													? $instance_taxonomy
-													: $instance_taxonomy->getTaxonomyForNamespace( $dimension['default']['namespace'] );
+												$tax = $instance_taxonomy->getTaxonomyForXSD( $dimension['default']['label'] );
 
 												$dimension['default']['taxonomy_element'] = $tax->getElementById( $dimension['default']['label'] );
 
@@ -972,9 +970,7 @@ abstract class XBRL_Report_Base
 											/**
 											 * @var XBRL $tax
 											 */
-											$tax = $instance_taxonomy->getNamespace() === $dimension['default']['namespace']
-												? $instance_taxonomy
-												: $instance_taxonomy->getTaxonomyForNamespace( $dimension['default']['namespace'] );
+											$tax = $instance_taxonomy->getTaxonomyForXSD( $dimension['default']['label'] );
 
 											if ( ! isset( $dimension['default']['taxonomy_element'] ) )
 											{
