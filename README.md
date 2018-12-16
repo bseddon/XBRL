@@ -167,7 +167,7 @@ can perform additional code checks.  But there are downsides as well.  The abili
 
 **PHP versions and development tools**
 
-To work with the code you will need to use PHP 7.0 or later.  PHP is the latest and greatest and we currently develop using PHP 7.1.6.  In our experience 
+To work with the code you will need to use PHP 7.0 or later.  PHP is the latest and greatest and we currently develop using PHP 7.2.6.  In our experience 
 version 7.0 is *much* faster and it is likely we have used features of the language that are only available in PHP 7.+.
 
 We have not made use of functions that require PHP extensions not in the standard distribution.  
@@ -203,7 +203,7 @@ This project has dependencies on the following projects:
 
 **Example loading and validating an instance document**
 
-Using the project code is straigh forward.  This simple example shows how to read an instance document file, check the 
+Using the project code is straight-forward.  This simple example shows how to read an instance document file, check the 
 validity instance document and report any discovered issues. 
 
 ```php
