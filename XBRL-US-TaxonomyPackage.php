@@ -65,6 +65,31 @@ EOT;
 	const namespacePrefix = "http://fasb.org/us-gaap/";
 
 	/**
+	 * Provides a URL for the entity publishing the taxonomy. This element SHOULD be used to provide
+	 * the primary website of the publishing entity. The URL used SHOULD be the same as that used in
+	 * other Taxonomy Packages published by the same entity.
+	 * @var string
+	 */
+	public $publisherURL;
+
+	/**
+	 * Provides a date on which the taxonomy was published.
+	 * @var string
+	 */
+	public $publicationDate = "";
+
+	/**
+	 * Default constructor
+	 * @param ZipArchive $zipArchive
+	 */
+	public function __construct( ZipArchive $zipArchive  )
+	{
+		parent::__construct( $zipArchive );
+
+		$this->publisherURL = XBRL_US_TaxonomyPackage::filePrefix;
+	}
+
+	/**
 	 * Returns true if the zip file represents an SEC package
 	 * {@inheritDoc}
 	 * @see XBRL_IPackage::isPackage()
@@ -83,6 +108,8 @@ EOT;
 			{
 				return false;
 			}
+
+			$this->publicationDate = $matches['date'];
 
 			$found = false;
 			$this->traverseContents( function( $path, $name, $type ) use( &$found )
