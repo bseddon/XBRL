@@ -26,6 +26,12 @@
 class XBRL_ESMA_ESEF_Package extends XBRL_TaxonomyPackage
 {
 	/**
+	 * ESMA URL domain
+	 * @var string
+	 */
+	private $url = "http://www.esma.europa.eu/";
+
+	/**
 	 * Returns true if the zip file represents a package that meets the taxonomy package specification
 	 * {@inheritDoc}
 	 * @see XBRL_Package::isPackage()
@@ -34,19 +40,16 @@ class XBRL_ESMA_ESEF_Package extends XBRL_TaxonomyPackage
 	{
 		if ( ! parent::isPackage() ) return false;
 
-		// If it is a package then is an IFRS taxonomy package?
-		// An IFRS package is characterised by having one or more of the
-		// package entry points be the entry posints in the XBRL_IFRS entry point list
-		// and no instance document.
-		// Check the entry points first because they are already in an array.
+		$url = "http://www.esma.europa.eu/";
+
+		// If it is a package then is it an ESMA taxonomy package?
+		// It is if the publisher url is the ESAM url
+		if ( $this->publisherURL == $url ) return true;
+
+		// Or any one of the entry points starts with the url
 		foreach ( $this->getSchemaEntryPoints() as $entryPoint )
 		{
-			// echo "{$attributes['namespace']}\n";
-			$nameOfXBRLClass = $this->getXBRLClassname();
-			if ( ! $nameOfXBRLClass::compiled_taxonomy_for_xsd( basename( $entryPoint ) ) ) continue;
-
-			return true;
-
+			// if ( XBRL::startsWith( $entryPoint, $url ) ) return true;
 		}
 
 		// Now check the schema file to see if it references a recognized namespace
@@ -100,6 +103,32 @@ class XBRL_ESMA_ESEF_Package extends XBRL_TaxonomyPackage
 
 			break;
 		}
+	}
+
+	/**
+	 * Implemented to return true if an imported schema is the ESMA one.
+	 * @return bool
+	 * @abstract
+	 */
+	protected function getIsExtensionTaxonomy()
+	{
+		$this->determineSchemaFile();
+
+		// If the schema in the package imports one of the schemas with an entry point namespace then an extension compilation should be used
+		$xml = $this->getFileAsXML( $this->getActualUri( $this->schemaFile ) );
+		$xml->registerXPathNamespace( SCHEMA_PREFIX, SCHEMA_NAMESPACE );
+		foreach ( $xml->xpath("/xs:schema/xs:import") as $tag => /** @var SimpleXMLElement $element */ $element )
+		{
+			$attributes = $element->attributes();
+			if ( ! isset( $attributes['namespace'] ) ) continue;
+			// echo "{$attributes['namespace']}\n";
+			$nameOfXBRLClass = $this->getXBRLClassname();
+			if ( ( $className = $nameOfXBRLClass::class_from_namespace( (string)$attributes['namespace'] ) ) != $nameOfXBRLClass ) continue;
+
+			return true;
+		}
+
+		return false;
 	}
 
 }
