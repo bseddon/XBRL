@@ -3609,7 +3609,7 @@ class XBRL {
 	}
 
 	/**
-	 * Provides access the the elements array
+	 * Provides access to the elements array
 	 * @return array
 	 */
 	public function &getElements()
@@ -3702,7 +3702,7 @@ class XBRL {
 	/**
 	 * Gets an element based on its id
 	 * @param string $id The id of the element to return
-	 * @return An element array or false
+	 * @return Array An element array or false
 	 */
 	public function &getElementById( $id )
 	{
