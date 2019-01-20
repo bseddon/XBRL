@@ -391,6 +391,16 @@ EOT;
 	}
 
 	/**
+	 * Return the details for an entry point identified by index or document name
+	 * @param int|string $entryPointId
+	 * @return array
+	 */
+	public function getDetailForEntryPoint( $entryPointId )
+	{
+		return array();
+	}
+
+	/**
 	 * Traverses the contents folders and files calling $callback for each node
 	 * @param Funtion $callback Three arguents will be passed to the the callback:
 	 * 		The path preceding the Name
