@@ -86,7 +86,7 @@ EOT;
 	{
 		parent::__construct( $zipArchive );
 
-		$this->publisherURL = XBRL_US_TaxonomyPackage::filePrefix;
+		$this->publisherURL = str_replace( "us-gaap/", "", XBRL_US_TaxonomyPackage::namespacePrefix );
 	}
 
 	/**
@@ -200,21 +200,75 @@ EOT;
 	}
 
 	/**
+	 * Cache variable for entry points
+	 */
+	private $entryPoints = array();
+
+	/**
 	 * Returns an array of schema file names defined as entry points
 	 */
 	public function getSchemaEntryPoints()
 	{
+		if ( $this->entryPoints ) return $this->entryPoints;
+
 		$entryPoints = array();
 
 		$this->traverseContents( function( $path, $name, $type ) use( &$entryPoints )
 		{
 			if ( $type == PATHINFO_DIRNAME ) return true;
+			if ( ! \XBRL::endsWith( $name, '.xsd' ) ) return true;
 			if ( ! XBRL::compiled_taxonomy_for_xsd( $name ) ) return true;
 			$common = $this->getCommonRootFolder( "$path$name", $this->schemaFile );
 			$entryPoints[] = $common['uri'];
 			return true;
 		} );
 
+		$this->entryPoints = $entryPoints;
 		return $entryPoints;
 	}
+
+	/**
+	 * Return the details for an entry point identified by index or document name
+	 * @param int|string $entryPointId
+	 * @return array
+	 */
+	public function getDetailForEntryPoint( $entryPointId )
+	{
+		$entryPoints = $this->getSchemaEntryPoints();
+		if ( is_numeric( $entryPointId ) )
+		{
+			if ( isset( $entryPoints[ $entryPointId ] ) )
+				$entryPointId = $entryPoints[ $entryPointId ];
+		}
+
+		if ( is_string( $entryPointId ) )
+		{
+			if ( in_array( $entryPointId, $entryPoints ) )
+			{
+				$pos = strpos( $entryPointId, 'us-gaap/' . substr( $this->publicationDate, 0, 4 ) );
+				if ( $pos !== false )
+				{
+					$path = $this->getFirstFolderName() . "/" . substr( $entryPointId, $pos + 13 );
+					$xml = $this->getFileAsXML( $path );
+					$appInfo = $xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA ] );
+
+					try
+					{
+						$documentation = $appInfo->annotation->documentation;
+						return array(
+							'name' => array(),
+							'description' => array( 'en_US' => trim( (string)$documentation ) ),
+							'version' => $this->publicationDate,
+							'entryPointDocument' => array( $entryPointId ) );
+					}
+					catch( \Exception $ex )
+					{
+						// Do nothing
+					}
+				}
+			}
+		}
+		return array();
+	}
+
 }
