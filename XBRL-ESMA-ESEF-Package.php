@@ -43,7 +43,7 @@ class XBRL_ESMA_ESEF_Package extends XBRL_TaxonomyPackage
 		$url = "http://www.esma.europa.eu/";
 
 		// If it is a package then is it an ESMA taxonomy package?
-		// It is if the publisher url is the ESAM url
+		// It is if the publisher url is the ESMA url
 		if ( $this->publisherURL == $url ) return true;
 
 		// Or any one of the entry points starts with the url
