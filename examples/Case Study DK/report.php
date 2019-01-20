@@ -3,6 +3,21 @@
 /**
  * Example to read instance documents for the Danish Business Authority
  * Uses compiled taxonomies to improve performance
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
+ *
+ * @author Bill Seddon
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
+ * @License: GPL 3.0
+ *
+ * Taxonomies are available here:
+ * https://erhvervsstyrelsen.dk/tidligere-versioner
+ *
  * The taxonomies can be viewed here using Yeti:
  * https://yeti2.corefiling.com/yeti/resources/yeti-gwt/Yeti.jsp
  *

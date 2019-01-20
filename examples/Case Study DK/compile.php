@@ -2,6 +2,21 @@
 
 /**
  * Example to compile taxonomies of the the Danish Business Authority (Erhvervsstyrelsen)
+ *  _					   _	 _ _ _
+ * | |   _   _  __ _ _   _(_) __| (_) |_ _   _
+ * | |  | | | |/ _` | | | | |/ _` | | __| | | |
+ * | |__| |_| | (_| | |_| | | (_| | | |_| |_| |
+ * |_____\__, |\__, |\__,_|_|\__,_|_|\__|\__, |
+ *	     |___/	  |_|					 |___/
+ *
+ * @author Bill Seddon
+ * @version 0.9
+ * @Copyright (C) 2018 Lyquidity Solutions Limited
+ * @License: GPL 3.0
+ *
+ * Taxonomies are available here:
+ * https://erhvervsstyrelsen.dk/tidligere-versioner
+ *
  * Uses compilation to improve performance
  * The taxonomies can be viewed here using Yeti:
  * https://yeti2.corefiling.com/yeti/resources/yeti-gwt/Yeti.jsp
@@ -168,7 +183,7 @@ function processTaxonomyPackage( $observer, $file, $package )
 	$all = $package->getAllEntryPoint();
 	// I have been trying to avoid this sort of exceptional condition.
 	// However the correctly packaged DBA taxonomies do not include
-	// 'entryAll.xsd' amoung the advertised entry points even though
+	// 'entryAll.xsd' among the advertised entry points even though
 	// the file exists in the schema.  The alternative is to created
 	// yet another packaging class just to handle this condition.
 	if ( ! $all && $package instanceof \XBRL_TaxonomyPackage )
