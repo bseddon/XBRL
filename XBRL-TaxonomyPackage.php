@@ -569,6 +569,30 @@ EOT;
 	}
 
 	/**
+	 * Return the details for an entry point identified by index or document name
+	 * @param int|string $entryPointId
+	 * @return array
+	 */
+	public function getDetailForEntryPoint( $entryPointId )
+	{
+		if ( is_numeric( $entryPointId ) )
+		{
+			if ( isset( $this->entryPoints[ $entryPointId ] ) )
+				return $this->entryPoints[ $entryPointId ];
+		}
+		else if ( is_string( $entryPointId ) )
+		{
+			return @reset( array_filter( $this->entryPoints, function( $entryPoint ) use ( $entryPointId )
+			{
+				return isset( $entryPoint['entryPointDocument'][0] ) &&
+					   $entryPoint['entryPointDocument'][0] == $entryPointId;
+			} ) );
+		}
+
+		return array();
+	}
+
+	/**
 	 * Return the url for the 'all' entry point
 	 */
 	public function getAllEntryPoint()
@@ -577,7 +601,6 @@ EOT;
 		$alls = array_filter( $entryPoints, function( $entryPoint ) { return strpos( $entryPoint, "entryAll" ) !== false; } );
 		return $alls ? reset( $alls ) : false;
 	}
-
 
 	/**
 	 * Workout which file is the schema file
