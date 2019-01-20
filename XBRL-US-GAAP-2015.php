@@ -347,25 +347,34 @@ XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XB
 /**
  * Register XSD to compiled taxonomy entries
  */
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2018-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2018-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd"), "us-gaap-2018-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2018-01-31.xsd"), "us-gaap-std-2018-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2018-01-31.xsd"), "us-gaap-ent-std-2018-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2018-01-31.xsd"), "us-gaap-ent-all-2018-01-31" );
 
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2017-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-all-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2017-01-31.xsd"), "us-gaap-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2017-01-31.xsd"), "us-gaap-std-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2017-01-31.xsd"), "us-gaap-ent-std-2017-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2017-01-31.xsd"), "us-gaap-ent-all-2017-01-31" );
 
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2016-01-31.xsd" ), "us-gaap-entire-2016-01-31" );
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-all-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2016-01-31.xsd"), "us-gaap-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2016-01-31.xsd"), "us-gaap-std-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2016-01-31.xsd"), "us-gaap-ent-std-2016-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2016-01-31.xsd"), "us-gaap-ent-all-2016-01-31" );
 
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2015-01-31.xsd" ), "us-gaap-entire-2015-01-31" );
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-all-2015-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-2015-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2015-01-31.xsd"), "us-gaap-2015-01-31" );
 
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2014-01-31.xsd" ), "us-gaap-entire-2014-01-31" );
 XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-all-2014-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-2014-01-31" );
+XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2014-01-31.xsd"), "us-gaap-2014-01-31" );
 
 /**
  * Implements an XBRL descendent for the US GAAP taxonomy.
