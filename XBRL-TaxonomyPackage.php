@@ -199,7 +199,7 @@ EOT;
 	 */
 	public function isPackage()
 	{
-		// A taxonomy package has a file called TaxonoomyPackage.xml in a META-INF folder
+		// A taxonomy package has a file called TaxonomyPackage.xml in a META-INF folder
 
 		try
 		{
