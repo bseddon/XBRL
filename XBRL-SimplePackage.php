@@ -144,9 +144,12 @@ EOT;
 	{
 		// Initialize the context
 		$context = XBRL_Global::getInstance();
-		$context->useCache = true;
-		$context->cacheLocation = $cacheLocation;
-		$context->initializeCache();
+		if ( ! $context->useCache )
+		{
+			$context->useCache = true;
+			$context->cacheLocation = $cacheLocation;
+			$context->initializeCache();
+		}
 
 		$this->determineSchemaFile();
 
