@@ -31,6 +31,17 @@
 class XBRL_US_TaxonomyPackage extends XBRL_SimplePackage
 {
 	/**
+	 * This will need to be updated when a new taxonomy is released
+	 * @var array Indexed by publication date
+	 */
+	private static $defaultEntryPoints = array(
+		'2016-01-31' => 'http://xbrl.fasb.org/us-gaap/2016/entire/us-gaap-entryPoint-all-2016-01-31.xsd',
+		'2017-01-31' => 'http://xbrl.fasb.org/us-gaap/2017/entire/us-gaap-entryPoint-all-2017-01-31.xsd',
+		'2018-01-31' => 'http://xbrl.fasb.org/us-gaap/2018/entire/us-gaap-entryPoint-all-2018-01-31.xsd'
+	);
+
+
+	/**
 	 * Notes about using this package instance
 	 * @var string
 	 */
@@ -124,16 +135,27 @@ EOT;
 				throw XBRL_TaxonomyPackageException::withError( "tpe:metadataFileFound", "The package contains a manifest.xml file or JSON manifest file." );
 			}
 
+			if ( isset( XBRL_US_TaxonomyPackage::$defaultEntryPoints[ $this->publicationDate ] ) )
+			{
+				$this->schemaFile = XBRL_US_TaxonomyPackage::$defaultEntryPoints[ $this->publicationDate ];
+				$this->actualSchemaFilename = $this->getActualUri( $this->schemaFile );
+				// $this->schemaNamespace = XBRL_US_TaxonomyPackage::namespacePrefix . "{$matches['date']}/";
+			}
+			else
+			{
+				$this->schemaFile = XBRL_US_TaxonomyPackage::filePrefix . "{$this->taxonomyYear}/elts/us-gaap-{$matches['date']}.xsd";
+				$this->actualSchemaFilename = "{$root}/elts/us-gaap-{$matches['date']}.xsd";
+			}
+
 			$this->taxonomyYear = $matches['year'];
-			$this->actualSchemaFilename = "{$root}/elts/us-gaap-{$matches['date']}.xsd";
 			$contents = $this->getFile( $this->actualSchemaFilename );
 			if ( ! $contents )
 			{
 				throw XBRL_TaxonomyPackageException::withError( "tpe:noSchemaFileFound", "The package must contain a schema file (.xsd)." );
 			}
 
-			$this->schemaNamespace = XBRL_US_TaxonomyPackage::namespacePrefix . "{$matches['date']}/";
-			$this->schemaFile = XBRL_US_TaxonomyPackage::filePrefix . "{$this->taxonomyYear}/elts/us-gaap-{$matches['date']}.xsd";
+			$this->schemaNamespace = $this->getTargetNamespace( $this->actualSchemaFilename, $contents );
+			// $this->schemaNamespace = XBRL_US_TaxonomyPackage::namespacePrefix . "{$matches['date']}/";
 
 			return true;
 		}
@@ -163,6 +185,13 @@ EOT;
 	 */
 	protected function getActualUri( $uri )
 	{
+		// Break the Uri into its parts
+		$path = parse_url( $uri, PHP_URL_PATH );
+		// Skip the scheme/domain/us-gaap/year/
+		$parts = explode( '/', $path );
+		array_splice( $parts, 0, 3, $this->getFirstFolderName() );
+		return join( '/', $parts );
+
 		return $this->actualSchemaFilename;
 	}
 
@@ -255,11 +284,15 @@ EOT;
 					try
 					{
 						$documentation = $appInfo->annotation->documentation;
+						$attributes = $xml->attributes();
+						$namespace = property_exists( $attributes, 'targetNamespace' ) ? (string)$attributes->targetNamespace : '';
 						return array(
 							'name' => array(),
 							'description' => array( 'en_US' => trim( (string)$documentation ) ),
 							'version' => $this->publicationDate,
-							'entryPointDocument' => array( $entryPointId ) );
+							'entryPointDocument' => array( $entryPointId ),
+							'namespace' => $namespace
+						);
 					}
 					catch( \Exception $ex )
 					{
@@ -271,4 +304,77 @@ EOT;
 		return array();
 	}
 
+	/**
+	 * Save the taxonomy for all entry points
+	 */
+	public function saveTaxonomy( $cacheLocation )
+	{
+		$entryPoints = $this->getSchemaEntryPoints();
+		$originalSchemaFile = $this->schemaFile;
+		$originalNamespace = $this->schemaNamespace;
+
+		$context = XBRL_Global::getInstance();
+		if ( ! $context->useCache )
+		{
+			$context->useCache = true;
+			$context->cacheLocation = $cacheLocation;
+			$context->initializeCache();
+		}
+
+		try
+		{
+			foreach ( $entryPoints as $index => $entryPoint )
+			{
+				if ( $context->findCachedFile( $entryPoint ) )
+				{
+					$this->errors[] = "The schema file '{$this->schemaFile}' already exists in the cache.";
+					continue;
+				}
+
+				// Get the namespace
+				$this->schemaFile = $entryPoint;
+				$this->schemaNamespace = null;
+				// Find the schema document
+				$content = trim( $this->getFile( $this->getActualUri( $this->schemaFile ) ) );
+
+				$result = $this->processSchemaDocument( $context, $content, false );
+				$this->setUrlMap();
+
+				if ( ! $result )
+				{
+					$this->errors[] = "Unable to process the schema document";
+					return false;
+				}
+
+				// Look for the non-schema file
+				$firstFolder = $this->getFirstFolderName();
+				$this->traverseContents( function( $path, $name, $type ) use( &$context, $firstFolder )
+				{
+					if ( $type == PATHINFO_DIRNAME ) return true;
+					$extension = pathinfo( $name, PATHINFO_EXTENSION );
+					if ( ! in_array( $extension, array( 'xml', 'xbrl', 'xsd' ) ) ) return true;
+					$path = $path ? "$path$name" : "$name";
+					$content = $this->getFile( $path );
+					if ( $firstFolder )
+					{
+						$path = preg_replace( "|^$firstFolder/|", '/us-gaap/' . $this->taxonomyYear . "/", $path );
+					}
+					$uri = XBRL::resolve_path( $this->schemaFile, $path ); // $common = $this->getCommonRootFolder( $path, $this->schemaFile );
+					if ( $context->findCachedFile( $uri ) ) return true;
+					$context->saveCacheFile( $uri, $content );
+					return true;
+				} );
+
+			}
+		}
+		catch( \Exception $ex )
+		{
+			$this->errors[] = $ex->getMessage();
+		}
+		finally
+		{
+			$this->schemaFile = $originalSchemaFile;
+			$this->schemaNamespace = $originalNamespace;
+		}
+	}
 }
