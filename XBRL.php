@@ -918,12 +918,31 @@ class XBRL {
 				}
 			}
 
-			$taxonomy->validateDimensions( true );
-			$taxonomy->fixupPresentationHypercubes();
+			// Look at the linkbases to determine if there are any definition additions that need processing
+			if ( $taxonomy->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
+			{
+				$taxonomy->validateDimensions( true );
+			}
+			// Look at the linkbases to determine if there are any definition additions that need processing
+			if ( $taxonomy->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) ||
+				 $taxonomy->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
+			{
+				$taxonomy->fixupPresentationHypercubes();
+			}
 			$taxonomy->afterMainTaxonomy();
 		}
 
 		return $taxonomy;
+	}
+
+	/**
+	 * Returns true if a linkbase ref exists with $linkbaseRefType for the taxonomy
+	 * @param string $linkbaseRefType One of the standard linkbaseRef constants such as XBRL_Constants::$DefinitionLinkbaseRef
+	 */
+	private function linkbaseRefExists( $linkbaseRefType )
+	{
+		return isset( $this->linkbaseTypes[ $linkbaseRefType ] ) &&
+			   count( $this->linkbaseTypes[ $linkbaseRefType ] );
 	}
 
 	/**
@@ -3575,7 +3594,7 @@ class XBRL {
 		}
 
 		$xsd = $this->getTaxonomyXSD();
-		// echo "Processing linkbases: $xsd\n";
+		// echo strftime('%b %d %H:%M:%S ') . "Processing linkbases: $xsd\n";
 		/*
 		 *  Included schemas do not need to be processed because their roleTypes, arcroleTypes
 		 * and linkbase definitions are included in the including schema and, so, these
@@ -3598,7 +3617,11 @@ class XBRL {
 		}
 
 		$this->validateTaxonomy21();
-		$this->validateDimensions();
+		// Look at the linkbases to determine if there are any definition additions that need processing
+		if ( $this->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
+		{
+			$this->validateDimensions();
+		}
 		$this->validateCustom();
 
 		$this->loadSuccess = true;
@@ -3615,6 +3638,30 @@ class XBRL {
 	public function &getElements()
 	{
 		return $this->elementIndex;
+	}
+
+	/**
+	 * Returns an array of elements across all taxonomies
+	 * @return array
+	 */
+	public function getAllElements()
+	{
+		if ( $this->context->isExtensionTaxonomy() )
+		{
+			$prefix = $this->getPrefix();
+			return array_map( function( $item ) use ( $prefix ) { $item['prefix'] = $prefix; return $item; }, $this->elementIndex );
+		}
+
+		$result = array();
+		foreach ( $this->context->importedSchemas as $namespace => $taxonomy )
+		{
+			$elements = $taxonomy->getElements();
+			if ( ! $elements ) continue; // Don't attempt to merge if there are no element and it take time
+			$prefix = $taxonomy->getPrefix();
+			$elements = array_map( function( $item ) use ( $prefix ) { $item['prefix'] = $prefix; return $item; }, $elements );
+			$result = array_merge( $result, $elements );
+		}
+		return $result;
 	}
 
 	/**
@@ -9569,10 +9616,17 @@ class XBRL {
 			$arcroleRefs[ $arcroleUri ] = $fragment;
 
 			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
+
 			if ( ! $taxonomy )
 			{
 				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
-				if ( empty( $xsd ) || ! isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) )
+				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
+
+				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
+				// If the taxonomy is not already loaded, try loading it.
+				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
+
+				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
 						array(
@@ -9580,8 +9634,9 @@ class XBRL {
 							'linkbase' => "'$xml_basename'",
 						)
 					);
+
+					continue;
 				}
-				continue;
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionArc
@@ -11126,7 +11181,13 @@ class XBRL {
 			if ( ! $taxonomy )
 			{
 				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
-				if ( empty( $xsd ) || ! isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) )
+				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
+
+				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
+				// If the taxonomy is not already loaded, try loading it.
+				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
+
+				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
 						array(
@@ -11134,8 +11195,8 @@ class XBRL {
 							'linkbase' => "'$xml_basename'",
 						)
 					);
+					continue;
 				}
-				continue;
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:referenceArc
@@ -11521,8 +11582,14 @@ class XBRL {
 			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
 			if ( ! $taxonomy )
 			{
-				$parts = explode( '#', $arcroleRefHref );
-				if ( count( $parts ) == 1 || ! isset( XBRL_Global::$taxonomiesToIgnore[ $parts[0] ] ) )
+				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
+				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
+
+				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
+				// If the taxonomy is not already loaded, try loading it.
+				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
+
+				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
 						array(
@@ -11530,8 +11597,8 @@ class XBRL {
 							'linkbase' => "'$xml_basename'",
 						)
 					);
+					continue;
 				}
-				continue;
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionArc
@@ -13379,8 +13446,14 @@ class XBRL {
 			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
 			if ( ! $taxonomy )
 			{
-				$parts = explode( '#', $arcroleRefHref );
-				if ( count( $parts ) == 1 || ! isset( XBRL_Global::$taxonomiesToIgnore[ $parts[0] ] ) )
+				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
+				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
+
+				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
+				// If the taxonomy is not already loaded, try loading it.
+				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
+
+				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
 						array(
@@ -13388,8 +13461,8 @@ class XBRL {
 							'linkbase' => "'$xml_basename'",
 						)
 					);
+					continue;
 				}
-				continue;
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:labelArc
