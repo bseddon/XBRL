@@ -449,6 +449,12 @@ class XBRL {
 	private $enumerations						= array();
 
 	/**
+	 * True if the instance has been loaded from a JSON file
+	 * @var string
+	 */
+	private $loadedFromJSON						= false;
+
+	/**
 	 * Return the valiation state
 	 * @return boolean
 	 */
@@ -508,6 +514,8 @@ class XBRL {
 		if ( ! is_array( $xsd_entries ) || count( $xsd_entries ) === 0 ) return;
 
 		global $compiled_taxonomy_name_prefix;
+		if ( strpos( $compiled_taxonomy_name_prefix, '\\') !== false ) $compiled_taxonomy_name_prefix = str_replace( '\\', '/', $compiled_taxonomy_name_prefix );
+		if ( strpos( $compiled_taxonomy_name_prefix, './') ) $compiled_taxonomy_name_prefix = XBRL::normalizePath( $compiled_taxonomy_name_prefix );
 		XBRL::$xsd_to_compiled_map = array_merge( XBRL::$xsd_to_compiled_map, array_fill_keys( $xsd_entries, $compiled_taxonomy_name_prefix . $compiled_taxonomy_name ) );
 	}
 
@@ -813,10 +821,10 @@ class XBRL {
 			$namespace = (string) $xbrlDocument['targetNamespace'];
 			if ( isset( $context->importedSchemas[ $namespace ] ) )
 			{
-				$xsd = basename( $taxonomyXsdFile );
-				if ( ! isset( $context->schemaFileToNamespace[ $xsd ] ) )
+				if ( ! isset( $context->schemaFileToNamespace[ $taxonomyXsdFile ] ) )
 				{
-					$context->schemaFileToNamespace[ $xsd ] = $namespace;
+					$context->schemaFileToNamespace[ $taxonomyXsdFile ] = $namespace;
+					$context->schemaFileToNamespace[ basename( $taxonomyXsdFile ) ] = $namespace;
 				}
 				return $context->importedSchemas[ $namespace ];
 			}
@@ -919,7 +927,7 @@ class XBRL {
 			}
 
 			// Look at the linkbases to determine if there are any definition additions that need processing
-			if ( $taxonomy->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
+			// if ( $taxonomy->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
 			{
 				$taxonomy->validateDimensions( true );
 			}
@@ -1082,6 +1090,7 @@ class XBRL {
 		$taxonomy->setBaseTaxonomy( $baseTaxonomy );
 
 		$context->importedSchemas[ $namespace ] =& $taxonomy;
+		$context->schemaFileToNamespace[ $taxonomy->getSchemaLocation() ] = $namespace;
 		$context->schemaFileToNamespace[ $taxonomy->getTaxonomyXSD() ] = $namespace;
 
 		foreach ( $store['schemas'] as $schemaNamespace => $data )
@@ -1097,6 +1106,7 @@ class XBRL {
 			$xbrl->context =& $context;
 			$xbrl->fromStore( $data );
 			$context->importedSchemas[ $schemaNamespace ] = $xbrl;
+			$context->schemaFileToNamespace[ $xbrl->getSchemaLocation() ] = $schemaNamespace;
 			$context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $schemaNamespace;
 		}
 
@@ -1130,6 +1140,8 @@ class XBRL {
 	 */
 	public static function compileExtensionXSD( $taxonomy_file, $className, $namespace = null, $output_basename = null, $compiledPath = null )
 	{
+		if ( ! filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) ) $taxonomy_file = str_replace( '\\', '/', $taxonomy_file );
+
 		$taxonomy = XBRL::loadExtensionXSD( $taxonomy_file, $className, $namespace, $compiledPath );
 		if ( ! $taxonomy ) return false;
 
@@ -1451,6 +1463,7 @@ class XBRL {
 			$xbrl->context =& $context;
 			$xbrl->fromStore( $data );
 			$xbrl->context->importedSchemas[ $namespace ] = $xbrl;
+			$xbrl->context->schemaFileToNamespace[ $xbrl->getSchemaLocation() ] = $namespace;
 			$xbrl->context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $namespace;
 
 			if ( $namespace === $store['mainNamespace'] ) $instance = $xbrl;
@@ -3249,6 +3262,12 @@ class XBRL {
 	 */
 	protected function fromStore( $data )
 	{
+		// Fix up the schema location
+		if ( strpos( $data['schemaLocation'], '\\') !== false ) $data['schemaLocation'] = str_replace( '\\', '/', $data['schemaLocation'] );
+		if ( strpos( $data['schemaLocation'], './') ) $data['schemaLocation'] = XBRL::normalizePath( $data['schemaLocation'] );
+
+		$this->loadedFromJSON = true;
+
 		$this->elementIndex			=& $data['elementIndex'];
 		$this->elementHypercubes	=& $data['elementHypercubes'];
 		$this->elementDimensions	=& $data['elementDimensions'];
@@ -3501,7 +3520,8 @@ class XBRL {
 			$this->namespace = $targetNamespace;
 		}
 
-		$this->schemaLocation = $taxonomy_schema;
+		// If the location is a file location normalize the path to remove dots
+		$this->schemaLocation = filter_var( $taxonomy_schema, FILTER_VALIDATE_URL ) ? $taxonomy_schema : XBRL::normalizePath( str_replace( '\\', '/', $taxonomy_schema ) );
 		$this->xbrlDocument = $xbrlDocument;
 
 		if ( is_null( $this->documentPrefixes ) ) $this->documentPrefixes = array();
@@ -3560,6 +3580,7 @@ class XBRL {
 		// $this->indexElements( $includedSchema );
 		// BMS 2018-03-31 Moved higher up (see the note with the same time)
 		// $this->context->importedSchemas[ $targetNamespace ] =& $this;
+		$this->context->schemaFileToNamespace[ $this->getSchemaLocation() ] = $targetNamespace;
 		$this->context->schemaFileToNamespace[ $this->getTaxonomyXSD() ] = $targetNamespace;
 
 		// A callback will be used if the caller needs this function
@@ -3618,7 +3639,7 @@ class XBRL {
 
 		$this->validateTaxonomy21();
 		// Look at the linkbases to determine if there are any definition additions that need processing
-		if ( $this->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
+		// if ( $this->linkbaseRefExists( XBRL_Constants::$DefinitionLinkbaseRef ) )
 		{
 			$this->validateDimensions();
 		}
@@ -3960,18 +3981,29 @@ class XBRL {
 
 	/**
 	 * Get the taxonomy schema document instance for a given href.
-	 * @param $href string|array The href is likely to come from a locator and can be the string or an array produced by parse_url.
-	 * @returns XBRL An instance of XBRL
+	 * @param string|array $href The href is likely to come from a locator and can be the string or an array produced by parse_url.
+	 * @param bool $allowLinkbaseLookup (default: true) When true and if the $href is not .xsd it will be checked to see if a schema can be found for the linkbase
+	 * @return XBRL An instance of XBRL
 	 */
-	public function getTaxonomyForXSD( $href )
+	public function getTaxonomyForXSD( $href, $allowLinkbaseLookup = true )
 	{
 		// If the path ends in .xml then look in all schema documents to see if it is a reference to a linkbase.
 		// If it is, return the 'owning' taxonomy
-		if ( XBRL::endsWith( basename( parse_url( $href, PHP_URL_PATH ) ), ".xsd" ) )
+		// if ( XBRL::endsWith( basename( parse_url( $href, PHP_URL_PATH ) ), ".xsd" ) )
+		if ( is_array( $href ) )
 		{
 			return $this->context->getTaxonomyForXSD( $href );
 		}
-		else
+
+		$href = strpos( $href, '#' ) === false ? $href : strstr( $href, '#', true );
+		if ( XBRL::endsWith( $href, '.xsd' )  )
+		{
+			return $this->context->getTaxonomyForXSD( $href );
+		}
+
+		$href = basename( $href );
+
+		if ( $allowLinkbaseLookup )
 		{
 			foreach ( $this->context->importedSchemas as $path => $taxonomy )
 			{
@@ -3979,7 +4011,7 @@ class XBRL {
 				{
 					foreach ( $linkbaseRefs as $key => $linkbase )
 					{
-						if ( strcasecmp( basename( $linkbase['href'] ), basename( $href ) ) != 0 )
+						if ( strcasecmp( basename( $linkbase['href'] ), $href ) != 0 )
 						{
 							continue;
 						}
@@ -3988,15 +4020,14 @@ class XBRL {
 					}
 				}
 			}
-
-			return false;
 		}
+		return false;
 	}
 
 	/**
 	 * Return an array of labelLinkRefs.  If a role is not provided it will default to XBRL_Constants::$defaultLinkRole.
-	 * @param string The role
-	 * @param array A list of the refs for the $role
+	 * @param string $role The role
+	 * @param array $labelLinkRoleRefs A list of the refs for the $role
 	 * @return array
 	 */
 	public function &getLabelLinkRoleRefs( $role = null, &$labelLinkRoleRefs = null )
@@ -5704,16 +5735,13 @@ class XBRL {
 				}
 				else
 				{
-					// Only load the schema if it is not already loaded
-					$basename = basename( $part );
-					if ( ! isset( $this->context->schemaFileToNamespace[ $basename ] ) )
+					// Only load the schema if it not one of the core ones that are pre-loaded
+					$schemaLocation = XBRL::resolve_path( pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ), $part );
+					if ( ! isset( $this->context->schemaFileToNamespace[ $schemaLocation ] ) )
 					{
-						// Only load the schema if it not one of the core ones that are pre-loaded
-						$href = XBRL::resolve_path( pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ), $part );
-						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
+						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
 						{
-							$result = XBRL::withTaxonomy( $href, true );
-							// $taxonomy = $this->getTaxonomyForXSD( $basename );
+							$result = XBRL::withTaxonomy( $schemaLocation, true );
 						}
 					}
 
@@ -8859,37 +8887,43 @@ class XBRL {
 					$taxonomy = $this->getTaxonomyForXSD( $xsd );
 					if ( ! $taxonomy )
 					{
-						// So this gets a iitte complex.  If the path ends in .xsd then the locator
-						// is to a an id in a schema that can be discovered (or not).  If the locator
-						// does not have an extension then it could be to a valid document or fragment
-						// but its not yet known if the referenced document is a discoverable.  This
-						// relevant because of this note in test 70015 V-05:
-						// 	A document referenced by a link:loc element must be contained in a DTS
-						// 	but the document in the test is an XHTML file which can not become a part
-						//	of a DTS because of the following definition:
-						// 	  XBRL2.1 - Table 1. Terms and definitions.  A DTS is a collection of
-						//	  taxonomy schemas and linkbases.
-
-						// Look for the taxonomy and include its contents in the DTS
-
-						// If the path is absolute then just take the path.
-						if ( isset( $parts['schema'] ) || $parts['path'][0] == '/' )
-						{
-							$href = strpos( $locatorHref, "#" ) === false
-								? $locatorHref
-								: strstr( $locatorHref, "#", true );
-						}
-						else
-						{
-							$href = $this->resolve_path( $this->getSchemaLocation(), $xsd );
-						}
-
-						$taxonomy = XBRL::withTaxonomy( $href );
+						// BMS 2019-01-26 Now that namespaces are indexed by full paths, use the basename alternative here
+						//                because it will always be disambiguated here.
+						$taxonomy = $this->getTaxonomyForXSD( basename( $xsd ) );
 						if ( ! $taxonomy )
 						{
-							// It is an error to reference an element or document that is not part of the DTS
-							$this->log()->taxonomy_validation( "3.2", "The locator reference is to an element that is not part of the DTS", array( 'href' => $locatorHref ) );
-							continue;
+							// So this gets a iitte complex.  If the path ends in .xsd then the locator
+							// is to a an id in a schema that can be discovered (or not).  If the locator
+							// does not have an extension then it could be to a valid document or fragment
+							// but its not yet known if the referenced document is a discoverable.  This
+							// relevant because of this note in test 70015 V-05:
+							// 	A document referenced by a link:loc element must be contained in a DTS
+							// 	but the document in the test is an XHTML file which can not become a part
+							//	of a DTS because of the following definition:
+							// 	  XBRL2.1 - Table 1. Terms and definitions.  A DTS is a collection of
+							//	  taxonomy schemas and linkbases.
+
+							// Look for the taxonomy and include its contents in the DTS
+
+							// If the path is absolute then just take the path.
+							if ( isset( $parts['schema'] ) || $parts['path'][0] == '/' )
+							{
+								$href = strpos( $locatorHref, "#" ) === false
+									? $locatorHref
+									: strstr( $locatorHref, "#", true );
+							}
+							else
+							{
+								$href = $this->resolve_path( $this->getSchemaLocation(), $xsd );
+							}
+
+							$taxonomy = XBRL::withTaxonomy( $href );
+							if ( ! $taxonomy )
+							{
+								// It is an error to reference an element or document that is not part of the DTS
+								$this->log()->taxonomy_validation( "3.2", "The locator reference is to an element that is not part of the DTS", array( 'href' => $locatorHref ) );
+								continue;
+							}
 						}
 					}
 
@@ -9074,10 +9108,15 @@ class XBRL {
 	{
 		$taxonomy =& $this;
 
-		$xsd = parse_url( $href, PHP_URL_PATH );
+		// BMS 2019-01-26 Don't know why this test is looking at the PHP_URL_PATH as it is unlikely to match
+		//                NOTE: This probably needs changing to test $href against schema location now
+		//				  		getTaxonomyForXSD works on full paths.
+		// $xsd = parse_url( $href, PHP_URL_PATH );
+		$xsd = basename( parse_url( $href, PHP_URL_PATH ) );
 		if ( $xsd !== $this->getTaxonomyXSD() )
 		{
 			// $this->log()->err( "Other taxonomy $href" );
+			// BMS 2019-01-26 Now full Urls are being used to
 			$taxonomy = $this->getTaxonomyForXSD( $xsd );
 			if ( ! $taxonomy )
 			{
@@ -9615,13 +9654,12 @@ class XBRL {
 
 			$arcroleRefs[ $arcroleUri ] = $fragment;
 
-			$taxonomy = $this->getTaxonomyForXSD( $arcroleRefHref );
+			$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
+			if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
+			$taxonomy = $this->getTaxonomyForXSD( $xsd );
 
 			if ( ! $taxonomy )
 			{
-				$xsd = strpos( $arcroleRefHref, '#' ) === false ? $arcroleRefHref : strstr( $arcroleRefHref, '#', true );
-				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $xsd ] ) ) continue;
-
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
 				// If the taxonomy is not already loaded, try loading it.
 				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
@@ -12948,9 +12986,10 @@ class XBRL {
 		/**
 		 * @var XBRL $taxonomy
 		 */
-		$taxonomy = $locatorParts['path'] == $this->getTaxonomyXSD()
+		$taxonomy = basename( $locatorParts['path'] ) == $this->getTaxonomyXSD()
 			? $this
-			: $this->getTaxonomyForXSD( $locatorParts['path'] );
+			// BMS 2019-01-26 Changed to explicity use the basename as getTaxonomyForXSD no longer will
+			: $this->getTaxonomyForXSD( basename( $locatorParts['path'] ) );
 
 		if ( ! $taxonomy )
 		{
@@ -14033,7 +14072,9 @@ class XBRL {
 							}
 
 							// A locator for the to label cannot be to a schema element
-							$taxonomy = $this->getTaxonomyForXSD( $locators[ $toLabel ] );
+							// BMS 2019-01-25 So first check its a schema file
+
+							$taxonomy = $this->getTaxonomyForXSD( $locators[ $toLabel ], false );
 							if ( $taxonomy )
 							{
 								$this->log()->taxonomy_validation( "5.2.2.3", "The to attribute of a label arc cannot reference a schema concept",
@@ -17074,11 +17115,9 @@ class XBRL {
 				else
 				{
 					// Only load the schema if it is not already loaded
-					$basename = basename( $part );
-					if ( ! isset( $this->context->schemaFileToNamespace[ $basename ] ) )
+					$schemaLocation = XBRL::resolve_path( $this->getSchemaLocation(), trim( $part ) );
+					if ( ! isset( $this->context->schemaFileToNamespace[ $schemaLocation ] ) )
 					{
-						$schemaLocation = XBRL::resolve_path( $this->schemaLocation, trim( $part ) );
-
 						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
 						{
 							$this->log()->info( str_repeat( "\t", $depth ) . "$schemaLocation" );
@@ -17235,7 +17274,8 @@ class XBRL {
 			}
 
 			$this->includedFiles[] = $includeFile;
-			$this->context->schemaFileToNamespace[ pathinfo( $includeFile, PATHINFO_BASENAME ) ] = $targetNamespace;
+			$this->context->schemaFileToNamespace[ $includeFile ] = $targetNamespace;
+			$this->context->schemaFileToNamespace[ basename( $includeFile ) ] = $targetNamespace;
 
 			// Note the use of the schemaLocation variable of *$this* because the component of the
 			// included file are really being added to the current schema.
