@@ -281,14 +281,22 @@ class XBRL_Global
 	 */
 	public function getTaxonomyForXSD( $href )
 	{
-		$parts = is_array( $href ) ? $href : parse_url( $href );
-		if ( ! isset( $parts['path'] ) ) return false;
-		$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
-		if ( ! isset( $this->schemaFileToNamespace[ $xsd ] ) )
+		if ( is_string( $href ) && \XBRL::endsWith( $href, '.xsd' ) && \XBRL::startsWith( $href, 'http' ) )
 		{
-			// $this->log()->info( "Schema location: {$this->getSchemaLocation()}" );
-			// $this->log()->err(  "Schema file not found: $href" );
-			return false;
+			if ( ! isset( $this->schemaFileToNamespace[ $href ] ) )
+				return null;
+
+			$xsd = $href;
+		}
+		else
+		{
+			$parts = is_array( $href ) ? $href : parse_url( $href );
+			if ( ! isset( $parts['path'] ) ) return false;
+			$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
+			if ( ! isset( $this->schemaFileToNamespace[ $xsd ] ) )
+			{
+				return false;
+			}
 		}
 
 		$namespace = $this->schemaFileToNamespace[ $xsd ];
