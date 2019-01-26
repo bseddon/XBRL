@@ -1108,18 +1108,16 @@ class XBRL_Instance
 				}
 				else
 				{
-					// Only load the schema if it is not already loaded
-					$basename = basename( $part );
-					if ( ! isset( $this->context->schemaFileToNamespace[ $basename ] ) )
+					// Only load the schema if it not one of the core ones that are pre-loaded
+					$href = XBRL::resolve_path( $instance_document, $part );
+					if ( ! isset( $this->context->schemaFileToNamespace[ $href ] ) )
 					{
-						// Only load the schema if it not one of the core ones that are pre-loaded
-						$href = XBRL::resolve_path( $instance_document, $part );
 						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
 						{
 							// This taxonomy may already exist in the global cache
-							if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $basename ] ) )
+							if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $href ] ) )
 							{
-								$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $basename );
+								$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $href );
 							}
 							else
 							{
@@ -1183,10 +1181,10 @@ class XBRL_Instance
 				}
 
 				// The schema may have been loaded already for example by a custom linkbase definition
-				$xsd = pathinfo( $resolvedPath, PATHINFO_BASENAME );
-				if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $xsd ] ) )
+				// $xsd = pathinfo( $resolvedPath, PATHINFO_BASENAME );
+				if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $resolvedPath ] ) )
 				{
-					$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $xsd );
+					$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $resolvedPath );
 					continue;
 				}
 
