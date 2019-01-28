@@ -66,6 +66,12 @@ class XBRL_Log
 	private $conformanceIssueWarning = false;
 
 	/**
+	 * Flag holding a business rules violation warning state.  Will be true if there has been at least one warning
+	 * @var bool
+	 */
+	private $businessRulesViolationeWarning = false;
+
+	/**
 	 * Get an instance of the global singleton
 	 * @return XBRL_Log
 	 */
@@ -300,7 +306,7 @@ class XBRL_Log
 
 	/**
 	 * A convenience function for logging a event about an XBRL taxonony specification conformance issue.
-	 * It will log a message at the PEAR_LOG_DEBUG log level.
+	 * It will log a message at the PEAR_LOG_WARNING log level.
 	 *
 	 * PEAR_LOG_WARNING
 	 *
@@ -314,6 +320,26 @@ class XBRL_Log
 		if ( ! $this->log ) return;
 		$this->conformanceIssueWarning = true;
 		$msg = sprintf( "[taxonomy] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
+		$this->log->_announce( array( 'section' => $section, 'priority' => PEAR_LOG_WARNING, 'message' => $message, 'source' => $source ) );
+		return $this->log->warning( $msg );
+	}
+
+	/**
+	 * A convenience function for logging a event about an XBRL business rules violation issue.
+	 * It will log a message at the PEAR_LOG_WARNING log level.
+	 *
+	 * PEAR_LOG_WARNING
+	 *
+	 * @param string $section	The rules topic reference
+	 * @param string $message	String or object containing the message to log.
+	 * @param array $source		An array containing details about the source such as the element id, link base, etc.
+	 * @return  boolean True if the message was successfully logged.
+	 */
+	public function business_rules_validation( $section, $message, $source )
+	{
+		if ( ! $this->log ) return;
+		$this->businessRulesViolationeWarning = true;
+		$msg = sprintf( "[business rules] $message (Section %s - %s)", $section, $this->arrayToDescription( $source ) );
 		$this->log->_announce( array( 'section' => $section, 'priority' => PEAR_LOG_WARNING, 'message' => $message, 'source' => $source ) );
 		return $this->log->warning( $msg );
 	}
@@ -496,6 +522,15 @@ class XBRL_Log
 	}
 
 	/**
+	 * Returns the current instance validation warning state
+	 * @return boolean
+	 */
+	public function hasBusinessRulesViolationWarning()
+	{
+		return $this->businessRulesViolationeWarning;
+	}
+
+	/**
 	 * Resets the current instance validation warning state
 	 * @return boolean
 	 */
@@ -503,6 +538,15 @@ class XBRL_Log
 	{
 		$this->resetInstanceValidationWarning();
 		$this->conformanceIssueWarning = false;
+	}
+
+	/**
+	 * Resets the current business rules violation warning state
+	 * @return boolean
+	 */
+	public function resetBusinessRulesViolationWarning()
+	{
+		$this->businessRulesViolationeWarning = false;
 	}
 
 	/**
