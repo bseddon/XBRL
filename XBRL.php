@@ -6408,7 +6408,7 @@ class XBRL {
 				}
 
 				// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-				$this->extendedLinkFromToPairs = array();
+				$this->resetValidateFromToArcPairs();
 
 				// Get a list of the locators for this extended link
 				$locators = $this->retrieveLocators( $link, $linkbaseDescription, $href );
@@ -8227,14 +8227,15 @@ class XBRL {
 	 * @param array $standardRoles A list of the roles that are valid for this link type
 	 * @param array $arcroleRefs
 	 * @param string $href The name of the file containing $link
+	 * @param string $xml_basename
 	 * @param string $arcName
 	 * @param string $arcTitle
 	 * return void
 	 */
-	private function processNonDimensionalLink( &$link, $linkbase, $role, &$standardRoles, &$arcroleRefs, $href, $arcName = 'definitionArc', $arcTitle = 'Definition' )
+	private function processNonDimensionalLink( &$link, $linkbase, $role, &$standardRoles, &$arcroleRefs, $href, $xml_basename, $arcName = 'definitionArc', $arcTitle = 'Definition' )
 	{
 		// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-		$this->extendedLinkFromToPairs = array();
+		$this->resetValidateFromToArcPairs();
 
 		// Get a list of the locators for this extended link
 		$locators = $this->retrieveLocators( $link, $linkbase, $href );
@@ -8267,7 +8268,7 @@ class XBRL {
 				$fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] = 1;
 			}
 
-			$this->processNonDimensionalArc( $arc, $locators, $linkbase, $role, $xlinkAttributes, $attributes, $standardRoles, $arcroleRefs, $arcTitle );
+			$this->processNonDimensionalArc( $arc, $locators, $linkbase, $role, $xlinkAttributes, $attributes, $standardRoles, $arcroleRefs, $xml_basename, $arcTitle );
 		}
 	}
 
@@ -8282,9 +8283,10 @@ class XBRL {
 	 * @param SimpleXMLElement $attributes
 	 * @param array $standardRoles
 	 * @param array $arcroleRefs
+	 * @param string $xml_basename
 	 * @param string $arcTitle
 	 */
-	private function processNonDimensionalArc( &$arc, &$locators, $linkbase, $role, &$xlinkAttributes, &$attributes, &$standardRoles, &$arcroleRefs, $arcTitle = 'Definition' )
+	private function processNonDimensionalArc( &$arc, &$locators, $linkbase, $role, &$xlinkAttributes, &$attributes, &$standardRoles, &$arcroleRefs, $xml_basename,$arcTitle = 'Definition' )
 	{
 		$arcroleUri = (string) $xlinkAttributes->arcrole;
 		if ( ! in_array( $arcroleUri, $standardRoles ) )
@@ -8308,8 +8310,6 @@ class XBRL {
 
 		$toLabel	= (string) $xlinkAttributes->to;
 		$this->validateXLinkLabel( $linkbase, $toLabel );
-
-		// $this->validateFromToArcPairs( $role, $arcroleUri, $fromLabel, $toLabel );
 
 		$fromList	= $locators[ $fromLabel ];
 		$toList		= $locators[ $toLabel ];
@@ -8384,7 +8384,7 @@ class XBRL {
 								( $node['priority'] > $current['priority'] )
 						   )
 						{
-							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to );
+							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel );
 							$current = $node;
 						}
 
@@ -8449,7 +8449,7 @@ class XBRL {
 								( $node['priority'] > $current['priority'] )
 						   )
 						{
-							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to );
+							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel );
 							$current = $node;
 						}
 
@@ -8513,7 +8513,7 @@ class XBRL {
 								( $node['priority'] > $current['priority'] )
 						   )
 						{
-							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to );
+							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel );
 							$current = $node;
 						}
 
@@ -8542,7 +8542,9 @@ class XBRL {
 									$this->log()->taxonomy_validation( "5.2.5.2", "The 'from' concept of a summation-item arc MUST be numeric",
 										array(
 											'from' => $from,
-											'to' => $to
+											'to' => $to,
+											'file' => $xml_basename,
+											'path' => $this->getXmlNodePath( $arc )
 										)
 									);
 								}
@@ -8557,7 +8559,9 @@ class XBRL {
 									$this->log()->taxonomy_validation( "5.2.5.2", "The 'to' concept of a summation-item arc MUST be numeric",
 										array(
 											'from' => $from,
-											'to' => $to
+											'to' => $to,
+											'file' => $xml_basename,
+											'path' => $this->getXmlNodePath( $arc )
 										)
 									);
 								}
@@ -8575,6 +8579,8 @@ class XBRL {
 								array(
 									'from' => $from,
 									'to' => $to,
+									'file' => $xml_basename,
+									'path' => $this->getXmlNodePath( $arc )
 								)
 							);
 						}
@@ -8586,10 +8592,27 @@ class XBRL {
 								array(
 									'from' => $from,
 									'to' => $to,
+									'file' => $xml_basename,
+									'path' => $this->getXmlNodePath( $arc )
 								)
 							);
 							break;
 						}
+
+						if ( XBRL::isValidating() )
+							if ( abs( $node['weight'] ) != 1 )
+							{
+								$this->log()->business_rules_validation( "Calculation", "Not an error in the XBRL 2.1 specification but calculation arc weights should only be 1 or -1.  See discussion with Hoffman 2019-01-25.",
+									array(
+										'from' => $from,
+										'to' => $to,
+										'weight' => $node['weight'],
+										'file' => $xml_basename,
+										'path' => $this->getXmlNodePath( $arc )
+									)
+								);
+								// break;
+							}
 
 						// Add all attributes that are not exempt so they can be used for equivalency tests
 						$node['attributes'] = $this->getNonExemptArcAttributes( $arc );
@@ -8629,7 +8652,7 @@ class XBRL {
 									( $node['priority'] > $current['priority'] )
 							   )
 							{
-								$this->removeFromToArcPair( $role, $arcroleUri, $from, $to );
+								$this->removeFromToArcPair( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel );
 								$current = $node;
 							}
 						}
@@ -8674,7 +8697,7 @@ class XBRL {
 							( $node['priority'] > $current['priority'] )
 						   )
 						{
-							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to );
+							$this->removeFromToArcPair( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel );
 							$current = $node;
 						}
 
@@ -8683,10 +8706,19 @@ class XBRL {
 						break;
 				}
 
-				$this->validateFromToArcPairs( $role, $arcroleUri, $from, $to );
-
+				$this->validateFromToArcPairs( $role, $arcroleUri, $from, $to, $fromLabel, $toLabel, $xml_basename, $this->getXmlNodePath( $arc ) );
 			}
 		}
+	}
+
+	/**
+	 * Return the path of $node
+	 * @param SimpleXMLElement $node
+	 * @return number
+	 */
+	private function getXmlNodePath( $node )
+	{
+		return dom_import_simplexml( $node )->getNodePath();
 	}
 
 	/**
@@ -9247,7 +9279,7 @@ class XBRL {
 				{
 					$this->log()->taxonomy_validation( "3.5.2.4.5", "There MUST NOT be more than one arcroleRef element with the same @arcroleURI attribute value",
 						array(
-							'role' => $arcroleUri,
+							'arcrole' => $arcroleUri,
 							'href' => $xml_basename,
 						)
 					);
@@ -9397,7 +9429,7 @@ class XBRL {
 			foreach ( $xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->calculationLink as $linkKey => $calculationLink )
 			{
 				// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-				$this->extendedLinkFromToPairs = array();
+				$this->resetValidateFromToArcPairs();
 
 				$attributes = $calculationLink->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 				if ( ! property_exists( $attributes, 'role' ) || (string) $attributes->role != $roleRefsKey )
@@ -9412,6 +9444,7 @@ class XBRL {
 					$standardCalculationRoles,
 					$arcroleRefs,
 					$linkbaseRef['href'],
+					$xml_basename,
 					'calculationArc',
 					'Calculation'
 				);
@@ -9956,7 +9989,8 @@ class XBRL {
 						$roleRefsKey,
 						$standardNonDimensionalRoles,
 						$arcroleRefs,
-						$linkbaseRef['href']
+						$linkbaseRef['href'],
+						$xml_basename
 					);
 
 					continue;
@@ -10021,6 +10055,7 @@ class XBRL {
 								$attributes,
 								$arcRoleList,
 								$arcroleRefs,
+								$xml_basename,
 								'Custom arcrole'
 							);
 							continue;
@@ -11784,7 +11819,7 @@ class XBRL {
 		foreach ( $xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->presentationLink as $linkKey => $presentationLink )
 		{
 			// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-			$this->extendedLinkFromToPairs = array();
+			$this->resetValidateFromToArcPairs();
 
 			$presentationLinkattributes = $presentationLink->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 
@@ -13230,53 +13265,118 @@ class XBRL {
 	private $extendedLinkFromToPairs = array();
 
 	/**
+	 * A container to hold calculation arc validation information that enable arcrole duplication
+	 * @var array
+	 */
+	private $calculationExtendedLinkFromToPairs = array();
+
+	/**
 	 * This is an XLink constraint.  See https://www.w3.org/TR/xlink/#xlink-arcs
 	 * and the section titled 'Constraint: No Arc Duplication'
 	 *
 	 * @param string $role
 	 * @param string $arcrole
-	 * @param string $from
-	 * @param string $to
+	 * @param string $fromId
+	 * @param string $toId
+	 * @param string $fromLabel
+	 * @param string $toLabel
+	 * @param string $xml_basename
+	 * @param int $xml_lineno
 	 * @return boolean
 	 */
-	private function validateFromToArcPairs( $role, $arcrole, $from, $to )
+	private function validateFromToArcPairs( $role, $arcrole, $fromId, $toId, $fromLabel, $toLabel, $xml_basename, $xml_path )
 	{
 		if ( ! XBRL::isValidating() ) return true;
 
-		$hashFromTo = hash( 'SHA256', "{$arcrole}-{$from}-{$to}" );
+		$summationItem = $arcrole == XBRL_Constants::$arcRoleSummationItem;
+
+		$result = true;
+		$hashFromTo = hash( 'SHA256', "{$arcrole}-{$fromLabel}-{$toLabel}" );
+
 		if ( isset( $this->extendedLinkFromToPairs[ $role ][ $hashFromTo ] ) )
 		{
-			$this->log()->taxonomy_validation( "XLink", "The XLink specification does not permit the 'from' and 'to' attribute values to be repeated within the same extended link",
-				array(
-					'from' => $from,
-					'to' => $to,
-					'spec' => "'https://www.w3.org/TR/xlink/#xlink-arcs'",
-					'role' => "'$role'",
-				)
-			);
-			return false;
+			$path = key( $this->extendedLinkFromToPairs[ $role ][ $hashFromTo ] );
+
+			if ( $path != $xml_path )
+			{
+				$this->log()->taxonomy_validation( "XLink", "The XLink specification does not permit the 'from' and 'to' attribute values to be repeated within the same extended link",
+					array(
+						'from' => $fromLabel,
+						'to' => $toLabel,
+						'spec' => "'https://www.w3.org/TR/xlink/#xlink-arcs'",
+						'role' => "'$role'",
+						'file' => $xml_basename,
+						'path' => $xml_path,
+					)
+				);
+
+				$result = false;
+			}
 		}
 		else
 		{
-			$this->extendedLinkFromToPairs[ $role ][ $hashFromTo ] = "{$arcrole}-{$from}-{$to}";
-			return true;
+			$this->extendedLinkFromToPairs[ $role ][ $hashFromTo ][ $xml_path ] = "{$arcrole}-{$fromLabel}-{$toLabel}";
 		}
+
+		if ( $summationItem )
+		{
+			$hashFromTo = hash( 'SHA256', "{$arcrole}-{$fromId}-{$toId}" );
+
+			if ( isset( $this->calculationExtendedLinkFromToPairs[ $role ][ $hashFromTo ] ) )
+			{
+				$this->log()->business_rules_validation( "Calculations", "The same locator from/to pair cannot appear twice in the same calculation arc extended link role",
+					array(
+						'from' => $fromId,
+						'to' => $toId,
+						'role' => "'$role'",
+						'file' => $xml_basename,
+						'path' => $xml_path,
+						'note' => 'This is not strictly an error covered by the XBRL 2.1 specification but two identical arcs makes no sense.  See https://bugzilla.xbrl.org/show_bug.cgi?id=787'
+					)
+				);
+
+				$result = false;
+			}
+			else
+			{
+				$this->calculationExtendedLinkFromToPairs[ $role ][ $hashFromTo ][ $xml_path ] = "{$arcrole}-{$fromId}-{$toId}";
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Reset the extendedLinkFromToPairs array
+	 */
+	private function resetValidateFromToArcPairs()
+	{
+		$this->extendedLinkFromToPairs = array();
+		$this->calculationExtendedLinkFromToPairs = array();
 	}
 
 	/**
 	 * Called to remove an entry from the $extendedLinkFromToPairs array
 	 * @param string $role
 	 * @param string $arcrole
-	 * @param string $from
-	 * @param string $to
+	 * @param string $fromId
+	 * @param string $toId
+	 * @param string $fromLabel
+	 * @param string $toLabel
 	 * @return void
 	 */
-	private function removeFromToArcPair( $role, $arcrole, $from, $to )
+	private function removeFromToArcPair( $role, $arcrole, $fromId, $toId, $fromLabel, $toLabel )
 	{
 		if ( ! XBRL::isValidating() ) return true;
 
-		$hashFromTo = hash( 'SHA256', "{$arcrole}-{$from}-{$to}" );
+		$hashFromTo = hash( 'SHA256', "{$arcrole}-{$fromId}-{$toId}" );
 		unset( $this->extendedLinkFromToPairs[ $role ][ $hashFromTo ] );
+
+		if ( $arcrole == XBRL_Constants::$arcRoleSummationItem )
+		{
+			$hashFromTo = hash( 'SHA256', "{$arcrole}-{$fromLabel}-{$toLabel}" );
+			unset( $this->calculationExtendedLinkFromToPairs[ $role ][ $hashFromTo ] );
+		}
 	}
 
 	/**
@@ -13700,7 +13800,7 @@ class XBRL {
 			foreach ( $xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->labelLink as $linkKey => /* @var SimpleXMLElement $labelLink */$labelLink )
 			{
 				// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-				$this->extendedLinkFromToPairs = array();
+				$this->resetValidateFromToArcPairs();
 
 				$attributes = $labelLink->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 				if ( ! property_exists( $attributes, 'role' ) || (string) $attributes->role !== $roleRefsKey )
