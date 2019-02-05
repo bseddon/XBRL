@@ -1196,7 +1196,9 @@ class XBRL {
 
 	/**
 	 * Load a specific taxonomy file.  Ideally the taxonomy will be compiled then used via loadExtensionTaxonomy
-	 * This function will be called when the caller *knows* the XSD is US GAAP extension taxonomy
+	 * This function will be called when the caller *knows* the XSD is US GAAP or some other extension taxonomy.
+	 *
+	 * This call will be used when the caller knows there is a base taxonomy that is compiled separately.
 	 *
 	 * @param string $taxonomy_file The name of the taxonomy file (xsd) to load
 	 * @param string $className The name of the XBRL taxonomy class to load
@@ -1219,10 +1221,14 @@ class XBRL {
 			}
 		}
 
-		if ( ! file_exists( $taxonomy_file ) )
+		if ( filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) === false )
 		{
-			XBRL_Log::getInstance()->err( "The supplied extension taxonomy file does not exist." );
-			return false;
+			// If the taxonomy file is not a url make sure the file exists
+			if ( ! file_exists( $taxonomy_file ) )
+			{
+				XBRL_Log::getInstance()->err( "The supplied extension taxonomy file does not exist." );
+				return false;
+			}
 		}
 
 		$xbrlDocument = simplexml_load_file( $taxonomy_file );
@@ -9292,6 +9298,7 @@ class XBRL {
 			if ( ! $taxonomy )
 			{
 				$parts = explode( '#', $arcroleRefHref );
+				if ( isset( XBRL_Global::$taxonomiesToIgnore[ $parts[0] ] ) ) continue;
 				if ( count( $parts ) == 1 || ! isset( XBRL_Global::$taxonomiesToIgnore[ $parts[0] ] ) )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Cannot locate the schema for the arcroleref",
@@ -9304,7 +9311,7 @@ class XBRL {
 				}
 			}
 
-			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionArc
+			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:calculationArc
 			if ( ! count( $taxonomy->arcroleTypes ) || ! isset( $taxonomy->arcroleTypes['link:calculationArc'][ $arcroleUri ] ) )
 			{
 				$this->log()->taxonomy_validation( "5.1.3.4", "This arcrole is not defined to be used on the calculation linkbase",
@@ -9886,7 +9893,7 @@ class XBRL {
 			if ( $roleUri == XBRL_Constants::$defaultLinkRole )
 			{
 				// If the default role has not already been used make the first use the 'home' of the default extended link
-				if ( ! isset( $this->context->defaultLinkHref ) )
+				if ( ! isset( $this->context->defaultLinkHref ) && $this->getTaxonomyXSD() )
 				{
 					$this->context->defaultLinkHref = XBRL::resolve_path( $linkbaseRef['href'], $this->getTaxonomyXSD() );
 				}
@@ -17149,23 +17156,28 @@ class XBRL {
 		switch ( $role )
 		{
 			case XBRL_Constants::$PresentationLinkbaseRef:
-				$this->processPresentationLinkbases( $this->linkbaseTypes[ $role ] );
+				// $this->processPresentationLinkbases( $this->linkbaseTypes[ $role ] );
+				$this->processPresentationLinkbase( $linkbaseRef );
 				break;
 
 			case XBRL_Constants::$LabelLinkbaseRef:
-				$this->processLabelLinkbases( $this->linkbaseTypes[ $role ] );
+				// $this->processLabelLinkbases( $this->linkbaseTypes[ $role ] );
+				$this->processLabelLinkbase( $linkbaseRef );
 				break;
 
 			case XBRL_Constants::$DefinitionLinkbaseRef:
-				$this->processDefinitionLinkbases( $this->linkbaseTypes[ $role ] );
+				// $this->processDefinitionLinkbases( $this->linkbaseTypes[ $role ] );
+				$this->processDefinitionLinkbase( $linkbaseRef );
 				break;
 
 			case XBRL_Constants::$CalculationLinkbaseRef:
-				$this->processCalculationLinkbases( $this->linkbaseTypes[ $role ] );
+				// $this->processCalculationLinkbases( $this->linkbaseTypes[ $role ] );
+				$this->processCalculationLinkbase( $linkbaseRef );
 				break;
 
 			case XBRL_Constants::$ReferenceLinkbaseRef:
-				$this->processReferenceLinkbases( $linkbaseType );
+				// $this->processReferenceLinkbases( $linkbaseType );
+				$this->processReferenceLinkbase( $linkbaseRef );
 				break;
 
 			default:
@@ -17179,7 +17191,10 @@ class XBRL {
 		$this->linkbasesProcessed = true;
 		$this->linkbasesProcessInProgress = false;
 
-		$this->validateTaxonomy21();
+		if ( $this->xbrlDocument )
+		{
+			$this->validateTaxonomy21();
+		}
 		// BMS 2018-05-03 Changed pass 'true' because without it the directed cycle validation tests are not performed
 		$this->validateDimensions( true );
 		$this->validateCustom();
