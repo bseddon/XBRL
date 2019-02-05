@@ -267,7 +267,7 @@ class XBRL_Global
 	{
 		if ( ! $this->useCache ) return false;
 
-		$path = XBRL_Global::createPathFromUrl( $url, $this->cacheLocation );
+		$path = str_replace( '//', '/', XBRL_Global::createPathFromUrl( $url, $this->cacheLocation ) );
 
 		return file_exists( $path )
 			? $path
