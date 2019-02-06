@@ -1029,10 +1029,14 @@ class XBRL_Instance
 			return false;
 		}
 
-		if ( ! file_exists( $instance_document ) )
+		if ( filter_var( $instance_document, FILTER_VALIDATE_URL ) === false )
 		{
-			$this->log()->err( "The instance document provided does not exist" );
-			return false;
+			// If the taxonomy file is not a url make sure the file exists
+			if ( ! file_exists( $instance_document ) )
+			{
+				$this->log()->err( "The instance document provided does not exist" );
+				return false;
+			}
 		}
 
 		$this->document_name = $instance_document;
@@ -1108,8 +1112,8 @@ class XBRL_Instance
 				}
 				else
 				{
-					// Only load the schema if it not one of the core ones that are pre-loaded
-					$href = XBRL::resolve_path( $instance_document, $part );
+						// Only load the schema if it not one of the core ones that are pre-loaded
+						$href = XBRL::resolve_path( $instance_document, $part );
 					if ( ! isset( $this->context->schemaFileToNamespace[ $href ] ) )
 					{
 						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
