@@ -7806,7 +7806,7 @@ class XBRL {
 								{
 									// If the resource has a name make sure the name is unique
 									$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
-									if ( isset( $this->variableSetNames[ $qName->clarkNotation() ] ) )
+									if ( isset( $this->variableSetNames[ $fromLinkbase ][ $qName->clarkNotation() ] ) )
 									{
 										// To be equivalent the names must have the same source and role
 										$findName =	function( $arc ) use( $from, $roleUri )
@@ -7814,8 +7814,9 @@ class XBRL {
 											return ! isset( $arc['from'] ) || ! isset( $arc['role'] ) || ( $arc['from'] == $from && $arc['role'] == $roleUri );
 										};
 
-										if( array_filter( $this->variableSetNames[ $qName->clarkNotation() ], $findName ) )
+										if( array_filter( $this->variableSetNames[ $fromLinkbase ][ $qName->clarkNotation() ], $findName ) )
 										{
+											$x = 1;
 											$this->log()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
 												'name' => $qName->clarkNotation(),
 												'error' => 'xbrlve:duplicateVariableNames'
@@ -7840,7 +7841,7 @@ class XBRL {
 									// Save the information needed to recover the named arc.  The name can be used
 									// again provding the 'from' is different.
 									$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
-									$this->variableSetNames[ $qname->clarkNotation() ][] = array(
+									$this->variableSetNames[ $fromLinkbase ][ $qname->clarkNotation() ][] = array(
 										'type' => 'arc',
 										'rolelistname' => $roleListName,
 										'role' => $roleUri,
@@ -13306,18 +13307,37 @@ class XBRL {
 
 			if ( $path != $xml_path )
 			{
-				$this->log()->taxonomy_validation( "XLink", "The XLink specification does not permit the 'from' and 'to' attribute values to be repeated within the same extended link",
-					array(
-						'from' => $fromLabel,
-						'to' => $toLabel,
-						'spec' => "'https://www.w3.org/TR/xlink/#xlink-arcs'",
-						'role' => "'$role'",
-						'file' => $xml_basename,
-						'path' => $xml_path,
-					)
-				);
+				// As the paths are repeated but are not exactly the same, then if they are in the same ELR raise an error
+				$pattern = '^/.*/(?<link>.*)/(?<arc>.*)$';
+				$pathMatches = array();
+				if ( ! preg_match( "|$pattern|", $path, $pathMatches ) )
+				{
+					$this->log()->debug("Unable parse path '$path' using regular expression '$pattern'");
+					return false;
+				}
 
-				$result = false;
+				$xmlPathMatches = array();
+				if ( ! preg_match( "|$pattern|", $xml_path, $xmlPathMatches ) )
+				{
+					$this->log()->debug("Unable parse path '$xml_path' using regular expression '$pattern'");
+					return false;
+				}
+
+				if ( $pathMatches['link'] == $xmlPathMatches['link'] && $pathMatches['arc'] != $xmlPathMatches['arc'] )
+				{
+					$this->log()->taxonomy_validation( "XLink", "The XLink specification does not permit the 'from' and 'to' attribute values to be repeated within the same extended link",
+						array(
+							'from' => $fromLabel,
+							'to' => $toLabel,
+							'spec' => "'https://www.w3.org/TR/xlink/#xlink-arcs'",
+							'role' => "'$role'",
+							'file' => $xml_basename,
+							'path' => $xml_path,
+						)
+					);
+
+					$result = false;
+				}
 			}
 		}
 		else
