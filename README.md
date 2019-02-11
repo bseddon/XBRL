@@ -30,6 +30,7 @@ Conformance suite tests
 ![XBRL functions registry conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_functions&x=y "XBRL functions registry conformance suite tests")
 ![XBRL Formulas conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_formulas&x=y "XBRL Formulas conformance suite tests")
 ![XBRL Enumerations conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_enumerations&x=y "XBRL Enumerations conformance suite tests")
+![XBRL Generics conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_generics&x=y "XBRL Generics conformance suite tests")
 
 ![Build status last run date](https://www.xbrlquery.com/tests/status.php?test=date "The date of the last run")
 
