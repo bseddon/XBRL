@@ -110,6 +110,8 @@ define( "STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS", "enumie" );
 define( "STANDARD_PREFIX_ENUMERATIONS_20", "enum20" );
 define( "STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20", "enumte20" );
 define( "STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS_20", "enumie20" );
+define( "STANDARD_PREFIX_GENERIC_PREFERRED_LABEL", "gpl" );
+define( "STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR", "gple" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -226,6 +228,8 @@ class XBRL_Constants
 		STANDARD_PREFIX_ENUMERATIONS_20					=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0",
 		STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS_20	=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0/instance-errors",
 		STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20	=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0/taxonomy-errors",
+		STANDARD_PREFIX_GENERIC_PREFERRED_LABEL			=> "http://xbrl.org/2013/preferred-label",
+		STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR	=> "http://xbrl.org/2013/preferred-label/error",
 	);
 
 	/**

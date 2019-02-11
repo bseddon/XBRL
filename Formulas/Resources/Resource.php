@@ -52,6 +52,11 @@ class Resource
 	public $severity = ASSERTION_SEVERITY_ERROR;
 
 	/**
+	 * Path in the linkbase
+	 */
+	public $path = '';
+
+	/**
 	 * Populate an instance with values from an array
 	 * @param array $source An array of values to add to the class
 	 * @return Resource

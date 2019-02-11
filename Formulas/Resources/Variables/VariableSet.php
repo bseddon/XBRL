@@ -308,8 +308,9 @@ class VariableSet extends Resource
 		$qname = $variable->getQName()->clarkNotation();
 		if ( isset( $this->variablesByQName[ $qname ] ) )
 		{
+			$x = 1;
 			\XBRL_Log::getInstance()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
-				'name' => $qName->clarkNotation(),
+				'name' => $qname->clarkNotation(),
 				'error' => 'xbrlve:duplicateVariableNames'
 			) );
 			return false;

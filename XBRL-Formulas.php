@@ -162,6 +162,14 @@ class XBRL_Formulas extends Resource
 	}
 
 	/**
+	 * Return the list of variable set.  This can be useful to access generated messages on an assertion variable set
+	 */
+	public function getVariableSets()
+	{
+		return $this->variableSets;
+	}
+
+	/**
 	 * Process any formulas in $taxonomy against the array of instances in $instances
 	 *
 	 * @param array|XBRL_Instance $instances	A single or an array of XBRL_Instance instances
@@ -725,42 +733,32 @@ class XBRL_Formulas extends Resource
 			$variableSetArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSet, $variableSet['roleUri'], $variableSet['resourceName'] );
 			$variableResources = array();
 
-			// BMS 2018-06-29 Modified this loop to put the arcs on the outside so it can take advantage of the indexes on the resources collection
-			//
-			// $result = $taxonomy->getGenericResource( 'variable', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$variableResources, $variableSetArcs )
-			// {
-			// 	foreach ( $variableSetArcs as $arcIndex => $variableSetArc )
-			// 	{
-			// 		if ( $roleUri == $variableSetArc['toRoleUri'] )
-			// 		if ( $variableSetName == $variableSetArc['label'] )
-			// 		{
-			// 			$resource['name'] = $variableSetArc['name'];
-			// 			$resource['linkbase'] = $linkbase;
-			// 			$variableResources[ $variableSetName ][] = $resource;
-			// 		}
-			// 	}
-			// 	return true;
-			// } );
-
 			foreach ( $variableSetArcs as $arcIndex => $variableSetArc )
-			$result = $taxonomy->getGenericResource( 'variable', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$variableResources, $variableSetArc )
 			{
-				// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
-				if ( $variableSetName == $variableSetArc['label'] )
-				{
-					$resource['name'] = $variableSetArc['name'];
-					$resource['linkbase'] = $linkbase;
-					$variableResources[ $variableSetName ][] = $resource;
-				}
+				if ( $variableSetInstance->path != $variableSetArc['frompath'] ) continue;
 
-				return true;
-			}, $variableSetArc['toRoleUri'], $variableSetArc['to'] );
+				$result = $taxonomy->getGenericResource( 'variable', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$variableResources, $variableSetArc )
+				{
+					// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
+					if ( $resource['path'] == $variableSetArc['topath'] && $variableSetName == $variableSetArc['label'] )
+					{
+						$resource['name'] = $variableSetArc['name'];
+						$resource['linkbase'] = $linkbase;
+						$variableResources[ $variableSetName ][] = $resource;
+					}
+
+					return true;
+				}, $variableSetArc['toRoleUri'], $variableSetArc['to'] );
+			}
 
 			// Process each located variable resource
 			foreach ( $variableResources as $variableLabel => $variableResourceSet )
 			{
 				foreach ( $variableResourceSet as $variableResource )
 				{
+					// if ( $variableSetInstance->path != $variableResource['path'] )
+					// 	continue;
+
 					if ( $variableResource['variableType'] == 'parameter' )
 					{
 						// Find the parameter with label $variableResource['label']. This becomes
@@ -1297,6 +1295,8 @@ class XBRL_Formulas extends Resource
 	{
 		$scopeArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariablesScope, $variableSetInstance->extendedLinkRoleUri );
 
+		if ( ! $scopeArcs ) return true;
+
 		// Include any scope variables referenced directly from this variable set or indirectly because
 		// because the variable referenced by this variable set references another variable set and so on
 		$label = $variableSetInstance->label;
@@ -1367,8 +1367,10 @@ class XBRL_Formulas extends Resource
 		// Find the filter resources
 		foreach ( $labelArcs as $labelArc )
 		{
+			if ( $labelArc['path'] != $target->path ) continue;
+
 			// TODO Handle preferred label by taking and using the preferred label role from the arc
-			$result = $taxonomy->getGenericLabel( XBRL_Constants::$genericRoleLabel, $labelArc['to'], substr( $lang, 0, 2 ) );
+			$result = $taxonomy->getGenericLabel( XBRL_Constants::$genericRoleLabel, $labelArc['to'], substr( $lang, 0, 2 ), $target->path );
 
 			if ( ! $result ) continue;
 
@@ -1425,11 +1427,14 @@ class XBRL_Formulas extends Resource
 		// } );
 
 		foreach ( $variableFilterArcs as $arcIndex => $variableFilterArc )
-		$result = $taxonomy->getGenericResource( 'filter', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$filterResources, $variableFilterArc )
 		{
-			// Don't believe this is necessary as $variableSetName is $variableFilterArc['label']
-			// if ( $variableSetName = $variableFilterArc['label'] )
+			if ( $variable->path == $variableFilterArc['frompath'] )
+			$result = $taxonomy->getGenericResource( 'filter', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$filterResources, $variableFilterArc )
 			{
+				// Don't believe this is necessary as $variableSetName is $variableFilterArc['label']
+				// if ( $variableSetName = $variableFilterArc['label'] )
+				if ( $resource['path'] != $variableFilterArc['topath'] ) return true;
+
 				$resource['linkbase'] = $linkbase;
 				if ( $variableFilterArc['attributes'] )
 				{
@@ -1443,15 +1448,17 @@ class XBRL_Formulas extends Resource
 					}
 				}
 				$filterResources[ $variableSetName ][] = $resource;
-			}
 
-			return true;
-		}, $variableFilterArc['toRoleUri'], $variableFilterArc['to'] );
+				return true;
+			}, $variableFilterArc['toRoleUri'], $variableFilterArc['to'] );
+		}
 
 		foreach ( $filterResources as $variableFilterLabel => $filterResourceSet )
 		{
 			foreach ( $filterResourceSet as $filterResource )
 			{
+				// if ( $variable->path != $filterResource['path'] ) continue;
+
 				// If this is a group filter make sure the arc is not covering
 				if ( $arcRole == XBRL_Constants::$arcRoleVariableSetFilter )
 				{
@@ -1593,18 +1600,22 @@ class XBRL_Formulas extends Resource
 			// } );
 
 			foreach ( $preconditionArcs as $preconditionArc )
-			$taxonomy->getGenericResource( 'variable', $element, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( $preconditionArcs, &$preconditionResources )
 			{
-				// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
-				// if ( $variableSetName == $preconditionArc['label'] )
+				if ( $variableSet->path != $preconditionArc['frompath'] ) continue;
+				$taxonomy->getGenericResource( 'variable', $element, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( $preconditionArc, &$preconditionResources )
 				{
-					$resource['linkbase'] = $linkbase;
-					$resource['linkRoleUri'] = $roleUri;
-					$preconditionResources[] = $resource;
-				}
+					// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
+					// if ( $variableSetName == $preconditionArc['label'] )
+					if ( $resource['path'] == $preconditionArc['topath'] )
+					{
+						$resource['linkbase'] = $linkbase;
+						$resource['linkRoleUri'] = $roleUri;
+						$preconditionResources[] = $resource;
+					}
 
-				return true;
-			}, $preconditionArc['toRoleUri'], $preconditionArc['to'] );
+					return true;
+				}, $preconditionArc['toRoleUri'], $preconditionArc['to'] );
+			}
 
 			if ( ! $preconditionResources )
 			{

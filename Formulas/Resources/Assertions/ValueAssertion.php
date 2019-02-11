@@ -233,12 +233,12 @@ class ValueAssertion extends VariableSetAssertion
 			if ( $result instanceof CoreFuncs::$True )
 			{
 				$this->satisfied[] = $evaluationResult;
-				$this->generatedSatisifedMessages = array_merge( $this->generatedSatisifedMessages, $this->processMessages( $this->satisfiedMessages, $vars ) );
+				$this->generatedSatisifiedMessages = array_merge( $this->generatedSatisifiedMessages, $this->processMessages( $this->satisfiedMessages, $vars ) );
 			}
 			else if ( $result instanceof CoreFuncs::$False )
 			{
 				$this->unsatisfied[] = $evaluationResult;
-				$this->generatedUnsatisifiedMessages = array_merge( $this->generatedSatisifedMessages, $this->processMessages( $this->unsatisfiedMessages, $vars ) );
+				$this->generatedUnsatisifiedMessages = array_merge( $this->generatedSatisifiedMessages, $this->processMessages( $this->unsatisfiedMessages, $vars ) );
 			}
 			else
 			{
@@ -345,7 +345,7 @@ class ValueAssertion extends VariableSetAssertion
 				foreach ( $messageTests->satisfied as $message )
 				{
 					$found = false;
-					foreach ( $this->generatedSatisifedMessages as $generatedMessage )
+					foreach ( $this->generatedSatisifiedMessages as $generatedMessage )
 					{
 						// Replace tags as they are not needed for comparison with the test text
 						if ( preg_replace( "/(?'tag'<(.*?)>.*?<\\/\\2>)\\s*/s", "", $generatedMessage, -1 ) != (string)$message ) continue;

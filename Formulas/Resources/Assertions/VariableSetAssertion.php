@@ -75,7 +75,7 @@ class VariableSetAssertion extends VariableSet
 	 * A list of messages generated during evaluation
 	 * @var array
 	 */
-	public $generatedSatisifedMessages = array();
+	public $generatedSatisifiedMessages = array();
 
 	/**
 	 * A list of messages generated during evaluation
@@ -136,6 +136,7 @@ class VariableSetAssertion extends VariableSet
 			$this->xbrlTaxonomy->getGenericResource( 'message', 'message', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$messages, $arc, $lang )
 			{
 				// if ( $resource['label'] != $arc['to'] ) return true;
+				if ( $resource['path'] != $this->path ) return true;
 				if ( ! is_null( $lang ) )
 				{
 					if ( $resource['lang'] != $lang && $resource['lang'] != strstr( $lang, "-", true ) )

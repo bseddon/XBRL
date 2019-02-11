@@ -6022,9 +6022,10 @@ class XBRL {
 	 * @param string $searchRole
 	 * @param string $searchLabel
 	 * @param string $searchLang
+	 * @param string $linkPath
 	 * @return boolean|unknown[][]|mixed[][]
 	 */
-	public function getGenericLabel( $searchRole, $searchLabel = null, $searchLang = null )
+	public function getGenericLabel( $searchRole, $searchLabel = null, $searchLang = null, $linkPath = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
 
@@ -6046,7 +6047,7 @@ class XBRL {
 						'linkbase' => $linkbase,
 						'label' => $label,
 						'lang' => $lang,
-						'text' => $text,
+						'text' => isset( $text[ $linkPath ] ) ? $text[ $linkPath] : reset( $text ),
 					);
 				}
 
@@ -6235,1657 +6236,1692 @@ class XBRL {
 	{
 		global $use_xbrl_functions;
 
+		$xml_basename = basename( strpos( $linkbaseRef['href'], '#' ) === false ? $linkbaseRef['href'] : strstr( $linkbaseRef['href'], '#', true ) );
 		$linkbaseIds = &$this->linkbaseIds;
 		$href = $linkbaseRef['href'];
-
-		$preferredLabelEquivalenceHashes = array();
 
 		if ( ! isset( $this->linkbases[ basename( $href ) ] ) )
 		{
 			$this->linkbases[ basename( $href ) ]['namespaces'] = $linkbase->getDocNamespaces( true );
 		}
 
-		$links = $linkbase->registerXPathNamespace("xlink", XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+		$linkbase->registerXPathNamespace("xlink", XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 		$links = $linkbase->xpath('*[@xlink:type="extended"]');
 
-		// foreach( $links as $linkQName )
+		// First handle all the resources
 		foreach( $links as $link )
 		{
 			$domLink = dom_import_simplexml( $link );
+			$linkPath = $this->getXmlNodePath( $link );
+
 			$linkQName = qname( $domLink->tagName, array_merge( $this->context->types->getProcessedSchemas(), $linkbase->getDocNamespaces() ) );
 			// BMS 2018-05-05 Fix up the prefix.  Should used the one of the schema of the namespace
 			$schemaQName = $this->normalizePrefix( $linkQName, $this );
 			$linkQName = qname( $schemaQName, $this->context->types->getProcessedSchemas() );
 			$isGeneric = $this->context->types->resolveToSubstitutionGroup( $linkQName, array( "gen:link" ) );
 
-			// foreach ( $linkbase->children( $linkQName->namespaceURI )->{$linkQName->localName} as $linkKey => /** @var SimpleXMLElement $link */ $link )
+			$xmlAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
+			$base = $linkbaseRef['base'] . ( property_exists( $xmlAttributes, 'base' ) ? $xmlAttributes->base : "" );
+			$linkAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+
+			$roleUri = property_exists( $linkAttributes, "role" )
+				? (string)$linkAttributes['role']
+				: XBRL_Constants::$defaultLinkRole;
+
+			$domXPath = new DOMXPath( $domLink->ownerDocument );
+			$idNodes = $domXPath->query( $linkPath . "/*/@id" );
+			$ids = array(); // Record all the ids in the document
+
+			foreach ( $idNodes as $idNode )
 			{
-				$xmlAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
-				$base = $linkbaseRef['base'] . ( property_exists( $xmlAttributes, 'base' ) ? $xmlAttributes->base : "" );
-				$linkAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-				// if ( ! property_exists( $linkAttributes, 'role' ) ) // || (string) $linkAttributes->role != XBRL_Constants::$defaultLinkRole )
-				// {
-				// 	continue;
-				// }
+				$id = (string)$idNode->value;
+				$idNode = $idNode->parentNode;
+				$ids[ $id ] = array(
+					'namespace' => $idNode->namespaceURI,
+					'localname' => $idNode->localName,
+					'path'  => $idNode->getNodePath(),
+					'role'	=> $roleUri,
+				);
 
-				$roleUri = property_exists( $linkAttributes, "role" )
-					? (string)$linkAttributes['role']
-					: XBRL_Constants::$defaultLinkRole;
+				// It's easier to work with nodes using SimpleXML that DOMNode
+				$node = simplexml_import_dom( $idNode );
 
-				// $domLink = dom_import_simplexml( $link );
-				$domXPath = new DOMXPath( $domLink->ownerDocument );
-				$idNodes = $domXPath->query( $domLink->getNodePath() . "/*/@id" );
-				$ids = array(); // Record all the ids in the document
+				$xlinkAttributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+				$ids[ $id ]['type']	= isset( $xlinkAttributes->type )	? (string)$xlinkAttributes->type	: null;
 
-				foreach ( $idNodes as $idNode )
+				switch ( $ids[ $id ]['type'] )
 				{
-					$id = (string)$idNode->value;
-					$idNode = $idNode->parentNode;
-					$ids[ $id ] = array(
-						'namespace' => $idNode->namespaceURI,
-						'localname' => $idNode->localName,
-						'path'  => $idNode->getNodePath(),
-						'role'	=> $roleUri,
+					case "resource":
+
+						$ids[ $id ]['label']   = isset( $xlinkAttributes->label )	? (string)$xlinkAttributes->label	: null;
+						break;
+
+					case "arc":
+
+						$ids[ $id ]['from']    = isset( $xlinkAttributes->from )	? (string)$xlinkAttributes->from	: null;
+						$ids[ $id ]['to']      = isset( $xlinkAttributes->to )		? (string)$xlinkAttributes->to		: null;
+						$ids[ $id ]['arcrole'] = isset( $xlinkAttributes->arcrole ) ? (string)$xlinkAttributes->arcrole : null;
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			// Always add the ids, even if there are none so there is record of the linkbase having been processed
+			$linkbaseIds[ basename( $href ) ] = isset( $linkbaseIds[ basename( $href ) ] )
+				? array_merge( $linkbaseIds[ basename( $href ) ], $ids )
+				: $ids;
+
+			// $linkbaseDescription =  ( $isGeneric ? "Generic" : "Custom" ) . " ({$linkQName->prefix}:{$linkQName->localName})";
+
+			// Check the linkbase definition is valid if the role is not the default role
+			if ( $isGeneric && XBRL::isValidating() && $roleUri != XBRL_Constants::$defaultLinkRole )
+			{
+				// The role MUST be absolute
+				if ( ! preg_match( "!^https?://!", $roleUri ) )
+				{
+					$this->log()->taxonomy_validation( "Generics 2.1.1", "The link role MUST be absolute",
+						array(
+							'role' => $roleUri,
+							'error' => 'xbrlgene:nonAbsoluteLinkRoleURI'
+						)
 					);
 
-					// It's easier to work with nodes using SimpleXML that DOMNode
-					$node = simplexml_import_dom( $idNode );
-
-					$xlinkAttributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-					$ids[ $id ]['type']	= isset( $xlinkAttributes->type )	? (string)$xlinkAttributes->type	: null;
-
-					switch ( $ids[ $id ]['type'] )
-					{
-						case "resource":
-
-							$ids[ $id ]['label']   = isset( $xlinkAttributes->label )	? (string)$xlinkAttributes->label	: null;
-							break;
-
-						case "arc":
-
-							$ids[ $id ]['from']    = isset( $xlinkAttributes->from )	? (string)$xlinkAttributes->from	: null;
-							$ids[ $id ]['to']      = isset( $xlinkAttributes->to )		? (string)$xlinkAttributes->to		: null;
-							$ids[ $id ]['arcrole'] = isset( $xlinkAttributes->arcrole ) ? (string)$xlinkAttributes->arcrole : null;
-							break;
-
-						default:
-							break;
-					}
+					continue;
 				}
 
-				// Always add the ids, even if there are none so there is record of the linkbase having been processed
-				$linkbaseIds[ basename( $href ) ] = isset( $linkbaseIds[ basename( $href ) ] )
-					? array_merge( $linkbaseIds[ basename( $href ) ], $ids )
-					: $ids;
-
-				$arcroleTypesCopy = $arcroleTypes;
-
-				// TODO Look at the schema defintion for the link type to workout what are valid sub-elements
-				//      Instead for now use the $arcroleTypes list to see which of the arcs are used.
-				$usedOnQNames  = array(); // Used to record the qnames of any used arcs.  Saves looking them up again later.
-				foreach ( $arcroleTypesCopy as $usedOn => $arcroleType )
+				// As a non-default role there MUST be a child <link:roleRef>
+				if ( ! property_exists( $linkbase->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK] ), "roleRef" ) )
 				{
-					if ( isset( \XBRL_Constants::$standardArcRoles[ $usedOn ] ) )
-					{
-						unset( $arcroleTypesCopy[ $usedOn ] );
-						continue;
-					}
+					$this->log()->taxonomy_validation( "Generics 2.1.1", "When a non-standard link role is used there MUST be link:roleRef child element of the linkbase element",
+						array(
+							'role' => $roleUri,
+							'error' => 'xbrlgene:missingRoleRefForLinkRole'
+						)
+					);
 
-					// The usedOn values have been normalized to the prefixes of the namespaces used in this taxonomy if
-					// the namespace is from a taxonomy.  If the taxonomy is not found use the namespaces of the xml document
-					$taxonomy = $this->context->getTaxonomyWithPrefix( strstr( $usedOn, ":", true ) );
-					$arcQName = qname( $usedOn, $taxonomy ? $taxonomy->getDocumentNamespaces() : $linkbase->getDocNamespaces() );
-					$arcs = $link->children( $arcQName->namespaceURI )->{$arcQName->localName};
-					if ( count( $arcs ) )
-					{
-						if ( $this->context->types->resolveToSubstitutionGroup( $arcQName, array( "gen:arc" ) ) )
-						{
-							$isGeneric = true;
-						}
-						$usedOnQNames[ $usedOn ] = $arcQName;
-					}
-					else
-					{
-						unset( $arcroleTypesCopy[ $usedOn ] );
-					}
-					unset( $taxonomy );
+					continue;
 				}
 
-				$linkbaseDescription =  ( $isGeneric ? "Generic" : "Custom" ) . " ({$linkQName->prefix}:{$linkQName->localName})";
+				// $roleRef = $linkbase->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK] )->roleRef;
+
+				// Probably need to handle there being multiple roleRef elements
+				// if ( ! property_exists( $roleRef->attributes(), "roleURI" ) || (string)$roleRef->attributes()->roleURI != $roleUri )
+				if ( ! isset( $roleRefs[ $roleUri ] )  )
+				{
+					$this->log()->taxonomy_validation( "Generics 2.1.1", "The roleURI of the roleRef of a non-standard link role MUST be link:roleRef element",
+						array(
+							'role' => $roleUri,
+							'error' => 'xbrlgene:missingRoleRefForLinkRole'
+						)
+					);
+
+					continue;
+				}
+
+				// if ( ! $validRoleType( $roleUri, $roleTypes ) )
+				if ( ! isset( $roleTypes["{$linkQName->prefix}:{$linkQName->localName}"][ $roleUri ] ) )
+				{
+					$this->log()->taxonomy_validation( "Generics 2.1.1", "This role is not defined to be used on a generic linkbase",
+						array(
+							'role' => $roleUri,
+							'link' => "{$linkQName->prefix}:{$linkQName->localName}",
+							'error' => 'xbrlgene:missingLinkRoleUsedOnValue',
+						)
+					);
+
+					continue;
+				}
+			}
+
+			$roleListName = $isGeneric ? "genericRoles" : "customRoles";
+
+			if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ] ) )
+			{
+				$this->{$roleListName}['roles'][ $roleUri ] = array(
+					'type' => 'simple',
+					'href' => XBRL::resolve_path( $href, $this->getTaxonomyXSD() ), // $linkbaseRef['href'],
+					'roleUri' => $roleUri,
+				);
+			}
+
+			// Collect any resources.  Resources are elements in the same namespace that are part
+			// of the xl:resource substitutionGroup.  Got to do this using XPath because the resource
+			// element local name and prefix can be anything and may not be defined in the schema
+			$linkbasePrefix = "";
+			$linkPrefix = "";
+			$xlinkPrefix = "";
+
+			foreach ( $link->getDocNamespaces( true ) as $prefix => $namespace )
+			{
+				if ( empty( $prefix ) ) continue;
+
+				if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )
+				{
+					$linkbasePrefix = "$prefix:";
+				}
+				else if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] )
+				{
+					$xlinkPrefix = "$prefix:";
+				}
+				else if ( $namespace == $linkQName->namespaceURI )
+				{
+					$linkPrefix = "$prefix:";
+				}
+				$link->registerXPathNamespace( $prefix, $namespace );
+			}
+
+			// $query = "/{$linkbasePrefix}linkbase/{$linkPrefix}{$linkQName->localName}/*[@{$xlinkPrefix}type = 'resource']";
+			$query = $linkPath . "/*[@{$xlinkPrefix}type = 'resource']";
+			$nodes = $link->xpath( $query );
+			foreach ( $nodes as $childKey => $childElement )
+			{
+				$domNode = dom_import_simplexml( $childElement );
+				$prefix = $domNode->prefix;
+				$namespace = $domNode->namespaceURI;
+
+				$xlinkAttributes = $childElement->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+
+				$resourceRoleUri = property_exists( $xlinkAttributes, "role" )
+					? (string)$xlinkAttributes['role']
+					: XBRL_Constants::$defaultLinkRole;
+
+				// $resourceRoleUri = $roleUri;
 
 				// Check the linkbase definition is valid if the role is not the default role
-				if ( $isGeneric && XBRL::isValidating() && $roleUri != XBRL_Constants::$defaultLinkRole )
+				if ( $isGeneric &&
+					 XBRL::isValidating() &&
+					 $resourceRoleUri != XBRL_Constants::$defaultLinkRole &&
+					 $resourceRoleUri != XBRL_Constants::$labelRoleLabel &&
+					 $resourceRoleUri != XBRL_Constants::$reference2003 &&
+					 $resourceRoleUri != XBRL_Constants::$reference2008 )
 				{
-					// The role MUST be absolute
-					if ( ! preg_match( "!^https?://!", $roleUri ) )
+					// If the role exists it MUST be absolute
+					if ( ! preg_match( "!^https?://!", $resourceRoleUri ) )
 					{
-						$this->log()->taxonomy_validation( "Generics 2.1.1", "The link role MUST be absolute",
+						$this->log()->taxonomy_validation( "Generics 2.1.2", "The resource role is not absolute",
 							array(
-								'role' => $roleUri,
-								'error' => 'xbrlgene:nonAbsoluteLinkRoleURI'
+								'role' => $resourceRoleUri,
+								'error' => 'xbrlgene:nonAbsoluteResourceRoleURI',
 							)
 						);
-
-						continue;
 					}
 
 					// As a non-default role there MUST be a child <link:roleRef>
-					if ( ! property_exists( $linkbase->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK] ), "roleRef" ) )
+					if ( count( $roleRefs ) == 0 )
 					{
-						$this->log()->taxonomy_validation( "Generics 2.1.1", "When a non-standard link role is used there MUST be link:roleRef child element of the linkbase element",
+						$this->log()->taxonomy_validation( "Generics 2.1.2", "When a non-standard resource role is used there MUST be link:roleRef child element of the linkbase element",
 							array(
-								'role' => $roleUri,
-								'error' => 'xbrlgene:missingRoleRefForLinkRole'
+								'role' => $resourceRoleUri,
+								'error' => 'xbrlgene:missingRoleRefForResourceRole'
 							)
 						);
 
 						continue;
 					}
 
-					// $roleRef = $linkbase->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK] )->roleRef;
-
-					// Probably need to handle there being multiple roleRef elements
-					// if ( ! property_exists( $roleRef->attributes(), "roleURI" ) || (string)$roleRef->attributes()->roleURI != $roleUri )
-					if ( ! isset( $roleRefs[ $roleUri ] )  )
+					if ( ! count( $roleRefs ) )
 					{
-						$this->log()->taxonomy_validation( "Generics 2.1.1", "The roleURI of the roleRef of a non-standard link role MUST be link:roleRef element",
+						$this->log()->taxonomy_validation( "3.5.2.4", "There are no role refs in the linkbase",
 							array(
-								'role' => $roleUri,
-								'error' => 'xbrlgene:missingRoleRefForLinkRole'
+								'error' => 'xbrlgene:missingRoleRefForArcRole'
 							)
 						);
 
-						continue;
+						break;
 					}
 
-					// if ( ! $validRoleType( $roleUri, $roleTypes ) )
-					if ( ! isset( $roleTypes["{$linkQName->prefix}:{$linkQName->localName}"][ $roleUri ] ) )
+					$qName = "$prefix:" . $childElement->getName();
+
+					if ( ! isset( $roleRefs[ $resourceRoleUri ] ) ||
+						 ! isset( $roleTypes[ $qName ] ) ||
+						 ! isset( $roleTypes[ $qName ][ $resourceRoleUri ] ) )
 					{
-						$this->log()->taxonomy_validation( "Generics 2.1.1", "This role is not defined to be used on a generic linkbase",
+						$this->log()->taxonomy_validation( "Generics 2.1.2", "The roleURI of the link:roleRef of a non-standard link role MUST be the same as the role of the resource",
+							array(
+								'role' => $resourceRoleUri,
+								'error' => 'xbrlgene:missingRoleRefForResourceRole'
+							)
+						);
+					}
+				}
+
+				if ( $use_xbrl_functions )
+				{
+					if ( \XBRL\Formulas\Formulas::IsFormulaResource( $namespace, $domNode->localName ) )
+					{
+						$resource = \XBRL\Formulas\Formulas::ProcessFormulaResource( $this, $roleUri, $href, (string)$xlinkAttributes->label, $childElement, $domNode, $this->log() );
+
+						if ( $resource )
+						{
+							$resource['roleUri'] = $resourceRoleUri; // Record the element role (default if there is none)
+							$resource['linkRoleUri'] = $roleUri;
+							$resource['path'] = $linkPath;
+
+							if ( $resource['type'] == 'variableset' )
+							{
+								$resource['base'] = $base . ( isset( $resource['base'] ) ? $resource['base'] : "" );
+							}
+
+							// If the resource has a name make sure the name is unique
+							if ( isset( $resource['name'] ) )
+							{
+								$name = is_array( $resource['name'] )
+									? ( new QName($resource['name']['originalPrefix'], $resource['name']['namespace'], $resource['name']['name'] ) )->clarkNotation()
+									: $resource['name']['name'];
+
+								if ( isset( $this->context->formulaNames[ $name ] ) )
+								{
+									XBRL_Log::getInstance()->formula_validation( "Variable parameters", "The resource name already exists", array(
+										'name' => ($resource['name']['originalPrefix'] ? "{$resource['name']['originalPrefix']}:{$resource['name']['name']}" : $resource['name']['name']),
+										'error' => 'xbrlve:parameterNameClash'
+									) );
+
+									continue;
+								}
+							}
+
+							$this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ][] = $resource;
+
+							if ( isset( $resource['name'] ) )
+							{
+								$name = is_array( $resource['name'] )
+									? ( new QName($resource['name']['originalPrefix'], $resource['name']['namespace'], $resource['name']['name'] ) )->clarkNotation()
+									: $resource['name']['name'];
+
+								// Save the information needed to recover the named resource
+								$this->context->formulaNames[ $name ] = array(
+									'type' => 'resource',
+									'taxonomy' => $this->getTaxonomyXSD(),
+									'rolelistname' => $roleListName,
+									'role' => $roleUri,
+									'linkbase' => basename( $href ),
+									'path' => $linkPath,
+									'label' => (string)$xlinkAttributes->label,
+									'offset' => count( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] ) -1
+								);
+							}
+						}
+						else
+						{
+							// TODO Report an error
+						}
+
+						continue;
+					}
+				}
+
+				$content = array();
+				if ( count( $childElement->children() ) )
+				{
+					foreach ( $childElement->children() as $child )
+					{
+						$content[] = $child->asXML();
+					}
+				}
+				else
+				{
+					$content[] = (string)$childElement;
+				}
+
+				if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LABEL ] )
+				{
+					$xmlAttributes = $childElement->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
+					$lang = property_exists( $xmlAttributes, "lang" ) ? (string)$xmlAttributes->lang : $this->getDefaultLanguage();
+					$this->{$roleListName}['roles'][ $resourceRoleUri ]['labels'][ basename( $href ) ][ (string)$xlinkAttributes->label ]['lang'][ $lang ][ $linkPath ] = implode( "", $content );
+				}
+				else
+				{
+					$x = $roleListName == 'genericRoles'
+						? array(
+								$namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SEVERITY ]
+									? array(
+										'type' => 'resource',
+										'resourceType' => "severity",
+										'label' => (string)$xlinkAttributes->label
+									)
+									: array(
+										'type' => 'resource',
+										'text' => implode( "", $content ),
+									)
+						)
+						: implode( "", $content );
+
+
+					if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_REFERENCE ] )
+					{
+						$this->{$roleListName}['roles'][ $resourceRoleUri ]['references'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = $x; // implode( "", $content );
+					}
+					else
+					{
+						// $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = implode( "", $content );
+						$this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = $x; // implode( "", $content );
+					}
+				}
+			}
+
+			if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['attributes'] ) )
+			{
+				$this->{$roleListName}['roles'][ $roleUri ]['attributes'] = array();
+			}
+
+			$linkAttributes =& $this->{$roleListName}['roles'][ $roleUri ]['attributes'];
+			$linkCustomAttributes = $link->attributes( $this->getNamespace() );
+			foreach ( $linkCustomAttributes as $customAttributeId => $customAttribute )
+			{
+				// BMS 2018-04-09 Test candidates changed.
+				$type = "xs:anyType";
+				$attributeType = $this->context->types->getAttribute( $customAttributeId, $this->getPrefix() );
+				if ( $attributeType && isset( $attributeType['types'][0] ) )
+				{
+					$type = $attributeType['types'][0];
+				}
+
+				$linkAttributes[ $customAttributeId ] = array( 'type' => $type, 'value' => (string)$customAttribute  );
+				unset( $type );
+			}
+			unset( $linkAttributes );
+
+		} // $links
+
+		// Used to catch duplicated from/to label pairs which is not allowed by the XLink specification
+		// $fromToPairs = array();
+		$preferredLabelEquivalenceHashes = array();
+
+		// Next handle all the arcs
+		foreach( $links as $link )
+		{
+			$linkAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+			$isGeneric = $this->context->types->resolveToSubstitutionGroup( $linkQName, array( "gen:link" ) );
+			$linkPath = $this->getXmlNodePath( $link );
+			$linkbaseDescription =  ( $isGeneric ? "Generic" : "Custom" ) . " ({$linkQName->prefix}:{$linkQName->localName})";
+
+			$roleUri = property_exists( $linkAttributes, "role" )
+				? (string)$linkAttributes['role']
+				: XBRL_Constants::$defaultLinkRole;
+
+			// Get a list of the locators for this extended link
+			// This must come before evaluatiion of arcroles because although there may be
+			// no valid arcroles to process for this link, there may be locators and any one
+			// of these may reference a schema that must be discovered.
+			$locators = $this->retrieveLocators( $link, $linkbaseDescription, $href );
+
+			$arcroleTypesCopy = $arcroleTypes;
+
+			// TODO Look at the schema defintion for the link type to workout what are valid sub-elements
+			//      Instead for now use the $arcroleTypes list to see which of the arcs are used.
+			$usedOnQNames  = array(); // Used to record the qnames of any used arcs.  Saves looking them up again later.
+			foreach ( $arcroleTypesCopy as $usedOn => $arcroleType )
+			{
+				if ( isset( \XBRL_Constants::$standardArcRoles[ $usedOn ] ) )
+				{
+					unset( $arcroleTypesCopy[ $usedOn ] );
+					continue;
+				}
+
+				// The usedOn values have been normalized to the prefixes of the namespaces used in this taxonomy if
+				// the namespace is from a taxonomy.  If the taxonomy is not found use the namespaces of the xml document
+				$taxonomy = $this->context->getTaxonomyWithPrefix( strstr( $usedOn, ":", true ) );
+				$arcQName = qname( $usedOn, $taxonomy ? $taxonomy->getDocumentNamespaces() : $linkbase->getDocNamespaces() );
+				$arcs = $link->children( $arcQName->namespaceURI )->{$arcQName->localName};
+				if ( count( $arcs ) )
+				{
+					if ( $this->context->types->resolveToSubstitutionGroup( $arcQName, array( "gen:arc" ) ) )
+					{
+						$isGeneric = true;
+					}
+					$usedOnQNames[ $usedOn ] = $arcQName;
+				}
+				else
+				{
+					unset( $arcroleTypesCopy[ $usedOn ] );
+				}
+				unset( $taxonomy );
+			}
+
+			if ( ! count( $arcroleTypesCopy ) )
+			{
+				if ( $isGeneric )
+				{
+					$query = $linkPath . "/*[@{$xlinkPrefix}type = 'arc']";
+					$nodes = $link->xpath( $query );
+
+					if ( count( $nodes ) )
+					{
+						$arcs = implode( ",", array_reduce( $nodes, function( $carry, $arc )
+						{
+							$carry[] = $arc->getName();
+							return $carry;
+						}, array() ) );
+						$this->log()->taxonomy_validation( "Generic links 2.2.1", "One or more arcs in the generic link do not include a 'usedon' element for this link",
+							array(
+								'link' => $linkQName->clarkNotation(),
+								'arcs' => $arcs,
+								'error' => 'xbrlgene:missingArcRoleUsedOnValue'
+							)
+						);
+					}
+				}
+
+				continue;
+			}
+
+			if ( XBRL::isValidating() && $isGeneric )
+			{
+				// Look for arcs to check there is an arcRoleRef for each arc role used
+				$query = $linkPath . "/*[@{$xlinkPrefix}type = 'arc']";
+				$arcNodes = $link->xpath( $query );
+				$arcroles = array_unique( array_filter( array_map( function( $node ) {
+					$attributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+					return isset( $attributes['arcrole'] ) ? (string)$attributes['arcrole'] : '';
+				}, $arcNodes ) ) );
+
+				$x = array_diff( $arcroles, array_keys($arcroleRefs) );
+				if ( count( $x ) )
+				{
+					$this->log()->taxonomy_validation( "2.2.1", "The arcrole used on an arc element MUST be referenced in an arcroleRef element.", array( 'arcroles' => implode( ", ", $arcroles ) ) );
+				}
+			}
+
+			$linkQName = qname( $domLink->tagName, array_merge( $this->context->types->getProcessedSchemas(), $linkbase->getDocNamespaces() ) );
+			// BMS 2018-05-05 Fix up the prefix.  Should used the one of the schema of the namespace
+			$schemaQName = $this->normalizePrefix( $linkQName, $this );
+			$linkQName = qname( $schemaQName, $this->context->types->getProcessedSchemas() );
+
+			// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
+			$this->resetValidateFromToArcPairs();
+
+			foreach ( $arcroleTypesCopy as $usedOn => $arcroleType )
+			{
+				$arcQName = $usedOnQNames[ $usedOn ];
+				$preferredLabelArcs = array();
+
+				$processArc = function( $arc, $isPreferredLabelArc = false ) use(
+					$arcroleRefs, $arcQName, $arcroleType,
+					&$preferredLabelEquivalenceHashes, $href,
+					$isGeneric, $linkbaseDescription,
+					$linkbaseIds, $linkQName, $locators,
+					&$preferredLabelArcs, $roleListName, $roleRefs,
+					$roleUri, $usedOn /* , &$fromToPairs */, $linkPath, $xml_basename
+				)
+				{
+					$domNode = dom_import_simplexml( $arc );
+
+					$xlinkAttributes = $arc->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+					$attributes = $arc->attributes();
+					$arcrole = (string) $xlinkAttributes->arcrole;
+
+					// BMS 2018-08-25 References are not supported so element-reference roles are not supported
+					if ( $arcrole == XBRL_Constants::$genericElementReference )
+					{
+						return true;
+					}
+
+					$preferredLabelRole = (string)$arc->attributes( XBRL_Constants::$genericPreferredLabel );
+
+					// If the arcrole is not one of the standard roles then there MUST be an arcroleRef.
+					// If one does not exist, ignore the arc.
+					if ( ! XBRL_Constants::isStandardArcrole( $arcrole ) )
+					{
+						if ( ! $arcroleRefs || ! isset( $arcroleRefs[ $arcrole ] ) ) return true;
+					}
+
+					if ( ! $isPreferredLabelArc && $preferredLabelRole )
+					{
+						// Record for processing after the initial pass
+						$preferredLabelArcs[] = $arc;
+						return true;
+					}
+
+					$resourceType = $preferredLabelRole || $arcrole == XBRL_Constants::$genericElementLabel
+						? "labels"
+						: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" );
+
+					if ( ! $preferredLabelRole )
+					{
+						$preferredLabelRole = $arcrole == XBRL_Constants::$genericElementLabel
+							? (
+									// If the 2008 label role is defined as a roleref use it otherwise usse the 2003 role
+									isset( $roleRefs[ XBRL_Constants::$genericRoleLabel ] )
+										? XBRL_Constants::$genericRoleLabel
+										: XBRL_Constants::$labelRoleLabel
+							  )
+							: XBRL_Constants::$labelRoleLabel;
+
+						if ( $isPreferredLabelArc )
+						{
+							foreach ( $roleRefs as $roleRefUri => $details )
+							{
+								if ( $details['usedOn'] == 'label:label' )
+								{
+									$preferredLabelRole = $roleRefUri;
+									break;
+								}
+							}
+						}
+					}
+
+					if ( ! $this->validateXLinkArcAttributes( $xlinkAttributes, $linkbaseDescription ) )
+					{
+						return true;
+					}
+
+					// if ( isset( $fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] ) )
+					// {
+					// 	$this->log()->taxonomy_validation( "XLink", "Custom arcs contain repeated from/to label pairs in the same extended link",
+					// 		array(
+					// 			'role' => $roleUri,
+					// 			'from' => (string)$xlinkAttributes->from,
+					// 			'to' => (string)$xlinkAttributes->to
+					// 		)
+					// 	);
+					// }
+					// else
+					// {
+					// 	$fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] = 1;
+					// }
+
+					if ( $isGeneric && ! count( $arcroleRefs ) )
+					{
+						$this->log()->taxonomy_validation( "Generics 2.1.1", "There are no arcrole refs in the linkbase",
+							array(
+								'error' => 'xbrlgene:missingRoleRefForArcRole'
+							)
+						);
+
+						return false;
+					}
+
+					if ( $isGeneric && XBRL::$validating )
+					{
+						if ( ! isset( $arcroleType[ $arcrole ] ) )
+						{
+
+							// This means a usedOn is not defined for the current arc and arcrole
+							$this->log()->taxonomy_validation( "Generics 2.2.1", "This arcrole is not defined as an arcroleRef in the current linkbase file",
+								array(
+									'arcrole' => $arcrole,
+									'error' => 'xbrlgene:missingArcRoleUsedOnValue',
+								)
+							);
+							return true;
+
+						}
+
+						// There MUST be an arcroleRef for this role defined in the linkbase
+						if ( ! isset( $arcroleRefs[ $arcrole ] ) )
+						{
+
+							$this->log()->taxonomy_validation( "Generics 2.2.1", "This arcrole is not defined as an arcroleRef in the current linkbase file",
+								array(
+									'arcrole' => $arcrole,
+									'error' => 'xbrlgene:missingRoleRefForArcRole',
+								)
+							);
+							return true;
+
+						}
+					}
+
+					$node['arcrole'] = $arcrole;
+
+					$fromLabel	= (string) $xlinkAttributes->from;
+					$this->validateXLinkLabel( $linkbaseDescription, $fromLabel );
+
+					$toLabel	= (string) $xlinkAttributes->to;
+					$this->validateXLinkLabel( $linkbaseDescription, $toLabel );
+
+					$fromList	= isset( $locators[ $fromLabel ] )
+						? $locators[ $fromLabel ]
+						: $fromLabel;
+
+					$toList	= isset( $locators[ $toLabel ] )
+						? $locators[ $toLabel ]
+						: $toLabel;
+
+					$validLocators = true;
+
+					if ( ! is_array( $fromList ) )
+					{
+						// There is no locator so make sure a resource exists for $fromLabel (resources but not labels can be sources)
+						if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $fromList ] ) )
+						{
+							$validLocators = false;
+						}
+						else
+						{
+							$fromList = array( $fromList );
+						}
+					}
+
+					if ( $isPreferredLabelArc )
+					{
+						// Compute an equivalence hash to identify duplicate preferred labels
+						foreach ( $fromList as $from )
+						{
+							$equivalenceHash = $this->equivalenceHash( "{$arcQName->prefix}:{$arcQName->localName}", "{$linkQName->prefix}:{$linkQName->localName}", $roleUri, $from, "", null, null, $preferredLabelRole );
+							if ( in_array( $equivalenceHash, $preferredLabelEquivalenceHashes ) )
+							{
+								$this->log()->taxonomy_validation( "Preferred label 2.1", "Preferred label has been used more than once for the same arc source and target",
+									array(
+										'preferredLabelRole' => $preferredLabelRole,
+										'arcElement' => "{$arcQName->prefix}:{$arcQName->localName}",
+										'linkElement' => "{$linkQName->prefix}:{$linkQName->localName}",
+										'roleUri' => $roleUri,
+										'arcrole' => $arcrole,
+										'fromLabel' => $toLabel,
+										'toLabel' => $fromLabel,
+										'error' => 'gple:duplicatePreferredLabel',
+									)
+								);
+
+								return true;
+							}
+							else
+							{
+								$preferredLabelEquivalenceHashes[] = $equivalenceHash;
+							}
+						}
+					}
+
+					if ( ! is_array( $toList ) )
+					{
+						if ( $isPreferredLabelArc )
+						{
+							if ( isset( $this->{$roleListName}
+								 ['roles'][ $roleUri ]['arcroles'][ XBRL_Constants::$genericElementLabel ]
+								 ['links']["{$linkQName->prefix}:{$linkQName->localName}"]
+								 ['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
+								 ['arcs'][ $toList ] )
+							)
+							{
+								$target = &$this->{$roleListName}
+									['roles'][ $roleUri ]['arcroles'][ XBRL_Constants::$genericElementLabel ]
+									['links']["{$linkQName->prefix}:{$linkQName->localName}"]
+									['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
+									['arcs'][ $toList ];
+
+								// This preferred label is going to apply to all elements of $target that have an
+								// arcrole with a value of http://xbrl.org/arcrole/2008/element-label
+								$preferredLabelRoleFound = false;
+								foreach ( $target as $toLabel => &$toDetails )
+								{
+									if ( isset( $toDetails['arcrole'] ) && $toDetails['arcrole'] == XBRL_Constants::$labelRoleLabel ) continue;
+
+									// look for the label $toLabel to make sure it has the the role $preferredLabelRole
+									if ( isset( $this->{$roleListName}
+										 ['roles'][ $preferredLabelRole ]
+										 ['labels'][ basename( $href ) ][ $toLabel ] )
+									)
+									{
+										$preferredLabelRoleFound = true;
+										foreach ( $toDetails as &$node )
+										{
+											$node['preferredLabel'] = $preferredLabelRole;
+										}
+										unset( $node );
+									}
+
+								}
+
+								unset( $toDetails );
+								unset( $target );
+
+								if ( ! $preferredLabelRoleFound )
+								{
+
+									// This means a usedOn is not defined for the current arc and arcrole
+									$this->log()->taxonomy_validation( "Preferred label 2.1", "This preferred role is not defined on any label",
+										array(
+											'role' => $roleUri,
+											'arcrole' => $arcrole,
+											'fromLabel' => $fromLabel,
+											'toLabel' => $toLabel,
+											'error' => 'gple:missingPreferredLabel',
+										)
+									);
+
+									return true;
+								}
+
+								return true;
+							}
+
+							// If this is a preferred label the $to to use is the to of the arc which is from $toLabel
+							if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $toList ] ) )
+							{
+								$fromArc = $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $toList ];
+							}
+						}
+
+						// There is no locator so make sure a resource or label exists for $toLabel
+						$resourceRole = $resourceType == 'labels'
+							? $preferredLabelRole
+							: (
+								$resourceType == 'references'
+									? ( XBRL_Constants::$reference2003 )
+									: $roleUri
+							  );
+						if ( ! isset( $this->{$roleListName}['roles'][ $resourceRole ][ $resourceType ][ basename( $href ) ][ $toList ] ) )
+						{
+							$validLocators = false;
+						}
+						else
+						{
+							$toList = array( $toList );
+						}
+					}
+
+					if ( ! $validLocators )
+					{
+						$this->log()->taxonomy_validation( "Generics 2.1.1", "Locators do not exist or resource cannot be found for the label",
 							array(
 								'role' => $roleUri,
+								'arcrole' => $arcrole,
 								'link' => "{$linkQName->prefix}:{$linkQName->localName}",
+								'arc' => "{$arcQName->prefix}:{$arcQName->localName}",
+								'from' => $fromLabel,
+								'to' => $toLabel,
 								'error' => 'xbrlgene:missingLinkRoleUsedOnValue',
 							)
 						);
-
-						continue;
-					}
-				}
-
-				// Detection of duplicate from/to pairs only applies within an extended link so reset this varaible in each new link
-				$this->resetValidateFromToArcPairs();
-
-				// Get a list of the locators for this extended link
-				$locators = $this->retrieveLocators( $link, $linkbaseDescription, $href );
-
-				$roleListName = $isGeneric ? "genericRoles" : "customRoles";
-
-				if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ] ) )
-				{
-					$this->{$roleListName}['roles'][ $roleUri ] = array(
-						'type' => 'simple',
-						'href' => XBRL::resolve_path( $href, $this->getTaxonomyXSD() ), // $linkbaseRef['href'],
-						'roleUri' => $roleUri,
-					);
-				}
-
-				// Collect any resources.  Resources are elements in the same namespace that are part
-				// of the xl:resource substitutionGroup.  Got to do this using XPath because the resource
-				// element local name and prefix can be anything and may not be defined in the schema
-				$linkbasePrefix = "";
-				$linkPrefix = "";
-				$xlinkPrefix = "";
-
-				foreach ( $link->getDocNamespaces( true ) as $prefix => $namespace )
-				{
-					if ( empty( $prefix ) ) continue;
-
-					if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )
-					{
-						$linkbasePrefix = "$prefix:";
-					}
-					else if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] )
-					{
-						$xlinkPrefix = "$prefix:";
-					}
-					else if ( $namespace == $linkQName->namespaceURI )
-					{
-						$linkPrefix = "$prefix:";
-					}
-					$link->registerXPathNamespace( $prefix, $namespace );
-				}
-
-				// $query = "/{$linkbasePrefix}linkbase/{$linkPrefix}{$linkQName->localName}/*[@{$xlinkPrefix}type = 'resource']";
-				$query = $domLink->getNodePath() . "/*[@{$xlinkPrefix}type = 'resource']";
-				$nodes = $link->xpath( $query );
-				foreach ( $nodes as $childKey => $childElement )
-				{
-					$domNode = dom_import_simplexml( $childElement );
-					$prefix = $domNode->prefix;
-					$namespace = $domNode->namespaceURI;
-
-					$xlinkAttributes = $childElement->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-
-					$resourceRoleUri = property_exists( $xlinkAttributes, "role" )
-						? (string)$xlinkAttributes['role']
-						: XBRL_Constants::$defaultLinkRole;
-
-					// $resourceRoleUri = $roleUri;
-
-					// Check the linkbase definition is valid if the role is not the default role
-					if ( $isGeneric &&
-						 XBRL::isValidating() &&
-						 $resourceRoleUri != XBRL_Constants::$defaultLinkRole &&
-						 $resourceRoleUri != XBRL_Constants::$labelRoleLabel &&
-						 $resourceRoleUri != XBRL_Constants::$reference2003 &&
-						 $resourceRoleUri != XBRL_Constants::$reference2008 )
-					{
-						// If the role exists it MUST be absolute
-						if ( ! preg_match( "!^https?://!", $resourceRoleUri ) )
-						{
-							$this->log()->taxonomy_validation( "Generics 2.1.2", "The resource role is not absolute",
-								array(
-									'role' => $resourceRoleUri,
-									'error' => 'xbrlgene:nonAbsoluteResourceRoleURI',
-								)
-							);
-						}
-
-						// As a non-default role there MUST be a child <link:roleRef>
-						if ( count( $roleRefs ) == 0 )
-						{
-							$this->log()->taxonomy_validation( "Generics 2.1.2", "When a non-standard resource role is used there MUST be link:roleRef child element of the linkbase element",
-								array(
-									'role' => $resourceRoleUri,
-									'error' => 'xbrlgene:missingRoleRefForResourceRole'
-								)
-							);
-
-							continue;
-						}
-
-						if ( ! count( $roleRefs ) )
-						{
-							$this->log()->taxonomy_validation( "3.5.2.4", "There are no role refs in the linkbase",
-								array(
-									'error' => 'xbrlgene:missingRoleRefForArcRole'
-								)
-							);
-
-							break;
-						}
-
-						$qName = "$prefix:" . $childElement->getName();
-
-						if ( ! isset( $roleRefs[ $resourceRoleUri ] ) ||
-							 ! isset( $roleTypes[ $qName ] ) ||
-							 ! isset( $roleTypes[ $qName ][ $resourceRoleUri ] ) )
-						{
-							$this->log()->taxonomy_validation( "Generics 2.1.2", "The roleURI of the link:roleRef of a non-standard link role MUST be the same as the role of the resource",
-								array(
-									'role' => $resourceRoleUri,
-									'error' => 'xbrlgene:missingRoleRefForResourceRole'
-								)
-							);
-						}
+						return true;
 					}
 
-					if ( $use_xbrl_functions )
+					foreach ( $fromList as $from )
 					{
-						if ( \XBRL\Formulas\Formulas::IsFormulaResource( $namespace, $domNode->localName ) )
+						foreach ( $toList as $to )
 						{
-							$resource = \XBRL\Formulas\Formulas::ProcessFormulaResource( $this, $roleUri, $href, (string)$xlinkAttributes->label, $childElement, $domNode, $this->log() );
+							$fromLinkbase = basename( $href );
+							$fromRoleUri = $roleUri;
+							$fromId = null;
+							$fromIsSchemaType = false;
+							$fromPath = $linkPath;
 
-							if ( $resource )
+							if ( strpos( $from, "#" ) !== false )
 							{
-								$resource['roleUri'] = $resourceRoleUri; // Record the element role (default if there is none)
-								$resource['linkRoleUri'] = $roleUri;
+								$fromParts = parse_url( $from );
+								if ( ! isset( $fromParts['fragment'] ) ) $fromParts['fragment'] = "";
 
-								if ( $resource['type'] == 'variableset' )
+								if ( isset( $linkbaseIds[ basename( $fromParts['path'] ) ] ) )
 								{
-									$resource['base'] = $base . ( isset( $resource['base'] ) ? $resource['base'] : "" );
+									// Is the fragment a reference to an exising resource label?
+									$ids =& $linkbaseIds[ basename( $fromParts['path'] ) ];
+									if ( isset( $ids[ $fromParts['fragment'] ] ) ) // && $linkbaseType['ids'][ $parts['fragment'] ]['type'] == 'arc' )
+									{
+									 	$from = $ids[ $fromParts['fragment'] ]['type'] == 'resource'
+									 		? $ids[ $fromParts['fragment'] ]['label']
+									 		: $ids[ $fromParts['fragment'] ]['from'];
+
+									 	$fromLinkbase = basename( $fromParts['path'] );
+									 	$fromRoleUri = $ids[ $fromParts['fragment'] ]['role'];
+									 	$fromId = $fromParts['fragment'];
+									 	$fromPath = dirname( $ids[ $fromParts['fragment'] ]['path'] );
+									}
+									else
+									{
+										$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
+											? "labels"
+											: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" ) ;
+										if ( isset( $this->{$roleListName}['roles'][ $roleUri ][ $resourceType ][ $fromParts['fragment'] ][ $fromParts['path'] ] ) )
+										{
+											$from = $fromParts['fragment'];
+									 		$fromId = $fromParts['fragment'];
+										}
+									}
+									unset( $ids );
+								}
+								else
+								{
+									// Could be an element defined in the schema
+									/** @var XBRL_Types $types */
+									$types = XBRL_Types::getInstance();
+
+									// Get the taxonomy for the schema
+									/** @var XBRL $tax */
+									$tax = $this->getTaxonomyForXSD( $fromParts['path'] );
+									if ( $tax )
+									{
+										// Look for a element or a attribute defined by the schema with the name
+										$el = $types->getElement( $fromParts['fragment'], $tax->getPrefix() );
+										if ( ! $el )
+										{
+											$el = $types->getAttribute( $fromParts['fragment'], $tax->getPrefix() );
+										}
+
+										// BMS 2018-08-25 The from id could also be in the annoations (role/arcrole types) of the schema
+										if ( is_array( $el ) ||
+											 isset( $tax->roleTypeIds[ $fromParts['fragment'] ] ) ||
+											 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] ) ||
+											 $types->getTypeById( $fromParts['fragment'], $tax->getPrefix() )
+										)
+										{
+											// The equality definition 'from' identifier needs to be the path + fragment
+											// Perhaps all should but for now just the equality definition
+											// BMS 2018-03-29 Test 61100 V-41 requires the full 'from' identifier
+											// $from = $arcrole == XBRL_Constants::$arcRoleVariableEqualityDefinition
+											// 	? "{$fromParts['path']}#{$fromParts['fragment']}"
+											// 	: $fromParts['fragment'];
+									 		// // $fromId = $fromParts['fragment'];
+									 		$fromIsSchemaType = true;
+										}
+									}
+								}
+							}
+
+							$toLinkbase = basename( $href );
+							$toRoleUri = $roleUri;
+							$toId = null;
+							$toIsSchemaType = false;
+							$toPath = $linkPath;
+
+							if ( strpos( $to, "#" ) !== false )
+							{
+								$toParts = parse_url( $to );
+
+								if ( isset( $linkbaseIds[ basename( $toParts['path'] ) ] ) )
+								{
+									// Is the fragment a reference to an exising resource label?
+									$ids =& $linkbaseIds[ basename( $toParts['path'] ) ];
+									// What conformance test does this condition satisfy?
+									// BMS 2018-04-25	Don't yet know but the test makes no sense.
+									//					It has the effect of using $ids[ $toParts['fragment'] ]
+									//					only when it is known it does not exist!
+									//					Need to remove the exclamation
+									// if ( ! isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'arc' )
+									if ( isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'arc' )
+									{
+										$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
+											? "labels"
+											: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" );
+										if ( $this->{$roleListName}['roles'][ $roleUri ][ $resourceType ][ $toParts['fragment'] ][ $toParts['path'] ] )
+										{
+											$to = $toParts['fragment'];
+											$toId = $toParts['fragment'];
+										}
+									}
+									// This additional condition is required by test 22090 V-03
+									else if ( isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'resource' )
+									{
+										$toLinkbase = $toParts['path'];
+										$to = $ids[ $toParts['fragment'] ]['label'];
+										$toId = $toParts['fragment'];
+										$toRoleUri = $ids[ $toParts['fragment'] ]['role'];
+									 	$toPath = dirname( $ids[ $toParts['fragment'] ]['path'] );
+									}
+
+									// unset( $linkbaseType );
+									unset( $ids );
+								}
+								else
+								{
+									// Could be an element defined in the schema
+									/** @var XBRL_Types $types */
+									$types = XBRL_Types::getInstance();
+
+									// Get the taxonomy for the schema
+									/** @var XBRL $tax */
+									$tax = $this->getTaxonomyForXSD( $toParts['path'] );
+									if ( $tax )
+									{
+										// Look for a element or a attribute defined by the schema with the name
+										$el = $types->getElement( $toParts['fragment'], $tax->getPrefix() );
+										if ( ! $el )
+										{
+											$el = $types->getAttribute( $toParts['fragment'], $tax->getPrefix() );
+										}
+
+										if ( is_array( $el ) )
+										{
+											// BMS 2018-03-29 Test 61100 V-42 requires the full 'to' identifier
+											// $to = $toParts['fragment'];
+									 		// $toId = $toParts['fragment'];
+									 		$toIsSchemaType = true;
+										}
+									}
+								}
+							}
+
+							// $this->validateFromToArcPairs( $roleUri, $arcrole, $from, $to );
+							$this->validateFromToArcPairs( $roleUri, $arcrole, $fromId, $toId, $fromLabel, $toLabel, $xml_basename, $this->getXmlNodePath( $arc ) );
+
+							// By now the arcrole has been validated for use on a specific type of arc element
+							// But the specifications sometimes require additional validations. Note this code
+							// should probably be implemented in its function in a separate file so it can be
+							// plugged/unplugged
+							global $use_xbrl_functions;
+							if ( XBRL::isValidating() && $use_xbrl_functions )
+							{
+								$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
+									? "labels"
+									: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" ) ;
+								$toRoleUri = $resourceType == 'labels'
+									? $preferredLabelRole
+									: ( $resourceType == 'references'
+										? XBRL_Constants::$reference2003
+										: $toRoleUri );
+
+								$fromResources	= isset( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
+									? (
+											is_array( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
+												? array_filter( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ],
+													function( $item ) use( $fromId )
+													{
+														return is_null( $fromId ) || ! isset( $item['id'] ) || $item['id'] == $fromId;
+													}
+									  	 		  )
+									  			: array( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
+									  )
+									: ( $fromIsSchemaType
+											? array( array( 'type'=> 'schema', 'schema' => $fromParts['path'], 'fragment' => $fromParts['fragment'] ) )
+											: null
+									  );
+								$toResources	= isset( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
+									? (
+											is_array( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
+												? array_filter( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ],
+													function( $item ) use( $toId ) { return is_null( $toId ) || ! isset( $item['id'] ) || $item['id'] == $toId; }
+												  )
+												: array( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
+									  )
+									: ( $toIsSchemaType
+											? array( array( 'type'=> 'schema', 'schema' => $toParts['path'], 'fragment' => $toParts['fragment'] ) )
+											: null
+									  );
+
+								// BMS 2018-03-27 This is probably redundant because of the similar functionality above
+								if ( is_null( $toResources ) )
+								{
+									if ( strpos( $to, '#' ) )
+									{
+										$parts = explode( '#', $to );
+										// Look in the ids to see if this linkbase/id combination exists
+										if ( isset( $linkbaseIds[ $parts[0] ][ $parts[1] ] ) )
+										{
+											$toResources = isset( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $parts[0] ][ $parts[1] ] )
+												? $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $parts[0] ][ $parts[1] ]
+												: null;
+										}
+									}
 								}
 
-								// If the resource has a name make sure the name is unique
-								if ( isset( $resource['name'] ) )
+								$testAllResources = function( $resources, $resourceType, $setType, $typeTest )
 								{
-									$name = is_array( $resource['name'] )
-										? ( new QName($resource['name']['originalPrefix'], $resource['name']['namespace'], $resource['name']['name'] ) )->clarkNotation()
-										: $resource['name']['name'];
+									if ( is_null( $resources ) || ! count( $resources ) ) return false;
 
-									if ( isset( $this->context->formulaNames[ $name ] ) )
+									// Make sure $typeTest is null or an array
+									if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
 									{
-										XBRL_Log::getInstance()->formula_validation( "Variable parameters", "The resource name already exists", array(
-											'name' => ($resource['name']['originalPrefix'] ? "{$resource['name']['originalPrefix']}:{$resource['name']['name']}" : $resource['name']['name']),
-											'error' => 'xbrlve:parameterNameClash'
+										$typeTest = array( $typeTest );
+									}
+
+									foreach ( $resources as $resource )
+									{
+										if ( $resource['type'] != $resourceType  ) return false;
+										if ( is_null( $setType ) ) continue;
+										if ( isset( $resource[ $setType ] ) )
+										{
+											if ( is_null( $typeTest ) || in_array( $resource[ $setType ], $typeTest ) ) continue;
+										}
+
+										return false;
+									}
+
+									return true;
+								};
+
+								$testAnyResources = function( $resources, $resourceType, $setType, $typeTest )
+								{
+									if ( is_null( $resources ) || ! count( $resources ) ) return false;
+
+									// Make sure $typeTest is null or an array
+									if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
+									{
+										$typeTest = array( $typeTest );
+									}
+
+									// Any one of them must fit the bill
+									foreach ( $resources as $resource )
+									{
+										if ( $resource['type'] != $resourceType  ) return false;
+										if ( is_null( $setType ) ) continue;
+										if ( isset( $resource[ $setType ] ) )
+										{
+											if ( is_null( $typeTest ) ) continue;
+											if ( in_array( $resource[ $setType ], $typeTest ) ) return true;
+										}
+									}
+
+									return false;
+								};
+
+								switch ( $arcrole )
+								{
+									case XBRL_Constants::$arcRoleAssertionConsistencyFormula:
+
+										// arc MUST:
+										// 		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-formula
+										//		have a consistency-assertion at the starting resource of the arc
+										//		have a formula as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
+											! $testAnyResources( $toResources, 'variableset', 'variablesetType', 'formula' )
+										)
+										{
+											$this->log()->taxonomy_validation( "Consistency assertion", "The arc MUST be from a consistency assertion element to a formula element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													'error' => 'gple:missingPreferredLabel',
+												)
+											);
+										}
+										break;
+
+									case XBRL_Constants::$arcRoleAssertionConsistencyParameter:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-parameter
+										//		have a consistency-assertion at the starting resource of the arc
+										//		have a parameter as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
+											! $testAllResources( $toResources, 'variable', 'variableType', 'parameter' )
+										)
+										{
+											$this->log()->formula_validation( "Consistency assertion", "The arc MUST be from a consistency assertion element to a variable parameter element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case XBRL_Constants::$arcRoleVariableSet:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
+										//		have a variable-set resource at the starting resource of the arc
+										//		have a parameter or a fact variable or a general variable as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', null, null ) ||
+											! $testAllResources( $toResources, 'variable', 'variableType', array( 'factVariable', 'generalVariable', 'parameter' ) )
+										)
+										{
+											$this->log()->taxonomy_validation( "Variable set filter", "The arc MUST be from a variable set such as a formula element to a variable element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case XBRL_Constants::$arcRoleVariableFilter:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
+										//		have a variable-set resource at the starting resource of the arc
+										//		have a parameter or a fact variable or a general variable as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variable', null, null ) || // From a variable
+											! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
+										)
+										{
+											// See test 21261 V-01
+											$this->log()->taxonomy_validation( "Variable filter", "The arc MUST be from a variable element to a any filter element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+									case XBRL_Constants::$arcRoleVariableSetFilter:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
+										//		have a variable-set resource at the starting resource of the arc
+										//		have a parameter or a fact variable or a general variable as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
+											! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
+										)
+										{
+											$this->log()->taxonomy_validation( "Variable set filter", "The arc MUST be from a variable-set resource element to any filter element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$genericElementLabel:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/element-label
+										//		have an XML element [XML] at the starting resource of the arc
+										//		have the generic label as the ending resource of the arc
+										if (
+											! ( $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
+												$testAllResources( $fromResources, 'assertionset', null, null ) || // From any assertion-set element
+												$testAllResources( $fromResources, 'variable', null, null ) || // From any variable element
+												$testAllResources( $fromResources, 'filter', 'filterType', null ) || // From any variable element
+												$testAllResources( $fromResources, 'resource', null, null ) || // From any other resource element
+												$testAllResources( $fromResources, 'schema', null, null ) ) || // From any other resource element
+												! count( $toResources )
+										)
+										{
+											$this->log()->taxonomy_validation( "Element label", "The arc MUST be from a resource element to a label element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleVariableSetPrecondition:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set-precondition
+										//		have a variable-set resource at the starting resource of the arc
+										//		have a precondition as the ending resource of the arc
+
+										if (
+											! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
+											! $testAllResources( $toResources, 'variable', 'variableType', 'precondition' ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Variable set precondition", "The arc MUST be from a variable-set resource element to any pre-condition element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleAssertionSatisfiedMessage:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
+										//		have an assertion at the starting resource of the arc
+										//		have a message as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
+											! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Validation message", "The arc MUST be from a variable-set resource element to a message resource element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleAssertionUnsatisfiedMessage:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
+										//		have an assertion at the starting resource of the arc
+										//		have a message as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
+											! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Validation message", "The arc MUST be from a variable-set resource element to a message resource element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-severity
+										//		have an assertion at the starting resource of the arc
+										//		have a severity as the ending resource of the arc
+
+										if (
+											! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
+											! $testAllResources( $toResources, 'resource', 'resourceType', 'severity' ) // To any severity resource
+										)
+										{
+											$this->log()->taxonomy_validation( "Severity level", "The arc MUST be from a variable-set resource element to a severity resource element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleCustomFunctionImplementation:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/function-implementation
+										//		have the custom function signature at the starting resource of the arc
+										//		have the custom function implementation as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'customfunction', 'customfunctionType', 'signature' ) || // From any variable-set element
+											! $testAllResources( $toResources, 'customfunction', 'customfunctionType', 'implementation' ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Custom function message", "The arc MUST be from a variable-set resource element to a message resource element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleInstanceVariable:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/instance-variable
+										//		have an instance resource as the starting resource of the arc
+										//		have a factVariable or generalVariable at the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variable', 'variableType', 'instance' ) || // From any variable-set element
+											! $testAllResources( $toResources, 'variable', 'variableType', array( 'factVariable' ) ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Instance variable", "The arc MUST be from an instance element to a fact or general variable element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleFormulaInstance:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/formula-instance
+										//		have a formula resource as the starting resource of the arc
+										//		have an instance resource as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', 'variablesetType', 'formula' ) || // From any variable-set element
+											! $testAllResources( $toResources, 'variable', 'variableType', 'instance' ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleVariablesScope:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2010/variables-scope
+										//		have a variable-set resource as the starting resource of the arc
+										//		have an variable-set resource as the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'variableset', 'variablesetType', null ) || // From any variable-set element
+											! $testAllResources( $toResources, 'variableset', 'variablesetType', null ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case \XBRL_Constants::$arcRoleVariableEqualityDefinition:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/equality-definition
+										//		have a typed-dimension domain definition at the starting resource of the arc
+										//		have an equality definition at the ending resource of the arc
+
+										// Look up the from list to make sure they reference a typed dimension
+										$fromValid = false;
+										foreach ( $fromList as $dimensionLocation )
+										{
+											// Check the taxonomy of the location is valid
+											$dimTaxonomy = $this->getTaxonomyForXSD( $dimensionLocation );
+											if ( ! $dimTaxonomy ) continue;
+
+											$dimensions = $this->getDefinitionDimensions();
+											foreach ( $dimensions as $key => $dimension )
+											{
+												// Check the taxonomy of the dimension is valid
+												$dimTaxonomy = $this->getTaxonomyForXSD( $dimension['href']['label'] );
+												if ( ! $dimTaxonomy ) continue;
+												// Get the element which MUST have a typedDomainRef
+												$element = $dimTaxonomy->getElementById( $dimension['href']['label'] );
+												if ( ! isset( $element['typedDomainRef'] ) ) continue;
+												// Compare the typedDomainRef of this dimension with the $dimensionLocation
+												$parts = explode( "#", $element['typedDomainRef'] );
+												if ( empty( $parts[0] ) ) // Might be a local reference
+												{
+													$parts[0] = $dimTaxonomy->getTaxonomyXSD();
+												}
+												if ( implode( "#", $parts ) == $dimensionLocation )
+												{
+													$fromValid = true;
+												}
+											}
+										}
+
+										if (
+											! $fromValid ||
+											! $testAllResources( $toResources, 'equality', 'equalityType', array( 'equalityDefinition' ) ) // To any precondition
+										)
+										{
+											$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+										break;
+
+									case XBRL_Constants::$arcRoleBooleanFilter:
+
+										// arc MUST:
+										//		have an arcrole value equal to http://xbrl.org/arcrole/2008/boolean-filter
+										//		have the Boolean filter at the starting resource of the arc
+										//		have the sub-filter at the ending resource of the arc
+										if (
+											! $testAllResources( $fromResources, 'filter', 'filterType', array( 'andFilter', 'orFilter' ) ) || // To any filter
+											! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
+										)
+										{
+											$this->log()->taxonomy_validation( "Boolean filter", "The arc MUST be from am 'and' or 'or' filter to any filter type",
+												array(
+													'role' => $roleUri,
+													'arcrole' => $arcrole,
+													'fromLabel' => $from,
+													'toLabel' => $to,
+													// 'error' => 'xbrlcae:variablesNotAllowed',
+												)
+											);
+										}
+
+										break;
+
+									default:
+										$x = 1;
+										break;
+								}
+							}
+
+							$node = array(
+								'from' => $from,
+								'to' => $to,
+								'label' => $to,
+								'roleUri' => $roleUri,
+								'fromRoleUri' => $fromRoleUri ? $fromRoleUri : $roleUri,
+								'toRoleUri' => $toRoleUri ? $toRoleUri : $roleUri,
+								'linkbase' => basename( $href ),
+								'arcrole' => $arcrole,
+								'usedOn' => $usedOn,
+								'path' => $linkPath,
+								'frompath' => $fromPath,
+								'topath' => $toPath,
+							);
+
+							extract( $this->validateArcAttributes( $linkbaseDescription, $fromLabel, $toLabel, $attributes ) );
+							$node['priority']	= $priority; // These value is set by the extract() function
+							$node['use']		= $use;      // and will not appear in the debugger until used
+							$node['order']		= $order;
+
+							if ( property_exists( $xlinkAttributes, 'title' ) )
+							{
+								$node['title']		= (string) $xlinkAttributes->title;
+							}
+
+							if ( property_exists( $xlinkAttributes, 'actuate' ) )
+							{
+								$node['actuate']	= (string) $xlinkAttributes->actuate;
+							}
+
+							if ( property_exists( $xlinkAttributes, 'show' ) )
+							{
+								$node['show']		= (string) $xlinkAttributes->show;
+							}
+
+							if ( property_exists( $attributes, 'name' ) )
+							{
+								// $namespaces = $arc->getDocNamespaces(true);
+								$namespaces = array_merge( $arc->getDocNamespaces(true), $arc->getDocNamespaces(false, false) );
+
+								/**
+								 * @var QName $qName
+								 */
+								// If there is no prefix it should not be resolved to a default namespace
+								// BMS 2018-02-16 This is not true for variables (see Variables 3.5.1 Variable-set relationships)
+								$source = trim( $attributes->name );
+								$qName = strpos( $source, ":" )
+									? qname( $source, $namespaces )
+									: new QName( "", $arcrole != XBRL_Constants::$arcRoleVariableSet && isset( $namespaces[''] ) ? $namespaces[''] : null, $source );
+
+								if ( is_null( $qName ) )
+								{
+									$this->log()->formula_validation( "Variables 1.7.1.1", "Variable specifies a namespace prefix that cannot be resolved to a namespace declaration that is in scope",
+										array(
+											'source' => $source,
+											'error' => 'xbrlve:variableNameResolutionFailure'
+										)
+									);
+								}
+
+								if ( ! $qName->prefix )
+								{
+									foreach ( $namespaces as $prefix => $namespace )
+									{
+										// Ignore default namespaces
+										if ( ! $prefix ) continue;
+										if ( $qName->namespaceURI != $namespace ) continue;
+										$qName->prefix = $prefix;
+										break;
+									}
+								}
+
+								$node['name'] = array(
+									'name' => is_null( $qName ) ? $source : $qName->localName,
+									'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
+									'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
+								);
+							}
+
+							// Get local namespaces but not any default
+							$node['localNamespaces'] = array_filter( $arc->getDocNamespaces( true, false ), function( $namespace, $prefix ) {
+								return !empty( $prefix );
+							}, ARRAY_FILTER_USE_BOTH );
+
+							// Collect non-standard attributes
+							$customAttributes = $arc->attributes( $this->getNamespace() );
+							foreach ( $customAttributes as $attributeId => $attribute )
+							{
+								// BMS 2018-04-09 Test candidates changed.
+								$type = "xs:anyType";
+								$attributeType = $this->context->types->getAttribute( $attributeId, $this->getPrefix() );
+								if ( $attributeType && isset( $attributeType['types'][0] ) )
+								{
+									$type = $attributeType['types'][0];
+								}
+
+								// BMS 2018-04-09 Test candidates changed.
+								$value = $type == "xs:boolean"
+									? filter_var( (string)$attribute, FILTER_VALIDATE_BOOLEAN )
+									: (string)$attribute;
+
+								$node['attributes'][ $attributeId ] = array( 'type' => $type, 'value' => $value  );
+							}
+
+							$customAttributes = $arc->attributes();
+							foreach ( $customAttributes as $attributeId => $attribute )
+							{
+								if ( $attributeId == 'id' || isset( $node[ $attributeId ] ) )
+								{
+									continue;
+								}
+
+								// BMS 2018-04-09 Test candidates changed.
+								$type = "xs:anyType";
+								$attributeType = $this->context->types->getAttribute( $attributeId, $domNode->prefix );
+								if ( $attributeType && isset( $attributeType['types'][0] ) )
+								{
+									$type = $attributeType['types'][0];
+								}
+
+								// BMS 2018-04-09 Test candidates changed.
+								$value = $type == "xs:boolean"
+									? filter_var( (string)$attribute, FILTER_VALIDATE_BOOLEAN )
+									: (string)$attribute;
+
+								$node['attributes'][ $attributeId ] = array( 'type' => $type, 'value' => $value  );
+							}
+
+							if ( isset( $node['name'] ) )
+							{
+								// If the resource has a name make sure the name is unique
+								$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
+								if ( isset( $this->variableSetNames[ $fromLinkbase ][ $linkPath ][ $qName->clarkNotation() ] ) )
+								{
+									// To be equivalent the names must have the same source and role
+									$findName =	function( $arc ) use( $from, $roleUri )
+									{
+										return ! isset( $arc['from'] ) || ! isset( $arc['role'] ) || ( $arc['from'] == $from && $arc['role'] == $roleUri );
+									};
+
+									if( array_filter( $this->variableSetNames[ $fromLinkbase ][ $linkPath ][ $qName->clarkNotation() ], $findName ) )
+									{
+										$x = 1;
+										$this->log()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
+											'name' => $qName->clarkNotation(),
+											'error' => 'xbrlve:duplicateVariableNames'
 										) );
 
 										continue;
 									}
 								}
-
-								$this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ][] = $resource;
-
-								if ( isset( $resource['name'] ) )
-								{
-									$name = is_array( $resource['name'] )
-										? ( new QName($resource['name']['originalPrefix'], $resource['name']['namespace'], $resource['name']['name'] ) )->clarkNotation()
-										: $resource['name']['name'];
-
-									// Save the information needed to recover the named resource
-									$this->context->formulaNames[ $name ] = array(
-										'type' => 'resource',
-										'taxonomy' => $this->getTaxonomyXSD(),
-										'rolelistname' => $roleListName,
-										'role' => $roleUri,
-										'linkbase' => basename( $href ),
-										'label' => (string)$xlinkAttributes->label,
-										'offset' => count( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] ) -1
-									);
-								}
-							}
-							else
-							{
-								// TODO Report an error
 							}
 
-							continue;
-						}
-					}
+							$this->{$roleListName}
+								['roles'][ $roleUri ]
+								['arcroles'][ $arcrole ]
+								['links']["{$linkQName->prefix}:{$linkQName->localName}"]
+								['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
+								['arcs'][ $from ][ $to ][] = $node;
 
-					$content = array();
-					if ( count( $childElement->children() ) )
-					{
-						foreach ( $childElement->children() as $child )
-						{
-							$content[] = $child->asXML();
-						}
-					}
-					else
-					{
-						$content[] = (string)$childElement;
-					}
+							$this->customArcsAdded[ $roleListName ]['roles'][ $roleUri ][] = "{$arcQName->prefix}:{$arcQName->localName}";
 
-					if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LABEL ] )
-					{
-						$xmlAttributes = $childElement->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
-						$lang = property_exists( $xmlAttributes, "lang" ) ? (string)$xmlAttributes->lang : $this->getDefaultLanguage();
-						$this->{$roleListName}['roles'][ $resourceRoleUri ]['labels'][ basename( $href ) ][ (string)$xlinkAttributes->label ]['lang'][ $lang ] = implode( "", $content );
-					}
-					else
-					{
-						$x = $roleListName == 'genericRoles'
-							? array(
-									$namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SEVERITY ]
-										? array(
-											 'type' => 'resource',
-											'resourceType' => "severity",
-											'label' => (string)$xlinkAttributes->label
-										)
-										: array(
-											'type' => 'resource',
-											'text' => implode( "", $content ),
-										)
-							)
-							: implode( "", $content );
-
-
-						if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_REFERENCE ] )
-						{
-							$this->{$roleListName}['roles'][ $resourceRoleUri ]['references'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = $x; // implode( "", $content );
-						}
-						else
-						{
-							// $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = implode( "", $content );
-							$this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = $x; // implode( "", $content );
-						}
-					}
-				}
-
-				if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['attributes'] ) )
-				{
-					$this->{$roleListName}['roles'][ $roleUri ]['attributes'] = array();
-				}
-
-				$linkAttributes =& $this->{$roleListName}['roles'][ $roleUri ]['attributes'];
-				$linkCustomAttributes = $link->attributes( $this->getNamespace() );
-				foreach ( $linkCustomAttributes as $customAttributeId => $customAttribute )
-				{
-					// BMS 2018-04-09 Test candidates changed.
-					$type = "xs:anyType";
-					$attributeType = $this->context->types->getAttribute( $customAttributeId, $this->getPrefix() );
-					if ( $attributeType && isset( $attributeType['types'][0] ) )
-					{
-						$type = $attributeType['types'][0];
-					}
-
-					$linkAttributes[ $customAttributeId ] = array( 'type' => $type, 'value' => (string)$customAttribute  );
-					unset( $type );
-				}
-				unset( $linkAttributes );
-
-				if ( ! count( $arcroleTypesCopy ) )
-				{
-					if ( $isGeneric )
-					{
-						// $query = "/{$linkbasePrefix}linkbase/{$linkPrefix}{$linkQName->localName}/*[@{$xlinkPrefix}type = 'arc']";
-						$query = $domLink->getNodePath() . "/*[@{$xlinkPrefix}type = 'arc']";
-						$nodes = $link->xpath( $query );
-
-						if ( count( $nodes ) )
-						{
-							$arcs = implode( ",", array_reduce( $nodes, function( $carry, $arc )
+							if ( isset( $node['name'] ) && $arcrole == XBRL_Constants::$arcRoleVariableSet )
 							{
-								$carry[] = $arc->getName();
-								return $carry;
-							}, array() ) );
-							$this->log()->taxonomy_validation( "Generic links 2.2.1", "One or more arcs in the generic link do not include a 'usedon' element for this link",
-								array(
-									'link' => $linkQName->clarkNotation(),
-									'arcs' => $arcs,
-									'error' => 'xbrlgene:missingArcRoleUsedOnValue'
-								)
-							);
-						}
-					}
-
-					continue;
-				}
-
-				if ( XBRL::isValidating() && $isGeneric )
-				{
-					// Look for arcs to check there is an arcRoleRef for each arc role used
-					$query = $domLink->getNodePath() . "/*[@{$xlinkPrefix}type = 'arc']";
-					$arcNodes = $link->xpath( $query );
-					$arcroles = array_unique( array_filter( array_map( function( $node ) {
-						$attributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-						return isset( $attributes['arcrole'] ) ? (string)$attributes['arcrole'] : '';
-					}, $arcNodes ) ) );
-
-					$x = array_diff( $arcroles, array_keys($arcroleRefs) );
-					if ( count( $x ) )
-					{
-						$this->log()->taxonomy_validation( "2.2.1", "The arcrole used on an arc element MUST be referenced in an arcroleRef element.", array( 'arcroles' => implode( ", ", $arcroles ) ) );
-					}
-				}
-
-				foreach ( $arcroleTypesCopy as $usedOn => $arcroleType )
-				{
-					$arcQName = $usedOnQNames[ $usedOn ];
-					$preferredLabelArcs = array();
-
-					// Used to catch duplicated from/to label pairs which is not allowed by the XLink specification
-					$fromToPairs = array();
-
-					$processArc = function( $arc, $isPreferredLabelArc = false ) use( $arcroleRefs, $arcQName, $arcroleType, &$preferredLabelEquivalenceHashes, $href, $isGeneric, $linkbaseDescription, $linkbaseIds, $linkQName, $locators, &$preferredLabelArcs, $roleListName, $roleRefs, $roleUri, $usedOn, &$fromToPairs )
-					{
-						$domNode = dom_import_simplexml( $arc );
-
-						$xlinkAttributes = $arc->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-						$attributes = $arc->attributes();
-						$arcrole = (string) $xlinkAttributes->arcrole;
-
-						// BMS 2018-08-25 References are not supported so element-reference roles are not supported
-						if ( $arcrole == XBRL_Constants::$genericElementReference )
-						{
-							return true;
-						}
-
-						$preferredLabelRole = (string)$arc->attributes( XBRL_Constants::$genericPreferredLabel );
-
-						// If the arcrole is not one of the standard roles then there MUST be an arcroleRef.
-						// If one does not exist, ignore the arc.
-						if ( ! XBRL_Constants::isStandardArcrole( $arcrole ) )
-						{
-							if ( ! $arcroleRefs || ! isset( $arcroleRefs[ $arcrole ] ) ) return true;
-						}
-
-						if ( ! $isPreferredLabelArc && $preferredLabelRole )
-						{
-							// Record for processing afte the initial pass
-							$preferredLabelArcs[] = $arc;
-							return true;
-						}
-
-						$resourceType = $preferredLabelRole || $arcrole == XBRL_Constants::$genericElementLabel
-							? "labels"
-							: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" );
-
-						if ( ! $preferredLabelRole )
-						{
-							$preferredLabelRole = $arcrole == XBRL_Constants::$genericElementLabel
-								? (
-										// If the 2008 label role is defined as a roleref use it otherwise usse the 2003 role
-										isset( $roleRefs[ XBRL_Constants::$genericRoleLabel ] )
-											? XBRL_Constants::$genericRoleLabel
-											: XBRL_Constants::$labelRoleLabel
-								  )
-								: XBRL_Constants::$labelRoleLabel;
-
-							if ( $isPreferredLabelArc )
-							{
-								foreach ( $roleRefs as $roleRefUri => $details )
-								{
-									if ( $details['usedOn'] == 'label:label' )
-									{
-										$preferredLabelRole = $roleRefUri;
-										break;
-									}
-								}
-							}
-						}
-
-						if ( ! $this->validateXLinkArcAttributes( $xlinkAttributes, $linkbaseDescription ) )
-						{
-							return true;
-						}
-
-						if ( isset( $fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] ) )
-						{
-							$this->log()->taxonomy_validation( "XLink", "Custom arcs contain repeated from/to label pairs in the same extended link",
-								array(
+								// Save the information needed to recover the named arc.  The name can be used
+								// again provding the 'from' is different.
+								$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
+								$this->variableSetNames[ $fromLinkbase ][ $linkPath ][ $qname->clarkNotation() ][] = array(
+									'type' => 'arc',
+									'rolelistname' => $roleListName,
 									'role' => $roleUri,
-									'from' => (string)$xlinkAttributes->from,
-									'to' => (string)$xlinkAttributes->to
-								)
-							);
-						}
-						else
-						{
-							$fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] = 1;
-						}
-
-						if ( $isGeneric && ! count( $arcroleRefs ) )
-						{
-							$this->log()->taxonomy_validation( "Generics 2.1.1", "There are no arcrole refs in the linkbase",
-								array(
-									'error' => 'xbrlgene:missingRoleRefForArcRole'
-								)
-							);
-
-							return false;
-						}
-
-						if ( $isGeneric && XBRL::$validating )
-						{
-							if ( ! isset( $arcroleType[ $arcrole ] ) )
-							{
-
-								// This means a usedOn is not defined for the current arc and arcrole
-								$this->log()->taxonomy_validation( "Generics 2.2.1", "This arcrole is not defined as an arcroleRef in the current linkbase file",
-									array(
-										'arcrole' => $arcrole,
-										'error' => 'xbrlgene:missingArcRoleUsedOnValue',
-									)
-								);
-								return true;
-
-							}
-
-							// There MUST be an arcroleRef for this role defined in the linkbase
-							if ( ! isset( $arcroleRefs[ $arcrole ] ) )
-							{
-
-								$this->log()->taxonomy_validation( "Generics 2.2.1", "This arcrole is not defined as an arcroleRef in the current linkbase file",
-									array(
-										'arcrole' => $arcrole,
-										'error' => 'xbrlgene:missingRoleRefForArcRole',
-									)
-								);
-								return true;
-
-							}
-						}
-
-						$node['arcrole'] = $arcrole;
-
-						$fromLabel	= (string) $xlinkAttributes->from;
-						$this->validateXLinkLabel( $linkbaseDescription, $fromLabel );
-
-						$toLabel	= (string) $xlinkAttributes->to;
-						$this->validateXLinkLabel( $linkbaseDescription, $toLabel );
-
-						$fromList	= isset( $locators[ $fromLabel ] )
-							? $locators[ $fromLabel ]
-							: $fromLabel;
-
-						$toList	= isset( $locators[ $toLabel ] )
-							? $locators[ $toLabel ]
-							: $toLabel;
-
-						$validLocators = true;
-
-						if ( ! is_array( $fromList ) )
-						{
-							// There is no locator so make sure a resource exists for $fromLabel (resources but not labels can be sources)
-							if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $fromList ] ) )
-							{
-								$validLocators = false;
-							}
-							else
-							{
-								$fromList = array( $fromList );
-							}
-						}
-
-						if ( $isPreferredLabelArc )
-						{
-							// Compute an equivalence hash to identify duplicate preferred labels
-							foreach ( $fromList as $from )
-							{
-								$equivalenceHash = $this->equivalenceHash( "{$arcQName->prefix}:{$arcQName->localName}", "{$linkQName->prefix}:{$linkQName->localName}", $roleUri, $from, "", null, null, $preferredLabelRole );
-								if ( in_array( $equivalenceHash, $preferredLabelEquivalenceHashes ) )
-								{
-									$this->log()->taxonomy_validation( "Preferred label 2.1", "Preferred label has been used more than once for the same arc source and target",
-										array(
-											'preferredLabelRole' => $preferredLabelRole,
-											'arcElement' => "{$arcQName->prefix}:{$arcQName->localName}",
-											'linkElement' => "{$linkQName->prefix}:{$linkQName->localName}",
-											'roleUri' => $roleUri,
-											'arcrole' => $arcrole,
-											'fromLabel' => $toLabel,
-											'toLabel' => $fromLabel,
-											'error' => 'gple:duplicatePreferredLabel',
-										)
-									);
-
-									return true;
-								}
-								else
-								{
-									$preferredLabelEquivalenceHashes[] = $equivalenceHash;
-								}
-							}
-						}
-
-						if ( ! is_array( $toList ) )
-						{
-							if ( $isPreferredLabelArc )
-							{
-								if ( isset( $this->{$roleListName}
-									 ['roles'][ $roleUri ]['arcroles'][ XBRL_Constants::$genericElementLabel ]
-									 ['links']["{$linkQName->prefix}:{$linkQName->localName}"]
-									 ['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
-									 ['arcs'][ $toList ] )
-								)
-								{
-									$target = &$this->{$roleListName}
-										['roles'][ $roleUri ]['arcroles'][ XBRL_Constants::$genericElementLabel ]
-										['links']["{$linkQName->prefix}:{$linkQName->localName}"]
-										['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
-										['arcs'][ $toList ];
-
-									// This preferred label is going to apply to all elements of $target that have an
-									// arcrole with a value of http://xbrl.org/arcrole/2008/element-label
-									$preferredLabelRoleFound = false;
-									foreach ( $target as $toLabel => &$toDetails )
-									{
-										if ( isset( $toDetails['arcrole'] ) && $toDetails['arcrole'] == XBRL_Constants::$labelRoleLabel ) continue;
-
-										// look for the label $toLabel to make sure it has the the role $preferredLabelRole
-										if ( isset( $this->{$roleListName}
-											 ['roles'][ $preferredLabelRole ]
-											 ['labels'][ basename( $href ) ][ $toLabel ] )
-										)
-										{
-											$preferredLabelRoleFound = true;
-											foreach ( $toDetails as &$node )
-											{
-												$node['preferredLabel'] = $preferredLabelRole;
-											}
-											unset( $node );
-										}
-
-									}
-
-									unset( $toDetails );
-									unset( $target );
-
-									if ( ! $preferredLabelRoleFound )
-									{
-
-										// This means a usedOn is not defined for the current arc and arcrole
-										$this->log()->taxonomy_validation( "Preferred label 2.1", "This preferred role is not defined on any label",
-											array(
-												'role' => $roleUri,
-												'arcrole' => $arcrole,
-												'fromLabel' => $fromLabel,
-												'toLabel' => $toLabel,
-												'error' => 'gple:missingPreferredLabel',
-											)
-										);
-
-										return true;
-									}
-
-									return true;
-								}
-
-								// If this is a preferred label the $to to use is the to of the arc which is from $toLabel
-								if ( ! isset( $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $toList ] ) )
-								{
-									$fromArc = $this->{$roleListName}['roles'][ $roleUri ]['resources'][ basename( $href ) ][ $toList ];
-								}
-							}
-
-							// There is no locator so make sure a resource or label exists for $toLabel
-							$resourceRole = $resourceType == 'labels'
-								? $preferredLabelRole
-								: (
-									$resourceType == 'references'
-										? ( XBRL_Constants::$reference2003 )
-										: $roleUri
-								  );
-							if ( ! isset( $this->{$roleListName}['roles'][ $resourceRole ][ $resourceType ][ basename( $href ) ][ $toList ] ) )
-							{
-								$validLocators = false;
-							}
-							else
-							{
-								$toList = array( $toList );
-							}
-						}
-
-						if ( ! $validLocators )
-						{
-							$this->log()->taxonomy_validation( "Generics 2.1.1", "Locators do not exist or resource cannot be found for the label",
-								array(
-									'role' => $roleUri,
-									'arcrole' => $arcrole,
-									'link' => "{$linkQName->prefix}:{$linkQName->localName}",
-									'arc' => "{$arcQName->prefix}:{$arcQName->localName}",
-									'from' => $fromLabel,
-									'to' => $toLabel,
-									'error' => 'xbrlgene:missingLinkRoleUsedOnValue',
-								)
-							);
-							return true;
-						}
-
-						foreach ( $fromList as $from )
-						{
-							foreach ( $toList as $to )
-							{
-								$fromLinkbase = basename( $href );
-								$fromRoleUri = $roleUri;
-								$fromId = null;
-								$fromIsSchemaType = false;
-
-								if ( strpos( $from, "#" ) !== false )
-								{
-									$fromParts = parse_url( $from );
-									if ( ! isset( $fromParts['fragment'] ) ) $fromParts['fragment'] = "";
-
-									if ( isset( $linkbaseIds[ basename( $fromParts['path'] ) ] ) )
-									{
-										// Is the fragment a reference to an exising resource label?
-										$ids =& $linkbaseIds[ basename( $fromParts['path'] ) ];
-										if ( isset( $ids[ $fromParts['fragment'] ] ) ) // && $linkbaseType['ids'][ $parts['fragment'] ]['type'] == 'arc' )
-										{
-										 	$from = $ids[ $fromParts['fragment'] ]['type'] == 'resource'
-										 		? $ids[ $fromParts['fragment'] ]['label']
-										 		: $ids[ $fromParts['fragment'] ]['from'];
-
-										 	$fromLinkbase = basename( $fromParts['path'] );
-										 	$fromRoleUri = $ids[ $fromParts['fragment'] ]['role'];
-										 	$fromId = $fromParts['fragment'];
-										}
-										else
-										{
-											$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
-												? "labels"
-												: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" ) ;
-											if ( isset( $this->{$roleListName}['roles'][ $roleUri ][ $resourceType ][ $fromParts['fragment'] ][ $fromParts['path'] ] ) )
-											{
-												$from = $fromParts['fragment'];
-										 		$fromId = $fromParts['fragment'];
-											}
-										}
-										unset( $ids );
-									}
-									else
-									{
-										// Could be an element defined in the schema
-										/** @var XBRL_Types $types */
-										$types = XBRL_Types::getInstance();
-
-										// Get the taxonomy for the schema
-										/** @var XBRL $tax */
-										$tax = $this->getTaxonomyForXSD( $fromParts['path'] );
-										if ( $tax )
-										{
-											// Look for a element or a attribute defined by the schema with the name
-											$el = $types->getElement( $fromParts['fragment'], $tax->getPrefix() );
-											if ( ! $el )
-											{
-												$el = $types->getAttribute( $fromParts['fragment'], $tax->getPrefix() );
-											}
-
-											// BMS 2018-08-25 The from id could also be in the annoations (role/arcrole types) of the schema
-											if ( is_array( $el ) ||
-												 isset( $tax->roleTypeIds[ $fromParts['fragment'] ] ) ||
-												 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] ) ||
-												 $types->getTypeById( $fromParts['fragment'], $tax->getPrefix() )
-											)
-											{
-												// The equality definition 'from' identifier needs to be the path + fragment
-												// Perhaps all should but for now just the equality definition
-												// BMS 2018-03-29 Test 61100 V-41 requires the full 'from' identifier
-												// $from = $arcrole == XBRL_Constants::$arcRoleVariableEqualityDefinition
-												// 	? "{$fromParts['path']}#{$fromParts['fragment']}"
-												// 	: $fromParts['fragment'];
-										 		// // $fromId = $fromParts['fragment'];
-										 		$fromIsSchemaType = true;
-											}
-										}
-									}
-								}
-
-								$toLinkbase = basename( $href );
-								$toRoleUri = $roleUri;
-								$toId = null;
-								$toIsSchemaType = false;
-
-								if ( strpos( $to, "#" ) !== false )
-								{
-									$toParts = parse_url( $to );
-
-									if ( isset( $linkbaseIds[ basename( $toParts['path'] ) ] ) )
-									{
-										// Is the fragment a reference to an exising resource label?
-										$ids =& $linkbaseIds[ basename( $toParts['path'] ) ];
-										// What conformance test does this condition satisfy?
-										// BMS 2018-04-25	Don't yet know but the test makes no sense.
-										//					It has the effect of using $ids[ $toParts['fragment'] ]
-										//					only when it is known it does not exist!
-										//					Need to remove the exclamation
-										// if ( ! isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'arc' )
-										if ( isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'arc' )
-										{
-											$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
-												? "labels"
-												: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" );
-											if ( $this->{$roleListName}['roles'][ $roleUri ][ $resourceType ][ $toParts['fragment'] ][ $toParts['path'] ] )
-											{
-												$to = $toParts['fragment'];
-												$toId = $toParts['fragment'];
-											}
-										}
-										// This additional condition is required by test 22090 V-03
-										else if ( isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'resource' )
-										{
-											$toLinkbase = $toParts['path'];
-											$to = $ids[ $toParts['fragment'] ]['label'];
-											$toId = $toParts['fragment'];
-											$toRoleUri = $ids[ $toParts['fragment'] ]['role'];
-										}
-
-										// unset( $linkbaseType );
-										unset( $ids );
-									}
-									else
-									{
-										// Could be an element defined in the schema
-										/** @var XBRL_Types $types */
-										$types = XBRL_Types::getInstance();
-
-										// Get the taxonomy for the schema
-										/** @var XBRL $tax */
-										$tax = $this->getTaxonomyForXSD( $toParts['path'] );
-										if ( $tax )
-										{
-											// Look for a element or a attribute defined by the schema with the name
-											$el = $types->getElement( $toParts['fragment'], $tax->getPrefix() );
-											if ( ! $el )
-											{
-												$el = $types->getAttribute( $toParts['fragment'], $tax->getPrefix() );
-											}
-
-											if ( is_array( $el ) )
-											{
-												// BMS 2018-03-29 Test 61100 V-42 requires the full 'to' identifier
-												// $to = $toParts['fragment'];
-										 		// $toId = $toParts['fragment'];
-										 		$toIsSchemaType = true;
-											}
-										}
-									}
-								}
-
-								// $this->validateFromToArcPairs( $roleUri, $arcrole, $from, $to );
-
-								// By now the arcrole has been validated for use on a specific type of arc element
-								// But the specifications sometimes require additional validations. Note this code
-								// should probably be implemented in its function in a separate file so it can be
-								// plugged/unplugged
-								global $use_xbrl_functions;
-								if ( XBRL::isValidating() && $use_xbrl_functions )
-								{
-									$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
-										? "labels"
-										: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" ) ;
-									$toRoleUri = $resourceType == 'labels'
-										? $preferredLabelRole
-										: ( $resourceType == 'references'
-											? XBRL_Constants::$reference2003
-											: $toRoleUri );
-
-									$fromResources	= isset( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
-										? (
-												is_array( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
-													? array_filter( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ],
-														function( $item ) use( $fromId ) { return is_null( $fromId ) || ! isset( $item['id'] ) || $item['id'] == $fromId; }
-										  	 		  )
-										  			: array( $this->{$roleListName}['roles'][ $fromRoleUri ]['resources'][ $fromLinkbase ][ $from ] )
-										  )
-										: ( $fromIsSchemaType
-												? array( array( 'type'=> 'schema', 'schema' => $fromParts['path'], 'fragment' => $fromParts['fragment'] ) )
-												: null
-										  );
-									$toResources	= isset( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
-										? (
-												is_array( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
-													? array_filter( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ],
-														function( $item ) use( $toId ) { return is_null( $toId ) || ! isset( $item['id'] ) || $item['id'] == $toId; }
-													  )
-													: array( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
-										  )
-										: ( $toIsSchemaType
-												? array( array( 'type'=> 'schema', 'schema' => $toParts['path'], 'fragment' => $toParts['fragment'] ) )
-												: null
-										  );
-
-									// BMS 2018-03-27 This is probably redundant because of the similar functionality above
-									if ( is_null( $toResources ) )
-									{
-										if ( strpos( $to, '#' ) )
-										{
-											$parts = explode( '#', $to );
-											// Look in the ids to see if this linkbase/id combination exists
-											if ( isset( $linkbaseIds[ $parts[0] ][ $parts[1] ] ) )
-											{
-												$toResources = isset( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $parts[0] ][ $parts[1] ] )
-													? $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $parts[0] ][ $parts[1] ]
-													: null;
-											}
-										}
-									}
-
-									$testAllResources = function( $resources, $resourceType, $setType, $typeTest )
-									{
-										if ( is_null( $resources ) || ! count( $resources ) ) return false;
-
-										// Make sure $typeTest is null or an array
-										if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
-										{
-											$typeTest = array( $typeTest );
-										}
-
-										foreach ( $resources as $resource )
-										{
-											if ( $resource['type'] != $resourceType  ) return false;
-											if ( is_null( $setType ) ) continue;
-											if ( isset( $resource[ $setType ] ) )
-											{
-												if ( is_null( $typeTest ) || in_array( $resource[ $setType ], $typeTest ) ) continue;
-											}
-
-											return false;
-										}
-
-										return true;
-									};
-
-									$testAnyResources = function( $resources, $resourceType, $setType, $typeTest )
-									{
-										if ( is_null( $resources ) || ! count( $resources ) ) return false;
-
-										// Make sure $typeTest is null or an array
-										if ( ! is_null( $typeTest ) && ! is_array( $typeTest ) )
-										{
-											$typeTest = array( $typeTest );
-										}
-
-										// Any one of them must fit the bill
-										foreach ( $resources as $resource )
-										{
-											if ( $resource['type'] != $resourceType  ) return false;
-											if ( is_null( $setType ) ) continue;
-											if ( isset( $resource[ $setType ] ) )
-											{
-												if ( is_null( $typeTest ) ) continue;
-												if ( in_array( $resource[ $setType ], $typeTest ) ) return true;
-											}
-										}
-
-										return false;
-									};
-
-									switch ( $arcrole )
-									{
-										case XBRL_Constants::$arcRoleAssertionConsistencyFormula:
-
-											// arc MUST:
-											// 		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-formula
-											//		have a consistency-assertion at the starting resource of the arc
-											//		have a formula as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
-												! $testAnyResources( $toResources, 'variableset', 'variablesetType', 'formula' )
-											)
-											{
-												$this->log()->taxonomy_validation( "Consistency assertion", "The arc MUST be from a consistency assertion element to a formula element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														'error' => 'gple:missingPreferredLabel',
-													)
-												);
-											}
-											break;
-
-										case XBRL_Constants::$arcRoleAssertionConsistencyParameter:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/consistency-assertion-parameter
-											//		have a consistency-assertion at the starting resource of the arc
-											//		have a parameter as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'assertionset', 'assertionsetType', 'consistencyAssertion' ) ||
-												! $testAllResources( $toResources, 'variable', 'variableType', 'parameter' )
-											)
-											{
-												$this->log()->formula_validation( "Consistency assertion", "The arc MUST be from a consistency assertion element to a variable parameter element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case XBRL_Constants::$arcRoleVariableSet:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
-											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', null, null ) ||
-												! $testAllResources( $toResources, 'variable', 'variableType', array( 'factVariable', 'generalVariable', 'parameter' ) )
-											)
-											{
-												$this->log()->taxonomy_validation( "Variable set filter", "The arc MUST be from a variable set such as a formula element to a variable element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case XBRL_Constants::$arcRoleVariableFilter:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
-											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variable', null, null ) || // From a variable
-												! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
-											)
-											{
-												// See test 21261 V-01
-												$this->log()->taxonomy_validation( "Variable filter", "The arc MUST be from a variable element to a any filter element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-										case XBRL_Constants::$arcRoleVariableSetFilter:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set
-											//		have a variable-set resource at the starting resource of the arc
-											//		have a parameter or a fact variable or a general variable as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
-												! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
-											)
-											{
-												$this->log()->taxonomy_validation( "Variable set filter", "The arc MUST be from a variable-set resource element to any filter element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$genericElementLabel:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/element-label
-											//		have an XML element [XML] at the starting resource of the arc
-											//		have the generic label as the ending resource of the arc
-											if (
-												! ( $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
-													$testAllResources( $fromResources, 'assertionset', null, null ) || // From any assertion-set element
-													$testAllResources( $fromResources, 'variable', null, null ) || // From any variable element
-													$testAllResources( $fromResources, 'filter', 'filterType', null ) || // From any variable element
-													$testAllResources( $fromResources, 'resource', null, null ) || // From any other resource element
-													$testAllResources( $fromResources, 'schema', null, null ) ) || // From any other resource element
-													! count( $toResources )
-											)
-											{
-												$this->log()->taxonomy_validation( "Element label", "The arc MUST be from a resource element to a label element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleVariableSetPrecondition:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/variable-set-precondition
-											//		have a variable-set resource at the starting resource of the arc
-											//		have a precondition as the ending resource of the arc
-
-											if (
-												! $testAllResources( $fromResources, 'variableset', null, null ) || // From any variable-set element
-												! $testAllResources( $toResources, 'variable', 'variableType', 'precondition' ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Variable set precondition", "The arc MUST be from a variable-set resource element to any pre-condition element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleAssertionSatisfiedMessage:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
-											//		have an assertion at the starting resource of the arc
-											//		have a message as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
-												! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Validation message", "The arc MUST be from a variable-set resource element to a message resource element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleAssertionUnsatisfiedMessage:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-message
-											//		have an assertion at the starting resource of the arc
-											//		have a message as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
-												! $testAllResources( $toResources, 'message', 'messageType', 'message' ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Validation message", "The arc MUST be from a variable-set resource element to a message resource element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/assertion-satisfied-severity
-											//		have an assertion at the starting resource of the arc
-											//		have a severity as the ending resource of the arc
-
-											if (
-												! $testAllResources( $fromResources, 'variableset', 'variablesetType', array( 'consistencyAssertion', 'existenceAssertion', 'valueAssertion' ) ) || // From any variable-set element
-												! $testAllResources( $toResources, 'resource', 'resourceType', 'severity' ) // To any severity resource
-											)
-											{
-												$this->log()->taxonomy_validation( "Severity level", "The arc MUST be from a variable-set resource element to a severity resource element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleCustomFunctionImplementation:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/function-implementation
-											//		have the custom function signature at the starting resource of the arc
-											//		have the custom function implementation as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'customfunction', 'customfunctionType', 'signature' ) || // From any variable-set element
-												! $testAllResources( $toResources, 'customfunction', 'customfunctionType', 'implementation' ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Custom function message", "The arc MUST be from a variable-set resource element to a message resource element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleInstanceVariable:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/instance-variable
-											//		have an instance resource as the starting resource of the arc
-											//		have a factVariable or generalVariable at the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variable', 'variableType', 'instance' ) || // From any variable-set element
-												! $testAllResources( $toResources, 'variable', 'variableType', array( 'factVariable' ) ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Instance variable", "The arc MUST be from an instance element to a fact or general variable element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleFormulaInstance:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/formula-instance
-											//		have a formula resource as the starting resource of the arc
-											//		have an instance resource as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', 'variablesetType', 'formula' ) || // From any variable-set element
-												! $testAllResources( $toResources, 'variable', 'variableType', 'instance' ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleVariablesScope:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2010/variables-scope
-											//		have a variable-set resource as the starting resource of the arc
-											//		have an variable-set resource as the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'variableset', 'variablesetType', null ) || // From any variable-set element
-												! $testAllResources( $toResources, 'variableset', 'variablesetType', null ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case \XBRL_Constants::$arcRoleVariableEqualityDefinition:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/equality-definition
-											//		have a typed-dimension domain definition at the starting resource of the arc
-											//		have an equality definition at the ending resource of the arc
-
-											// Look up the from list to make sure they reference a typed dimension
-											$fromValid = false;
-											foreach ( $fromList as $dimensionLocation )
-											{
-												// Check the taxonomy of the location is valid
-												$dimTaxonomy = $this->getTaxonomyForXSD( $dimensionLocation );
-												if ( ! $dimTaxonomy ) continue;
-
-												$dimensions = $this->getDefinitionDimensions();
-												foreach ( $dimensions as $key => $dimension )
-												{
-													// Check the taxonomy of the dimension is valid
-													$dimTaxonomy = $this->getTaxonomyForXSD( $dimension['href']['label'] );
-													if ( ! $dimTaxonomy ) continue;
-													// Get the element which MUST have a typedDomainRef
-													$element = $dimTaxonomy->getElementById( $dimension['href']['label'] );
-													if ( ! isset( $element['typedDomainRef'] ) ) continue;
-													// Compare the typedDomainRef of this dimension with the $dimensionLocation
-													$parts = explode( "#", $element['typedDomainRef'] );
-													if ( empty( $parts[0] ) ) // Might be a local reference
-													{
-														$parts[0] = $dimTaxonomy->getTaxonomyXSD();
-													}
-													if ( implode( "#", $parts ) == $dimensionLocation )
-													{
-														$fromValid = true;
-													}
-												}
-											}
-
-											if (
-												! $fromValid ||
-												! $testAllResources( $toResources, 'equality', 'equalityType', array( 'equalityDefinition' ) ) // To any precondition
-											)
-											{
-												$this->log()->taxonomy_validation( "Formula Instance", "The arc MUST be from a formula element to an instance element",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-											break;
-
-										case XBRL_Constants::$arcRoleBooleanFilter:
-
-											// arc MUST:
-											//		have an arcrole value equal to http://xbrl.org/arcrole/2008/boolean-filter
-											//		have the Boolean filter at the starting resource of the arc
-											//		have the sub-filter at the ending resource of the arc
-											if (
-												! $testAllResources( $fromResources, 'filter', 'filterType', array( 'andFilter', 'orFilter' ) ) || // To any filter
-												! $testAllResources( $toResources, 'filter', 'filterType', null ) // To any filter
-											)
-											{
-												$this->log()->taxonomy_validation( "Boolean filter", "The arc MUST be from am 'and' or 'or' filter to any filter type",
-													array(
-														'role' => $roleUri,
-														'arcrole' => $arcrole,
-														'fromLabel' => $from,
-														'toLabel' => $to,
-														// 'error' => 'xbrlcae:variablesNotAllowed',
-													)
-												);
-											}
-
-											break;
-
-										default:
-											$x = 1;
-											break;
-									}
-								}
-
-								$node = array(
+									'linkbase' => basename( $href ),
+									'path' => $linkPath,
+									'links' => "{$linkQName->prefix}:{$linkQName->localName}",
+									'arcroles' => $arcrole,
+									'arcelements' => "{$arcQName->prefix}:{$arcQName->localName}",
 									'from' => $from,
 									'to' => $to,
-									'label' => $to,
-									'roleUri' => $roleUri,
-									'fromRoleUri' => $fromRoleUri ? $fromRoleUri : $roleUri,
-									'toRoleUri' => $toRoleUri ? $toRoleUri : $roleUri,
-									'linkbase' => basename( $href ),
-									'arcrole' => $arcrole,
-									'usedOn' => $usedOn,
+									'offset' => count( $this->{$roleListName}['roles'][ $roleUri ]
+																			 ['arcroles'][ $arcrole ]
+																			 ['links']["{$linkQName->prefix}:{$linkQName->localName}"]
+																			 ['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
+																			 ['arcs'][ $from ][ $to ]
+												) - 1
 								);
-
-								extract( $this->validateArcAttributes( $linkbaseDescription, $fromLabel, $toLabel, $attributes ) );
-								$node['priority']	= $priority; // These value is set by the extract() function
-								$node['use']		= $use;      // and will not appear in the debugger until used
-								$node['order']		= $order;
-
-								if ( property_exists( $xlinkAttributes, 'title' ) )
-								{
-									$node['title']		= (string) $xlinkAttributes->title;
-								}
-
-								if ( property_exists( $xlinkAttributes, 'actuate' ) )
-								{
-									$node['actuate']	= (string) $xlinkAttributes->actuate;
-								}
-
-								if ( property_exists( $xlinkAttributes, 'show' ) )
-								{
-									$node['show']		= (string) $xlinkAttributes->show;
-								}
-
-								if ( property_exists( $attributes, 'name' ) )
-								{
-									// $namespaces = $arc->getDocNamespaces(true);
-									$namespaces = array_merge( $arc->getDocNamespaces(true), $arc->getDocNamespaces(false, false) );
-
-									/**
-									 * @var QName $qName
-									 */
-									// If there is no prefix it should not be resolved to a default namespace
-									// BMS 2018-02-16 This is not true for variables (see Variables 3.5.1 Variable-set relationships)
-									$source = trim( $attributes->name );
-									$qName = strpos( $source, ":" )
-										? qname( $source, $namespaces )
-										: new QName( "", $arcrole != XBRL_Constants::$arcRoleVariableSet && isset( $namespaces[''] ) ? $namespaces[''] : null, $source );
-
-									if ( is_null( $qName ) )
-									{
-										$this->log()->formula_validation( "Variables 1.7.1.1", "Variable specifies a namespace prefix that cannot be resolved to a namespace declaration that is in scope",
-											array(
-												'source' => $source,
-												'error' => 'xbrlve:variableNameResolutionFailure'
-											)
-										);
-									}
-
-									if ( ! $qName->prefix )
-									{
-										foreach ( $namespaces as $prefix => $namespace )
-										{
-											// Ignore default namespaces
-											if ( ! $prefix ) continue;
-											if ( $qName->namespaceURI != $namespace ) continue;
-											$qName->prefix = $prefix;
-											break;
-										}
-									}
-
-									$node['name'] = array(
-										'name' => is_null( $qName ) ? $source : $qName->localName,
-										'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
-										'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
-									);
-								}
-
-								// Get local namespaces but not any default
-								$node['localNamespaces'] = array_filter( $arc->getDocNamespaces( true, false ), function( $namespace, $prefix ) {
-									return !empty( $prefix );
-								}, ARRAY_FILTER_USE_BOTH );
-
-								// Collect non-standard attributes
-								$customAttributes = $arc->attributes( $this->getNamespace() );
-								foreach ( $customAttributes as $attributeId => $attribute )
-								{
-									// BMS 2018-04-09 Test candidates changed.
-									$type = "xs:anyType";
-									$attributeType = $this->context->types->getAttribute( $attributeId, $this->getPrefix() );
-									if ( $attributeType && isset( $attributeType['types'][0] ) )
-									{
-										$type = $attributeType['types'][0];
-									}
-
-									// BMS 2018-04-09 Test candidates changed.
-									$value = $type == "xs:boolean"
-										? filter_var( (string)$attribute, FILTER_VALIDATE_BOOLEAN )
-										: (string)$attribute;
-
-									$node['attributes'][ $attributeId ] = array( 'type' => $type, 'value' => $value  );
-								}
-
-								$customAttributes = $arc->attributes();
-								foreach ( $customAttributes as $attributeId => $attribute )
-								{
-									if ( $attributeId == 'id' || isset( $node[ $attributeId ] ) )
-									{
-										continue;
-									}
-
-									// BMS 2018-04-09 Test candidates changed.
-									$type = "xs:anyType";
-									$attributeType = $this->context->types->getAttribute( $attributeId, $domNode->prefix );
-									if ( $attributeType && isset( $attributeType['types'][0] ) )
-									{
-										$type = $attributeType['types'][0];
-									}
-
-									// BMS 2018-04-09 Test candidates changed.
-									$value = $type == "xs:boolean"
-										? filter_var( (string)$attribute, FILTER_VALIDATE_BOOLEAN )
-										: (string)$attribute;
-
-									$node['attributes'][ $attributeId ] = array( 'type' => $type, 'value' => $value  );
-								}
-
-								if ( isset( $node['name'] ) )
-								{
-									// If the resource has a name make sure the name is unique
-									$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
-									if ( isset( $this->variableSetNames[ $fromLinkbase ][ $qName->clarkNotation() ] ) )
-									{
-										// To be equivalent the names must have the same source and role
-										$findName =	function( $arc ) use( $from, $roleUri )
-										{
-											return ! isset( $arc['from'] ) || ! isset( $arc['role'] ) || ( $arc['from'] == $from && $arc['role'] == $roleUri );
-										};
-
-										if( array_filter( $this->variableSetNames[ $fromLinkbase ][ $qName->clarkNotation() ], $findName ) )
-										{
-											$x = 1;
-											$this->log()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
-												'name' => $qName->clarkNotation(),
-												'error' => 'xbrlve:duplicateVariableNames'
-											) );
-
-											continue;
-										}
-									}
-								}
-
-								$this->{$roleListName}
-									['roles'][ $roleUri ]
-									['arcroles'][ $arcrole ]
-									['links']["{$linkQName->prefix}:{$linkQName->localName}"]
-									['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
-									['arcs'][ $from ][ $to ][] = $node;
-
-								$this->customArcsAdded[ $roleListName ]['roles'][ $roleUri ][] = "{$arcQName->prefix}:{$arcQName->localName}";
-
-								if ( isset( $node['name'] ) && $arcrole == XBRL_Constants::$arcRoleVariableSet )
-								{
-									// Save the information needed to recover the named arc.  The name can be used
-									// again provding the 'from' is different.
-									$qname = new QName( "", $node['name']['namespace'], $node['name']['name'] );
-									$this->variableSetNames[ $fromLinkbase ][ $qname->clarkNotation() ][] = array(
-										'type' => 'arc',
-										'rolelistname' => $roleListName,
-										'role' => $roleUri,
-										'linkbase' => basename( $href ),
-										'links' => "{$linkQName->prefix}:{$linkQName->localName}",
-										'arcroles' => $arcrole,
-										'arcelements' => "{$arcQName->prefix}:{$arcQName->localName}",
-										'from' => $from,
-										'to' => $to,
-										'offset' => count( $this->{$roleListName}['roles'][ $roleUri ]
-																				 ['arcroles'][ $arcrole ]
-																				 ['links']["{$linkQName->prefix}:{$linkQName->localName}"]
-																				 ['arcelements']["{$arcQName->prefix}:{$arcQName->localName}"]
-																				 ['arcs'][ $from ][ $to ]
-													) - 1
-									);
-								}
-
 							}
-						}
 
-						return true;
-					};
-
-					foreach ( $link->children( $arcQName->namespaceURI )->{$arcQName->localName} as $arcKey => /** @var SimpleXMLElement $arc */ $arc )
-					{
-						if ( ! $processArc( $arc ) )
-						{
-							break;
 						}
 					}
 
-					// Fix up preferred label arcs. These may reference other arcs so need to be processed after other arcs
-					foreach ( $preferredLabelArcs as $arc )
+					return true;
+				};
+
+				foreach ( $link->children( $arcQName->namespaceURI )->{$arcQName->localName} as $arcKey => /** @var SimpleXMLElement $arc */ $arc )
+				{
+					if ( ! $processArc( $arc ) )
 					{
-						if ( ! $processArc( $arc, true ) )
-						{
-							break;
-						}
+						break;
 					}
 				}
-			}
-		}
 
+				// Fix up preferred label arcs. These may reference other arcs so need to be processed after other arcs
+				foreach ( $preferredLabelArcs as $arc )
+				{
+					if ( ! $processArc( $arc, true ) )
+					{
+						break;
+					}
+				}
+			} // $arcroleTypesCopy
+		} // $links
 	}
 
 	/**

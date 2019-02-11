@@ -334,7 +334,7 @@ class ExistenceAssertion extends VariableSetAssertion
 
 		if ( $this->success )
 		{
-			$this->generatedSatisifedMessages = $this->processMessages( $this->satisfiedMessages, $vars, $provider );
+			$this->generatedSatisifiedMessages = $this->processMessages( $this->satisfiedMessages, $vars, $provider );
 		}
 		else
 		{
@@ -417,7 +417,7 @@ class ExistenceAssertion extends VariableSetAssertion
 				foreach ( $messageTests->satisfied as $message )
 				{
 					$found = false;
-					foreach ( $this->generatedSatisifedMessages as $generatedMessage )
+					foreach ( $this->generatedSatisifiedMessages as $generatedMessage )
 					{
 						// Replace tags as they are not needed for comparison with the test text
 						if ( preg_replace( "/(?'tag'<(.*?)>.*?<\\/\\2>)\\s*/s", "", $generatedMessage, -1 ) != (string)$message ) continue;
