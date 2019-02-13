@@ -1345,6 +1345,8 @@ class FactVariable extends Variable
 			$domainRef = implode( "#", $parts );
 		}
 
+		// BMS 2019-02-11 This might need turning inside-out so the arc are read and the resources filtered.
+		//                This is how other look ups work.
 		$equalityDefinitionResources = $taxonomy->getGenericResource( 'equality', 'equalityDefinition' );
 		foreach ( $equalityDefinitionResources as $equalityDefinitionResource )
 		{

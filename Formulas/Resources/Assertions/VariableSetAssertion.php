@@ -133,10 +133,14 @@ class VariableSetAssertion extends VariableSet
 
 		foreach ( $arcs as $arc )
 		{
+			if ( $arc['frompath'] != $this->path ) continue;
+
 			$this->xbrlTaxonomy->getGenericResource( 'message', 'message', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$messages, $arc, $lang )
 			{
+				// BMS 2019-02-11
+
 				// if ( $resource['label'] != $arc['to'] ) return true;
-				if ( $resource['path'] != $this->path ) return true;
+				if ( $resource['path'] != $arc['topath'] ) return true;
 				if ( ! is_null( $lang ) )
 				{
 					if ( $resource['lang'] != $lang && $resource['lang'] != strstr( $lang, "-", true ) )
@@ -168,6 +172,9 @@ class VariableSetAssertion extends VariableSet
 
 		foreach ( $severityArcs as $arc )
 		{
+			// BMS 2019-02-11
+			if ( $this->path != $arc['frompath'] ) continue;
+
 			$this->xbrlTaxonomy->getGenericResource( 'resource', 'severity', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$arc )
 			{
 				// if ( $resource['label'] != $arc['to'] ) return true;

@@ -95,9 +95,13 @@ class Boolean extends Filter
 
 		foreach ( $arcs as $arc )
 		{
+			// BMS 2019-02-11
+			if ( $this->path != $arc['frompath'] ) continue;
+
 			$variableSet->xbrlTaxonomy->getGenericResource( 'filter', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$filters, $arc )
 			{
 				// if ( $resource['label'] != $arc['to'] ) return true;
+				if ( $resource['path'] != $arc['topath'] ) return true;
 
 				if ( $arc['attributes'] )
 				{

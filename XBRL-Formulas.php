@@ -1665,8 +1665,23 @@ class XBRL_Formulas extends Resource
 
 		foreach ( $assertionResources as $assertionResource )
 		{
+			/** @var ConsistencyAssertion $consistencyAssertion */
+			$consistencyAssertion = $caClassName::fromArray( $assertionResource[ 'assertionset' ] );
+			if ( ! $consistencyAssertion->validate( null, $this->nsMgr ) )
+			{
+				return false;
+			}
+			// $consistencyAssertion->extendedLinkRoleUri = $assertionResource['linkRoleUri'];
+
+			$this->validateLabels( $taxonomy, $consistencyAssertion, $taxonomy->getDefaultLanguage() );
+
 			// linked consistency assertions
 			$consistencyAssertionArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleAssertionConsistencyFormula, $assertionResource['roleUri'], $assertionResource['resourceName'] );
+
+			$consistencyAssertionArcs = array_filter( $consistencyAssertionArcs, function( $arc ) use( $consistencyAssertion )
+			{
+				return $arc['frompath'] == $consistencyAssertion->path;
+			} );
 
 			if ( ! $consistencyAssertionArcs )
 			{
@@ -1679,18 +1694,9 @@ class XBRL_Formulas extends Resource
 				continue;
 			}
 
-			/** @var ConsistencyAssertion $consistencyAssertion */
-			$consistencyAssertion = $caClassName::fromArray( $assertionResource[ 'assertionset' ] );
-			if ( ! $consistencyAssertion->validate( null, $this->nsMgr ) )
-			{
-				return false;
-			}
-			// $consistencyAssertion->extendedLinkRoleUri = $assertionResource['linkRoleUri'];
-
-			$this->validateLabels( $taxonomy, $consistencyAssertion, $taxonomy->getDefaultLanguage() );
-
 			foreach ( $consistencyAssertionArcs as $consistencyAssertionArc )
 			{
+				// BMS 2019-02-11
 				if ( $assertionResource['linkbase'] != $consistencyAssertionArc['linkbase'] ||
 					 $assertionResource['resourceName'] != $consistencyAssertionArc['from'] ) continue;
 
@@ -1715,6 +1721,9 @@ class XBRL_Formulas extends Resource
 
 				foreach ( $parameterArcs as $parameterArc )
 				{
+					// BMS 2019-02-11
+					if ( $consistencyAssertion->path != $parameterArc['frompath'] ) continue;
+
 					// Get the resources
 					$parameterNames = array();
 					$taxonomy->getGenericResource( 'variable', 'parameter', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( $parameterArc, &$parameterNames )
@@ -1723,6 +1732,7 @@ class XBRL_Formulas extends Resource
 						// if ( $roleUri == $parameterArc['toRoleUri'] )
 						// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
 						// if ( $variableSetName == $parameterArc['label'] )
+						if ( $resource['path'] ==  $parameterArc['topath'] )
 						{
 							$resource['linkbase'] = $linkbase;
 							$parameterNames[] = $resource['name'];
