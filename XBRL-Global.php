@@ -400,7 +400,7 @@ class XBRL_Global
 
 		$this->cacheLocation = rtrim( $this->cacheLocation, '/' ) . '/';
 
-		$this->log()->info( "    Taxonomy cache location: " . $this->cacheLocation );
+		// $this->log()->info( "    Taxonomy cache location: " . $this->cacheLocation );
 
 		// The cache location must exist or be creatable
 		if ( ! file_exists( $this->cacheLocation ) )
