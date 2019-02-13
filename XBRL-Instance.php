@@ -192,6 +192,51 @@ class XBRL_Instance
 	public $allowNested = false;
 
 	/**
+	 * Location if there is one of compiled taxonomies
+	 * @var string
+	 */
+	private $compiledLocation = null;
+
+	/**
+	 * The name of the class to initialize
+	 * @var string (Defaults to 'XBRL')
+	 */
+	private $className = 'XBRL';
+
+	/**
+	 * Create an instance from an instance document using a base taxonomy if possible
+	 *
+	 * @param string $instance_document The file containing the instance information
+	 * @param string $compiledLocation The location of compiled taxonomies
+	 * @param string $className The name of an XBRL class to initialize (defaults to 'XBRL')
+	 * @return XBRL_Instance|bool
+	 */
+	public static function FromInstanceDocumentWithExtensionTaxonomy( $instance_document, $compiledLocation, $className = 'XBRL' )
+	{
+		try
+		{
+			$instance = new XBRL_Instance();
+			$instance->compiledLocation = $compiledLocation;
+			$instance->className = $className;
+			if ( ! $instance->initialise( $instance_document ) )
+			{
+				return false;
+			}
+		}
+		catch ( FormulasException $ex)
+		{
+			throw $ex;
+		}
+		catch( Exception $ex )
+		{
+			$instance->error = "Error initialising the instance document. It may contain invalid XML.\n";
+			return false;
+		}
+
+		return $instance;
+	}
+
+	/**
 	 * Create an instance from an instance document
 	 *
 	 * @param string $instance_document The file containing the instance information
@@ -1082,6 +1127,14 @@ class XBRL_Instance
 			$this->instance_namespaces = $this->instance_xml->getDocNamespaces( true );
 		}
 
+		// Check there is a schemaRef element
+		$link_children = $this->instance_xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] );
+		if ( ! property_exists( $link_children, 'schemaRef' ) )
+		{
+			XBRL_Log::getInstance()->instance_validation( "4.2", "There must be at least one schemaRef element in the instance document", array() );
+			return false;
+		}
+
 		// BMS 2018-07-20 Make sure the xbrli namespace exists and is first in the list so units and contexts are read before elements
 		$xbrliPrefix = array_search( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ], $this->instance_namespaces );
 		if ( $xbrliPrefix === false )
@@ -1095,54 +1148,7 @@ class XBRL_Instance
 
 		$this->instance_namespaces = array( $xbrliPrefix => XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ) + $this->instance_namespaces;
 
-		$xsiAttributes = $this->instance_xml->attributes( SCHEMA_INSTANCE_NAMESPACE );
-
-		// Load any schemas specified in the schema location attribute.  Not sure if
-		// this should come before or after processing the schemaRef value
-		if ( ! $taxonomy_file && isset( $xsiAttributes['schemaLocation'] ) )
-		{
-			$parts = array_filter( preg_split( "/\s/s",  (string)$xsiAttributes['schemaLocation'] ) );
-
-			$key = "";
-			foreach ( $parts as $part )
-			{
-				if ( empty( $key ) )
-				{
-					$key = $part;
-				}
-				else
-				{
-						// Only load the schema if it not one of the core ones that are pre-loaded
-						$href = XBRL::resolve_path( $instance_document, $part );
-					if ( ! isset( $this->context->schemaFileToNamespace[ $href ] ) )
-					{
-						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
-						{
-							// This taxonomy may already exist in the global cache
-							if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $href ] ) )
-							{
-								$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $href );
-							}
-							else
-							{
-								$result = XBRL::withTaxonomy( $href, true );
-							}
-						}
-					}
-
-					$key = "";
-				}
-			}
-
-		}
-
-		$link_children = $this->instance_xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] );
-		if ( ! property_exists( $link_children, 'schemaRef' ) )
-		{
-			XBRL_Log::getInstance()->instance_validation( "4.2", "There must be at least one schemaRef element in the instance document", array() );
-			return false;
-		}
-
+		// Import schema references
 		$base = "";
 
 		if ( is_null( $taxonomy_file ) )
@@ -1205,6 +1211,43 @@ class XBRL_Instance
 
 			if ( count( $taxonomy_files ) )
 			{
+				// If there is a compiled taxonomy folder then see if any of the xsds
+				// are available in compiled form.  If they are load the compiled form.
+				$xbrl = null;
+				if ( $this->compiledLocation )
+				{
+					new $this->className();
+					foreach ( $taxonomy_files as $taxonomy_file )
+					{
+						$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( $taxonomy_file );
+						if ( ! $compiledTaxonomyFilename ) continue;
+						if ( ! file_exists( "{$this->compiledLocation}/" . basename( $compiledTaxonomyFilename ) . ".zip" ) ) continue;
+						$xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
+						break;
+					}
+
+					// If there is no compiled taxonomy for any of the directly referenced schemas then look in them
+					if ( ! $xbrl )
+					{
+						foreach ( $taxonomy_files as $taxonomy_file )
+						{
+							$xsd = simplexml_load_file( $taxonomy_file );
+							foreach ( $xsd->children()->import as /** @var SimpleXMLElement $importElement */ $importElement )
+							{
+								$schemaLocation = (string)$importElement->attributes()->schemaLocation;
+								if ( isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) ) continue;
+
+								$resolvedPath = XBRL::resolve_path( $taxonomy_file, $schemaLocation );
+								$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( basename( $resolvedPath ) );
+								if ( ! $compiledTaxonomyFilename ) continue;
+								if ( ! file_exists( "{$this->compiledLocation}/" . basename( $compiledTaxonomyFilename ) . ".zip" ) ) continue;
+								$xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
+								break 2;
+							}
+						}
+					}
+				}
+
 				$xbrl = XBRL::load_taxonomy( $taxonomy_files );
 				if ( ! $xbrl )
 				{
@@ -1241,6 +1284,47 @@ class XBRL_Instance
 			if ( ! $xbrl ) return false;
 			XBRL_Instance::$instance_taxonomy[ $xbrl->getSchemaLocation() ] = $xbrl;
 			$this->schemaFilename = $xbrl->getSchemaLocation();
+		}
+
+		$xsiAttributes = $this->instance_xml->attributes( SCHEMA_INSTANCE_NAMESPACE );
+
+		// Load any schemas specified in the schema location attribute.  Not sure if
+		// this should come before or after processing the schemaRef value
+		if ( ! $taxonomy_file && isset( $xsiAttributes['schemaLocation'] ) )
+		{
+			$parts = array_filter( preg_split( "/\s/s",  (string)$xsiAttributes['schemaLocation'] ) );
+
+			$key = "";
+			foreach ( $parts as $part )
+			{
+				if ( empty( $key ) )
+				{
+					$key = $part;
+				}
+				else
+				{
+					// Only load the schema if it not one of the core ones that are pre-loaded
+					$href = XBRL::resolve_path( $instance_document, $part );
+					if ( ! isset( $this->context->schemaFileToNamespace[ $href ] ) )
+					{
+						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
+						{
+							// This taxonomy may already exist in the global cache
+							if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $href ] ) )
+							{
+								$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $href );
+							}
+							else
+							{
+								$result = XBRL::withTaxonomy( $href, true );
+							}
+						}
+					}
+
+					$key = "";
+				}
+			}
+
 		}
 
 		$taxonomy = XBRL_Instance::$instance_taxonomy[ $this->schemaFilename ];
@@ -2675,7 +2759,7 @@ class XBRL_Instance
 			$use		= property_exists( $attributes, 'use' ) 	 ? (string) $attributes->use		: "optional";
 			$order		= property_exists( $attributes, 'order' ) 	 ? (string) $attributes->order		: "1";
 
-			$label = array( 'footnote' => $toLabel ); // Might this ever use a custom role?
+			$footnotes = array( 'footnote' => $toLabel ); // Might this ever use a custom role?
 
 			if ( property_exists( $xlinkAttributes, 'title' ) )	$label['title']		= $xlinkAttributes->title;
 			if ( property_exists( $xlinkAttributes, 'show' ) )	$label['show']		= $xlinkAttributes->show;
@@ -2689,7 +2773,7 @@ class XBRL_Instance
 					$arcs[ $href ] = array();
 				}
 
-				foreach ( $label as $arcrole => $label )
+				foreach ( $footnotes as $arcrole => $label )
 				{
 					if ( isset( $arcs[ $href ][ $linkRole ][ $arcrole ] ) && in_array( $label, $arcs[ $href ][ $linkRole ][ $arcrole ] ) )
 					{
