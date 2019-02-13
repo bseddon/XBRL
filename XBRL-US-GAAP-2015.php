@@ -410,6 +410,32 @@ class XBRL_US_GAAP_2015 extends XBRL
 	public static $us_GAAP_2015_ROLES_NS			= "http://fasb.org/us-roles/2015-01-31";
 
 	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2013-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2013_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2013-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2013-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2013_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2013-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2013-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2013_ALL_NS				= "http://fasb.org/us-gaap-all/2013-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2014-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2013_NS					= "http://fasb.org/us-gaap/2013-01-31";
+	/**
+	 * http://fasb.org/us-roles/2014-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2013_ROLES_NS			= "http://fasb.org/us-roles/2013-01-31";
+
+	/**
 	 * http://fasb.org/us-gaap-entryPoint-all/2014-01-31
 	 * @var string
 	 */
@@ -721,6 +747,10 @@ class XBRL_US_GAAP_2015 extends XBRL
 	{
 		// Run the pruning process over the roles taxonomy
 		$map = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2013_NS => XBRL_US_GAAP_2015::$us_GAAP_2013_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2013_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2013_ROLES_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2013_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2013_ROLES_NS,
+
 			XBRL_US_GAAP_2015::$us_GAAP_2014_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
 			XBRL_US_GAAP_2015::$us_GAAP_2014_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
 			XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_ALL_NS => XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
