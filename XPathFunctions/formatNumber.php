@@ -38,6 +38,7 @@ use lyquidity\XPath2\XPath2Item;
 use lyquidity\XPath2\DOM\XmlSchema;
 use lyquidity\XPath2\Value\DecimalValue;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\xpath\XPathNavigator;
 
 /**
  * Provides an implementation of the XSLT 2.0 format-number function (which is not part of XPath2 functions),
@@ -91,7 +92,7 @@ function formatNumber( $context, $provider, $args )
 			return XPath2Item::fromValueAndType( "NaN", XmlSchema::$String );
 		}
 
-		if ( $args[0] instanceof DecimalValue || $args[0] instanceof XPath2Item )
+		if ( $args[0] instanceof DecimalValue || $args[0] instanceof XPath2Item || $args[0] instanceof XPathNavigator )
 		{
 			$args[0] = $args[0]->getValue();
 		}
