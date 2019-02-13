@@ -218,7 +218,7 @@ class XBRL {
 	private $elementHypercubes					= array();
 
 	/**
-	 * The elements in the taxonomy that are hypercube dimensinos
+	 * The elements in the taxonomy that are hypercube dimensions
 	 * @var array $elementDimensions
 	 */
 	private $elementDimensions					= array();
@@ -1556,9 +1556,22 @@ class XBRL {
 
 		$taxonomy = $namespace === null ? $xbrl : $xbrl->getTaxonomyForNamespace( $namespace );
 
+		$xbrl->saveTaxonomy( $namespace, $output_basename );
+
+		return $taxonomy;
+	}
+
+	/**
+	 *
+	 * @param XBRL $taxonomy
+	 * @param string $namespace
+	 * @param string $output_basename
+	 */
+	public function saveTaxonomy( $namespace = null, $output_basename = null  )
+	{
 		if ( $output_basename === null )
 		{
-			$output_basename = $xbrl->compiled_taxonomy_for_xsd( $xbrl->getTaxonomyXSD() );
+			$output_basename = $this->compiled_taxonomy_for_xsd( $this->getTaxonomyXSD() );
 		}
 
 		if ( ! $output_basename )
@@ -1567,7 +1580,7 @@ class XBRL {
 		}
 		else
 		{
-			$json = $xbrl->toJSON( null, false );
+			$json = $this->toJSON( null, false );
 
 			file_put_contents( "$output_basename.json", $json );
 			$zip = new ZipArchive();
@@ -1581,11 +1594,13 @@ class XBRL {
 				XBRL_Log::getInstance()->err( $zip->getStatusString() );
 			}
 			else
+			{
 				copy( "$output_basename.zip", "{$output_basename}_{$date}.zip" );
+			}
 		}
 
-		return $taxonomy;
 	}
+
 
 	/**
 	 * Tests whether the node represents a tuple
@@ -2062,6 +2077,42 @@ class XBRL {
 	 * Default contructor
 	 */
 	public function __construct() {}
+
+	function __destruct()
+	{
+		unset( $this->context );
+		unset( $this->xbrlDocument );
+		unset( $this->elementIndex );
+		unset( $this->tupleMembersIndex );
+		unset( $this->elementHypercubes );
+		unset( $this->elementDimensions );
+		unset( $this->elementLinkTypes );
+		unset( $this->elementArcTypes );
+		unset( $this->customRoles );
+		unset( $this->genericRoles );
+		unset( $this->complexTypes );
+		unset( $this->arcroleTypes );
+		unset( $this->arcroleTypeIds );
+		unset( $this->roleTypes );
+		unset( $this->roleTypeIds );
+		unset( $this->linkbaseTypes );
+		unset( $this->definitionRoleRefs );
+		unset( $this->foreignDefinitionRoleRefs );
+		unset( $this->referenceRoleRefs );
+		unset( $this->documentPrefixes );
+		unset( $this->baseTaxonomy );
+		unset( $this->displayRoundings );
+		unset( $this->importedFiles );
+		unset( $this->includedFiles );
+		unset( $this->linkbaseRoleTypes );
+		unset( $this->xdtTargetRoles );
+		unset( $this->extraElements );
+		unset( $this->customArcsAdded );
+		unset( $this->variableSetNames );
+		unset( $this->linkbaseIds );
+		unset( $this->linkbases );
+		unset( $this->enumerations );
+	}
 
 	/**
 	 * Find the node in $nodes that has the path $path.  If the node is located call $callback
