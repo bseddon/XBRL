@@ -83,6 +83,7 @@ class Observer extends \Log_observer
 
 	/**
 	 * Get the current set of issues
+	 * @return array
 	 */
 	public function getIssues()
 	{
