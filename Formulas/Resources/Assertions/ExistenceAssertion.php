@@ -312,8 +312,11 @@ class ExistenceAssertion extends VariableSetAssertion
 			$result = CoreFuncs::BooleanValue( $this->evaluateXPathExpression( $this, $this->testXPath2Expression, $vars, null, $provider ) );
 			$this->success = $result instanceof CoreFuncs::$True;
 			$message = $this->success ? "succeeded" : "failed";
-			$this->satisfied = $this->success ? array( true ) : array();
-			$this->notSatisfied = $this->success ? array() : array( true );
+
+			$evaluationResult = array( 'vars' => $vars, 'lastFactBinding' => array(), 'uncoveredAspectFacts' => array() );
+
+			$this->satisfied = $this->success ? array( $evaluationResult ) : array();
+			$this->notSatisfied = $this->success ? array() : array( $evaluationResult );
 			$countSatisfied = count( $this->satisfied );
 			$countNotSatisfied = count( $this->notSatisfied );
 			// \XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
@@ -330,6 +333,7 @@ class ExistenceAssertion extends VariableSetAssertion
 			);
 		}
 
+		// This can be used by message exressions
 		$vars[ "{{$this->namespace}}test-expression" ] = $this->test;
 
 		if ( $this->success )
