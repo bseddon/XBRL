@@ -209,16 +209,17 @@ class XBRL_Instance
 	 * @param string $instance_document The file containing the instance information
 	 * @param string $compiledLocation The location of compiled taxonomies
 	 * @param string $className The name of an XBRL class to initialize (defaults to 'XBRL')
+	 * @param bool $useCache (default: false) If true the instance document will be read from the cache
 	 * @return XBRL_Instance|bool
 	 */
-	public static function FromInstanceDocumentWithExtensionTaxonomy( $instance_document, $compiledLocation, $className = 'XBRL' )
+	public static function FromInstanceDocumentWithExtensionTaxonomy( $instance_document, $compiledLocation, $className = 'XBRL', $useCache = false )
 	{
 		try
 		{
 			$instance = new XBRL_Instance();
 			$instance->compiledLocation = $compiledLocation;
 			$instance->className = $className;
-			if ( ! $instance->initialise( $instance_document ) )
+			if ( ! $instance->initialise( $instance_document, null, $useCache ) )
 			{
 				return false;
 			}
@@ -243,15 +244,16 @@ class XBRL_Instance
 	 * @param string $taxonomy_file The taxonomy for the instance document
 	 * @param XBRL_Instance &$instance A reference to the instance created by this call
 	 * @param bool $allowNested (optional: false) True if the caller wants to allow one or more <xbrl> containers to appear in a larger document
+	 * @param bool $useCache (default: false) If true the instance document will be read from the cache
 	 * @return XBRL_Instance|bool
 	 */
-	public static function FromInstanceDocument( $instance_document, $taxonomy_file = null, &$instance = null, $allowNested = false )
+	public static function FromInstanceDocument( $instance_document, $taxonomy_file = null, &$instance = null, $allowNested = false, $useCache = false )
 	{
 		try
 		{
 			$instance = new XBRL_Instance();
 			$instance->allowNested = $allowNested;
-			if ( ! $instance->initialise( $instance_document, $taxonomy_file ) )
+			if ( ! $instance->initialise( $instance_document, $taxonomy_file, $useCache ) )
 			{
 				return false;
 			}
@@ -1064,9 +1066,10 @@ class XBRL_Instance
 	 * Read the instance document
 	 * @param string $instance_document The name of the file containing the instance document
 	 * @param string $taxonomy_file A .json or .zip file containing the taxonomy
+	 * @param bool $useCache (default: false) If true the instance document will be read from the cache
 	 * @return void
 	 */
-	private function initialise( $instance_document, $taxonomy_file = null )
+	private function initialise( $instance_document, $taxonomy_file = null, $useCache = false )
 	{
 		if ( strtolower( pathinfo( $instance_document, PATHINFO_EXTENSION ) ) === STANDARD_PREFIX_SCHEMA )
 		{
@@ -1082,9 +1085,21 @@ class XBRL_Instance
 				$this->log()->err( "The instance document provided does not exist" );
 				return false;
 			}
+
+			$useCache = false;
 		}
 
 		$this->document_name = $instance_document;
+
+		if ( $useCache )
+		{
+			$context = XBRL_Global::getInstance();
+			if ( $context->useCache )
+			{
+				$cache_document = $context->findCachedFile( $instance_document );
+				if ( $cache_document ) $instance_document = $cache_document;
+			}
+		}
 
 		libxml_clear_errors();
 		// $this->instance_xml = new SimpleXMLElement( file_get_contents( $instance_document ) );
@@ -1219,14 +1234,23 @@ class XBRL_Instance
 					new $this->className();
 					foreach ( $taxonomy_files as $taxonomy_file )
 					{
-						$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( $taxonomy_file );
+						// Begin looking in the instance document folder
+						$filename = preg_replace( "|\.xsd$|", "", $taxonomy_file ) . ".zip";
+						if ( file_exists( $filename ) )
+						{
+							$xbrl = XBRL::load_taxonomy( $filename );
+							break;
+						}
+
+						// Now look for a compiled file in the compiled folder
+						$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( basename( $taxonomy_file ) );
 						if ( ! $compiledTaxonomyFilename ) continue;
 						if ( ! file_exists( "{$this->compiledLocation}/" . basename( $compiledTaxonomyFilename ) . ".zip" ) ) continue;
 						$xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
 						break;
 					}
 
-					// If there is no compiled taxonomy for any of the directly referenced schemas then look in them
+					// If there is no compiled taxonomy for any of the directly referenced schemas then look inside them
 					if ( ! $xbrl )
 					{
 						foreach ( $taxonomy_files as $taxonomy_file )
@@ -2071,6 +2095,10 @@ class XBRL_Instance
 								: XBRL_Constants::$anyLinkbaseRef;
 
 							$taxonomy = $this->getInstanceTaxonomy();
+							if ( $taxonomy->getLinkbase( $href ) )
+							{
+								continue;
+							}
 
 							$linkbaseRef = array(
 								'type' => (string) $xlinkAttributes->type,
@@ -2759,7 +2787,7 @@ class XBRL_Instance
 			$use		= property_exists( $attributes, 'use' ) 	 ? (string) $attributes->use		: "optional";
 			$order		= property_exists( $attributes, 'order' ) 	 ? (string) $attributes->order		: "1";
 
-			$footnotes = array( 'footnote' => $toLabel ); // Might this ever use a custom role?
+			$arcRoles = array( 'footnote' => $toLabel ); // Might this ever use a custom role?
 
 			if ( property_exists( $xlinkAttributes, 'title' ) )	$label['title']		= $xlinkAttributes->title;
 			if ( property_exists( $xlinkAttributes, 'show' ) )	$label['show']		= $xlinkAttributes->show;
@@ -2773,7 +2801,7 @@ class XBRL_Instance
 					$arcs[ $href ] = array();
 				}
 
-				foreach ( $footnotes as $arcrole => $label )
+				foreach ( $arcRoles as $arcrole => $label )
 				{
 					if ( isset( $arcs[ $href ][ $linkRole ][ $arcrole ] ) && in_array( $label, $arcs[ $href ][ $linkRole ][ $arcrole ] ) )
 					{
