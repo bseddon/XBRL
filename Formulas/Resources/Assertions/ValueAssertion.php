@@ -42,6 +42,7 @@ use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Undefined;
 use XBRL\Formulas\Exceptions\FormulasException;
+use XBRL\Formulas\Resources\Resource;
 
  /**
   * A class to process a formula definitions
@@ -224,6 +225,7 @@ class ValueAssertion extends VariableSetAssertion
 			$this->pastEvaluationHashes->addValue( $varsCopy, 1 );
 			$result = CoreFuncs::BooleanValue( parent::evaluateXPathExpression( $this, $this->testXPath2Expression, $vars ) );
 
+			// This can used by message expressions
 			$vars[ "{{$this->namespace}}test-expression" ] = $this->test;
 			$evaluationResult = array( 'vars' => $vars, 'lastFactBinding' => $this->getLastFactBinding() );
 			$evaluationResult['uncoveredAspectFacts'] = $evaluationResult['lastFactBinding'] instanceof FactVariableBinding
