@@ -44,6 +44,8 @@ use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\xml\QName;
 use lyquidity\XPath2\Iterator\BufferedNodeIterator;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
+use XBRL\Formulas\FactValues;
 
 /**
  * A class to hold a variable set
@@ -714,4 +716,24 @@ class VariableSet extends Resource
 			return $this->nonNilsFactsCache; //->CloneInstance();
 		}
 	}
+
+	/**
+	 * Returns a set of details for a fact
+	 * @param DOMXPathNavigator|XPathItem $fact
+	 * @param bool $includePrefix (default: true) When true a prefix indicating the type of value will be included
+	 * @return array
+	 */
+	public function getVariableDetails( $variable, $includePrefix = true )
+	{
+		$result = array( 'value' => $this->valueToString( $variable, $includePrefix ) );
+		if ( $variable instanceof DOMXPathNavigator )
+		{
+			$result['concept'] = $variable->getName();
+			$result['context'] = FactValues::getContextRef( $variable );
+			$result['unit'] = FactValues::getUnitRef( $variable );
+
+		}
+		return $result;
+	}
+
 }
