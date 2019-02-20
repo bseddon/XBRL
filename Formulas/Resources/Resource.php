@@ -38,6 +38,8 @@ use lyquidity\XPath2\XPath2Expression;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\xpath\XPathNodeType;
 use XBRL\Formulas\Resources\Assertions\ExistenceAssertion;
+use lyquidity\XPath2\XPath2Convert;
+use lyquidity\xml\xpath\XPathItem;
 
 /**
  * Base class for all resources
@@ -218,5 +220,84 @@ class Resource
 		$result = $xpathExpression->EvaluateWithVars( $provider, $vars );
 
 		return $result;
+	}
+
+	/**
+	 * Convert a variable result to a text representation
+	 * @param mixed $value
+	 * @param bool $includePrefix (default: true) When true a prefix indicating the type of value will be included
+	 * @return string|NULL
+	 */
+	public static function valueToString( $value, $includePrefix = true )
+	{
+		if ( $value instanceof DOMXPathNavigator )
+		{
+			return ( $includePrefix ?  "({$value->getName()}) = " : '' ) . $value->getValue();
+		}
+		else if ( $value instanceof XPath2NodeIterator )
+		{
+			$sb = array();
+			/**
+			 * @var XPath2NodeIterator $value
+			 */
+			foreach ( $value as /** @var XPathItem $item */ $item )
+			{
+				if ( $item instanceof ExprIterator )
+				{
+					$inner = array();
+
+					foreach ( $item as $value )
+					{
+						$inner[] = $value instanceof XPath2Item
+							? $value->getValue()
+							: $value->getInnerXml();
+					}
+
+					$sb[] = ( $includePrefix ? "(sub-sequence) " : '' ) . "[" . implode( ",", $inner ) . "]";
+				}
+				else if ( $item->getIsNode() )
+				{
+					/**
+					 * @var XPathNavigator $nav
+					 */
+					$nav = $item;
+					$sb[] = ( $includePrefix ? "({$nav->getName()}) = " : '' ) . $nav->getValue();
+				}
+				else
+				{
+					$sb[] = htmlentities( (string)$item, ENT_NOQUOTES | ENT_XML1 ); // ->getValue();
+				}
+			}
+
+			return ( $includePrefix ? "(sequence) " : '' ) . "[" . implode( ",", $sb ) . "]";
+		}
+		else if ( $value instanceof \Iterator )
+		{
+			$substitution = ( $includePrefix ? "(sequence) = " : '' ) . "[" .
+				implode( ",", array_map( function( /** @var DOMXPathNavigator $item */ $item ) { return $item->getValue(); }, iterator_to_array( $value ) ) ) .
+				"]";
+		}
+		else if ( $value instanceof XPathItem )
+		{
+			/**
+			 * @var XPathItem $item
+			 */
+			$item = $value;
+			if ( $item->getIsNode() )
+			{
+				return $item->getInnerXml();
+			}
+			else
+			{
+				return (string)$item; // ->getValue();
+			}
+		}
+		else if ( $value instanceof Undefined )
+		{
+			return null;
+		}
+
+		return XPath2Convert::ToString( $value );
+
 	}
 }
