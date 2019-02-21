@@ -81,13 +81,13 @@ class ConsistencyAssertion extends AssertionSet
 	 * A list of satified evaluation results
 	 * @var int $satisfied
 	 */
-	public $satisfied = 0;
+	private $satisfied = 0;
 
 	/**
 	 * A list of unsatified evaluation results
 	 * @var int $unsatisfied
 	 */
-	public $unsatisfied = 0;
+	private $unsatisfied = 0;
 
 	/**
 	 * A count of the evaluations that have derived facts
@@ -120,10 +120,22 @@ class ConsistencyAssertion extends AssertionSet
 	public $parameters = array();
 
 	/**
+	 * A list of facts indexed by a unique evaluation result id that match a derived fact
+	 * @var array
+	 */
+	public $aspectMatchedInputFacts = array();
+
+	/**
 	 * The value of an id attribute if one exists.  The attribute is read by the Resources class
 	 * @var unknown
 	 */
 	public $id;
+
+	/**
+	 * Cached value of the evaluated radius
+	 * @var float $radiusValue
+	 */
+	private $radiusValue = null;
 
 	/**
 	 * Default constructor
@@ -196,6 +208,33 @@ class ConsistencyAssertion extends AssertionSet
 	}
 
 	/**
+	 * Return the cached computed radius value
+	 * @return float
+	 */
+	public function getRadiusValue()
+	{
+		return $this->radiusValue;
+	}
+
+	/**
+	 * Return the count of the number of satified instances
+	 * @return float
+	 */
+	public function getSatisfied()
+	{
+		return $this->satisfied;
+	}
+
+	/**
+	 * Return the count of the number of unsatified instances
+	 * @return float
+	 */
+	public function getUnsatisfied()
+	{
+		return $this->unsatisfied;
+	}
+
+	/**
 	 * Give the variable set instance an opportunity to process the facts
 	 */
 	public function evaluateResult()
@@ -220,10 +259,11 @@ class ConsistencyAssertion extends AssertionSet
 	 * Performs the consistency check for a fact
 	 * @param Formula $formula
 	 * @param array $derivedFact [concept(QName), contextRef(string), value(mixed), decimals(int), precision(int), unitRef(string)]
-	 * @param array $vars
+	 * @param array $vars An array of input facts indexed by the clarkname of the respective variable
+	 * @param string $key The unique id used to reference the evaluation result
 	 * @param \XBRL_Log $log
 	 */
-	public function checkFactConsistency( $formula, $derivedFact, $vars, $log )
+	public function checkFactConsistency( $formula, $derivedFact, $vars, $key, $log )
 	{
 		// Although I cannot find any reference to it in the documentation, it seems that only unique derived facts
 		// should be compared.  Uniquenesss in this case appears to be derived facts that have the same attributes and values.
@@ -341,6 +381,9 @@ class ConsistencyAssertion extends AssertionSet
 				$aspectMatchedInputFacts[] = $inputFact;
 			}
 		}
+
+		// Record this set of facts in case they are needed for reporting later
+		$this->aspectMatchedInputFacts[ $key ] = $aspectMatchedInputFacts;
 
 		$isSatisfied = null;
 
@@ -501,12 +544,6 @@ class ConsistencyAssertion extends AssertionSet
 		if ( $precision == INF ) return $value;
 		return round( $value, \XBRL_Instance::inferDecimals( $value, $precision ) );
 	}
-
-	/**
-	 * Cached value of the evaluated radius
-	 * @var float $radiusValue
-	 */
-	private $radiusValue = null;
 
 	/**
 	 * Check the value is wthin the acceptance radius

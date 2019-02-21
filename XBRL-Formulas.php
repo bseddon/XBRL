@@ -162,6 +162,15 @@ class XBRL_Formulas extends Resource
 	}
 
 	/**
+	 * Returns the current set of consistency assertions defined for one or more formulas
+	 * @return array
+	 */
+	public function getConsistencyAssertions()
+	{
+		return $this->consistencyAssertions;
+	}
+
+	/**
 	 * Return the list of variable set.  This can be useful to access generated messages on an assertion variable set
 	 */
 	public function getVariableSets()
@@ -1698,7 +1707,8 @@ class XBRL_Formulas extends Resource
 			{
 				// BMS 2019-02-11
 				if ( $assertionResource['linkbase'] != $consistencyAssertionArc['linkbase'] ||
-					 $assertionResource['resourceName'] != $consistencyAssertionArc['from'] ) continue;
+					 $assertionResource['resourceName'] != $consistencyAssertionArc['from'] ||
+					 $assertionResource['assertionset']['path'] != $consistencyAssertionArc['frompath'] ) continue;
 
 				$formulaLabel = "{$consistencyAssertionArc['toRoleUri']}#{$consistencyAssertionArc['to']}";
 
@@ -1791,7 +1801,7 @@ class XBRL_Formulas extends Resource
 					foreach ( $formula->factsContainer->facts[ $formula->label ] as $key => $derivedFact )
 					{
 						$vars = $formula->factsContainer->vars[ $formula->label ][ $key ];
-						$consistencyAssertion->checkFactConsistency( $formula, $derivedFact, $vars, $this->log );
+						$consistencyAssertion->checkFactConsistency( $formula, $derivedFact, $vars, $key, $this->log );
 					}
 				}
 			}

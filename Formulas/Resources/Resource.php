@@ -232,7 +232,7 @@ class Resource
 	{
 		if ( $value instanceof DOMXPathNavigator )
 		{
-			return ( $includePrefix ?  "({$value->getName()}) = " : '' ) . $value->getValue();
+			return ( $includePrefix ?  "({$value->getName()}: " : '' ) . $value->getValue() . ( $includePrefix ? ")" : '' );
 		}
 		else if ( $value instanceof XPath2NodeIterator )
 		{
