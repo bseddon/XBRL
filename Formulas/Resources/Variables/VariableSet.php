@@ -736,4 +736,29 @@ class VariableSet extends Resource
 		return $result;
 	}
 
+	/**
+	 * Generates a default message based on the formula test
+	 * @param string $test  The test on which to base the default message
+	 * @param array $vars
+	 * @return mixed[]
+	 */
+	public function createDefaultMessage( $test, $vars )
+	{
+		$substitutions = array();
+
+		// Look for variables in the test
+		foreach ( $vars as $name => $var )
+		{
+			if ( strpos( $test, "\$$name") === false ) continue;
+
+			$substitutions[ $name ]	= Resource::valueToString( $var );
+		}
+
+		foreach ( $substitutions as $name => $substitution )
+		{
+			$test = str_replace( $name, $name . " " . $substitution, $test );
+		}
+
+		return $test;
+	}
 }
