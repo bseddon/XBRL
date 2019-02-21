@@ -78,7 +78,7 @@ class ExistenceAssertion extends VariableSetAssertion
 	public $satisfied = array();
 
 	/**
-	 * A list of satified evaluation results
+	 * A list of unsatified evaluation results
 	 * @var array $notSatisfied
 	 */
 	public $notSatisfied = array();
