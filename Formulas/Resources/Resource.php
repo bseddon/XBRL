@@ -59,6 +59,11 @@ class Resource
 	public $path = '';
 
 	/**
+	 * Basename of the linkbase in which this variable is declared
+	 */
+	public $linkbase = "";
+
+	/**
 	 * Populate an instance with values from an array
 	 * @param array $source An array of values to add to the class
 	 * @return Resource

@@ -6118,15 +6118,16 @@ class XBRL {
 	 * @param string|null $resourceSubType	This value will be a valid sub type for the resource type passed in $resourceType
 	 * 									such as 'fact' for 'variable' or 'formula' for 'variableset'
 	 * 									If null then any resource of the type $resourceType will be returned.
-	 * @param Function $callback			(optional) A callback to process results (see below)
-	 * @param string $roleUri
-	 * @param string $label
+	 * @param Function $callback	(optional) A callback to process results (see below)
+	 * @param string $roleUri		(optional)
+	 * @param string $label			(optional)
+	 * @param string $linkbase		(optional) Filter based on the linkbase in which the resource should appear
 	 * @return boolean|array[]
 	 *
 	 * Callback will return true if no further processing is required. The arguments passed to the callback are:
 	 * $roleUri, $linkbase, $resourceName, $index, $resource
 	 */
-	public function getGenericResource( $resourceType, $resourceSubType, $callback = null, $roleUri = null, $label = null )
+	public function getGenericResource( $resourceType, $resourceSubType, $callback = null, $roleUri = null, $label = null, $lb = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
 
@@ -6136,7 +6137,9 @@ class XBRL {
 		{
 			if ( ! isset( $role['resources'] ) ) continue;
 
-			foreach ( $role['resources'] as $linkbase => $linkbaseResources )
+			if ( ! is_null( $lb ) && ! isset( $role['resources'][ $lb ] ) ) continue;
+
+			foreach ( $lb ? array( $lb => $role['resources'][ $lb ] ) : $role['resources'] as $linkbase => $linkbaseResources )
 			{
 				if ( ! is_null( $label ) && ! isset( $linkbaseResources[ $label ] ) ) continue;
 
@@ -6181,10 +6184,14 @@ class XBRL {
 	 * is not supplied all resources associated with an arc role are returned
 	 * @param string $arcRole
 	 * @param string $fromRoleUri
-	 * @param string $fromResourceName
+	 * @param string $fromResourceName	(optional) The name (label) of the source of the arc
+	 * @param string $fromPath			(optional) The path of source of the arc to be filtered
+	 * @param string $arcLinkbase		(optional) The linkbase of the arc definition
+	 * @param string $fromLinkbase		(optional) The linkbase of the source of the arc to be filtered
+	 * @param string $toLinkbase		(optional) The linkbase of the target of the arc to be filtered
 	 * @return array
 	 */
-	public function getGenericArc( $arcRole, $fromRoleUri, $fromResourceName = null )
+	public function getGenericArc( $arcRole, $fromRoleUri, $fromResourceName = null, $fromPath = null, $arcLinkbase = null, $fromLinkbase = null, $toLinkbase = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
 
@@ -6207,6 +6214,10 @@ class XBRL {
 							foreach ( $to as $arc )
 							{
 								if ( $arc['fromRoleUri'] != $fromRoleUri ) continue;
+								if ( ! is_null( $fromPath ) && $fromPath != $arc['frompath'] ) continue;
+								if ( ! is_null( $arcLinkbase ) && $arcLinkbase != $arc['linkbase'] ) continue;
+								if ( ! is_null( $fromLinkbase ) && $fromLinkbase != $arc['fromlinkbase'] ) continue;
+								if ( ! is_null( $toLinkbase ) && $toLinkbase != $arc['fromlinkbase'] ) continue;
 								$results[] = $arc;
 							}
 						}
@@ -6639,7 +6650,6 @@ class XBRL {
 						)
 						: implode( "", $content );
 
-
 					if ( $namespace == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_REFERENCE ] )
 					{
 						$this->{$roleListName}['roles'][ $resourceRoleUri ]['references'][ basename( $href ) ][ (string)$xlinkAttributes->label ] = $x; // implode( "", $content );
@@ -6858,21 +6868,6 @@ class XBRL {
 						return true;
 					}
 
-					// if ( isset( $fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] ) )
-					// {
-					// 	$this->log()->taxonomy_validation( "XLink", "Custom arcs contain repeated from/to label pairs in the same extended link",
-					// 		array(
-					// 			'role' => $roleUri,
-					// 			'from' => (string)$xlinkAttributes->from,
-					// 			'to' => (string)$xlinkAttributes->to
-					// 		)
-					// 	);
-					// }
-					// else
-					// {
-					// 	$fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] = 1;
-					// }
-
 					if ( $isGeneric && ! count( $arcroleRefs ) )
 					{
 						$this->log()->taxonomy_validation( "Generics 2.1.1", "There are no arcrole refs in the linkbase",
@@ -7080,11 +7075,67 @@ class XBRL {
 						return true;
 					}
 
+					// Import remote resources
+					$importRemoteResource = function( $resourceReference, $remoteLinkbase, $label, $id ) use( $xml_basename, $linkPath, $resourceType, $roleListName )
+					{
+						// Get the remote resource
+						if ( ! isset( $this->{$roleListName}['roles'][ $resourceReference['role'] ][ $resourceType ][ $remoteLinkbase ][ $resourceReference['label'] ] ) )
+						{
+							return false;
+						}
+
+						// Handy reference to the remote resources
+						$remote = &$this->{$roleListName}['roles'][ $resourceReference['role'] ][ $resourceType ][ $remoteLinkbase ][ $resourceReference['label'] ];
+
+						// If the local resource does not exist, create it
+						if ( ! isset( $this->{$roleListName}['roles'][ $resourceReference['role'] ][ $resourceType ][ $xml_basename ][ $label ] ) )
+						{
+							$this->{$roleListName}['roles'][ $resourceReference['role'] ][ $resourceType ][ $xml_basename ][ $label ] = array();
+						}
+
+						// Handy reference to the local resource
+						$local = &$this->{$roleListName}['roles'][ $resourceReference['role'] ][ $resourceType ][ $xml_basename ][ $label ];
+
+						// Maybe its already imported
+						if ( array_filter( $local, function( $resource ) use( $id )
+							{
+								return isset( $resource['id'] ) && $resource['id'] == $id;
+							} )
+						)
+						{
+							return true;
+						}
+
+						// Get the remote resource
+						$remoteResources = array_filter( $remote, function ( $resource ) use ( $id )
+							{
+								return isset( $resource['id'] ) && $resource['id'] == $id;
+							}
+						);
+
+						// Maybe there isn't one (should have been reported as an error by retrieveLocators
+						if ( ! $remoteResources ) return false;
+
+						// Change some of the values
+						array_walk( $remoteResources, function( &$remoteResource ) use( $linkPath, $label )
+						{
+							$remoteResource['label'] = $label;
+							$remoteResource['path'] = $linkPath;
+						} );
+
+						// Should only be one remote resource found so grab it
+						$remoteResource = reset( $remoteResources );
+
+						$local[] = $remoteResource;
+
+						return true;
+					};
+
 					foreach ( $fromList as $from )
 					{
 						foreach ( $toList as $to )
 						{
-							$fromLinkbase = basename( $href );
+							$fromLinkbase = $xml_basename;
 							$fromRoleUri = $roleUri;
 							$fromId = null;
 							$fromIsSchemaType = false;
@@ -7101,9 +7152,10 @@ class XBRL {
 									$ids =& $linkbaseIds[ basename( $fromParts['path'] ) ];
 									if ( isset( $ids[ $fromParts['fragment'] ] ) ) // && $linkbaseType['ids'][ $parts['fragment'] ]['type'] == 'arc' )
 									{
-									 	$from = $ids[ $fromParts['fragment'] ]['type'] == 'resource'
-									 		? $ids[ $fromParts['fragment'] ]['label']
-									 		: $ids[ $fromParts['fragment'] ]['from'];
+										$remoteResource = $ids[ $fromParts['fragment'] ];
+										$from = $remoteResource['type'] == 'resource'
+									 		? $remoteResource['label']
+									 		: $remoteResource['from'];
 
 									 	$fromLinkbase = basename( $fromParts['path'] );
 									 	$fromRoleUri = $ids[ $fromParts['fragment'] ]['role'];
@@ -7115,6 +7167,7 @@ class XBRL {
 										$resourceType = $arcrole == XBRL_Constants::$genericElementLabel
 											? "labels"
 											: ( $arcrole == XBRL_Constants::$genericElementReference ? "references" : "resources" ) ;
+
 										if ( isset( $this->{$roleListName}['roles'][ $roleUri ][ $resourceType ][ $fromParts['fragment'] ][ $fromParts['path'] ] ) )
 										{
 											$from = $fromParts['fragment'];
@@ -7161,7 +7214,7 @@ class XBRL {
 								}
 							}
 
-							$toLinkbase = basename( $href );
+							$toLinkbase = $xml_basename;
 							$toRoleUri = $roleUri;
 							$toId = null;
 							$toIsSchemaType = false;
@@ -7195,10 +7248,10 @@ class XBRL {
 									// This additional condition is required by test 22090 V-03
 									else if ( isset( $ids[ $toParts['fragment'] ] ) && $ids[ $toParts['fragment'] ]['type'] == 'resource' )
 									{
-										$toLinkbase = $toParts['path'];
-										$to = $ids[ $toParts['fragment'] ]['label'];
+										$toLinkbase = basename( $toParts['path'] );
 										$toId = $toParts['fragment'];
 										$toRoleUri = $ids[ $toParts['fragment'] ]['role'];
+										$to = $ids[ $toParts['fragment'] ]['label'];
 									 	$toPath = dirname( $ids[ $toParts['fragment'] ]['path'] );
 									}
 
@@ -7769,12 +7822,14 @@ class XBRL {
 								'roleUri' => $roleUri,
 								'fromRoleUri' => $fromRoleUri ? $fromRoleUri : $roleUri,
 								'toRoleUri' => $toRoleUri ? $toRoleUri : $roleUri,
-								'linkbase' => basename( $href ),
+								'linkbase' => $xml_basename,
 								'arcrole' => $arcrole,
 								'usedOn' => $usedOn,
 								'path' => $linkPath,
 								'frompath' => $fromPath,
 								'topath' => $toPath,
+								'fromlinkbase' => $fromLinkbase,
+								'tolinkbase' => $toLinkbase,
 							);
 
 							extract( $this->validateArcAttributes( $linkbaseDescription, $fromLabel, $toLabel, $attributes ) );
@@ -7904,7 +7959,6 @@ class XBRL {
 
 									if( array_filter( $this->variableSetNames[ $fromLinkbase ][ $linkPath ][ $qName->clarkNotation() ], $findName ) )
 									{
-										$x = 1;
 										$this->log()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
 											'name' => $qName->clarkNotation(),
 											'error' => 'xbrlve:duplicateVariableNames'
@@ -9983,7 +10037,8 @@ class XBRL {
 				// If the default role has not already been used make the first use the 'home' of the default extended link
 				if ( ! isset( $this->context->defaultLinkHref ) && $this->getTaxonomyXSD() )
 				{
-					$this->context->defaultLinkHref = XBRL::resolve_path( $linkbaseRef['href'], $this->getTaxonomyXSD() );
+					// $this->context->defaultLinkHref = XBRL::resolve_path( $linkbaseRef['href'], $this->getTaxonomyXSD() );
+					$this->context->defaultLinkHref = $this->getSchemaLocation();
 				}
 
 				$this->definitionRoleRefs[ XBRL_Constants::$defaultLinkRole ] = array(

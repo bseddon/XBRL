@@ -86,7 +86,7 @@ class Boolean extends Filter
 	 */
 	public function validate( $variableSet, $nsMgr )
 	{
-		$arcs = $variableSet->xbrlTaxonomy->getGenericArc( \XBRL_Constants::$arcRoleBooleanFilter, $this->linkRoleUri, $this->label );
+		$arcs = $variableSet->xbrlTaxonomy->getGenericArc( \XBRL_Constants::$arcRoleBooleanFilter, $this->linkRoleUri, $this->label, $this->path );
 
 		/**
 		 * @var array[Filter] $filters
@@ -101,7 +101,7 @@ class Boolean extends Filter
 			$variableSet->xbrlTaxonomy->getGenericResource( 'filter', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$filters, $arc )
 			{
 				// if ( $resource['label'] != $arc['to'] ) return true;
-				if ( $resource['path'] != $arc['topath'] ) return true;
+				if ( $resource['path'] != $arc['topath'] /* || $linkbase != $arc['linkbase'] */ ) return true;
 
 				if ( $arc['attributes'] )
 				{
@@ -119,7 +119,7 @@ class Boolean extends Filter
 				$filters[] = $className::fromArray( $resource );
 
 				return true;
-			}, $arc['toRoleUri'], $arc['to'] );
+			}, $arc['toRoleUri'], $arc['to'], $arc['tolinkbase'] );
 		}
 
 		foreach ( $filters as $filter )

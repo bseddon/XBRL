@@ -421,17 +421,17 @@ class XBRL_Formulas extends Resource
 	 */
 	private function validateCommon( $taxonomy, $contextParameters )
 	{
-		if ( ! $this->validateParameters( $taxonomy, $contextParameters ) )
-		{
-			return false;
-		}
+		// if ( ! $this->validateParameters( $taxonomy, $contextParameters ) )
+		// {
+		// 	return false;
+		// }
 
 		if ( ! $this->validateCustomFunction( $taxonomy ) )
 		{
 			return false;
 		}
 
-		if ( ! $this->validateVariableSets( $taxonomy ) )
+		if ( ! $this->validateVariableSets( $taxonomy, $contextParameters ) )
 		{
 			return false;
 		}
@@ -474,12 +474,23 @@ class XBRL_Formulas extends Resource
 	 * Validate and process parameters (if there are any)
 	 * @param XBRL $taxonomy
 	 * @param array $contextParameters A list of the parameter values to be used as sources for formula parameters
+	 * @param VariableSet $variableSet
 	 * @return bool
 	 */
-	private function validateParameters( $taxonomy, $contextParameters )
+	private function validateParameters( $taxonomy, $contextParameters, $variableSet )
 	{
+		$parameterArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSet, $variableSet->extendedLinkRoleUri, null, $variableSet->path, null, $variableSet->linkbase );
+
 		// Get any variable sets.  These will be headed by a formula.
-		$parameters = $taxonomy->getGenericResource( 'variable',  'parameter' );
+		$parameters = array_filter( $taxonomy->getGenericResource( 'variable',  'parameter', null, null, null /*, $variableSet->linkbase */ ),
+			function( $resource ) use( $parameterArcs )
+			{
+				return count( array_filter( $parameterArcs, function( $arc ) use( $resource )
+				{
+					return $arc['tolinkbase'] == $resource['linkbase'];
+				} ) ) > 0;
+			}
+		);
 
 		// Check there are parameters to process
 		if ( ! $parameters ) return true;
@@ -496,6 +507,8 @@ class XBRL_Formulas extends Resource
 				return false;
 			}
 
+			if ( $parameter->path != $variableSet->path ) continue;
+
 			if ( ! $parameter->validate( null, $this->nsMgr ) )
 			{
 				return false;
@@ -504,6 +517,7 @@ class XBRL_Formulas extends Resource
 			$parameterDependencies[ $parameter->getQName()->clarkNotation() ] = $parameter->getVariableRefs();
 
 			$this->parameterQnames[ $parameter->getQName()->clarkNotation() ] = $parameter;
+			$variableSet->parameters[ $parameter->getQName()->clarkNotation() ] = $parameter;
 		}
 
 		/**
@@ -686,7 +700,7 @@ class XBRL_Formulas extends Resource
 	 * @param XBRL $taxonomy
 	 * @return bool
 	 */
-	private function validateVariableSets( $taxonomy )
+	private function validateVariableSets( $taxonomy, $contextParameters )
 	{
 		// Variable sets are headed by a formula or assertion
 		$variableSets = $taxonomy->getGenericResource( 'variableset', null );
@@ -728,8 +742,10 @@ class XBRL_Formulas extends Resource
 
 			$this->validateLabels( $taxonomy, $variableSetInstance, $taxonomy->getDefaultLanguage() );
 
+			$this->validateParameters( $taxonomy, $contextParameters, $variableSetInstance );
+
 			// Find all variables related to this variable set
-			$instanceArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleFormulaInstance, $variableSet['roleUri'], $variableSet['resourceName'] );
+			$instanceArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleFormulaInstance, $variableSet['roleUri'], $variableSet['resourceName'], $variableSetInstance->path, $variableSetInstance->linkbase );
 			foreach ( $instanceArcs as $instanceArc )
 			{
 				if ( $instanceArc['from'] != $variableSetInstance->label ) continue;
@@ -739,17 +755,18 @@ class XBRL_Formulas extends Resource
 			}
 
 			// Find all variables related to this variable set
-			$variableSetArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSet, $variableSet['roleUri'], $variableSet['resourceName'] );
+			$variableSetArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSet, $variableSet['roleUri'], $variableSet['resourceName'], $variableSetInstance->path /* , $variableSetInstance->linkbase */ );
 			$variableResources = array();
 
 			foreach ( $variableSetArcs as $arcIndex => $variableSetArc )
 			{
+				if ( $variableSetArc['fromlinkbase'] != $variableSetInstance->linkbase ) continue;
 				if ( $variableSetInstance->path != $variableSetArc['frompath'] ) continue;
 
 				$result = $taxonomy->getGenericResource( 'variable', null, function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$variableResources, $variableSetArc )
 				{
 					// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
-					if ( $resource['path'] == $variableSetArc['topath'] && $variableSetName == $variableSetArc['label'] )
+					if ( /* $linkbase == $variableSetArc['tolinkbase'] && */ $resource['path'] == $variableSetArc['topath'] && $variableSetName == $variableSetArc['label'] )
 					{
 						$resource['name'] = $variableSetArc['name'];
 						$resource['linkbase'] = $linkbase;
@@ -757,7 +774,7 @@ class XBRL_Formulas extends Resource
 					}
 
 					return true;
-				}, $variableSetArc['toRoleUri'], $variableSetArc['to'] );
+				}, $variableSetArc['toRoleUri'], $variableSetArc['to'], $variableSetArc['tolinkbase'] );
 			}
 
 			// Process each located variable resource
@@ -817,7 +834,7 @@ class XBRL_Formulas extends Resource
 					// Find all instances related to this variable.  The variable-instance
 					// arcs are back-to-front as the arcrole name suggests so get all the
 					// arcs and find a suitable one if it exists
-					$instanceArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleInstanceVariable, $variableSet['roleUri'] );
+					$instanceArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleInstanceVariable, $variable->extendedLinkRoleUri, null, $variable->path, null, $variable->linkbase );
 					foreach ( $instanceArcs as $instanceArc )
 					{
 						if ( $instanceArc['to'] != $variable->label ) continue;
@@ -1302,7 +1319,7 @@ class XBRL_Formulas extends Resource
 	 */
 	private function validateVariableScopes( $taxonomy, $variableSetInstance )
 	{
-		$scopeArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariablesScope, $variableSetInstance->extendedLinkRoleUri );
+		$scopeArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariablesScope, $variableSetInstance->extendedLinkRoleUri, null, $variableSetInstance->path, null, $variableSetInstance->linkbase );
 
 		if ( ! $scopeArcs ) return true;
 
@@ -1370,7 +1387,7 @@ class XBRL_Formulas extends Resource
 	 */
 	private function validateLabels( $taxonomy, $target, $lang = 'en' )
 	{
-		$labelArcs = $taxonomy->getGenericArc( XBRL_Constants::$genericElementLabel, $target->extendedLinkRoleUri, $target->label );
+		$labelArcs = $taxonomy->getGenericArc( XBRL_Constants::$genericElementLabel, $target->extendedLinkRoleUri, $target->label, $target->path, null, $target->linkbase );
 		if ( ! $labelArcs ) return true;
 
 		// Find the filter resources
@@ -1402,7 +1419,7 @@ class XBRL_Formulas extends Resource
 	private function validateFilters( $taxonomy, $arcRole, &$variable, $variableSet )
 	{
 		// Find all filter arcs related to this variable
-		$variableFilterArcs = $taxonomy->getGenericArc( $arcRole, $variable->extendedLinkRoleUri, $variable->label );
+		$variableFilterArcs = $taxonomy->getGenericArc( $arcRole, $variable->extendedLinkRoleUri, $variable->label, $variable->path, null, $variable->linkbase );
 
 		if ( ! $variableFilterArcs ) return true;
 
@@ -1442,7 +1459,7 @@ class XBRL_Formulas extends Resource
 			{
 				// Don't believe this is necessary as $variableSetName is $variableFilterArc['label']
 				// if ( $variableSetName = $variableFilterArc['label'] )
-				if ( $resource['path'] != $variableFilterArc['topath'] ) return true;
+				if ( $resource['path'] != $variableFilterArc['topath'] /* || $linkbase != $variableFilterArc['linkbase'] */ ) return true;
 
 				$resource['linkbase'] = $linkbase;
 				if ( $variableFilterArc['attributes'] )
@@ -1459,7 +1476,7 @@ class XBRL_Formulas extends Resource
 				$filterResources[ $variableSetName ][] = $resource;
 
 				return true;
-			}, $variableFilterArc['toRoleUri'], $variableFilterArc['to'] );
+			}, $variableFilterArc['toRoleUri'], $variableFilterArc['to'], $variableFilterArc['tolinkbase'] );
 		}
 
 		foreach ( $filterResources as $variableFilterLabel => $filterResourceSet )
@@ -1580,7 +1597,7 @@ class XBRL_Formulas extends Resource
 	 */
 	private function validatePreconditions( $taxonomy, $variableSet )
 	{
-		$preconditionArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSetPrecondition, $variableSet->extendedLinkRoleUri, $variableSet->label );
+		$preconditionArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableSetPrecondition, $variableSet->extendedLinkRoleUri, $variableSet->label, $variableSet->path, null, $variableSet->linkbase );
 		if ( $preconditionArcs )
 		{
 			$element = "precondition";
@@ -1615,7 +1632,7 @@ class XBRL_Formulas extends Resource
 				{
 					// This test is probably redundant because I believe $variableSetName is the same as $variableSetArc['label']
 					// if ( $variableSetName == $preconditionArc['label'] )
-					if ( $resource['path'] == $preconditionArc['topath'] )
+					if ( $resource['path'] == $preconditionArc['topath'] /* || $linkbase == $preconditionArc['linkbase'] */ )
 					{
 						$resource['linkbase'] = $linkbase;
 						$resource['linkRoleUri'] = $roleUri;
@@ -1623,7 +1640,7 @@ class XBRL_Formulas extends Resource
 					}
 
 					return true;
-				}, $preconditionArc['toRoleUri'], $preconditionArc['to'] );
+				}, $preconditionArc['toRoleUri'], $preconditionArc['to'], $preconditionArc['tolinkbase'] );
 			}
 
 			if ( ! $preconditionResources )
@@ -1685,7 +1702,7 @@ class XBRL_Formulas extends Resource
 			$this->validateLabels( $taxonomy, $consistencyAssertion, $taxonomy->getDefaultLanguage() );
 
 			// linked consistency assertions
-			$consistencyAssertionArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleAssertionConsistencyFormula, $assertionResource['roleUri'], $assertionResource['resourceName'] );
+			$consistencyAssertionArcs = $taxonomy->getGenericArc( XBRL_Constants::$arcRoleAssertionConsistencyFormula, $assertionResource['roleUri'], $assertionResource['resourceName'], $consistencyAssertion->path );
 
 			$consistencyAssertionArcs = array_filter( $consistencyAssertionArcs, function( $arc ) use( $consistencyAssertion )
 			{
@@ -1748,7 +1765,7 @@ class XBRL_Formulas extends Resource
 							$parameterNames[] = $resource['name'];
 						}
 						return true;
-					}, $parameterArc['toRoleUri'], $parameterArc['to'] );
+					}, $parameterArc['toRoleUri'], $parameterArc['to'], $parameterArc['tolinkbase'] );
 
 					// Look for any parameters and add any found to the parameters list
 					foreach ( $parameterNames as $parameterName )

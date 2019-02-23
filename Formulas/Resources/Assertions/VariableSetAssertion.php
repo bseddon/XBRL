@@ -128,7 +128,7 @@ class VariableSetAssertion extends VariableSet
 	 */
 	private function getMessages( $arcRole, $lang = null )
 	{
-		$arcs = $this->xbrlTaxonomy->getGenericArc( $arcRole, $this->extendedLinkRoleUri, $this->label );
+		$arcs = $this->xbrlTaxonomy->getGenericArc( $arcRole, $this->extendedLinkRoleUri, $this->label, $this->path, null, $this->linkbase );
 
 		$messages = array();
 
@@ -141,7 +141,7 @@ class VariableSetAssertion extends VariableSet
 				// BMS 2019-02-11
 
 				// if ( $resource['label'] != $arc['to'] ) return true;
-				if ( $resource['path'] != $arc['topath'] ) return true;
+				if ( $resource['path'] != $arc['topath'] /* || $linkbase != $arc['linkbase'] */ ) return true;
 				if ( ! is_null( $lang ) )
 				{
 					if ( $resource['lang'] != $lang && $resource['lang'] != strstr( $lang, "-", true ) )
@@ -153,7 +153,7 @@ class VariableSetAssertion extends VariableSet
 				$messages[ $arc['to'] ] = $resource['message'];
 
 				return true;
-			}, $arc['toRoleUri'], $arc['to'] );
+			}, $arc['toRoleUri'], $arc['to'], $arc['tolinkbase'] );
 		}
 
 		return $messages;
@@ -169,7 +169,7 @@ class VariableSetAssertion extends VariableSet
 		$this->satisfiedMessages = $this->getMessages( \XBRL_Constants::$arcRoleAssertionSatisfiedMessage, $lang );
 		$this->unsatisfiedMessages = $this->getMessages( \XBRL_Constants::$arcRoleAssertionUnsatisfiedMessage, $lang );
 
-		$severityArcs = $this->xbrlTaxonomy->getGenericArc( \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity, $this->extendedLinkRoleUri, $this->label );
+		$severityArcs = $this->xbrlTaxonomy->getGenericArc( \XBRL_Constants::$arcRoleAssertionUnsatisfiedSeverity, $this->extendedLinkRoleUri, $this->label, $this->path, null, $this->linkbase );
 
 		foreach ( $severityArcs as $arc )
 		{
@@ -179,6 +179,7 @@ class VariableSetAssertion extends VariableSet
 			$this->xbrlTaxonomy->getGenericResource( 'resource', 'severity', function( $roleUri, $linkbase, $variableSetName, $index, $resource ) use( &$arc )
 			{
 				// if ( $resource['label'] != $arc['to'] ) return true;
+				// if ( $linkbase != $arc['linkbase'] ) return true;
 
 				switch( $resource['label'] )
 				{
@@ -196,7 +197,7 @@ class VariableSetAssertion extends VariableSet
 				}
 
 				return true;
-			}, $arc['toRoleUri'] , $arc['to'] );
+			}, $arc['toRoleUri'] , $arc['to'], $arc['tolinkbase'] );
 		}
 
 		return true;

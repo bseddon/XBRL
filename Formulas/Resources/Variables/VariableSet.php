@@ -223,12 +223,6 @@ class VariableSet extends Resource
 	public $base = "";
 
 	/**
-	 * The linkbase that defines this variable set
-	 * @var string $linkbase
-	 */
-	public $linkbase = "";
-
-	/**
 	 * A list of messages indexed by arc role
 	 * @var array $messages
 	 */
@@ -257,7 +251,7 @@ class VariableSet extends Resource
 			'type' => 'variableset',
 			'variablesetType' => 'variableSet',
 			'label' => $label,
-			'namespace' => $domNode->namespaceURI
+			'namespace' => $domNode->namespaceURI,
 		);
 
 		// $attributes = $node->attributes();

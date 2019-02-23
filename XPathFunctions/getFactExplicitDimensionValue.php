@@ -200,7 +200,8 @@ function getFactExplicitDimensionValue( $context, $provider, $args )
 				// The default value should agree with the member argument
 				$dimension = $dimTaxonomy->context->dimensionDefaults[ $dimKey ];
 
-				$element = $dimTaxonomy->getElementById( ltrim( strstr( $dimension['label'], "#" ), "#" ) );
+				$memberTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $dimension['label'] );
+				$element = $memberTaxonomy->getElementById( ltrim( strstr( $dimension['label'], "#" ), "#" ) );
 				$result = QNameValue::fromNCName( "{$dimTaxonomy->getPrefix()}:{$element['name']}", $context->NamespaceManager );
 				return $result;
 			}
@@ -219,6 +220,8 @@ function getFactExplicitDimensionValue( $context, $provider, $args )
 	{
 		// Do nothing
 	}
+
+	if ( isset( $ex ) )	\XBRL_Log::getInstance()->debug( $ex->getTraceAsString() );
 
 	throw XPath2Exception::withErrorCode( "XPTY0004", Resources::GeneralXFIFailure );
 }

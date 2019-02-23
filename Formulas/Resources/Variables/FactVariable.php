@@ -1347,10 +1347,12 @@ class FactVariable extends Variable
 
 		// BMS 2019-02-11 This might need turning inside-out so the arc are read and the resources filtered.
 		//                This is how other look ups work.
-		$equalityDefinitionResources = $taxonomy->getGenericResource( 'equality', 'equalityDefinition' );
+		// BMS 2019-02-22 No it doesn't because the equality definition is linked to the dimension member not this variable
+		$equalityDefinitionResources = $taxonomy->getGenericResource( 'equality', 'equalityDefinition', null, null, null );
 		foreach ( $equalityDefinitionResources as $equalityDefinitionResource )
 		{
-			$equalityDefinitionArcs = $taxonomy->getGenericArc( \XBRL_Constants::$arcRoleVariableEqualityDefinition, $equalityDefinitionResource['roleUri'] );
+			// BMS 2019-02-21 TODO Filter resources by linkbase
+			$equalityDefinitionArcs = $taxonomy->getGenericArc( \XBRL_Constants::$arcRoleVariableEqualityDefinition, $equalityDefinitionResource['roleUri'], null, $this->path, null, $equalityDefinitionResource['linkbase'] );
 			$domainRefArcs = array_filter( $equalityDefinitionArcs, function( $arc ) use( $domainRef )
 			{
 				return $arc['from'] == $domainRef;
