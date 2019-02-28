@@ -82,8 +82,14 @@ function getConceptDataTypeDerivedFrom( $context, $provider, $args )
 		{
 			throw new \InvalidArgumentException( "XBRL taxonomy in context not valid" );
 		}
+		$argTaxonomy = $taxonomy->getTaxonomyForNamespace($args[0]->NamespaceUri);
+		if ( ! $argTaxonomy )
+		{
+			throw new \InvalidArgumentException( "XBRL taxonomy in context not valid" );
+		}
 
-		$taxonomyElement = $taxonomy->getElementByName( $args[0]->LocalName );
+		$taxonomyElement = $argTaxonomy->getElementByName( $args[0]->LocalName );
+
 		if ( ! $taxonomyElement || ! isset( $taxonomyElement['substitutionGroup'] ) || empty( $taxonomyElement['substitutionGroup'] ) )
 		{
 			throw XPath2Exception::withErrorCode( "xfie:invalidConceptQName", "Not a valid XBRL concept: does not have a substitution group" );
@@ -108,7 +114,7 @@ function getConceptDataTypeDerivedFrom( $context, $provider, $args )
 			{
 				throw new \InvalidArgumentException( "A schema for '{$baseType->NamespaceUri}' does not exist" );
 			}
-			$type->Prefix = $taxonomy->getPrefix();
+			$baseType->Prefix = $taxonomy->getPrefix();
 		}
 
 		$baseTypeName = (string)$baseType;
