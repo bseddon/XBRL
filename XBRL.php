@@ -455,6 +455,16 @@ class XBRL {
 	private $loadedFromJSON						= false;
 
 	/**
+	 * Reset the static arrays
+	 */
+	public static function reset()
+	{
+		XBRL::$namespace_to_class_map = array();
+		XBRL::$entrypoints_to_class_map	= array();
+		XBRL::$xsd_to_compiled_map = array();
+	}
+
+	/**
 	 * Return the valiation state
 	 * @return boolean
 	 */
@@ -727,6 +737,7 @@ class XBRL {
 		}
 
 		$xbrl = XBRL::fromJSON( $json, dirname( $file ) );
+
 		if ( $xbrl === false )
 		{
 			XBRL_Log::getInstance()->err( "The taxonomy DTS contained in the file could not be created" );
@@ -1388,6 +1399,7 @@ class XBRL {
 	public static function fromJSON( $json, $compiledFolder = null )
 	{
 		$store = json_decode( $json, true );
+
 		if ( json_last_error() !== JSON_ERROR_NONE )
 		{
 			$error = XBRL::json_last_error_msg();
@@ -6217,7 +6229,7 @@ class XBRL {
 								if ( ! is_null( $fromPath ) && $fromPath != $arc['frompath'] ) continue;
 								if ( ! is_null( $arcLinkbase ) && $arcLinkbase != $arc['linkbase'] ) continue;
 								if ( ! is_null( $fromLinkbase ) && $fromLinkbase != $arc['fromlinkbase'] ) continue;
-								if ( ! is_null( $toLinkbase ) && $toLinkbase != $arc['fromlinkbase'] ) continue;
+								if ( ! is_null( $toLinkbase ) && $toLinkbase != $arc['tolinkbase'] ) continue;
 								$results[] = $arc;
 							}
 						}
