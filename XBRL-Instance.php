@@ -219,6 +219,7 @@ class XBRL_Instance
 			$instance = new XBRL_Instance();
 			$instance->compiledLocation = $compiledLocation;
 			$instance->className = $className;
+
 			if ( ! $instance->initialise( $instance_document, null, $useCache ) )
 			{
 				return false;
@@ -1272,7 +1273,11 @@ class XBRL_Instance
 					}
 				}
 
-				$xbrl = XBRL::load_taxonomy( $taxonomy_files );
+				if ( ! $xbrl )
+				{
+					$xbrl = XBRL::load_taxonomy( $taxonomy_files );
+				}
+
 				if ( ! $xbrl )
 				{
 					XBRL_Log::getInstance()->instance_validation( "Taxonomy", "Unable to load the taxonomy", array( 'taxonomies' => implode( ',', $taxonomy_files ) ) );
