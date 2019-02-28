@@ -43,6 +43,7 @@ use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Undefined;
 use XBRL\Formulas\Exceptions\FormulasException;
 use XBRL\Formulas\Resources\Resource;
+use lyquidity\xml\interfaces\IXmlSchemaType;
 
  /**
   * A class to process a formula definitions
@@ -213,7 +214,9 @@ class ValueAssertion extends VariableSetAssertion
 							? $var
 							: ( $var instanceof Undefined
 									? ""
-									: ( is_object( $var ) ? $var->getTypedValue() : $var ) )
+									: ( $var instanceof IXmlSchemaType
+										? $var
+										: ( is_object( $var ) ? $var->getTypedValue() : $var ) ) )
 					  );
 			}
 
