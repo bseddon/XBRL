@@ -1319,7 +1319,7 @@ class XBRL_Instance
 
 		// Load any schemas specified in the schema location attribute.  Not sure if
 		// this should come before or after processing the schemaRef value
-		if ( ! $taxonomy_file && isset( $xsiAttributes['schemaLocation'] ) )
+		if ( /* ! $taxonomy_file && */ isset( $xsiAttributes['schemaLocation'] ) )
 		{
 			$parts = array_filter( preg_split( "/\s/s",  (string)$xsiAttributes['schemaLocation'] ) );
 
@@ -2791,12 +2791,15 @@ class XBRL_Instance
 			$priority	= property_exists( $attributes, 'priority' ) ? (string) $attributes->priority	: "0";
 			$use		= property_exists( $attributes, 'use' ) 	 ? (string) $attributes->use		: "optional";
 			$order		= property_exists( $attributes, 'order' ) 	 ? (string) $attributes->order		: "1";
+			$title		= '';
+			$show		= '';
+			$actuate	= '';
 
 			$arcRoles = array( 'footnote' => $toLabel ); // Might this ever use a custom role?
 
-			if ( property_exists( $xlinkAttributes, 'title' ) )	$label['title']		= $xlinkAttributes->title;
-			if ( property_exists( $xlinkAttributes, 'show' ) )	$label['show']		= $xlinkAttributes->show;
-			if ( property_exists( $xlinkAttributes, 'actuate' ) )	$label['actuate']	= $xlinkAttributes->actuate;
+			if ( property_exists( $xlinkAttributes, 'title' ) )	$title = $xlinkAttributes->title;
+			if ( property_exists( $xlinkAttributes, 'show' ) )	$show = $xlinkAttributes->show;
+			if ( property_exists( $xlinkAttributes, 'actuate' ) ) $actuate = $xlinkAttributes->actuate;
 
 			foreach ( $from as $href )
 			{
