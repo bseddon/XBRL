@@ -202,7 +202,7 @@ function getFactExplicitDimensionValue( $context, $provider, $args )
 
 				$memberTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $dimension['label'] );
 				$element = $memberTaxonomy->getElementById( ltrim( strstr( $dimension['label'], "#" ), "#" ) );
-				$result = QNameValue::fromNCName( "{$dimTaxonomy->getPrefix()}:{$element['name']}", $context->NamespaceManager );
+				$result = QNameValue::fromNCName( "{$memberTaxonomy->getPrefix()}:{$element['name']}", $context->NamespaceManager );
 				return $result;
 			}
 		}
