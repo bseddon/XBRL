@@ -211,7 +211,12 @@ function getFactHasExplicitDimensionValue( $context, $provider, $args )
 
 				// Make sure the requested member is one of the members
 				$memTaxonomy = $taxonomy->getTaxonomyForNamespace( $args[2]->NamespaceUri );
-				$memElement = $dimTaxonomy->getElementByName( $args[2]->LocalName );
+				if ( ! $memTaxonomy )
+				{
+					return false;
+				}
+
+				$memElement = $memTaxonomy->getElementByName( $args[2]->LocalName );
 				if ( ! $memElement )
 				{
 					return false;
