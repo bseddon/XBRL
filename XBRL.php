@@ -17657,11 +17657,11 @@ class XBRL {
 		$targetIsUrl = filter_var( $target, FILTER_VALIDATE_URL );
 
 		// Absolute
-		if ( filter_var( $target, FILTER_VALIDATE_URL ) || ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' && ( $target[1] === ':' || substr( $target, 0, 2 ) === '\\\\' ) ) )
+		if ( $target && ( filter_var( $target, FILTER_VALIDATE_URL ) || ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' && ( $target[1] === ':' || substr( $target, 0, 2 ) === '\\\\' ) ) ) )
 			$path = $target;
 
 		// Relative to root
-		elseif ( $target[0] === '/' || $target[0] === '\\' )
+		elseif ( $target && ( $target[0] === '/' || $target[0] === '\\' ) )
 		{
 			$root = XBRL::get_schema_root( $source );
 			$path = $root . $target;
