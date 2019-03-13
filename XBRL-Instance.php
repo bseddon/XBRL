@@ -1193,7 +1193,9 @@ class XBRL_Instance
 				{
 					$schemaFilename = $mapUrl( $schemaFilename );
 				}
-				$resolvedPath = XBRL::resolve_path( $this->document_name, $schemaFilename );
+
+				// BMS 2019-03-10 Moved down
+				// $resolvedPath = XBRL::resolve_path( $this->document_name, $schemaFilename );
 
 				// Maybe a base as well
 				$attributes = $schemaRef->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
@@ -1206,6 +1208,9 @@ class XBRL_Instance
 					$base .= '/';
 				}
 
+				// BMS 2019-03-10 Moved from above
+				$resolvedPath = XBRL::resolve_path( $this->document_name, $base . $schemaFilename );
+
 				// The schema may have been loaded already for example by a custom linkbase definition
 				// $xsd = pathinfo( $resolvedPath, PATHINFO_BASENAME );
 				if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $resolvedPath ] ) )
@@ -1214,13 +1219,15 @@ class XBRL_Instance
 					continue;
 				}
 
-				$path = pathinfo( $instance_document, PATHINFO_DIRNAME ) . "/" . $base . basename( $resolvedPath );
-				if ( ! file_exists( $path ) )
-				{
-					$path = $resolvedPath;
-				}
+				// BMS 2019-03-10 Why is a local file being used?
+				// $path = pathinfo( $instance_document, PATHINFO_DIRNAME ) . "/" . $base . basename( $resolvedPath );
+				// if ( ! file_exists( $path ) )
+				// {
+				// $path = $resolvedPath;
+				// }
 
-				$taxonomy_files[] = $path;
+				// $taxonomy_files[] = $path;
+				$taxonomy_files[] = $resolvedPath;
 				unset($xlinkAttributes );
 
 			}
