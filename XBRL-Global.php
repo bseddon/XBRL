@@ -416,6 +416,37 @@ class XBRL_Global
 	}
 
 	/**
+	 * Removes any cached file and directories
+	 * @return boolean True if the directory exists and has been deleted
+	 */
+	public function removeCache()
+	{
+		if ( ! $this->useCache || ! $this->cacheLocation ) return false;
+
+		if ( ! is_dir( $this->cacheLocation ) ) return false;
+
+		$rmrf = function ($dir) use ( &$rmrf )
+		{
+		    foreach ( glob( $dir ) as $file )
+		    {
+		        if ( is_dir( $file ) )
+		        {
+		            $rmrf( "$file/*" );
+		            rmdir( $file );
+		        }
+		        else
+		        {
+		            unlink( $file );
+		        }
+		    }
+		};
+
+		$rmrf( $this->cacheLocation );
+
+		return true;
+	}
+
+	/**
 	 * Reset the cache of primary items
 	 * @return void
 	 */
