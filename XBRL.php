@@ -10707,10 +10707,12 @@ class XBRL {
 											// The $from concept MUST be a primary declaration
 											if ( ! $this->isPrimaryItem( $fromTaxonomyElement ) )
 											{
-												$this->log()->dimension_validation( "2.5.3.3.1", "The source of a domain-member arc MUST be a primary item declaration [Def, 4]",
+												$this->log()->dimension_validation( "2.5.3.2.1", "The source of a domain-member arc MUST be a primary item declaration [Def, 4]",
 													array(
-														'concept' => "'$from'",
+														'source' => "'$from'",
+														'target' => "'$to'",
 														'substitutionGroup' => "'{$fromTaxonomyElement['substitutionGroup']}'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:DomainMemberSourceError',
 													)
 												);
@@ -10721,8 +10723,9 @@ class XBRL {
 											{
 												$this->log()->dimension_validation( "2.5.3.2.1", "The target of a domain-member arc MUST be a primary item declaration [Def, 7]",
 													array(
-														'concept' => "'$to'",
-														'substitutionGroup' => "'{$taxonomyElement['substitutionGroup']}'",
+														'source' => "'$from'",
+														'target' => "'$to'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:PrimaryItemPolymorphismError',
 													)
 												);
@@ -10734,10 +10737,12 @@ class XBRL {
 											// The $from concept MUST be a primary declaration
 											if ( ! $this->isPrimaryItem( $fromTaxonomyElement ) )
 											{
-												$this->log()->dimension_validation( "2.5.3.1.1", "The source of a dimension-domain arc MUST be a primary item declaration [Def, 4]",
+												$this->log()->dimension_validation( "2.5.3.2.1", "The source of a dimension-domain arc MUST be a primary item declaration [Def, 4]",
 													array(
-														'concept' => "'$from'",
+														'source' => "'$from'",
+														'target' => "'$to'",
 														'substitutionGroup' => "'{$fromTaxonomyElement['substitutionGroup']}'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:PrimaryItemPolymorphismError',
 													)
 												);
@@ -10748,8 +10753,10 @@ class XBRL {
 											{
 												$this->log()->dimension_validation( "2.5.3.1.1", "The target of a dimension-domain arc MUST be a primary item declaration [Def, 7]",
 													array(
-														'concept' => "'$to'",
+														'source' => "'$from'",
+														'target' => "'$to'",
 														'substitutionGroup' => "'{$taxonomyElement['substitutionGroup']}'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:PrimaryItemPolymorphismError',
 													)
 												);
@@ -10771,8 +10778,10 @@ class XBRL {
 											{
 												$this->log()->dimension_validation( "2.2.2.1", "The source of a hypercube-dimension arc MUST be a hypercube declaration [Def, 4]",
 													array(
-														'concept' => "'$from'",
+														'source' => "'$from'",
+														'target' => "'$to'",
 														'substitutionGroup' => "'{$fromTaxonomyElement['substitutionGroup']}'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:HypercubeDimensionSourceError',
 													)
 												);
@@ -10785,8 +10794,10 @@ class XBRL {
 											{
 												$this->log()->dimension_validation( "2.2.2.1", "The target of a hypercube-dimension arc MUST be a dimension declaration [Def, 7]",
 													array(
-														'concept' => "'$to'",
+														'source' => "'$from'",
+														'target' => "'$to'",
 														'substitutionGroup' => "'{$taxonomyElement['substitutionGroup']}'",
+														'linkbase' => $xml_basename,
 														'error' => 'xbrldte:HypercubeDimensionSourceError',
 													)
 												);
