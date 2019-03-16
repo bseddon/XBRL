@@ -495,6 +495,11 @@ class XBRL {
 	 */
 	public static function add_namespace_to_class_map_entries( $map_entries, $classname )
 	{
+		if ( is_string( $map_entries ) && ! empty( $map_entries ) )
+		{
+			$map_entries = array( $map_entries );
+		}
+
 		if ( ! is_array( $map_entries ) || count( $map_entries ) === 0 ) return;
 
 		XBRL::$namespace_to_class_map = array_merge( XBRL::$namespace_to_class_map, array_fill_keys( $map_entries, $classname ) );
@@ -4824,7 +4829,8 @@ class XBRL {
 			foreach ( $result[ $refKey ] as $arcroleKey => $arcrole )
 			{
 				// If the acrole type is defined, get the cycles allowed otherwise set it to be 'none'
-				$arcRoleRefs = $this->getArcroleTypes( $arcrole['href'] );
+				$arcRoleTaxonomy = $this->getTaxonomyForXSD( $arcrole['href'] );
+				$arcRoleRefs = $arcRoleTaxonomy->getArcroleTypes();
 				if ( $arcRoleRefs && isset( $arcRoleRefs['link:definitionArc'][ $arcroleKey ] ) )
 				{
 					$arcRoleRef = $arcRoleRefs['link:definitionArc'][ $arcroleKey ];
@@ -4838,7 +4844,7 @@ class XBRL {
 				}
 
 				// Add the description
-				$description = $this->getNonDimensionalArcRoleDescription( $arcroleKey );
+				$description = $arcRoleTaxonomy->getNonDimensionalArcRoleDescription( $arcroleKey );
 				$result[ $refKey ][ $arcroleKey ]['text'] = $description ? $description : "";
 
 				// Remove any prohibited arcs
@@ -10121,7 +10127,7 @@ class XBRL {
 			$hypercubes = array();
 
 			// BMS 2015-03-04
-			$home_taxonomy = strpos( $definitionRoleRef['href'], $taxonomy_base_name ) === false
+			$home_taxonomy = $definitionRoleRef['href'] && $taxonomy_base_name && strpos( $definitionRoleRef['href'], $taxonomy_base_name ) === false
 				? $this->getTaxonomyForXSD( $definitionRoleRef['href'] )
 				: $this;
 
