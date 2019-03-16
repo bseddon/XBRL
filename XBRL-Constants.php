@@ -984,6 +984,29 @@ class XBRL_Constants
 	 */
 	public static $arcRoleVariablesScope = "http://xbrl.org/arcrole/2010/variables-scope";
 
+	/** Conceptual model arc roles */
+
+	/**
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/class-subClass
+	 * @var string
+	 */
+	public static $arcRoleConceptualModeSubClass = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/class-subClass';
+	/**
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-allowedChildCategory
+	 * @var string
+	 */
+	public static $arcRoleConceptualModelAllowed = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-allowedChildCategory';
+	/**
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-disallowedChildCategory
+	 * @var string
+	 */
+	public static $arcRoleConceptualModeDisAllowed = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-disallowedChildCategory';
+	/**
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-discouragedChildCategory
+	 * @var string
+	 */
+	public static $arcRoleConceptualModeDiscouraged = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-discouragedChildCategory';
+
 	/* -----------------------------------------------------------------------------
 	 * Severity values
 	 * -----------------------------------------------------------------------------
@@ -1525,6 +1548,70 @@ class XBRL_Constants
 	 */
 	public static $labelRoleExampleGuidance		= "http://www.xbrl.org/2003/role/exampleGuidance";
 
+	/**
+	 * http://www.xbrl.org/2006/role/restatedLabel
+	 * @var string
+	 */
+	public static $labelRoleRestated = "http://www.xbrl.org/2006/role/restatedLabel";
+	/**
+	 * Conceptual model dimensions
+	 */
+
+	// Semantic categorization:
+	/**
+	 * Reporting Entity [Axis]
+	 */
+	public static $dfrReportingEntityAxis = "ReportingEntityAxis";
+	/**
+	 * Legal Entity [Axis],
+	 */
+	public static $dfrLegalEntityAxis = "LegalEntityAxis";
+	/**
+	 * Concept [Axis]
+	 */
+	public static $dfrConceptAxis = "ConceptAxis";
+	/**
+	 * Business Segment [Axis]
+	 */
+	public static $dfrBusinessSegmentAxis = "BusinessSegmentAxis";
+	/**
+	 * Geographic Area [Axis]
+	 */
+	public static $dfrGeographicAreaAxis = "GeographicAreaAxis";
+	/**
+	 * Operating Activities [Axis]
+	 */
+	public static $dfrOperatingActivitiesAxis = "OperatingActivitiesAxis";
+	/**
+	 * Instrument [Axis]
+	 */
+	public static $dfrInstrumentAxis = "InstrumentAxis";
+	/**
+	 * Range [Axis]
+	 */
+	public static $dfrRangeAxis = "RangeAxis";
+
+	// Content association:
+	/**
+	 * Reporting scenario [Axis]
+	 */
+	public static $dfrReportingscenarioAxis = "ReportingscenarioAxis";
+
+	// Temporal or time-based:
+	/**
+	 * Calendar Period [Axis]
+	 */
+	public static $dfrCalendarPeriodAxis = "CalendarPeriodAxis";
+
+	/**
+	 * Report Date [Axis]
+	 */
+	public static $dfrReportDateAxis = "ReportDateAxis";
+
+	/**
+	 * Fiscal Period [Axis]
+	 */
+	public static $dfrFiscalPeriodAxis = "FiscalPeriodAxis";
 
 	/* ------------------------------------------------------------------------------------------
 	 * Functions to check or return types
