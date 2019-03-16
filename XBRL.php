@@ -1393,6 +1393,17 @@ class XBRL {
 	}
 
 	/**
+	 * Gets an array containing a list of extra features supported usually by descendent implementation
+	 * @param string $feature (optional) If supplied just the array for the feature is returned or all
+	 * 									 features.  If supplied and not found an empty array is returned
+	 * @return array By default there are no additional features so the array is empty
+	 */
+	public function supportedFeatures( $feature = null)
+	{
+		return array();
+	}
+
+	/**
 	 * This is a special case constructor for the 'main' instance so
 	 * so additional processing can be done *after* the schemas have
 	 * been loaded
