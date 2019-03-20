@@ -182,9 +182,6 @@ class XBRL_DFR extends XBRL
 	private $presentationRoleRefs = array();
 
 	private $allowed = array();
-	private $axes = array();
-	private $lineItems = array();
-	private $tables = array();
 
 	/**
 	 * Validate the the taxonomy against the model structure rules
@@ -361,33 +358,37 @@ class XBRL_DFR extends XBRL
 
 			$calculationELRPIs = isset( $this->calculationPIs[ $elr ] ) ? $this->calculationPIs[ $elr ] : array();
 
-			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs );
+			$axes = array();
+			$lineItems = array();
+			$tables = array();
 
-			if ( $this->definitionRoleRefs && count( $this->tables ) != 1 )
+			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes );
+
+			if ( $this->definitionRoleRefs && count( $tables ) != 1 )
 			{
 				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one table per network',
 					array(
-						'tables' => implode( ', ', $this->tables ),
+						'tables' => implode( ', ', $tables ),
 						'role' => $elr,
 						'error' => 'error:MustBeOnlyOneTablePerNetwork'
 					)
 				);
 			}
 
-			if ( $this->definitionRoleRefs && count( $this->lineItems ) != 1 )
+			if ( $this->definitionRoleRefs && count( $lineItems ) != 1 )
 			{
 				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one line items node per table',
 					array(
-						'lineitems' => implode( ', ', $this->lineItems ),
+						'lineitems' => implode( ', ', $lineItems ),
 						'role' => $elr,
 						'error' => 'error:MoreThanOneTable'
 					)
 				);
 			}
 
-			$role['axes'] = $this->axes;
-			$role['tables'] = $this->tables;
-			$role['lineitems'] = $this->lineItems;
+			$role['axes'] = $axes;
+			$role['tables'] = $tables;
+			$role['lineitems'] = $lineItems;
 		}
 
 		unset( $role );
@@ -537,17 +538,20 @@ class XBRL_DFR extends XBRL
 
 	/**
 	 * Process the nodes for an ELR.  Returns the pattern type name for the block
-	 * @param unknown $nodes A standard node hierarchy
-	 * @param unknown $parentLabel The label of the node that owns $nodes
-	 * @param unknown $parentIsAbstract True is the parent node is an abstract node
-	 * @param unknown $validNodeTypes A list of node types allowed for these nodes
-	 * @param unknown $underLineItems True if the set of nodes a descendent of a line items node
-	 * @param unknown $calculationELRPIs (ref) An array containing labels of calculation primary items
-	 * @param unknown $elr The current extended link role being processed
-	 * @param unknown $presentationRollupPIs (ref) A variable used to capture the priamry items used in rollup blocks
+	 * @param array		$noes A standard node hierarchy
+	 * @param string	$parentLabel The label of the node that owns $nodes
+	 * @param boolean	$parentIsAbstract True is the parent node is an abstract node
+	 * @param array		$validNodeTypes A list of node types allowed for these nodes
+	 * @param boolean	$underLineItems True if the set of nodes a descendent of a line items node
+	 * @param array		$calculationELRPIs (ref) An array containing labels of calculation primary items
+	 * @param string	$elr The current extended link role being processed
+	 * @param array		$presentationRollupPIs (ref) A variable used to capture the priamry items used in rollup blocks
+	 * @param array		$tables (ref)
+	 * @param array		$lineItems (ref)
+	 * @param array		$axes (ref)
 	 * @return string
 	 */
-	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs )
+	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes )
 	{
 		$possiblePatternTypes = array();
 		$patternType = ''; // Default pattern
@@ -597,7 +601,7 @@ class XBRL_DFR extends XBRL
 						$ok |= $taxonomy->context->types->resolveToSubstitutionGroup( $element['substitutionGroup'], array( XBRL_Constants::$xbrldtHypercubeItem ) );
 						if ( $ok )
 						{
-							$this->tables[] = $label;
+							$tables[] = $label;
 						}
 						break;
 
@@ -605,7 +609,7 @@ class XBRL_DFR extends XBRL
 						$ok |= $taxonomy->context->types->resolveToSubstitutionGroup( $element['substitutionGroup'], array( XBRL_Constants::$xbrldtDimensionItem ) );
 						if ( $ok )
 						{
-							$this->axes[ $label ] = array( 'dimension' => new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] ) );
+							$axes[ $label ] = array( 'dimension' => new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] ) );
 						}
 						break;
 
@@ -616,7 +620,7 @@ class XBRL_DFR extends XBRL
 						$ok |= /* $element['abstract'] && */ $element['type'] == 'nonnum:domainItemType' && isset( $this->definitionRoleRefs[ $elr ]['members'][ $label ] );
 						if ( $ok )
 						{
-							$this->axes[ $parentLabel ]['members'][ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
+							$axes[ $parentLabel ]['members'][ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
 						}
 						break;
 
@@ -627,7 +631,7 @@ class XBRL_DFR extends XBRL
 							if ( $item && ! isset( $item['parents'] ) ) // a line item is a root primary item node
 							{
 								$ok = true;
-								$this->lineItems[ $parentLabel ] = $label;
+								$lineItems[ $parentLabel ] = $label;
 							}
 							unset( $item);
 						}
@@ -765,7 +769,7 @@ class XBRL_DFR extends XBRL
 									if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_DFR::$originallyStatedLabel )
 									{
 										// MUST be an instant period type and have a report date axis
-										if ( $element['periodType'] == 'instant' && $this->hasAxis( 'ReportDateAxis', $this->axes ) )
+										if ( $element['periodType'] == 'instant' && $this->hasAxis( 'ReportDateAxis', $axes ) )
 										{
 											$possiblePatternTypes[] = 'adjustment';
 										}
@@ -865,7 +869,7 @@ class XBRL_DFR extends XBRL
 			$isLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
 			$isAbstract = $node['modelType'] == 'cm.xsd#cm_Abstract';
 			$underLineItems |= $isLineItems;
-			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs );
+			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes );
 			$node['patterntype'] = $result;
 
 			if ( $underLineItems && ( $isAbstract || $isLineItems ) && ! $result )
@@ -877,13 +881,13 @@ class XBRL_DFR extends XBRL
 			{
 				// May be a variance
 				// See if there is a report scenario axis
-				$node['variance'] = $this->hasAxis( 'ReportingScenarioAxis', $this->axes );
+				$node['variance'] = $this->hasAxis( 'ReportingScenarioAxis', $axes );
 				$node['grid'] = false;
 
 				// If not a variance then maybe a grid?
 				if ( ! $node['variance'] )
 				{
-					$otherAxes = array_filter( $this->axes, function( $axis )
+					$otherAxes = array_filter( $axes, function( $axis )
 					{
 						return isset( $axis['dimension'] ) && ( ! in_array( $axis['dimension']->localName, $this->axesToExclude ) );
 					} );
