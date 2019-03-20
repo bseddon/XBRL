@@ -351,18 +351,31 @@ class XBRL_Formulas extends Resource
 
 		XBRL_Instance::reset();
 
-		// Begin loading the namespaces
-		$this->addNamespaces( array( XBRL_Constants::$standardPrefixes, $additionalNamespaces, $taxonomy->getDocumentNamespaces() ) );
+		// BMS 2018-12-13
+		$schemasWithFormulas = array_filter( $instanceTaxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
 
-		// Set the instance
-		$this->instanceQName = qname( "instances:standard-input-instance", $this->nsMgr->getNamespaces() );
-		$this->instanceQNames[ $this->instanceQName->localName ] = $this->instanceQName;
-		$this->instances[ $this->instanceQName->clarkNotation() ] = null;
+		// // For now, take just one of the taxonomies with formulas
+		// // $taxonomy = reset( $schemasWithFormulas );
 
-		if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
+		$result = true;
+		foreach ( $schemasWithFormulas as $namespace => $taxonomy )
 		{
-			return false;
+			// Begin loading the namespaces
+			$this->addNamespaces( array( XBRL_Constants::$standardPrefixes, $additionalNamespaces, $taxonomy->getDocumentNamespaces() ) );
+
+			// Set the instance
+			$this->instanceQName = qname( "instances:standard-input-instance", $this->nsMgr->getNamespaces() );
+			$this->instanceQNames[ $this->instanceQName->localName ] = $this->instanceQName;
+			$this->instances[ $this->instanceQName->clarkNotation() ] = null;
+
+			if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
+			{
+				// return false;
+				$result = false;
+			}
 		}
+
+		return $result;
 	}
 
 	/**
