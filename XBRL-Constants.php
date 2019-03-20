@@ -1552,7 +1552,7 @@ class XBRL_Constants
 	 * http://www.xbrl.org/2006/role/restatedLabel
 	 * @var string
 	 */
-	public static $labelRoleRestated = "http://www.xbrl.org/2006/role/restatedLabel";
+	public static $labelRoleRestatedLabel = "http://www.xbrl.org/2006/role/restatedLabel";
 	/**
 	 * Conceptual model dimensions
 	 */
@@ -1595,7 +1595,7 @@ class XBRL_Constants
 	/**
 	 * Reporting scenario [Axis]
 	 */
-	public static $dfrReportingscenarioAxis = "ReportingscenarioAxis";
+	public static $dfrReportingScenarioAxis = "ReportingScenarioAxis";
 
 	// Temporal or time-based:
 	/**
