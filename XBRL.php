@@ -3771,6 +3771,35 @@ class XBRL {
 	}
 
 	/**
+	 * Returns an array of preferred label pairs.  In the base XBRL instance is only the PeriodStart/PeriodEnd pair.
+	 * @return string[][]
+	 */
+	public function getBeginEndPreferredLabelPairs()
+	{
+		return array(
+			array(
+				XBRL_Constants::$labelRolePeriodStartLabel,
+				XBRL_Constants::$labelRolePeriodEndLabel,
+			)
+		);
+	}
+
+	/**
+	 * Returns an array of a preferred label pair if $preferredLabel is among the supported pairs
+	 * @param array $preferredLabel
+	 * return string[]
+	 */
+	public function getBeginEndPreferredLabelPair( $preferredLabel )
+	{
+		if ( ! $preferredLabel ) return false;
+
+		return array_filter( $this->getBeginEndPreferredLabelPairs(), function( $pair ) use( $preferredLabel )
+		{
+			return in_array( $preferredLabel, $pair );
+		} );
+	}
+
+	/**
 	 * Returns the flag indicating whether or not the taxonomy includes formulas
 	 * @param bool $checkAllSchemas (optional) Forces the test to look at all taxonomies and return true if any one taxonomy has formulas
 	 * @return boolean
@@ -12159,7 +12188,8 @@ class XBRL {
 				// This kludge looks for the condition that the preferred label is start
 				// or end.  If it is, then the task is to modify the 'to' label and also
 				// update the corresponding locator so it finds the new label.
-				if ( in_array( $preferredLabel, array( XBRL_Constants::$labelRolePeriodStartLabel, XBRL_Constants::$labelRolePeriodEndLabel ) ) )
+				// if ( in_array( $preferredLabel, array( XBRL_Constants::$labelRolePeriodStartLabel, XBRL_Constants::$labelRolePeriodEndLabel ) ) )
+				if ( $this->getBeginEndPreferredLabelPair( $preferredLabel ) )
 				{
 					// Resolve the toLabel...
 					$href = $locators[ $toLabel ];
