@@ -352,7 +352,7 @@ class XBRL_Formulas extends Resource
 		XBRL_Instance::reset();
 
 		// BMS 2018-12-13
-		$schemasWithFormulas = array_filter( $instanceTaxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
+		$schemasWithFormulas = array_filter( $taxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
 
 		// // For now, take just one of the taxonomies with formulas
 		// // $taxonomy = reset( $schemasWithFormulas );
