@@ -177,9 +177,9 @@ class XBRL_DFR extends XBRL
 	private $calculationPIs = array();
 	private $definitionPIs = array();
 
-	private $calculationRoleRefs = array();
-	private $definitionRoleRefs = array();
-	private $presentationRoleRefs = array();
+	private $calculationNetworks = array();
+	private $definitionNetworks = array();
+	private $presentationNetworks = array();
 
 	private $allowed = array();
 
@@ -192,10 +192,12 @@ class XBRL_DFR extends XBRL
 	{
 		$log = XBRL_Log::getInstance();
 
-		$this->calculationRoleRefs = array();
+		// Makes sure they are reset in case the same taxonomy is validated twice.
+		$this->calculationNetworks = array();
+		$this->presentationNetworks = array();
 
-		$this->definitionRoleRefs = $this->getDefinitionRoleRefs();
-		foreach ( $this->definitionRoleRefs as $elr => $roleRef )
+		$this->definitionNetworks = $this->getAllDefinitionRoles();
+		foreach ( $this->definitionNetworks as $elr => &$roleRef )
 		{
 			$roleRef = $this->getDefinitionRoleRef( $elr );
 
@@ -226,6 +228,8 @@ class XBRL_DFR extends XBRL
 					);
 				}
 
+				// BMS 2019-03-23 TODO typed members MUST NOT use complex types
+
 				unset( $memberTaxonomy );
 				unset( $memberElement );
 			}
@@ -237,7 +241,7 @@ class XBRL_DFR extends XBRL
 				{
 					if ( ! $primaryItem['closed'] )
 					{
-						if ( ! isset( $this->definitionRoleRefs[ $elr ]['primaryitems'][ $primaryItemLabel ]['parents']  ) ) // Only report the error on the line items node
+						if ( ! isset( $this->definitionNetworks[ $elr ]['primaryitems'][ $primaryItemLabel ]['parents']  ) ) // Only report the error on the line items node
 						{
 							$log->business_rules_validation('Model Structure Rules', 'All line items to hypercubes MUST be closed',
 								array(
@@ -277,9 +281,11 @@ class XBRL_DFR extends XBRL
 			}
 		}
 
-		$this->calculationRoleRefs = $this->getCalculationRoleRefs();
-		$this->calculationRoleRefs = array_filter( $this->calculationRoleRefs, function( $roleRef ) { return isset( $roleRef['calculations'] ); } );
-		foreach ( $this->calculationRoleRefs as $elr => $role )
+		unset( $roleRef );
+
+		$this->calculationNetworks = $this->getCalculationRoleRefs();
+		$this->calculationNetworks = array_filter( $this->calculationNetworks, function( $roleRef ) { return isset( $roleRef['calculations'] ); } );
+		foreach ( $this->calculationNetworks as $elr => $role )
 		{
 			if ( ! isset( $role['calculations'] ) ) continue;
 
@@ -296,26 +302,26 @@ class XBRL_DFR extends XBRL
 			unset( $calculationELRPIs );
 		}
 
-		$this->presentationRoleRefs = &$this->getPresentationRoleRefs();
+		$this->presentationNetworks = &$this->getPresentationRoleRefs();
 
 		// Check the definition and presentation roles are consistent then make sure the calculation roles are a sub-set
-		if ( $this->definitionRoleRefs && array_diff_key( $this->presentationRoleRefs, $this->definitionRoleRefs ) || array_diff_key( $this->definitionRoleRefs, $this->presentationRoleRefs ) )
+		if ( $this->definitionNetworks && array_diff_key( $this->presentationNetworks, $this->definitionNetworks ) || array_diff_key( $this->definitionNetworks, $this->presentationNetworks ) )
 		{
 			$log->business_rules_validation('Model Structure Rules', 'Networks in defintion and presentation linkbases MUST be the same',
 				array(
-					'presentation' => implode( ', ', array_keys( array_diff_key( $this->presentationRoleRefs, $this->definitionRoleRefs ) ) ),
-					'definition' => implode( ', ', array_keys( array_diff_key( $this->definitionRoleRefs, $this->presentationRoleRefs ) ) ),
+					'presentation' => implode( ', ', array_keys( array_diff_key( $this->presentationNetworks, $this->definitionNetworks ) ) ),
+					'definition' => implode( ', ', array_keys( array_diff_key( $this->definitionNetworks, $this->presentationNetworks ) ) ),
 					'error' => 'error:HypercubeMustUseAllArcrole'
 				)
 			);
 		}
 		else
 		{
-			if ( array_diff_key( $this->calculationRoleRefs, $this->presentationRoleRefs ) )
+			if ( array_diff_key( $this->calculationNetworks, $this->presentationNetworks ) )
 			{
 				$log->business_rules_validation('Model Structure Rules', 'Networks in calculation linkbases MUST be a sub-set of those definition and presentation linkbases',
 					array(
-						'calculation' => implode( ', ', array_keys( array_diff_key( $this->calculationRoleRefs, $this->presentationRoleRefs ) ) ),
+						'calculation' => implode( ', ', array_keys( array_diff_key( $this->calculationNetworks, $this->presentationNetworks ) ) ),
 						'error' => 'error:HypercubeMustUseAllArcrole'
 					)
 				);
@@ -324,8 +330,10 @@ class XBRL_DFR extends XBRL
 
 		$presentationRollupPIs = array();
 
-		foreach ( $this->presentationRoleRefs as $elr => &$role )
+		foreach ( $this->presentationNetworks as $elr => &$role )
 		{
+			$this->presentationPIs[$elr] = array();
+
 			foreach ( $role['locators'] as $id => $label )
 			{
 				$taxonomy = $this->getTaxonomyForXSD( $label );
@@ -335,6 +343,8 @@ class XBRL_DFR extends XBRL
 
 				// One or more of the labels may include the preferred label role so convert all PIs back to their id
 				$this->presentationPIs[$elr][] = $taxonomy->getTaxonomyXSD() . "#{$element['id']}";
+
+				// BMS 2019-03-23 TODO Check the concept is not a tuple
 			}
 
 			// If there were preferred label roles in any of the PIs then there will be duplicates.  This also sorts the list.
@@ -361,10 +371,11 @@ class XBRL_DFR extends XBRL
 			$axes = array();
 			$lineItems = array();
 			$tables = array();
+			$concepts = array();
 
-			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes );
+			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts );
 
-			if ( $this->definitionRoleRefs && count( $tables ) != 1 )
+			if ( $this->definitionNetworks && count( $tables ) != 1 )
 			{
 				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one table per network',
 					array(
@@ -375,13 +386,13 @@ class XBRL_DFR extends XBRL
 				);
 			}
 
-			if ( $this->definitionRoleRefs && count( $lineItems ) != 1 )
+			if ( $this->definitionNetworks && count( $lineItems ) != 1 )
 			{
 				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one line items node per table',
 					array(
 						'lineitems' => implode( ', ', $lineItems ),
 						'role' => $elr,
-						'error' => 'error:MoreThanOneTable'
+						'error' => 'error:OneAndOnlyOneLineItems'
 					)
 				);
 			}
@@ -389,6 +400,7 @@ class XBRL_DFR extends XBRL
 			$role['axes'] = $axes;
 			$role['tables'] = $tables;
 			$role['lineitems'] = $lineItems;
+			$role['concepts'] = $concepts;
 		}
 
 		unset( $role );
@@ -440,7 +452,7 @@ class XBRL_DFR extends XBRL
 			}
 		}
 
-		return $this->presentationRoleRefs;
+		return $this->presentationNetworks;
 	}
 
 	/**
@@ -479,6 +491,7 @@ class XBRL_DFR extends XBRL
 	 * Return the label of an axis if it exists in $axes or false
 	 * @param string $axisName
 	 * @param array $axes
+	 * @return string|boolean
 	 */
 	private function hasAxis( $axisName, $axes )
 	{
@@ -504,13 +517,13 @@ class XBRL_DFR extends XBRL
 	 */
 	private function hasHypercubeItem( $label, $elr, $parentLabel, $source = 'primaryitems', $recurse = true )
 	{
-		// if ( ! isset( $this->definitionRoleRefs[ $elr ] ) ) $this->definitionRoleRefs[ $elr ] = $this->getDefinitionRoleRef( $elr );
-		if ( isset( $this->definitionRoleRefs[ $elr ][ $source ][ $label ] ) ) return $this->definitionRoleRefs[ $elr ][ $source ][ $label ];
+		// if ( ! isset( $this->definitionNetworks[ $elr ] ) ) $this->definitionNetworks[ $elr ] = $this->getDefinitionRoleRef( $elr );
+		if ( isset( $this->definitionNetworks[ $elr ][ $source ][ $label ] ) ) return $this->definitionNetworks[ $elr ][ $source ][ $label ];
 
 		if ( $recurse )
 		{
 			// If not check for the label in a different ELR
-			foreach ( $this->definitionRoleRefs as $elr2 => &$role )
+			foreach ( $this->definitionNetworks as $elr2 => &$role )
 			{
 				// Ignore the same ELR
 				if ( $elr == $elr2 ) continue;
@@ -549,9 +562,10 @@ class XBRL_DFR extends XBRL
 	 * @param array		$tables (ref)
 	 * @param array		$lineItems (ref)
 	 * @param array		$axes (ref)
+	 * @param array		$concepts (ref)
 	 * @return string
 	 */
-	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes )
+	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes, &$concepts )
 	{
 		$possiblePatternTypes = array();
 		$patternType = ''; // Default pattern
@@ -617,7 +631,7 @@ class XBRL_DFR extends XBRL
 
 						// Q Which test need the condition: $element['type'] == 'nonnum:domainItemType'
 						// A 3000 01-MemberAbstractAttribute
-						$ok |= /* $element['abstract'] && */ $element['type'] == 'nonnum:domainItemType' && isset( $this->definitionRoleRefs[ $elr ]['members'][ $label ] );
+						$ok |= /* $element['abstract'] && */ $element['type'] == 'nonnum:domainItemType' && isset( $this->definitionNetworks[ $elr ]['members'][ $label ] );
 						if ( $ok )
 						{
 							$axes[ $parentLabel ]['members'][ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
@@ -638,16 +652,18 @@ class XBRL_DFR extends XBRL
 						break;
 
 					case 'cm.xsd#cm_Concept':
-						if ( $patternType == 'rollup' )
-						{
-							$ok = true;
-							break;
-						}
+						// if ( $patternType == 'rollup' )
+						// {
+						//	$ok = true;
+						//	break;
+						// }
 
 						if ( ! $element['abstract'] && $element['type'] != 'nonnum:domainItemType' && $this->isPrimaryItem( $element ) )
 						{
 							$ok = true;
-							if ( in_array( $label, $calculationELRPIs ) )
+							$concepts[ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
+
+							if ( ! $possiblePatternTypes && in_array( $label, $calculationELRPIs ) )
 							{
 								// $ok = true;
 								$patternType = 'rollup';
@@ -869,7 +885,7 @@ class XBRL_DFR extends XBRL
 			$isLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
 			$isAbstract = $node['modelType'] == 'cm.xsd#cm_Abstract';
 			$underLineItems |= $isLineItems;
-			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes );
+			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts );
 			$node['patterntype'] = $result;
 
 			if ( $underLineItems && ( $isAbstract || $isLineItems ) && ! $result )
@@ -879,11 +895,36 @@ class XBRL_DFR extends XBRL
 
 			if ( $underLineItems && $result )
 			{
-				// May be a variance
-				// See if there is a report scenario axis
-				$node['variance'] = $this->hasAxis( 'ReportingScenarioAxis', $axes );
+				$node['variance'] = false;
 				$node['grid'] = false;
 
+				// May be a variance
+				// See if there is a report scenario axis
+				$varianceAxis = $this->hasAxis( 'ReportingScenarioAxis', $axes );
+
+				if ( $varianceAxis )
+				{
+					// Note: these tests could be combined into one composite
+					// test but broken out its easier to see what's going on
+
+					// BMS 2019-03-23 Need to check that there is one parent with two members otherwise its a grid
+
+					// There must be more than one member
+					$members = $axes[ $varianceAxis ]['members'];
+					if ( count( $members ) > 1 )
+					{
+						$node['variance'] = $varianceAxis;
+					}
+					else if ( $members )
+					{
+						// Check to see if there are nested members.  Only one additional member is required
+						if ( isset( $axes[ key( $members ) ] ) && count( $axes[ key( $members ) ]['members'] ) )
+						{
+							$node['variance'] = $varianceAxis;
+						}
+					}
+
+				}
 				// If not a variance then maybe a grid?
 				if ( ! $node['variance'] )
 				{
@@ -905,7 +946,7 @@ class XBRL_DFR extends XBRL
 				// Check that the node children can be described by the members of just one calculation relationship
 				// Begin by checking to see if the children have a total member
 				$error = false;
-				$totals = array_intersect_key( $this->calculationRoleRefs[ $elr ]['calculations'], $node['children'] );
+				$totals = array_intersect_key( $this->calculationNetworks[ $elr ]['calculations'], $node['children'] );
 				$error = count( $totals ) > 1;
 				if ( ! $error )
 				{
@@ -915,7 +956,7 @@ class XBRL_DFR extends XBRL
 						// Its an error if all the node members are not described by this relation
 						$total = key( $totals );
 						// diff should have one member and it should be the total
-						$diff = array_diff( $nonAbstractNodes, array_keys( $this->calculationRoleRefs[ $elr ]['calculations'][ $total ] ) );
+						$diff = array_diff( $nonAbstractNodes, array_keys( $this->calculationNetworks[ $elr ]['calculations'][ $total ] ) );
 						if ( $diff )
 						{
 							$totalKey = array_search( $total, $diff );
@@ -927,7 +968,7 @@ class XBRL_DFR extends XBRL
 							// Check that any remaining elements are not in another rollup
 							if ( $diff )
 							{
-								foreach ( $this->calculationRoleRefs[ $elr ]['calculations'] as $totalLabel => $components )
+								foreach ( $this->calculationNetworks[ $elr ]['calculations'] as $totalLabel => $components )
 								{
 									// No need to look in the current rollup
 									if ( $totalLabel == $total ) continue;
@@ -945,7 +986,7 @@ class XBRL_DFR extends XBRL
 						// If there are no totals loop through each calculation to find a relationship that encompasses all children
 						// Assume the worst
 						$error = true;
-						foreach ( $this->calculationRoleRefs[ $elr ]['calculations'] as $totalLabel => $components )
+						foreach ( $this->calculationNetworks[ $elr ]['calculations'] as $totalLabel => $components )
 						{
 							$diff = array_diff( $nonAbstractNodes, array_keys( $components ) );
 							if ( ! $diff )
