@@ -11642,7 +11642,7 @@ class XBRL {
 		$roleHypercubes = $home_taxonomy->assignNodeHypercubes( $this->context->presentationRoleRefs[ $roleKey ]['hierarchy'], $this->context->presentationRoleRefs[ $roleKey ]['locators'], $roleKey );
 		$this->context->presentationRoleRefs[ $roleKey ]['hypercubes'] = $roleHypercubes;
 
-		$home_taxonomy->pruneNodeHypercubes( $this->context->presentationRoleRefs[ $roleKey ]['hierarchy'] );
+		$this->pruneNodeHypercubes( $this->context->presentationRoleRefs[ $roleKey ]['hierarchy'] );
 
 		$before = count( $this->context->presentationRoleRefs[ $roleKey ]['paths'] );
 		// Although a 'paths' index has been built it needs to be re-built
@@ -12015,12 +12015,15 @@ class XBRL {
 
 			}
 
-			$this->context->presentationRoleRefs[ $roleUri ] = array(
-				'type' => (string) $xlinkAttributes->type,
-				// 'href' => XBRL::resolve_path( $linkbaseRef['href'], $roleRefHref ),
-				'href' => $roleRefHref,
-				'roleUri' => $roleUri,
-			);
+			if ( ! isset( $this->context->presentationRoleRefs[ $roleUri ] ) )
+			{
+				$this->context->presentationRoleRefs[ $roleUri ] = array(
+					'type' => (string) $xlinkAttributes->type,
+					// 'href' => XBRL::resolve_path( $linkbaseRef['href'], $roleRefHref ),
+					'href' => $roleRefHref,
+					'roleUri' => $roleUri,
+				);
+			}
 		}
 
 		$taxonomy_base_name = $this->getTaxonomyXSD();
