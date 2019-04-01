@@ -667,6 +667,10 @@ class XBRL_DFR extends XBRL
 							{
 								// $ok = true;
 								$patternType = 'rollup';
+								if ( isset( $this->calculationNetworks[ $elr ]['calculations'][ $label ] ) )
+								{
+									$node['total'] = true;
+								}
 								$possiblePatternTypes = array();
 								break;
 							}
