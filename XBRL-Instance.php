@@ -6542,13 +6542,13 @@ class ContextsFilter
 					$dimName = strtolower( $segment['dimension']['element'][ $dimension[0] == '#' ? 'id' : 'name' ] );
 
 					$dimMatch = $dimFilter == $dimName;
-					if ( $dimFilter != $dimName ) return false;
+					if ( $dimFilter != $dimName ) continue;
 				}
 
 				if ( $dimensionNamespace !== null )
 				{
 					if ( strtolower( $segment['dimension']['namespace'] ) != strtolower( $dimensionNamespace ) )
-						return false;
+						continue;
 				}
 
 				if ( $member !== null )
@@ -6556,25 +6556,17 @@ class ContextsFilter
 					$memFilter = strtolower( $member[0] == '#' ? strtolower( substr( $member, 1 ) ) : $member );
 					$memName = strtolower( $segment['member']['element'][ $member[0] == '#' ? 'id' : 'name' ] );
 
-					$memMatch = $dimFilter == $memName;
-					if ( $memFilter != $memName ) return false;
+					$memMatch = $memFilter == $memName;
+					if ( $memFilter != $memName ) continue;
 				}
 
 				if ( $memberNamespace !== null )
 				{
 					if ( strtolower( $segment['dimension']['namespace'] ) != strtolower( $memberNamespace ) )
-						return false;
+						continue;
 				}
 
 				return true;
-			}
-
-			if ( $context['entity']['identifier']['value'] == $entity )
-			{
-				// If supplied also check the scheme
-				return $scheme != null && isset( $context['entity']['identifier']['scheme'] )
-				? ( strtolower( $scheme ) == strtolower( $context['entity']['identifier']['scheme'] ) )
-				: true;
 			}
 
 			return false;
