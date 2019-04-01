@@ -83,7 +83,7 @@ class XBRL_Log
 			self::$instance->createLog( 'error_log', PEAR_LOG_TYPE_SYSTEM, 'xbrl_log',
 				array(
 					'lineFormat' => '[%{priority}] %{message}',
-				)
+				), PEAR_LOG_DEBUG
 			);
 
 		}
