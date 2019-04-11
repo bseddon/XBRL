@@ -492,8 +492,10 @@ class XBRL_UK_GAAP extends XBRL
 	 * Returns the value of $elemment formatted according to the type defined in the taxonomy
 	 * @param array $element A representation of an element from an instance document
 	 * @param XBRL_Instance $instance An instance of an instance class related to the $element
+	 * @param bool $includeCurrency True if the returned monetary value should include a currency symbol
+	 * @return mixed
 	 */
-	public function formattedValue( $element, $instance = null )
+	public function formattedValue( $element, $instance = null, $includeCurrency = true )
 	{
 		$value = $element['value'];
 		$type = XBRL_Instance::getElementType( $element );
@@ -503,13 +505,13 @@ class XBRL_UK_GAAP extends XBRL
 			case 'xbrli:monetaryItemType':
 			case 'xbrli:sharesItemType':
 				$element['value'] = str_replace( ',', '', $element['value'] );
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 			case 'uk-types:fixedItemType':
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 			default:
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 		}
 	}
 

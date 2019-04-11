@@ -1658,8 +1658,10 @@ class XBRL {
 	 * Returns the value of $elemment formatted according to the type defined in the taxonomy
 	 * @param array $element A representation of an element from an instance document
 	 * @param XBRL_Instance $instance An instance of an instance class related to the $element
+	 * @param bool $includeCurrency True if the returned monetary value should include a currency symbol
+	 * @return mixed
 	 */
-	public function formattedValue( $element, $instance = null )
+	public function formattedValue( $element, $instance = null, $includeCurrency = true )
 	{
 		$value = $element['value'];
 		$type = isset( $element['taxonomy_element'] ) ? $element['taxonomy_element']['type'] : "";
@@ -1754,7 +1756,7 @@ class XBRL {
 				return filter_var( $value, FILTER_VALIDATE_BOOLEAN ) ? "True" : "False";
 
 			case 'num:perShareItemType':
-				$formatter = new NumberFormatter( $this->context->locale, NumberFormatter::CURRENCY );
+				$formatter = new NumberFormatter( $this->context->locale, $includeCurrency ? NumberFormatter::CURRENCY : NumberFormatter::DECIMAL );
 				if ( ! isset( $element['decimals'] ) || $element['decimals'] === 'INF' )
 				{
 					$formatter->setAttribute( NumberFormatter::FRACTION_DIGITS, strlen( $value ) -2 );
@@ -1763,7 +1765,9 @@ class XBRL {
 				{
 					$formatter->setAttribute( NumberFormatter::FRACTION_DIGITS, $element['decimals'] );
 				}
-				return $formatter->formatCurrency( $value, $instance->getDefaultCurrency() );
+				return $includeCurrency
+					? $formatter->formatCurrency( $value, $instance->getDefaultCurrency() )
+					: $formatter->format( $value );
 
 			case 'xbrli:monetaryItemType':
 				if ( $instance !== null && isset( $element['unitRef'] ) && ($unitRef = $instance->getUnit( $element['unitRef'] ) ) !== null )
@@ -1822,7 +1826,7 @@ class XBRL {
 							}
 						}
 
-						$formatter = new NumberFormatter( $this->context->locale, NumberFormatter::CURRENCY );
+						$formatter = new NumberFormatter( $this->context->locale, $includeCurrency ? NumberFormatter::CURRENCY : NumberFormatter::DECIMAL  );
 						$formatter->setAttribute( NumberFormatter::FRACTION_DIGITS, $decimal );
 						if ( $divisionFactor > 1 )
 						{
@@ -1834,7 +1838,9 @@ class XBRL {
 						// Lookup the unit ref
 						$parts = explode( ':', $unitRef );
 						$currencyCode = count( $parts ) === 2 && $parts[0] === STANDARD_PREFIX_ISO4217 ? $parts[1] : $instance->getDefaultCurrency();
-						$result = $formatter->formatCurrency( $value, $currencyCode ) . $suffix;
+						$result = $includeCurrency
+							? $formatter->formatCurrency( $value, $currencyCode ) . $suffix
+							: $formatter->format( $value );
 						return $result;
 					}
 					catch(Exception $ex)

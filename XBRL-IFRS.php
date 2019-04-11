@@ -95,7 +95,7 @@ XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces, "XBRL_IF
 /**
  * Register XSD to compiled taxonomy entries
  */
-XBRL::add_xsd_to_compiled_map_entries( array( 
+XBRL::add_xsd_to_compiled_map_entries( array(
 	"full_ifrs-cor_2016-03-09.xsd",
 	"ifrs_for_smes-cor_2016-03-31.xsd",
 	"basic_ifrs_doc_entry_point_2016-03-31.xsd",		// Entry Point for viewing the taxonomy for full IFRS reporting. Documentation labels are included, but generic links are excluded.
@@ -262,8 +262,10 @@ class XBRL_IFRS extends XBRL
 	 * Returns the value of $elemment formatted according to the type defined in the taxonomy
 	 * @param array $element A representation of an element from an instance document
 	 * @param XBRL_Instance $instance An instance of an instance class related to the $element
+	 * @param bool $includeCurrency True if the returned monetary value should include a currency symbol
+	 * @return mixed
 	 */
-	public function formattedValue( $element, $instance = null )
+	public function formattedValue( $element, $instance = null, $includeCurrency = true )
 	{
 		$value = $element['value'];
 		$type = XBRL_Instance::getElementType( $element );
@@ -273,13 +275,13 @@ class XBRL_IFRS extends XBRL
 			case 'xbrli:monetaryItemType':
 			case 'xbrli:sharesItemType':
 				$element['value'] = str_replace( ',', '', $element['value'] );
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 			case 'types:fixedItemType':
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 			default:
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 		}
 	}
 

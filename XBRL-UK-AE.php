@@ -236,8 +236,10 @@ class XBRL_UK_AE extends XBRL
 	 * Overloads the implementation in XBRL
 	 * @param array $element A representation of an element from an instance document
 	 * @param XBRL_Instance $instance An instance of an instance class related to the $element
+	 * @param bool $includeCurrency True if the returned monetary value should include a currency symbol
+	 * @return mixed
 	 */
-	public function formattedValue( $element, $instance = null )
+	public function formattedValue( $element, $instance = null, $includeCurrency = true )
 	{
 		$value = $element['value'];
 		$type = XBRL_Instance::getElementType( $element );
@@ -263,10 +265,10 @@ class XBRL_UK_AE extends XBRL
 					$formatter = new \NumberFormatter( $this->context->locale, NumberFormatter::PERCENT );
 					return $formatter->format( $value );
 				}
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 			default:
-				return parent::formattedValue( $element, $instance );
+				return parent::formattedValue( $element, $instance, $includeCurrency );
 
 		}
 	}
