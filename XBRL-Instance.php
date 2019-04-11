@@ -1375,7 +1375,7 @@ class XBRL_Instance
 	}
 
 	/**
-	 * Return the schema prefix corresponding to the prefix use locally
+	 * Return the schema prefix corresponding to the prefix used locally
 	 * @param string $localPrefix
 	 * @return string The updated prefix or the local one if there is no schema
 	 */
@@ -6562,7 +6562,7 @@ class ContextsFilter
 
 				if ( $memberNamespace !== null )
 				{
-					if ( strtolower( $segment['dimension']['namespace'] ) != strtolower( $memberNamespace ) )
+					if ( strtolower( $segment['member']['namespace'] ) != strtolower( $memberNamespace ) )
 						continue;
 				}
 
@@ -6754,6 +6754,88 @@ class ContextsFilter
 
 		ksort( $result );
 		return array_keys( $result );
+	}
+
+	/**
+	 * Return the available segment element from a context
+	 * @param array|string $context
+	 * @return array|NULL
+	 */
+	private function getSegment( $context )
+	{
+		if ( is_string( $context ) )
+		{
+			if ( ! isset( $this->contexts[ $context ] ) ) return null;
+			$context = $this->contexts[ $context ];
+		}
+
+		if ( isset( $context['segment'] ) ) return $context['segment'];
+		if ( isset( $context['entity']['segment'] ) ) return $context['entity']['segment'];
+
+		return null;
+	}
+
+	/**
+	 * Return the available scenario element from a context
+	 * @param array|string $context
+	 * @return array|NULL
+	 */
+	private function getScenario( $context )
+	{
+		if ( is_string( $context ) )
+		{
+			if ( ! isset( $this->contexts[ $context ] ) ) return null;
+			$context = $this->contexts[ $context ];
+		}
+
+		if ( isset( $context['scenario'] ) ) return $context['scenario'];
+		if ( isset( $context['entity']['scenario'] ) ) return $context['entity']['scenario'];
+
+		return null;
+	}
+
+	/**
+	 * Return a context filter instance with only those contexts that have the same segment(s) as those in $context
+	 * @param array $context
+	 * @return ContexstFilter
+	 */
+	public function SameContextSegment( $context )
+	{
+		$segment = $this->getSegment( $context );
+		if ( ! $segment )
+		{
+			$segment = $this->getScenario( $context );
+		}
+
+		if ( ! $segment )
+		{
+			return $this->NoSegmentContexts();
+		}
+
+		return $this->SameSegment( $segment );
+	}
+
+	/**
+	 * Return a context filter instance with only those contexts that have the same segment(s) as those in $segment
+	 * @param array $context_segment segments of a context
+	 * @return ContextsFilter
+	 */
+	public function SameSegment( $context_segment )
+	{
+		$contexts = array();
+		if ( $this->contexts )
+		{
+			foreach ( $this->contexts as $contextRef => $context)
+			{
+				$segment = $this->getSegment( $context );
+				if ( ! $segment ) $segment = $this->getScenario( $context );
+				if ( ! $segment ) continue;
+				if ( ! XBRL_Equality::segment_equal( $segment, $context_segment) ) continue;
+				$contexts[ $contextRef] = $context;
+			}
+		}
+
+		return new ContextsFilter( $this->instance, $contexts );
 	}
 
 	/**
