@@ -200,6 +200,8 @@ try
 			$json = file_get_contents( "$compiledLocation/$instanceBasename.meta" );
 			$meta = json_decode( $json, true );
 			$instance = \XBRL_Instance::FromInstanceCache( $compiledLocation, "{$meta['instance']}.json", $meta['namespace'], "$compiledLocation/{$meta['taxonomy']}" );
+
+			$version = str_replace('entryAll', '', basename( $meta['taxonomy'], '.json' ) );
 		}
 		else
 		{
