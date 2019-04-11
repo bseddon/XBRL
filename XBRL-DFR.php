@@ -30,21 +30,13 @@ require_once('XBRL.php');
 use XBRL\Formulas\Resources\Variables\FactVariable;
 use XBRL\Formulas\Resources\Filters\ConceptName;
 use lyquidity\xml\QName;
+use XBRL\Formulas\Resources\Assertions\ValueAssertion;
+
+define( 'NEGATIVE_AS_BRACKETS', 'brackets' );
+define( 'NEGATIVE_AS_MINUS', 'minus' );
 
 class XBRL_DFR extends XBRL
 {
-	/**
-	 * Holds a list of features
-	 * @var array
-	 */
-	private $features = array();
-
-	/**
-	 * A fixed list of dimensions to exclude when determining if there should be a grid layout
-	 * @var array
-	 */
-	private $axesToExclude = array();
-
 	/**
 	 *
 	 * @var string
@@ -90,6 +82,75 @@ class XBRL_DFR extends XBRL
 	}
 
 	/**
+	 * Holds a list of features
+	 * @var array
+	 */
+	private $features = array();
+
+	/**
+	 * How to style negative numbers
+	 * @var string NEGATIVE_AS_BRACKETS | NEGATIVE_AS_MINUS
+	 */
+	private $negativeStyle = NEGATIVE_AS_BRACKETS;
+
+	/**
+	 * When true, any columns that contain no values or only closing balance values will be removed
+	 * @var string
+	 */
+	private $stripEmptyColumns = false;
+
+	/**
+	 * A fixed list of dimensions to exclude when determining if there should be a grid layout
+	 * @var array
+	 */
+	private $axesToExclude = array();
+
+	// Private variables for the function validateDFR
+	/**
+	 * A list of primary items within each ELR in the presentation linkbase being evaluated
+	 * @var [][] $presentationPIs
+	 */
+	private $presentationPIs = array();
+	/**
+	 * A list of primary items within each ELR in the calculation linkbase being evaluated
+	 * @var [][] $calculationPIs
+	 */
+	private $calculationPIs = array();
+	/**
+	 * A list of primary items within each ELR in the definition linkbase being evaluated
+	 * @var [][] $definitionPIs
+	 */
+	private $definitionPIs = array();
+
+	/**
+	 * A list of the calculation networks or roles defined in the taxonomy.
+	 * By default the full structure is not realized so this variable holds
+	 * the realized network so they do not have to be realized repeatedly.
+	 * @var array
+	 */
+	private $calculationNetworks = array();
+	/**
+	 * A list of the defintion networks or roles defined in the taxonomy.
+	 * By default the full structure is not realized so this variable holds
+	 * the realized network so they do not have to be realized repeatedly.
+	 * @var array $definitionNetworks
+	 */
+	private $definitionNetworks = array();
+	/**
+	 * A list of the presentation networks or roles defined in the taxonomy.
+	 * By default the full structure is not realized so this variable holds
+	 * the realized network so they do not have to be realized repeatedly.
+	 * @var array $presentationNetworks
+	 */
+	private $presentationNetworks = array();
+
+	/**
+	 * Created by the constructor to hold the list of valid presentation relationships
+	 * @var array
+	 */
+	private $allowed = array();
+
+	/**
 	 * Default constructor
 	 */
 	function __construct()
@@ -119,7 +180,7 @@ class XBRL_DFR extends XBRL
 			'PeriodAxis', // Exists or implied
 			XBRL_Constants::$dfrLegalEntityAxis, // Exists or implied
 			XBRL_Constants::$dfrReportDateAxis, // Adjustment
-			XBRL_Constants::$dfrReportingScenarioAxis // Variance
+			// XBRL_Constants::$dfrReportingScenarioAxis // Variance
 		);
 
 		$cmArcRoles = XBRL_DFR::getConceptualModelRoles();
@@ -173,15 +234,95 @@ class XBRL_DFR extends XBRL
 		return $result;
 	}
 
-	private $presentationPIs = array();
-	private $calculationPIs = array();
-	private $definitionPIs = array();
+	/**
+	 * Renders an evidence package for a set of networks
+	 * @param array $networks
+	 * @param XBRL_Instance $instance
+	 * @param XBRL_Formulas $formulas
+	 * @param Observer $observer
+	 * @param bool $echo
+	 * @return array
+	 */
+	public function renderPresentationNetworks( $networks, $instance, $formulas, $observer, $evaluationResults, $echo = true )
+	{
+		$result = array();
 
-	private $calculationNetworks = array();
-	private $definitionNetworks = array();
-	private $presentationNetworks = array();
+		foreach ( $networks as $elr => $network )
+		{
+			$result[ $elr ] = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo );
+		}
 
-	private $allowed = array();
+		return $result;
+	}
+
+	/**
+	 * Renders an evidence package for a network
+	 * @param array $network
+	 * @param string $elr
+	 * @param XBRL_Instance $instance
+	 * @param XBRL_Formulas $formulas
+	 * @param Observer $observer
+	 * @param bool $echo
+	 * @return array
+	 */
+	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo = true )
+	{
+		$entities = $instance->getContexts()->AllEntities();
+
+		// Add a depth to each node
+		$addDepth = function( &$nodes, $depth = 0 ) use( &$addDepth )
+		{
+			foreach ( $nodes as $label => &$node )
+			{
+				$node['depth'] = $depth;
+				if ( ! isset( $node['children'] ) ) continue;
+				$addDepth( $node['children'], $depth + 1 );
+			}
+			unset( $node );
+		};
+
+		$addDepth( $network['hierarchy'] );
+
+		$result = array();
+
+		foreach ( $entities as $entity )
+		{
+			$entityQName = qname( $entity );
+
+			// Find periods
+			$names = array_map( function( $conceptQName )
+			{
+				return $conceptQName->localName;
+			}, $network['concepts'] );
+
+			$elements = $instance->getElements()->ElementsByName( $names )->getElements();
+
+			$contextRefs = array_reduce( $elements, function( $carry, $element ) use ( $instance )
+			{
+				$result = array_unique( array_map( function( $fact ) { return $fact['contextRef']; }, array_values( $element ) ) );
+				return array_unique( array_merge( $carry, $result ) );
+			}, array() );
+
+			$contexts = array_intersect_key( $instance->getContexts()->getContexts(), array_flip( $contextRefs ) );
+			$years = array();
+			foreach ( $contexts as $contextRef => $context )
+			{
+				$year = substr( $context['period']['endDate'], 0, 4 );
+				if ( ! isset( $years[ $year ] ) ) $years[ $year ] = array(
+					'text' => $context['period']['is_instant']
+									? $context['period']['endDate']
+									: "{$context['period']['startDate']} - {$context['period']['endDate']}",
+					'contextRefs' => array(),
+					// 'year' => $year
+				);
+				$years[ $year ]['contextRefs'][] = $contextRef;
+			}
+
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $contexts, $years, $echo );
+		}
+
+		return $result;
+	}
 
 	/**
 	 * Validate the the taxonomy against the model structure rules
@@ -373,7 +514,7 @@ class XBRL_DFR extends XBRL
 			$tables = array();
 			$concepts = array();
 
-			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts );
+			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR );
 
 			if ( $this->definitionNetworks && count( $tables ) != 1 )
 			{
@@ -457,12 +598,12 @@ class XBRL_DFR extends XBRL
 
 	/**
 	 * Look for a concept in each formula's filter
-	 * @param array $formulasForELR
+	 * @param array $formulasForELR (ref) Array of formulas defined for the ELR
 	 * @param XBRL_DFR $taxonomy
 	 * @param array $element
 	 * @return boolean
 	 */
-	private function findConceptInFormula( $formulasForELR, $taxonomy, $element )
+	private function findConceptInFormula( &$formulasForELR, $taxonomy, $element )
 	{
 		if ( ! $formulasForELR ) return false;
 
@@ -563,9 +704,10 @@ class XBRL_DFR extends XBRL
 	 * @param array		$lineItems (ref)
 	 * @param array		$axes (ref)
 	 * @param array		$concepts (ref)
+	 * @param array		$formulasForELR (ref)
 	 * @return string
 	 */
-	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes, &$concepts )
+	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes, &$concepts, &$formulasForELR )
 	{
 		$possiblePatternTypes = array();
 		$patternType = ''; // Default pattern
@@ -623,7 +765,26 @@ class XBRL_DFR extends XBRL
 						$ok |= $taxonomy->context->types->resolveToSubstitutionGroup( $element['substitutionGroup'], array( XBRL_Constants::$xbrldtDimensionItem ) );
 						if ( $ok )
 						{
-							$axes[ $label ] = array( 'dimension' => new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] ) );
+							$dimension = $this->definitionNetworks[ $elr ]['hypercubes'][ @reset($tables) ]['dimensions'][ $label ];
+							$defaultMember = isset( $dimension['default'] ) ? $dimension['default']['label'] : false;
+
+							if ( ! $defaultMember && $element['name'] == XBRL_Constants::$dfrReportDateAxis )
+							{
+								XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'Report Date [Axis] Missing Dimension Default',
+									array(
+										'axis' => $label,
+										'role' => $elr,
+										'error' => 'error:ReportDateDimensionMissingDimensionDefault'
+									)
+								);
+
+							}
+
+							$axes[ $label ] = array(
+								'dimension' => new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] ),
+								'dimension-label' => $label,
+								'default-member' => $defaultMember
+							);
 						}
 						break;
 
@@ -634,6 +795,15 @@ class XBRL_DFR extends XBRL
 						$ok |= /* $element['abstract'] && */ $element['type'] == 'nonnum:domainItemType' && isset( $this->definitionNetworks[ $elr ]['members'][ $label ] );
 						if ( $ok )
 						{
+							if ( ! isset( $axes[ $parentLabel ]['domain-member'] ) ) $axes[ $parentLabel ]['domain-member'] = false;
+							if ( ! isset( $axes[ $parentLabel ]['root-member'] ) ) $axes[ $parentLabel ]['root-member'] = false;
+							if ( isset( $this->definitionNetworks[ $elr ]['members'][ $label ]['parents'][ $parentLabel ]['arcrole'] ) )
+							{
+								$arcrole = $this->definitionNetworks[ $elr ]['members'][ $label ]['parents'][ $parentLabel ]['arcrole'];
+								if ( $arcrole == XBRL_Constants::$arcRoleDimensionDomain ) $axes[ $parentLabel ]['domain-member'] = $label;
+							}
+							$tableLable = reset( $tables );
+							if ( isset( $axes[ $parentLabel ] ) && isset( $axes[ $parentLabel ]['dimension'] ) ) $axes[ $parentLabel ]['root-member'] = $label;
 							$axes[ $parentLabel ]['members'][ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
 						}
 						break;
@@ -683,10 +853,10 @@ class XBRL_DFR extends XBRL
 							// Rollup: If the concept is in the calculation linkbase then the only pattern us rollup
 							//
 							// Roll forward: can be detected because
-							// (a) it always has in instant as the first and last concept in the presentation relations,
+							// (a) it always has an instant as the first and last concept in the presentation relations,
 							// (b) the first instant has a periodStart label role,
 							// (c) the second instant concept is the same as the first and has the periodEnd label, and
-							// (d) XBRL Formulas exist the represent the roll forward mathematical relation.
+							// (d) XBRL Formulas exist that represent the roll forward mathematical relation.
 							//
 							// Roll forward info: looks like a roll forward, but is not really a roll forward.
 							// While a roll forward reconciles the balance of a concept between two points in time;
@@ -727,7 +897,7 @@ class XBRL_DFR extends XBRL
 									{
 										if ( $element['periodType'] == 'instant' )
 										{
-											if ( in_array( 'rollforward', $possiblePatternTypes ) && $this->findConceptInFormula( null, $taxonomy, $element ) )
+											if ( in_array( 'rollforward', $possiblePatternTypes ) && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) ) )
 											{
 												$patternType = "rollforward";
 												$possiblePatternTypes = array();
@@ -756,7 +926,7 @@ class XBRL_DFR extends XBRL
 										}
 									}
 
-									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( null, $taxonomy, $element ) )
+									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
 									{
 										$patternType = "complex";
 										$possiblePatternTypes = array();
@@ -764,7 +934,7 @@ class XBRL_DFR extends XBRL
 									}
 								}
 
-								if ( ! in_array( 'complex', $possiblePatternTypes ) && $this->findConceptInFormula( null, $taxonomy, $element ) )
+								if ( ! in_array( 'complex', $possiblePatternTypes ) && $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
 								{
 									$possiblePatternTypes[] = 'complex';
 								}
@@ -779,7 +949,7 @@ class XBRL_DFR extends XBRL
 									if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel )
 									{
 										$possiblePatternTypes[] = 'rollforwardinfo';
-										if ( $element['periodType'] == 'instant' && $this->findConceptInFormula( null, $taxonomy, $element ) )
+										if ( $element['periodType'] == 'instant' && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) ) )
 										{
 											$possiblePatternTypes[] = 'rollforward';
 										}
@@ -798,7 +968,7 @@ class XBRL_DFR extends XBRL
 								}
 
 								// Complex
-								if ( $this->findConceptInFormula( null, $taxonomy, $element ) )
+								if ( $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
 								{
 									if ( $last )
 									{
@@ -889,7 +1059,7 @@ class XBRL_DFR extends XBRL
 			$isLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
 			$isAbstract = $node['modelType'] == 'cm.xsd#cm_Abstract';
 			$underLineItems |= $isLineItems;
-			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts );
+			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR );
 			$node['patterntype'] = $result;
 
 			if ( $underLineItems && ( $isAbstract || $isLineItems ) && ! $result )
@@ -1037,4 +1207,1133 @@ class XBRL_DFR extends XBRL
 		}
 		return $patternType;
 	}
+
+	/**
+	 * Renders the component table
+	 * @param array $network
+	 * @param string $elr
+	 * @return string
+	 */
+	private function renderComponentTable( $network, $elr )
+	{
+		$table = $this->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ) );
+
+		$componentTable =
+			"	<div class='component-table'>" .
+			"		<div class='ct-header'>Component: Network plus Table</div>" .
+			"		<div class='ct-body'>" .
+			"			<div class='ct-body-header network'>Network</div>" .
+			"			<div class='ct-body-content network'>" .
+			"				<div>{$network['text']}</div>" .
+			"				<div>$elr</div>" .
+			"			</div>" .
+			"			<div class='ct-body-header hypercube'>Table</div>" .
+			"			<div class='ct-body-content hypercube'>$table</div>" .
+			"		</div>" .
+			"	</div>";
+
+		return $componentTable;
+	}
+
+	/**
+	 * Renders the slicers table
+	 * @param array $network
+	 * @param QName $entityQName
+	 * @return string
+	 */
+	private function renderSlicers( $network, $entityQName )
+	{
+		$slicers =
+			"	<div>" .
+			"		<div>Slicers</div>" .
+			"		<div class='slicers'>" .
+			"			<div class='slicer-header'>Reporting Entity [Axis]</div>" .
+			"			<div class='slicer-content'>{$entityQName->localName} ({$entityQName->namespaceURI})</div>";
+
+		foreach ( $network['axes'] as $label => $axis)
+		{
+			if ( ! isset( $axis['dimension'] ) ) continue;
+			if ( count( $axis['members'] ) > 1 ) continue;
+			$memberLabel = key($axis['members'] );
+			if ( isset( $network['axes'][ $memberLabel ] ) ) continue;
+
+			$dimension = $this->getTaxonomyDescriptionForIdWithDefaults( $label );
+			$slicers .= "			<div class='slicer-header'>$dimension</div>";
+
+			/** @var QName $memberQName */
+			$memberQName = reset( $axis['members'] );
+			$memberTaxonomy = $this->getTaxonomyForNamespace( $memberQName->namespaceURI );
+			$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
+
+			$member = $this->getTaxonomyDescriptionForIdWithDefaults( $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'] );
+			$slicers .= "			<div class='slicer-content'>$member</div>";
+		}
+
+		$slicers .=
+			"		</div>" .
+			"	</div>";
+
+		return $slicers;
+	}
+
+	/**
+	 * Renders the model structure table
+	 * @param array $network
+	 * @return string
+	 */
+	private function renderModelStructure( $network )
+	{
+		$structureTable =
+			"	<div class='structure-table'>" .
+			"		<div>Label</div>" .
+			"		<div>Fact set type</div>" .
+			"		<div>Report Element Class</div>" .
+			"		<div>Period Type</div>" .
+			"		<div>Balance</div>" .
+			"		<div>Name</div>";
+
+			$renderStructure = function( $nodes ) use( &$renderStructure )
+			{
+				$result = array();
+
+				foreach( $nodes as $label => $node )
+				{
+					if ( ! isset( $node['modelType'] ) ) continue;
+
+					/**
+					 *
+					 * @var XBRL $nodeTaxonomy
+					 */
+					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeElement = $nodeTaxonomy->getElementById( $label );
+
+					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
+					// Do this because $label includes the preferred label roles and the label passed cannot include it
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels );
+
+					$name = $nodeTaxonomy->getPrefix() . ":" . $nodeElement['name'];
+					$class = "";
+					$reportElement = "";
+					$periodType = "";
+					$balance = "";
+					$factSetType = "";
+
+					switch ( $node['modelType'] )
+					{
+						case 'cm.xsd#cm_Table':
+							$class = "hypercube";
+							$reportElement = "[Table]";
+							break;
+
+						case 'cm.xsd#cm_Axis':
+							$class = "axis";
+							$reportElement = "[Axis]";
+							break;
+
+						case 'cm.xsd#cm_Member':
+							$class = "member";
+							$reportElement = "[Member]";
+							break;
+
+						case 'cm.xsd#cm_LineItems':
+							$class = "lineitem";
+							$reportElement = "[Line item]";
+							$factSetType = isset( $node['patterntype'] ) ? $node['patterntype'] : '';
+							break;
+
+						case 'cm.xsd#cm_Concept':
+							$class = "concept";
+							$reportElement = "[Concept]";
+							if ( $nodeElement['type'] == 'xbrli:stringItemType' )
+							{
+								$reportElement .= " string";
+							}
+							else if ( $this->context->types->resolvesToBaseType( $nodeElement['type'], array( "xbrli:monetaryItemType" ) ) )
+							{
+								$reportElement .= " monetary";
+							}
+							else if ( $nodeElement['type'] == 'xbrli:sharesItemType' )
+							{
+								$reportElement .= " shares";
+							}
+							else
+							{
+								$reportElement .= " " . $nodeElement['type'];
+							}
+							$periodType = $nodeElement['periodType'];
+							$balance = isset( $nodeElement['balance'] ) ? $nodeElement['balance'] : 'n/a';
+							$factSetType = isset( $node['patterntype'] ) ? $node['patterntype'] : '';
+							break;
+
+						case 'cm.xsd#cm_Abstract':
+							$class = "abstract";
+							$reportElement = "[Abstract]";
+							$factSetType = isset( $node['patterntype'] ) ? $node['patterntype'] : '';
+							break;
+					}
+
+					$result[] = "<div><span class='depth{$node['depth']} $class'>$text</span></div>";
+					$result[] = "<div>$factSetType</div>";
+					$result[] = "<div>$reportElement</div>"; // This text should be based on some lookup
+					$result[] = "<div>$periodType</div>";
+					$result[] = "<div>$balance</div>";
+					$result[] = "<div>$name</div>";
+
+					if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+					$result = array_merge( $result, $renderStructure( $node['children'] ) );
+				}
+
+				return $result;
+			};
+
+			$result = $renderStructure( $network['hierarchy'] );
+
+		$structureTable .= implode( '', $result ) . "	</div>";
+
+		return $structureTable;
+	}
+
+	/**
+	 * Render a report with columns for any years and dimensions
+	 * @param array $network
+	 * @param string $elr
+	 * @param XBRL_Instance $instance
+	 * @param XBRL_Formulas $formulas	The evaluated formulas
+	 * @param Observer $observer		An obsever with any validation errors
+	 * @param $evaluationResults		The results of validating the formulas
+	 * @param $contexts					An array of the context valid for the network being reported
+	 * @param $years					An array of years indexed by year number and with members 'label' and 'contextRefs'
+	 * @return string
+	 */
+	private function renderReportTable( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $contexts, $years )
+	{
+		$axes = &$network['axes'];
+
+		$totalAxesCount = array_reduce( $axes, function( $carry, $axis ) { return $carry + ( isset( $axis['dimension'] ) ? 1 : 0 ) ; } );
+
+		$hasReportDateAxis = false;
+		// Get a list of dimensions with more than one member
+		$multiMemberAxes = array_reduce( array_keys( $axes ), function( $carry, $axisLabel ) use( $axes, $instance, &$hasReportDateAxis )
+		{
+			/** @var XBRL $taxonomy */
+			$taxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+			$element = $taxonomy->getElementById( $axisLabel );
+
+			$axis = $axes[ $axisLabel ];
+
+			if ( in_array( $element['name'], $this->axesToExclude ) )
+			{
+				if ( $element['name'] == XBRL_Constants::$dfrReportDateAxis )
+				{
+					// Must have more than one member
+					if ( count( $axis['members'] ) > 1 )
+					{
+						// Must be more than one context
+						if ( $instance->getContexts()->SegmentContexts( strstr( $axisLabel, '#' ), $taxonomy->getNamespace() )->count() > ( $axis['default-member'] ? 0 : 1 ) )
+						{
+							$hasReportDateAxis = $axisLabel;
+						}
+					}
+				}
+				return $carry;
+			}
+
+			if ( ! isset( $axis['dimension'] ) || // Ignore member only items
+				 (
+				   count( $axis['members'] ) <= 1 && // Ignore axes with more than one member
+				   ! isset( $axes[ key( $axis['members'] ) ] ) // Or that has sub-members
+				 )
+			) return $carry;
+			return $carry + array( $axisLabel );
+		}, array() );
+
+		// Get count of dimensions with more than one member
+		$multiMemberAxesCount = count( $multiMemberAxes );
+
+		// The number of columns is the number of $years * the number of members for each dimension
+		$headerColumnCount = count( $years );
+
+		$getAxisMembers = function( $members ) use( &$getAxisMembers, &$axes )
+		{
+			$result = array();
+			foreach ( $members as $memberLabel => $memberQName )
+			{
+				$result[] = $memberLabel;
+				if ( ! isset( $axes[ $memberLabel ] ) ) continue;
+				$result = array_merge( $result, $getAxisMembers( $axes[ $memberLabel ]['members'] ) );
+			}
+
+			return $result;
+		};
+
+		foreach ( $multiMemberAxes as $axisLabel )
+		{
+			$headerColumnCount *= count( $getAxisMembers( $axes[ $axisLabel ]['members'] ) );
+		}
+
+		$columnCount = $headerColumnCount + 1 + ( $hasReportDateAxis ? 1 : 0 ); // Add the description column
+
+		$getRowCount = function( $nodes, $lineItems = false ) use( &$getRowCount, $instance )
+		{
+			$count = 0;
+			foreach ( $nodes as $label => $node )
+			{
+				$lineItems |= $node['modelType'] == 'cm.xsd#cm_LineItems';
+				if ( $lineItems )
+				{
+					$count++;
+				}
+
+				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+
+				$count += $getRowCount( $node['children'], $lineItems );
+			}
+
+			return $count;
+		};
+
+		$rowCount = $getRowCount( $network['hierarchy'] );
+
+		// The final row count has to include the number of multi-member axes * 2 + 1.
+		// The 2 because each axis contributes two header rows: for the dimension label and for the member
+		// The 1 is from the period axis but the row count already has a line from the header: the line items row
+		$rowCount += $multiMemberAxesCount * 2 + 1;
+
+		// How many are header rows?
+		// The one is for the implicit period axis.
+		$headerRowCount = ($multiMemberAxesCount + 1) * 2;
+
+		// Workout what the columns will contain. $columnHierarchy will contain a hierarchical list of nodes
+		// where the leaf nodes represent the actual columns and there should be $headerColumnCount of them.
+		// Each node will contain a list of the axis/members and a list of contexts which apply at that node.
+		// Until there is a more complete example
+		$columnHierarchy['Period [Axis]'] = $years;
+		$columnHierarchy['Period [Axis]']['total-children'] = count( $years );
+
+		// Extend $columnHierarchy to add columns for $multiMemberAxes and their members
+		if ( $multiMemberAxes )
+		{
+			$addToColumnHierarchy = function( &$columnHierarchy, $multiMemberAxes ) use ( &$addToColumnHierarchy, $instance, &$axes, &$getAxisMembers )
+			{
+				$totalChildren = 0;
+
+				foreach ( $columnHierarchy as $axisLabel => &$members )
+				{
+					if ( ! $multiMemberAxes )
+					{
+						$totalChildren += $members['total-children'];
+						continue;
+					}
+
+					foreach ( $members as $index => &$member )
+					{
+						if ( $index == 'total-children' ) continue;
+
+						if ( isset( $member['children'] ) )
+						{
+							$totalChildren += $addToColumnHierarchy( $member['children'], $multiMemberAxes );
+						}
+						else
+						{
+							// Get the axis text
+							$nextAxisLabel = reset( $multiMemberAxes );
+							/** @var XBRL_DFR $axisTaxonomy */
+							$axisTaxonomy = $this->getTaxonomyForXSD( $nextAxisLabel );
+							$axisText = $axisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nextAxisLabel );
+
+							// Get the members
+							$axisMembers = $getAxisMembers( $axes[ $nextAxisLabel ]['members'] );
+							$axis = $axes[ $nextAxisLabel ];
+
+							// Workout which contexts apply
+							$cf = new ContextsFilter( $instance, array_reduce( $member['contextRefs'], function( $carry, $contextRef ) use( $instance) { $carry[ $contextRef ] = $instance->getContext( $contextRef ); return $carry; }, array() ) );
+
+							$nextMembers = array();
+
+							foreach ( $axisMembers as $memberLabel )
+							{
+								/** @var XBRL_DFR $memberTaxonomy */
+								$memberTaxonomy = $this->getTaxonomyForXSD( $memberLabel );
+								$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
+								$filteredContexts = $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+								$guid = XBRL::GUID();
+								$nextMembers[ $guid ] = array(
+									'text' => $memberText,
+									'contextRefs' => array_keys( $filteredContexts->getContexts() ),
+									'default-member' => $axis['default-member'] == $memberLabel,
+									'domain-member' => $axis['domain-member'] == $memberLabel,
+									'root-member' => $axis['root-member'] == $memberLabel
+								);
+							}
+
+							$nextMembers['total-children'] = count( $axisMembers );
+							$member['children'][ $axisText ] = $nextMembers;
+
+							// if ( count( $multiMemberAxes ) == 1 ) continue;
+
+							$totalChildren += $addToColumnHierarchy( $member['children'], array_splice( $multiMemberAxes, 1 ) );
+							// $nextMembers['total-children'] = $totalChildren;
+							// unset( $nextMembers );
+						}
+					}
+					unset( $member );
+				}
+
+				$members['total-children'] = $totalChildren;
+
+				unset( $members );
+
+				return $totalChildren;
+			};
+
+			$c = $addToColumnHierarchy( $columnHierarchy, $multiMemberAxes );
+		}
+
+		// Create an index of contextRef to column.  Should be only one column for each context.
+		// At the same time create a column layout array that can be used to generate the column headers
+		$columnLayout = array();
+		$createContextRefColumns = function( $columnNodes, $depth = 0 ) use( &$createContextRefColumns, &$columnLayout )
+		{
+			$result = array();
+			foreach ( $columnNodes as $axisLabel => $columnMembers )
+			{
+				$details = array( 'text' => $axisLabel, 'span' => $columnMembers['total-children'] );
+				$columnLayout[ $depth ][] = $details;
+
+				foreach ( $columnMembers as $index => $columnNode )
+				{
+					if ( $index == 'total-children' ) continue;
+
+					$span = isset( $columnNode['children'] )
+						? array_reduce( $columnNode['children'], function( $carry, $axis ) { return $carry + $axis['total-children']; }, 0 )
+						: 1;
+					$columnLayout[ $depth + 1 ][] = array(
+						'text' => $columnNode['text'],
+						'span' => $span,
+						'default-member' => isset( $columnNode['default-member'] ) && $columnNode['default-member'],
+						'domain-member' => isset( $columnNode['domain-member'] ) && $columnNode['domain-member'],
+						'root-member' => isset( $columnNode['root-member'] ) && $columnNode['root-member']
+					);
+
+					if ( isset( $columnNode['children'] ) && $columnNode['children'] )
+					{
+						$result += $createContextRefColumns( $columnNode['children'], $depth + 2 );
+					}
+					else
+					$result += array_fill_keys( $columnNode['contextRefs'], $index );
+				}
+			}
+			return $result;
+		};
+		$contextRefColumns = $createContextRefColumns( $columnHierarchy );
+		$columnRefs = array_flip( array_values( array_unique( $contextRefColumns ) ) );
+
+		if ( count( $columnLayout ) != $headerRowCount )
+		{
+			$generatedHeaderRows = count( $columnLayout );
+			XBRL_Log::getInstance()->warning( "The number of header rows generated ($generatedHeaderRows) does not equal the number of row expected ($headerRowCount)" );
+		}
+
+		$getFactSetTypes = function( $nodes, $lineItems = false ) use( &$getFactSetTypes, $instance )
+		{
+			$factSetTypes = array();
+
+			foreach ( $nodes as $label => $node )
+			{
+				$thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
+				$lineItems |= $thisLineItems;
+				if ( $lineItems && ( $thisLineItems || $node['modelType'] == 'cm.xsd#cm_Abstract' ) )
+				{
+					$factSetTypes[ $label ] = isset( $node['patterntype'] ) ? $node['patterntype'] : 'set';
+				}
+
+				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+
+				$factSetTypes = array_merge( $factSetTypes, $getFactSetTypes( $node['children'], $lineItems ) );
+			}
+
+			return $factSetTypes;
+		};
+
+		$factSetTypes = $getFactSetTypes( $network['hierarchy'] );
+
+		// For roll forward and roll forward info
+		// unset( $columnLayout[1][2] );
+		// $columnLayout[0][0]['span']--;
+		// $headerColumnCount--;
+		// $columnCount--;
+
+		// For grid
+		// unset( $columnLayout[3][0] );
+		// unset( $columnLayout[3][1] );
+		// unset( $columnLayout[3][2] );
+		// unset( $columnLayout[3][3] );
+		// unset( $columnLayout[2][0] );
+		// unset( $columnLayout[1][0] );
+		// $columnLayout[0][0]['span'] -= 4;
+		// $headerColumnCount -= 4;
+		// $columnCount -= 4;
+
+		$removeColumn = function( &$axis, $columnId ) use( &$removeColumn )
+		{
+			foreach ( $axis as $axisId => &$columns )
+			{
+				if ( $axisId == 'total-children ') continue;
+
+				if ( isset( $columns[ $columnId ] ) )
+				{
+					unset( $columns[ $columnId ] );
+					$columns['total-children']--;
+					if ( ! $columns['total-children'] )
+					{
+						unset( $axis[ $axisId ] );
+					}
+					return 1;
+				}
+
+				foreach ( $columns as $id => &$column )
+				{
+
+					if ( isset( $column['children'] ) )
+					{
+						$result = $removeColumn( $column['children'], $columnId );
+						if ( $result )
+						{
+							$columns['total-children']--;
+							if ( ! count( $column['children'] ) )
+							{
+								unset( $columns[ $id ] );
+							}
+							return 1;
+						}
+					}
+				}
+
+			}
+
+			return 0;
+		};
+
+		// for( $i = 0; $i < 5; $i++ )
+		// {
+		// 	$removeColumn( $columnHierarchy, array_flip( $columnRefs )[0] );
+		// 	$headerColumnCount--;
+		// 	$columnCount--;
+		// 	$columnLayout = array();
+		// 	$contextRefColumns = $createContextRefColumns( $columnHierarchy );
+		// 	$columnRefs = array_flip( array_values( array_unique( $contextRefColumns ) ) );
+		// }
+
+		/**
+		 * Return the fact corresponding to the originally stated or restated condition
+		 * @var callable $getStatedFacts
+		 * @param XBRL_DFR $nodeTaxonomy
+		 * @param array $facts (ref)
+		 * @param array $axis an entry for an axis in $axes
+		 * @param ContextsFilter $cf A filter of instant contexts
+		 * @param bool $originally True gets the facts for the orginally stated case; false restated
+		 */
+		$getStatedFacts = function( $nodeTaxonomy, &$facts, &$axis, /** @var ContextsFilter $cf */ $cf, $orginally = false ) use ( &$getStatedFacts, $hasReportDateAxis )
+		{
+			// The opening balance value is the one that has a context with the non-default/non-domain member
+			$members = array_reduce( $axis['members'], function( $carry, $memberQName ) use( &$axis, $nodeTaxonomy ) {
+				$memberTaxonomy = $nodeTaxonomy->getTaxonomyForPrefix( $memberQName->prefix );
+				$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
+				$memberLabel = $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'];
+				if ( $memberLabel == $axis['default-member'] || $memberLabel == $axis['domain-member'] || $memberLabel == $axis['root-member'] )
+				{
+					$carry[] = $memberLabel;
+				}
+				return $carry;
+			}, array() );
+			// For now assume there is only one
+			$memberLabel = reset( $members );
+			// Find the context(s)
+			$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
+			$memberTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $memberLabel );
+			$filteredContexts = $axis['default-member']
+				? $cf->NoSegmentContexts()
+				: $cf->SegmentContexts( strstr( $hasReportDateAxis, '#' ), $reportDateAxisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+			// There should be only one
+			$contextRef = key( $filteredContexts->getContexts() );
+
+			// Find the fact WITHOUT this context
+			$cbFacts = $facts;
+			$facts = array();
+			foreach ( $cbFacts as $factIndex => $fact )
+			{
+				if ( $orginally ? $fact['contextRef'] == $contextRef : $fact['contextRef'] != $contextRef ) continue;
+				if ( ! $hasReportDateAxis )
+				{
+					$fact['contextRef'] = $cbFact['contextRef'];
+				}
+				$facts[ $factIndex ] = $fact;
+				break;
+			}
+		};
+
+		// Now workout the facts layout.
+		// Note to me.  This is probably the way to go as it separates the generation of the facts from the rendering layout
+		$getFactsLayout = function( $nodes, $lineItems = false ) use( &$getFactsLayout, &$getStatedFacts, $instance, &$axes, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $hasReportDateAxis )
+		{
+			$rows = array();
+			$priorRowContextRefsForByColumns = array();
+
+			foreach ( $nodes as $label => $node )
+			{
+				$abstractLineItems = $node['modelType'] == 'cm.xsd#cm_Abstract';
+				$thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
+				$lineItems |= $thisLineItems | $abstractLineItems;
+				if ( $lineItems )
+				{
+					/** @var XBRL_DFR $nodeTaxonomy */
+					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeElement = $nodeTaxonomy->getElementById( $label );
+
+					if ( $thisLineItems )
+					{
+					}
+					else if ( $node['modelType'] == 'cm.xsd#cm_Abstract' )
+					{
+					}
+					else
+					{
+						// Add the data.  There is likely to be only a partial facts set
+						$facts = $instance->getElement( $nodeElement['name'] );
+
+						if ( isset( $node['preferredLabel'] ) )
+						{
+							$openingBalance = $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel;
+							$cf = new ContextsFilter( $instance, $contexts );
+							/** @var ContextsFilter $instantContextsFilter */
+							$instantContextsFilter = $cf->InstantContexts();
+
+							if ( $hasReportDateAxis && $node['preferredLabel'] == self::$originallyStatedLabel )
+							{
+								// If there is domain or default member of ReportDateAxis then one approach
+								// is taken to find an opening balance.  If not the another approach is required.
+								$axis = $axes[ $hasReportDateAxis ];
+								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
+								{
+									$getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, true );
+								}
+								else
+								{
+									$openingBalance = true;
+								}
+							}
+
+							if ( $openingBalance )
+							{
+								$instantContexts = $instantContextsFilter-> getContexts();
+								uksort( $instantContexts, function( $a, $b ) use ( &$contexts )
+								{
+									return -1 * strcmp( $contexts[ $a] ['period']['endDate'], $contexts[ $b]['period']['endDate'] );
+								} );
+
+								$instantContextsKeys = array_flip( array_keys( $instantContexts ) );
+								$cbFacts = $facts;
+								$facts = array();
+								foreach ( $cbFacts as $cbFactIndex => $cbFact )
+								{
+									$segmentContextFilter = $instantContextsFilter->SameContextSegment( $contexts[ $cbFact['contextRef'] ] );
+									$segmentContexts = $segmentContextFilter-> getContexts();
+									uksort( $segmentContexts, function( $a, $b ) use ( &$contexts )
+									{
+										return -1 * strcmp( $contexts[ $a ] ['period']['endDate'], $contexts[ $b ]['period']['endDate'] );
+									} );
+
+									// Find the fact's prior context
+									reset( $segmentContexts );
+									do
+									{
+										if ( key( $segmentContexts ) != $cbFact['contextRef'] ) continue;
+										next( $segmentContexts );
+										break;
+									}
+									while ( next( $segmentContexts ) );
+
+									if ( is_null( $contextRef = key( $segmentContexts ) ) ) continue;
+
+									// Find the fact with this context
+									foreach ( $cbFacts as $factIndex => $fact )
+									{
+										if ( $fact['contextRef'] != $contextRef ) continue;
+										if ( ! $hasReportDateAxis )
+										{
+											$fact['contextRef'] = $cbFact['contextRef'];
+										}
+										$facts[ $factIndex ] = $fact;
+										break;
+									}
+								}
+								unset( $cbFacts );
+							}
+						}
+
+						$columns = array();
+						// Look for the fact with $contextRef
+						if ( $hasReportDateAxis )
+						{
+							// Find the segment with $hasReportDateAxis
+							if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRoleRestatedLabel )
+							{
+								$axis = $axes[ $hasReportDateAxis ];
+								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
+								{
+									$getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, false );
+									$fact = reset( $facts );
+								}
+								else
+								{
+									$fact = reset( $facts ); // By default use the first fact
+									if ( count( $facts ) > 1 && $priorRowContextRefsForByColumns )
+									{
+										$contextRef = reset( $priorRowContextRefsForByColumns );
+										// Look for a fact with this context ref
+										$f = @reset( array_filter( $facts, function( $fact ) use ( $contextRef ) { return $fact['contextRef'] == $contextRef ; } ) );
+										if ( $f ) $fact = $f;
+									}
+								}
+							}
+							else
+							{
+								$fact = reset( $facts );
+							}
+
+						}
+
+						$priorRowContextRefsForByColumns = array();
+
+						$lastRowLayout = end( $columnLayout );
+
+						foreach ( $facts as $factIndex => $fact )
+						{
+							if ( ! $fact || ! isset( $contextRefColumns[ $fact['contextRef'] ] ) ) continue;
+							$columnIndex = $columnRefs[ $contextRefColumns[ $fact['contextRef'] ] ];
+							// Check that the column is still reportable.  It might have been removed as empty
+							if ( ! isset( $lastRowLayout[ $columnIndex ] ) ) continue;
+							$currentColumn = $lastRowLayout[ $columnIndex ];
+
+							$columns[ $columnIndex ] = $fact;
+							$priorRowContextRefsForByColumns[ $columnIndex ] = $fact['contextRef'];
+						}
+						unset( $fact ); // Gets confusing having old values hanging around
+						unset( $facts );
+
+						ksort( $columns );
+						$rows[ $label ] = array( 'columns' => $columns, 'taxonomy' => $nodeTaxonomy, 'element' => $nodeElement, 'node' => $node );
+						unset( $columns );
+					}
+				}
+				else
+				{
+					// No layout until the line items node is found
+				}
+
+				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+
+				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $lineItems ) );
+			}
+
+			return $rows;
+		};
+
+		$factsLayout = $getFactsLayout( $network['hierarchy'] );
+
+		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout ) use( &$createContextRefColumns, &$removeColumn )
+		{
+			$columnsToDrop = array();
+			$flipped = array_flip( $columnRefs );
+			for ( $columnIndex = 0; $columnIndex<$headerColumnCount; $columnIndex++ )
+			{
+				$empty = true;
+
+				foreach ( $rows as $label => $row )
+				{
+					$closingBalance = isset( $row['node']['preferredLabel'] ) && $row['node']['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel;
+					if ( $closingBalance ) continue;  // Ignore closing balance
+					if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
+
+					$empty = false;
+					break;
+				}
+				if ( $empty ) $columnsToDrop[] = $flipped[ $columnIndex ];
+			}
+
+			foreach ( $columnsToDrop as $columnIndex )
+			{
+				$removeColumn( $columnHierarchy, $columnIndex );
+				$headerColumnCount--;
+				$columnCount--;
+				$columnLayout = array();
+				$contextRefColumns = $createContextRefColumns( $columnHierarchy );
+				$columnRefs = array_flip( array_values( array_unique( $contextRefColumns ) ) );
+			}
+
+		};
+
+		$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout );
+
+		// Now workout the layout.
+		$createLayout = function( $nodes, $lineItems = false, $patternType = 'set', $main = false, &$row = 0 ) use( &$createLayout, &$getStatedFacts, $instance, &$axes, $columnCount, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $headerColumnCount, $headerRowCount, $rowCount, $factSetTypes, $hasReportDateAxis )
+		{
+			$divs = array();
+			$priorRowContextRefsForByColumns = array();
+
+			foreach ( $nodes as $label => $node )
+			{
+				$abstractLineItems = $node['modelType'] == 'cm.xsd#cm_Abstract';
+				$thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
+				$lineItems |= $thisLineItems | $abstractLineItems;
+				if ( $lineItems )
+				{
+					/** @var XBRL_DFR $nodeTaxonomy */
+					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeElement = $nodeTaxonomy->getElementById( $label );
+					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
+					// Do this because $label includes the preferred label roles and the label passed cannot include it
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels );
+
+					if ( $thisLineItems )
+					{
+						// This is where the headers are laid out
+						// This is the line-item header
+						$divs[] =	"			<div class='report-header line-item' style='grid-area: 1 / 1 / span $headerRowCount / span 1;'>$text</div>";
+						if ( $hasReportDateAxis )
+						{
+							$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
+							$reportDateAxisElement = $reportDateAxisTaxonomy->getElementById( $hasReportDateAxis );
+							$text = $reportDateAxisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportDateAxisTaxonomy->getTaxonomyXSD() . '#' . $reportDateAxisElement['id'] );
+							$divs[] =	"			<div class='report-header axis-label line-item' style='grid-area: 1 / 2 / span $headerRowCount / span 1;'>$text</div>";
+						}
+
+						foreach ( $columnLayout as $row => $columns )
+						{
+							$column = 2 + ( $hasReportDateAxis ? 1 : 0 );
+							$headerRow = $row + 1;
+							$rowClass = $row % 2 ? "member-label" : "axis-label";
+							if ( $headerRow == count( $columnLayout ) )
+							{
+								$rowClass .= " last";
+							}
+							foreach ( $columns as $columnSpan )
+							{
+								$columnClass = isset( $columnSpan['default-member'] ) && $columnSpan['default-member'] ? ' default-member' : '';
+								$columnClass .= isset( $columnSpan['domain-member'] ) && $columnSpan['domain-member'] ? ' domain-member' : '';
+								$columnClass .= isset( $columnSpan['root-member'] ) && $columnSpan['root-member'] ? ' root-member' : '';
+
+								$span = $columnSpan['span'];
+								$divs[] = "			<div class='report-header $rowClass$columnClass' style='grid-area: $headerRow / $column / $headerRow / span $span;'>{$columnSpan['text']}</div>";
+
+								$column += $span;
+								if ( $column > $columnCount + 1)
+								{
+									XBRL_Log::getInstance()->warning( "The number of generated header columns ($column) is greater than the number of expected columns ($columnCount)" );
+								}
+							}
+						}
+					}
+					else if ( $node['modelType'] == 'cm.xsd#cm_Abstract' )
+					{
+						$row++;
+						$main = false;
+						if ( isset( $node['patterntype'] ) )
+						{
+							if ( $node['patterntype'] == 'rollup' )
+							{
+								$main = $patternType != $node['patterntype'];
+							}
+							$patternType = $node['patterntype'];
+						}
+						// Abstract rows laid out here
+						$startDateAxisStyle = $hasReportDateAxis ? 'style="grid-column-start: span 2;"' : '';
+						$divs[] = "		<div class='report-line line-item abstract' data-row='$row' $startDateAxisStyle>$text</div>";
+						for ( $i = 0; $i < $headerColumnCount; $i++ ) $divs[] = "<div class='report-line abstract-value' data-row='$row'></div>";
+					}
+					else
+					{
+						// All other (concept) rows laid out here
+						$row++;
+						$totalClass = isset( $node['total'] ) && $node['total'] ? 'total' : '';
+						$totalClass .= $main && $totalClass ? ' main' : '';
+						// Add the data.  There is likely to be only a partial facts set
+						$facts = $instance->getElement( $nodeElement['name'] );
+
+						if ( isset( $node['preferredLabel'] ) )
+						{
+							$openingBalance = $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel;
+							// $openingBalance = false;
+							$cf = new ContextsFilter( $instance, $contexts );
+							/** @var ContextsFilter $instantContextsFilter */
+							$instantContextsFilter = $cf->InstantContexts();
+
+							if ( $hasReportDateAxis && $node['preferredLabel'] == self::$originallyStatedLabel )
+							{
+								// If there is domain or default member of ReportDateAxis then one approach
+								// is taken to find an opening balance.  If not the another approach is required.
+								$axis = $axes[ $hasReportDateAxis ];
+								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
+								{
+									$getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, true );
+								}
+								else
+								{
+									$openingBalance = true;
+								}
+							}
+
+							if ( $openingBalance )
+							{
+								$instantContexts = $instantContextsFilter-> getContexts();
+								uksort( $instantContexts, function( $a, $b ) use ( &$contexts )
+								{
+									return -1 * strcmp( $contexts[ $a] ['period']['endDate'], $contexts[ $b]['period']['endDate'] );
+								} );
+
+								$instantContextsKeys = array_flip( array_keys( $instantContexts ) );
+								$cbFacts = $facts;
+								$facts = array();
+								foreach ( $cbFacts as $cbFactIndex => $cbFact )
+								{
+									$segmentContextFilter = $instantContextsFilter->SameContextSegment( $contexts[ $cbFact['contextRef'] ] );
+									$segmentContexts = $segmentContextFilter-> getContexts();
+									uksort( $segmentContexts, function( $a, $b ) use ( &$contexts )
+									{
+										return -1 * strcmp( $contexts[ $a ] ['period']['endDate'], $contexts[ $b ]['period']['endDate'] );
+									} );
+
+									// Find the fact's prior context
+									reset( $segmentContexts );
+									do
+									{
+										if ( key( $segmentContexts ) != $cbFact['contextRef'] ) continue;
+										next( $segmentContexts );
+										break;
+									}
+									while ( next( $segmentContexts ) );
+
+									if ( is_null( $contextRef = key( $segmentContexts ) ) ) continue;
+
+									// Find the fact with this context
+									foreach ( $cbFacts as $factIndex => $fact )
+									{
+										if ( $fact['contextRef'] != $contextRef ) continue;
+										if ( ! $hasReportDateAxis )
+										{
+											$fact['contextRef'] = $cbFact['contextRef'];
+										}
+										$facts[ $factIndex ] = $fact;
+										break;
+									}
+								}
+								unset( $cbFacts );
+							}
+							else if ( $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel && $patternType == 'rollforward' )
+							{
+								$totalClass = 'total';
+							}
+						}
+
+						// This line MUST appear after preferred labels have been processed
+						$divs[] = "		<div class='report-line line-item $totalClass' data-row='$row'>$text</div>";
+
+						$columns = array();
+						// Look for the fact with $contextRef
+						if ( $hasReportDateAxis )
+						{
+							// Find the segment with $hasReportDateAxis
+							if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRoleRestatedLabel )
+							{
+								$axis = $axes[ $hasReportDateAxis ];
+								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
+								{
+									$getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, false );
+									$fact = reset( $facts );
+								}
+								else
+								{
+									$fact = reset( $facts ); // By default use the first fact
+									if ( count( $facts ) > 1 && $priorRowContextRefsForByColumns )
+									{
+										$contextRef = reset( $priorRowContextRefsForByColumns );
+										// Look for a fact with this context ref
+										$f = @reset( array_filter( $facts, function( $fact ) use ( $contextRef ) { return $fact['contextRef'] == $contextRef ; } ) );
+										if ( $f ) $fact = $f;
+									}
+								}
+
+								$totalClass = 'total';
+							}
+							else
+							{
+								$fact = reset( $facts );
+							}
+
+							$reportAxisMemberClass = '';
+
+							$text = ''; // By default there is no text for the column
+							if ( isset( $contexts[ $fact['contextRef'] ]['entity']['segment']['explicitMember'] ) )
+							{
+								$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
+								$reportDateAxisElement = $reportDateAxisTaxonomy->getElementById( $hasReportDateAxis );
+								$qname = $reportDateAxisTaxonomy->getPrefix() . ":" . $reportDateAxisElement['name'];
+
+								$explicitMembers = $contexts[ $fact['contextRef'] ]['entity']['segment']['explicitMember'];
+								$em = @reset( array_filter( $explicitMembers, function( $em ) use( $qname ) {
+									return $em['dimension'] == $qname;
+								} ) );
+
+								if ( $em && isset( $em['member'] ) )
+								{
+									$member = $em['member'];
+									$qname = qname( $member, $instance->getInstanceNamespaces() );
+									$memberTaxonomy = $nodeTaxonomy->getTaxonomyForNamespace( $qname->namespaceURI );
+									if ( $memberTaxonomy )
+									{
+										$memberElement = $memberTaxonomy->getElementByName( $qname->localName );
+										{
+											if ( $memberElement )
+											{
+												$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberTaxonomy->getTaxonomyXSD() . '#' . $memberElement['id'] );
+											}
+										}
+									}
+								}
+
+							}
+
+							else if ( $axis['default-member'] )
+							{
+								$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axis['default-member'] );
+								$reportAxisMemberClass = 'default-member';
+							}
+
+							$divs[] = "<div class='report-line member-label value $reportAxisMemberClass'>$text</div>";
+						}
+
+						$priorRowContextRefsForByColumns = array();
+
+						$lastRowLayout = end( $columnLayout );
+
+						foreach ( $facts as $factIndex => $fact )
+						{
+							if ( ! $fact || ! isset( $contextRefColumns[ $fact['contextRef'] ] ) ) continue;
+							$columnIndex = $columnRefs[ $contextRefColumns[ $fact['contextRef'] ] ];
+							// Check that the column is still reportable.  It might have been removed as empty
+							if ( ! isset( $lastRowLayout[ $columnIndex ] ) ) continue;
+							$currentColumn = $lastRowLayout[ $columnIndex ];
+							$columnTotalClass = $currentColumn['default-member'] || $currentColumn['domain-member'] || $currentColumn['root-member']
+								? 'total'
+								: '';
+							$type = (string) XBRL_Instance::getElementType( $fact );
+							$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
+							$value = $nodeTaxonomy->sanitizeText( $nodeTaxonomy->formattedValue( $fact, $instance, false ) );
+							if ( $fact['value'] && is_numeric( $fact['value'] ) )
+							{
+								if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
+								{
+									if ( $fact['value'] < 0 )
+									{
+										$valueClass .= ' neg';
+										$value = "(" . abs( $fact['value'] ) . ")";
+									}
+									else $valueClass .= ' pos';
+								}
+							}
+
+							$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass' data-row='$row'>$value</div>";
+							$priorRowContextRefsForByColumns[ $columnIndex ] = $fact['contextRef'];
+						}
+						unset( $fact ); // Gets confusing having old values hanging around
+						unset( $facts );
+
+						// Fill in
+						foreach ( $lastRowLayout as $columnIndex => $column )
+						{
+							if ( isset( $columns[ $columnIndex ] ) ) continue;
+							$columns[ $columnIndex ] = "<div class='report-line value' data-row='$row'></div>";
+						}
+
+						ksort( $columns );
+						$divs = array_merge( $divs, $columns );
+						unset( $columns );
+					}
+				}
+				else
+				{
+					// No layout until the line items node is found
+				}
+
+				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+
+				$divs = array_merge( $divs, $createLayout( $node['children'], $lineItems, $patternType, $main, $row ) );
+			}
+
+			return $divs;
+		};
+
+		$columnWidth = array_search( 'text', $factSetTypes ) ? 'auto' : '90px';
+
+		$reportDateColumn = $hasReportDateAxis ? ' auto ' : '';
+		$reportTable =
+			"	<div style='display: grid; grid-template-columns: auto 1fr;'>" .
+			"		<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
+
+		$reportTable .= implode( '', $createLayout( $network['hierarchy'] ) );
+
+		$reportTable .=
+			"			<div class='report-line line-item abstract final'></div>";
+
+		if ( $hasReportDateAxis )
+		{
+			$reportTable .=
+				"			<div class='report-line line-item abstract final'></div>";
+		}
+
+		for ( $i = 0; $i < $headerColumnCount; $i++ ) $divs[] =
+			$reportTable .= "<div class='report-line abstract-value final' ></div>";
+
+		$reportTable .=
+		"		</div>" .
+			"		<div></div>" .
+			"	</div>";
+
+		return $reportTable;
+	}
+
+	/**
+	 * Render a report with columns for any years and dimensions
+	 * @param array $network			An array generated by the validsateDLR process
+	 * @param string $elr				The extended link role URI
+	 * @param XBRL_Instance $instance	The instance being reported
+	 * @param QName $entityQName
+	 * @param XBRL_Formulas $formulas	The evaluated formulas
+	 * @param Observer $observer		An obsever with any validation errors
+	 * @param $evaluationResults		The results of validating the formulas
+	 * @param $contexts					An array of the context valid for the network being reported
+	 * @param $years					An array of years indexed by year number and with members 'label' and 'contextRefs'
+	 * @param $echo						If true the HTML will be echoed
+	 * @return string
+	 */
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $contexts, $years, $echo = true )
+	{
+		$componentTable = $this->renderComponentTable( $network, $elr );
+
+		$structureTable = $this->renderModelStructure( $network );
+
+		$slicers = $this->renderSlicers( $network, $entityQName );
+
+		$reportTable = $this->renderReportTable( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $contexts, $years );
+
+		$report =
+			"<div class='model-structure'>" .
+			$componentTable . $structureTable . $slicers . $reportTable .
+			"</div>";
+
+		if ( $echo ) echo $report;
+
+		return $report;
+	}
+
 }
