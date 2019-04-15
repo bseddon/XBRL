@@ -1291,6 +1291,7 @@ class XBRL_Instance
 					return false;
 				}
 
+				$this->schemaFilename = $xbrl->getSchemaLocation();
 				XBRL_Instance::$instance_taxonomy[ $xbrl->getSchemaLocation() ] = $xbrl;
 
 				foreach ( $taxonomy_files as $taxonomy_file )
@@ -2867,7 +2868,11 @@ class XBRL_Instance
 		if ( ! isset( $this->footnotes['arcs'][ $href ] ) ) return false;
 
 		if ( ! $lang ) $lang = $this->getInstanceTaxonomy()->getDefaultLanguage();
-		if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) ) return false;
+		if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) )
+		{
+			if ( ( $pos = strpos( $lang, '-' ) ) ) $lang = substr( $lang, 0, $pos );
+			if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) ) return false;
+		}
 
 		if ( is_null( $linkrole ) ) $linkrole = XBRL_Constants::$defaultLinkRole;
 		if ( is_null( $arcrole ) ) $arcrole = XBRL_Constants::$arcRoleFactFootnote;
@@ -6836,6 +6841,33 @@ class ContextsFilter
 		}
 
 		return new ContextsFilter( $this->instance, $contexts );
+	}
+
+	/**
+	 * Remove one or more contexts.  The instance will be changed and will be removed.
+	 * @param string|string[]|ContextFilter $contexts
+	 * @return ContextsFilter
+	 */
+	public function remove( $contexts )
+	{
+		if ( is_string( $contexts ) )
+		{
+			unset( $this->contexts[ $contexts ] );
+		}
+		else if ( $contexts instanceof ContextsFilter )
+		{
+			$contexts = array_keys( $contexts->getContexts() );
+		}
+
+		if ( is_array( $contexts ) )
+		{
+			foreach ( $contexts as $context )
+			{
+				unset( $this->contexts[ $context ] );
+			}
+		}
+
+		return $this;
 	}
 
 	/**
