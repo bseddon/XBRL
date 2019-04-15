@@ -249,7 +249,11 @@ class XBRL_DFR extends XBRL
 
 		foreach ( $networks as $elr => $network )
 		{
-			$result[ $elr ] = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo );
+			// error_log( $elr );
+			$result[ $elr ] = array(
+				'entities' => $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo ),
+				'text' => $networks[ $elr ]['text']
+			);
 		}
 
 		return $result;
@@ -303,7 +307,20 @@ class XBRL_DFR extends XBRL
 				return array_unique( array_merge( $carry, $result ) );
 			}, array() );
 
-			$contexts = array_intersect_key( $instance->getContexts()->getContexts(), array_flip( $contextRefs ) );
+			$rawContexts = array_intersect_key( $instance->getContexts()->getContexts(), array_flip( $contextRefs ) );
+
+			// Filter contexts to just those used by an axis or default members
+			$cf = new ContextsFilter( $instance, $rawContexts );
+			// Context without a segment are always allowed because they will be used by default members
+			$contexts = $cf->NoSegmentContexts()->getContexts();
+			// Select dimension specific contexts
+			foreach ( $network['axes'] as $axisLabel => $axis )
+			{
+				if ( ! isset( $axis['dimension'] ) ) continue;
+				$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+				$contexts = array_merge( $contexts, $cf->SegmentContexts( strstr( $axisLabel, '#' ), $dimTaxonomy->getNamespace() )->getContexts() );
+			}
+
 			$years = array();
 			foreach ( $contexts as $contextRef => $context )
 			{
@@ -908,6 +925,7 @@ class XBRL_DFR extends XBRL
 										if ( in_array( 'rollforwardinfo', $possiblePatternTypes ) )
 										{
 											$patternType = "rollforwardinfo";
+											// $patternType = "rollforward";
 											$possiblePatternTypes = array();
 											break;
 										}
@@ -929,6 +947,13 @@ class XBRL_DFR extends XBRL
 									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
 									{
 										$patternType = "complex";
+										$possiblePatternTypes = array();
+										break;
+									}
+
+									if ( $element['type'] == 'nonnum:textBlockItemType' && in_array( 'text', $possiblePatternTypes ) )
+									{
+										$patternType = 'text';
 										$possiblePatternTypes = array();
 										break;
 									}
@@ -965,6 +990,12 @@ class XBRL_DFR extends XBRL
 										}
 									}
 
+									// Text
+									if ( $element['type'] == 'nonnum:textBlockItemType' )
+									{
+										// $patternType = 'text';
+										$possiblePatternTypes[] = 'text';
+									}
 								}
 
 								// Complex
@@ -978,12 +1009,6 @@ class XBRL_DFR extends XBRL
 									{
 										$possiblePatternTypes[] = 'complex';
 									}
-								}
-
-								// Text
-								if ( $first && $last && $element['type'] == 'nonnum:textBlockItemType' )
-								{
-									$patternType = 'text';
 								}
 							}
 						}
@@ -1278,7 +1303,7 @@ class XBRL_DFR extends XBRL
 		{
 			/** @var XBRL $conceptTaxonomy */
 			$conceptTaxonomy = $row['taxonomy'];
-			$conceptText = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $conceptLabel );
+			$conceptText = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( '#' . $row['element']['id'] );
 
 			foreach ( $row['columns'] as $columnIndex => $fact )
 			{
@@ -1286,6 +1311,8 @@ class XBRL_DFR extends XBRL
 				$period = $context['period']['is_instant']
 					? $context['period']['endDate']
 					: "{$context['period']['startDate']} - {$context['period']['endDate']}";
+
+				$dimensions = $instance->getContextDimensions( $context );
 
 				$type = (string) XBRL_Instance::getElementType( $fact );
 				$valueClass = empty( $type ) ? '' : $conceptTaxonomy->valueAlignment( $type, $instance );
@@ -1298,13 +1325,28 @@ class XBRL_DFR extends XBRL
 				{
 					if ( ! isset( $axis['dimension'] ) ) continue;
 
-					foreach ( $axis['members'] as $memberLabel => $memberQName )
+					$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+					$dimElement = $dimTaxonomy->getElementById( $axisLabel );
+
+					$dimQName = $dimTaxonomy->getPrefix() . ":" . $dimElement['name'];
+
+					if ( isset( $dimensions[ $dimQName ] ) )
 					{
-						$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $memberLabel );
-						$memberText = $memTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
-						$factsTable .=
-							"				<div class='fact-table-line'>$memberText</div>";
+						$memQName = qname( $dimensions[ $dimQName ], $instance->getInstanceNamespaces() );
+						$memTaxonomy = $dimTaxonomy->getTaxonomyForQName( $dimensions[ $dimQName ] );
+						$memElement = $memTaxonomy->getElementByName( $memQName->localName );
+						$memberLabel = $memTaxonomy->getTaxonomyXSD() . "#" . $memElement['id'];
 					}
+					else
+					{
+						$memberLabel = $axis['default-member'];
+						$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $memberLabel );
+					}
+
+					$memberText = $memTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
+
+					$factsTable .=
+						"				<div class='fact-table-line'>$memberText</div>";
 				}
 
 				$factsTable .=
@@ -1544,6 +1586,38 @@ class XBRL_DFR extends XBRL
 		// Get count of dimensions with more than one member
 		$multiMemberAxesCount = count( $multiMemberAxes );
 
+		// If there are single member axes then remove contexts that are not related to the single member
+		if ( true )
+		{
+			$singleMemberAxes = array_diff_key( $axes, array_flip( $multiMemberAxes ) );
+			$cf = new ContextsFilter( $instance, $contexts );
+			foreach ( $singleMemberAxes as $axisLabel => $axis )
+			{
+				if ( $axisLabel == $hasReportDateAxis ) continue;
+				if ( ! isset( $axis['dimension'] ) ) continue;
+
+				$memberLabel = key( $axis['members'] );
+
+				$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+				// If the member is default then the context will be added
+				// but there cant be any other members
+				if ( $memberLabel == $axis['default-member'] )
+				{
+					$segmentContexts = $cf->SegmentContexts( strstr( $axisLabel, '#' ), $dimTaxonomy->getNamespace() );
+					if ( ! $segmentContexts->count() ) continue;
+					$cf->remove( $segmentContexts );
+				}
+				else
+				{
+					// If not then select only contexts with the member
+					$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $memberLabel );
+					$cf = $cf->SegmentContexts( strstr( $axisLabel, '#' ), $dimTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memTaxonomy->getNamespace() );
+				}
+			}
+
+			$contexts = $cf->getContexts();
+		}
+
 		// The number of columns is the number of $years * the number of members for each dimension
 		$headerColumnCount = count( $years );
 
@@ -1649,7 +1723,11 @@ class XBRL_DFR extends XBRL
 								/** @var XBRL_DFR $memberTaxonomy */
 								$memberTaxonomy = $this->getTaxonomyForXSD( $memberLabel );
 								$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
-								$filteredContexts = $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+
+								$filteredContexts = $axis['default-member'] == $memberLabel
+									? $cf-> NoSegmentContexts()
+									: $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+
 								$guid = XBRL::GUID();
 								$nextMembers[ $guid ] = array(
 									'text' => $memberText,
@@ -1714,7 +1792,7 @@ class XBRL_DFR extends XBRL
 						$result += $createContextRefColumns( $columnNode['children'], $depth + 2 );
 					}
 					else
-					$result += array_fill_keys( $columnNode['contextRefs'], $index );
+					$result += $columnNode['contextRefs'] ? array_fill_keys( $columnNode['contextRefs'], $index ) : array( XBRL::GUID() => $index );
 				}
 			}
 			return $result;
@@ -1734,8 +1812,12 @@ class XBRL_DFR extends XBRL
 
 			foreach ( $nodes as $label => $node )
 			{
+				$abstractLineItems = $node['modelType'] == 'cm.xsd#cm_Abstract';
 				$thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
-				$lineItems |= $thisLineItems;
+				$lineItems |= $thisLineItems | $abstractLineItems;
+
+				// $thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
+				// $lineItems |= $thisLineItems;
 				if ( $lineItems && ( $thisLineItems || $node['modelType'] == 'cm.xsd#cm_Abstract' ) )
 				{
 					$factSetTypes[ $label ] = isset( $node['patterntype'] ) ? $node['patterntype'] : 'set';
@@ -1866,6 +1948,8 @@ class XBRL_DFR extends XBRL
 					{
 						// Add the data.  There is likely to be only a partial facts set
 						$facts = $instance->getElement( $nodeElement['name'] );
+						// Filter facts by contexts
+						$facts = array_filter( $facts, function( $fact ) use ( $contexts ) { return isset( $contexts[ $fact['contextRef'] ] ); } );
 
 						if ( isset( $node['preferredLabel'] ) )
 						{
@@ -2042,10 +2126,49 @@ class XBRL_DFR extends XBRL
 		$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout );
 
 		// Now workout the layout.
-		$createLayout = function( $nodes, $lineItems = false, $patternType = 'set', $main = false, &$row = 0 ) use( &$createLayout, &$getStatedFacts, $instance, &$axes, $columnCount, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $headerColumnCount, $headerRowCount, $rowCount, $factSetTypes, $hasReportDateAxis )
+		$createLayout = function( &$footnotes, $nodes, $lineItems = false, $patternType = 'set', $main = false, &$row = 0, $headersDisplayed = false ) use( &$createLayout, &$getStatedFacts, $instance, &$axes, $columnCount, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $headerColumnCount, $headerRowCount, $rowCount, $factSetTypes, $hasReportDateAxis )
 		{
 			$divs = array();
 			$priorRowContextRefsForByColumns = array();
+
+			$renderHeader = function( $nodeTaxonomy, $nodeElement, $columnCount, $columnLayout, $headerRowCount, $hasReportDateAxis, $lineItems, $text, &$divs )
+			{
+				// This is the line-item header
+				$divs[] =	"			<div class='report-header line-item' style='grid-area: 1 / 1 / span $headerRowCount / span 1;'>$text</div>";
+				if ( $hasReportDateAxis )
+				{
+					$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
+					$reportDateAxisElement = $reportDateAxisTaxonomy->getElementById( $hasReportDateAxis );
+					$text = $reportDateAxisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportDateAxisTaxonomy->getTaxonomyXSD() . '#' . $reportDateAxisElement['id'] );
+					$divs[] =	"			<div class='report-header axis-label line-item' style='grid-area: 1 / 2 / span $headerRowCount / span 1;'>$text</div>";
+				}
+
+				foreach ( $columnLayout as $row => $columns )
+				{
+					$column = 2 + ( $hasReportDateAxis ? 1 : 0 );
+					$headerRow = $row + 1;
+					$rowClass = $row % 2 ? "member-label" : "axis-label";
+					if ( $headerRow == count( $columnLayout ) )
+					{
+						$rowClass .= " last";
+					}
+					foreach ( $columns as $columnSpan )
+					{
+						$columnClass = isset( $columnSpan['default-member'] ) && $columnSpan['default-member'] ? ' default-member' : '';
+						$columnClass .= isset( $columnSpan['domain-member'] ) && $columnSpan['domain-member'] ? ' domain-member' : '';
+						$columnClass .= isset( $columnSpan['root-member'] ) && $columnSpan['root-member'] ? ' root-member' : '';
+
+						$span = $columnSpan['span'];
+						$divs[] = "			<div class='report-header $rowClass$columnClass' style='grid-area: $headerRow / $column / $headerRow / span $span;'>{$columnSpan['text']}</div>";
+
+						$column += $span;
+						if ( $column > $columnCount + 1)
+						{
+							XBRL_Log::getInstance()->warning( "The number of generated header columns ($column) is greater than the number of expected columns ($columnCount)" );
+						}
+					}
+				}
+			};
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -2060,48 +2183,32 @@ class XBRL_DFR extends XBRL
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
 					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels );
+					$title =  "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}";
 
+					if ( isset( $nodeElement['balance'] ) || isset( $nodeElement['periodType'] ) )
+					{
+						$titleSuffix = array();
+						if ( isset( $nodeElement['balance'] ) ) $titleSuffix[] = $nodeElement['balance'];
+						if ( isset( $nodeElement['periodType'] ) ) $titleSuffix[] = $nodeElement['periodType'];
+						$title .= " (" . implode( " - ", $titleSuffix ) . ")";
+					}
 					if ( $thisLineItems )
 					{
 						// This is where the headers are laid out
-						// This is the line-item header
-						$divs[] =	"			<div class='report-header line-item' style='grid-area: 1 / 1 / span $headerRowCount / span 1;'>$text</div>";
-						if ( $hasReportDateAxis )
+						if ( ! $headersDisplayed )
 						{
-							$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
-							$reportDateAxisElement = $reportDateAxisTaxonomy->getElementById( $hasReportDateAxis );
-							$text = $reportDateAxisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportDateAxisTaxonomy->getTaxonomyXSD() . '#' . $reportDateAxisElement['id'] );
-							$divs[] =	"			<div class='report-header axis-label line-item' style='grid-area: 1 / 2 / span $headerRowCount / span 1;'>$text</div>";
-						}
-
-						foreach ( $columnLayout as $row => $columns )
-						{
-							$column = 2 + ( $hasReportDateAxis ? 1 : 0 );
-							$headerRow = $row + 1;
-							$rowClass = $row % 2 ? "member-label" : "axis-label";
-							if ( $headerRow == count( $columnLayout ) )
-							{
-								$rowClass .= " last";
-							}
-							foreach ( $columns as $columnSpan )
-							{
-								$columnClass = isset( $columnSpan['default-member'] ) && $columnSpan['default-member'] ? ' default-member' : '';
-								$columnClass .= isset( $columnSpan['domain-member'] ) && $columnSpan['domain-member'] ? ' domain-member' : '';
-								$columnClass .= isset( $columnSpan['root-member'] ) && $columnSpan['root-member'] ? ' root-member' : '';
-
-								$span = $columnSpan['span'];
-								$divs[] = "			<div class='report-header $rowClass$columnClass' style='grid-area: $headerRow / $column / $headerRow / span $span;'>{$columnSpan['text']}</div>";
-
-								$column += $span;
-								if ( $column > $columnCount + 1)
-								{
-									XBRL_Log::getInstance()->warning( "The number of generated header columns ($column) is greater than the number of expected columns ($columnCount)" );
-								}
-							}
+							$renderHeader( $nodeTaxonomy, $nodeElement, $columnCount, $columnLayout, $headerRowCount, $hasReportDateAxis, $lineItems, $text, $divs );
+							$headersDisplayed = true;
 						}
 					}
 					else if ( $node['modelType'] == 'cm.xsd#cm_Abstract' )
 					{
+						if ( ! $headersDisplayed )
+						{
+							$renderHeader( $nodeTaxonomy, $nodeElement, $columnCount, $columnLayout, $headerRowCount, $hasReportDateAxis, $lineItems, $text, $divs );
+							$headersDisplayed = true;
+						}
+
 						$row++;
 						$main = false;
 						if ( isset( $node['patterntype'] ) )
@@ -2114,7 +2221,7 @@ class XBRL_DFR extends XBRL
 						}
 						// Abstract rows laid out here
 						$startDateAxisStyle = $hasReportDateAxis ? 'style="grid-column-start: span 2;"' : '';
-						$divs[] = "		<div class='report-line line-item abstract' data-row='$row' $startDateAxisStyle>$text</div>";
+						$divs[] = "		<div class='report-line line-item abstract' data-row='$row' $startDateAxisStyle title='$title'>$text</div>";
 						for ( $i = 0; $i < $headerColumnCount; $i++ ) $divs[] = "<div class='report-line abstract-value' data-row='$row'></div>";
 					}
 					else
@@ -2125,6 +2232,8 @@ class XBRL_DFR extends XBRL
 						$totalClass .= $main && $totalClass ? ' main' : '';
 						// Add the data.  There is likely to be only a partial facts set
 						$facts = $instance->getElement( $nodeElement['name'] );
+						// Filter facts by contexts
+						$facts = array_filter( $facts, function( $fact ) use ( $contexts ) { return isset( $contexts[ $fact['contextRef'] ] ); } );
 
 						if ( isset( $node['preferredLabel'] ) )
 						{
@@ -2202,7 +2311,7 @@ class XBRL_DFR extends XBRL
 						}
 
 						// This line MUST appear after preferred labels have been processed
-						$divs[] = "		<div class='report-line line-item $totalClass' data-row='$row'>$text</div>";
+						$divs[] = "		<div class='report-line line-item $totalClass' data-row='$row' title='$title'>$text</div>";
 
 						$columns = array();
 						// Look for the fact with $contextRef
@@ -2275,7 +2384,7 @@ class XBRL_DFR extends XBRL
 								$reportAxisMemberClass = 'default-member';
 							}
 
-							$divs[] = "<div class='report-line member-label value $reportAxisMemberClass'>$text</div>";
+							$divs[] = "<div class='report-line member-label value $reportAxisMemberClass' title='$title'>$text</div>";
 						}
 
 						$priorRowContextRefsForByColumns = array();
@@ -2285,6 +2394,27 @@ class XBRL_DFR extends XBRL
 						foreach ( $facts as $factIndex => $fact )
 						{
 							if ( ! $fact || ! isset( $contextRefColumns[ $fact['contextRef'] ] ) ) continue;
+							if ( ! isset( $columnRefs[ $contextRefColumns[ $fact['contextRef'] ] ] ) ) continue;
+
+							$footnoteIds = array();
+
+							$fn = $instance->getFootnoteForFact( $fact );
+							if ( $fn )
+							{
+								foreach ( $fn as $index => $footnote )
+								{
+									if ( isset( $footnotes[ md5( $footnote ) ] ) )
+									{
+										$footnoteIds[] = $footnotes[ md5( $footnote ) ]['id'];
+										continue;
+									}
+
+									$footnotes[ md5( $footnote ) ] = array( 'text' => $footnote );
+									$footnotes[ md5( $footnote ) ]['id'] = count( $footnotes );
+									$footnoteIds[] = count( $footnotes );
+								}
+							}
+
 							$columnIndex = $columnRefs[ $contextRefColumns[ $fact['contextRef'] ] ];
 							// Check that the column is still reportable.  It might have been removed as empty
 							if ( ! isset( $lastRowLayout[ $columnIndex ] ) ) continue;
@@ -2294,8 +2424,9 @@ class XBRL_DFR extends XBRL
 								: '';
 							$type = (string) XBRL_Instance::getElementType( $fact );
 							$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
-							$value = $nodeTaxonomy->sanitizeText( $nodeTaxonomy->formattedValue( $fact, $instance, false ) );
-							if ( $fact['value'] && is_numeric( $fact['value'] ) )
+							// $value = $nodeTaxonomy->sanitizeText( $nodeTaxonomy->formattedValue( $fact, $instance, false ) );
+							$value = $nodeTaxonomy->formattedValue( $fact, $instance, false );
+							if ( strlen( $fact['value'] ) && is_numeric( $fact['value'] ) )
 							{
 								if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
 								{
@@ -2308,7 +2439,15 @@ class XBRL_DFR extends XBRL
 								}
 							}
 
-							$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass' data-row='$row'>$value</div>";
+							$footnoteClass = "";
+							if ( $footnoteIds )
+							{
+								$footnoteClass = 'xbrl-footnote';
+								$value = "<div class='footnote-id'>" . implode( ',', $footnoteIds ) . "</div>" .
+										 "<div class='value'>$value</div>";
+							}
+
+							$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass $footnoteClass' data-row='$row'>$value</div>";
 							$priorRowContextRefsForByColumns[ $columnIndex ] = $fact['contextRef'];
 						}
 						unset( $fact ); // Gets confusing having old values hanging around
@@ -2318,7 +2457,7 @@ class XBRL_DFR extends XBRL
 						foreach ( $lastRowLayout as $columnIndex => $column )
 						{
 							if ( isset( $columns[ $columnIndex ] ) ) continue;
-							$columns[ $columnIndex ] = "<div class='report-line value' data-row='$row'></div>";
+							$columns[ $columnIndex ] = "<div class='report-line value $totalClass' data-row='$row'></div>";
 						}
 
 						ksort( $columns );
@@ -2333,7 +2472,7 @@ class XBRL_DFR extends XBRL
 
 				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
 
-				$divs = array_merge( $divs, $createLayout( $node['children'], $lineItems, $patternType, $main, $row ) );
+				$divs = array_merge( $divs, $createLayout( $footnotes, $node['children'], $lineItems, $patternType, $main, $row, $headersDisplayed ) );
 			}
 
 			return $divs;
@@ -2342,28 +2481,50 @@ class XBRL_DFR extends XBRL
 		$columnWidth = array_search( 'text', $factSetTypes ) ? 'auto' : '90px';
 
 		$reportDateColumn = $hasReportDateAxis ? ' auto ' : '';
+		$footnotes = array();
 		$reportTable =
-			"	<div style='display: grid; grid-template-columns: auto 1fr;'>" .
-			"		<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
+			"	<div style='display: grid; grid-template-columns: 1fr; '>" .
+			"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
+			"			<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
 
-		$reportTable .= implode( '', $createLayout( $network['hierarchy'] ) );
+		$reportTable .= implode( '', $createLayout( $footnotes, $network['hierarchy'] ) );
 
 		$reportTable .=
-			"			<div class='report-line line-item abstract final'></div>";
+			"				<div class='report-line line-item abstract final'></div>";
 
 		if ( $hasReportDateAxis )
 		{
 			$reportTable .=
-				"			<div class='report-line line-item abstract final'></div>";
+				"				<div class='report-line line-item abstract final'></div>";
 		}
 
 		for ( $i = 0; $i < $headerColumnCount; $i++ ) $divs[] =
-			$reportTable .= "<div class='report-line abstract-value final' ></div>";
+			$reportTable .= "				<div class='report-line abstract-value final' ></div>";
 
 		$reportTable .=
-		"		</div>" .
-			"		<div></div>" .
-			"	</div>";
+			"			</div>" .
+			"			<div></div>" .
+			"		</div>";
+
+		if ( $footnotes )
+		{
+			$footnoteHtml = "";
+			foreach ( $footnotes as $hash => $footnote )
+			{
+				$footnoteHtml .= "<div class='footnote-id'>{$footnote['id']}</div><div class='footnote-text'>{$footnote['text']}</div>";
+			}
+			$reportTable .=
+				"		<div class='xbrl-footnotes'>" .
+				"			<div class='footnote-header'>Footnotes</div>" .
+				"			<div class='footnote-list'>" .
+				"				$footnoteHtml" .
+				"			</div>" .
+				"		</div>";
+		}
+
+		$reportTable .=
+			"	</div>" .
+			"";
 
 		return $reportTable;
 	}
@@ -2390,6 +2551,8 @@ class XBRL_DFR extends XBRL
 
 		$slicers = $this->renderSlicers( $network, $entityQName );
 
+		// Filter the contexts by axes
+		// All the contexts without
 		$factsLayout = array();
 		$reportTable = $this->renderReportTable( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $contexts, $years, $factsLayout );
 
