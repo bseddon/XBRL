@@ -1922,6 +1922,16 @@ class XBRL {
 				break;
 		}
 
+		/*
+valueAlignmentForNamespace: Need to handle ''
+valueAlignmentForNamespace: Need to handle 'http://xbrl.sec.gov/dei/2014-01-31'
+valueAlignmentForNamespace: Need to handle type ':centralIndexKeyItemType'
+valueAlignmentForNamespace: Need to handle type ':filerCategoryItemType'
+valueAlignmentForNamespace: Need to handle type ':fiscalPeriodItemType'
+valueAlignmentForNamespace: Need to handle type ':perShareItemType'
+valueAlignmentForNamespace: Need to handle type ':submissionTypeItemType'
+valueAlignmentForNamespace: Need to handle type ':yesNoItemType'
+valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		$type = "$prefix:$name";
 
 		switch ( $type )
@@ -1943,6 +1953,7 @@ class XBRL {
 			case 'xbrli:gMonthDayItemType':
 			case 'xbrli:gYearItemType':
 			case 'xbrli:durationItemType':
+			case 'xbrli:tokenItemType':
 				return "left";
 
 			default:
@@ -2008,7 +2019,12 @@ class XBRL {
 		// Initialize $this->documentPrefixes
 		$this->getDocumentNamespaces();
 
-		if ( ! isset( $this->documentPrefixes[ $prefix ] ) ) return null;
+		if ( ! isset( $this->documentPrefixes[ $prefix ] ) )
+		{
+			// Look for prefix in imported taxonmies
+			$taxonomies = array_filter( $this->context->importedSchemas, function( $xbrl ) use ( $prefix ) { return $xbrl->getPrefix() == $prefix; } );
+			return $taxonomies ? key( $taxonomies ): null;
+		}
 		return $this->documentPrefixes[ $prefix ];
 	}
 
