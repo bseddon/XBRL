@@ -28,360 +28,363 @@
 require_once('XBRL.php');
 
 /**
- * Define the namespaces of the entry points supported by this taxonomy
- * @var array
- */
-$entrypoint_namespaces_2014 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2014_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2014_NS,
-	// XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
-);
-
-$entrypoint_namespaces_2015 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2015_NS,
-	// XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
-);
-
-$entrypoint_namespaces_2016 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2016_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2016_NS,
-	// XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
-);
-
-$entrypoint_namespaces_2017 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2017_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2017_NS,
-	// XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
-);
-
-$entrypoint_namespaces_2018 = array(
-	XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_STD_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2018_ALL_NS,
-	XBRL_US_GAAP_2015::$us_GAAP_2018_NS,
-	// XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
-);
-
-XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2015" );
-XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
-XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
-XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
-XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
-
-/**
- * Register xsd to class map entries
- *
- * This call defines the namespaces that apply to the use of the XBRL decendent class defined in this file.
- * The static function XBRL::withtaxonomy() will use the information provided by this call to instantiate
- * the correct (this) class.
- */
-XBRL::add_namespace_to_class_map_entries( array_merge( array(
-	"http://fasb.org/stm/com/2015-01-31",
-	"http://fasb.org/stm/sfp-ucreo/2015-01-31",
-	"http://fasb.org/stm/sfp-clreo/2015-01-31",
-	"http://fasb.org/stm/soi-egm/2015-01-31",
-	"http://fasb.org/stm/soi-re/2015-01-31",
-	"http://fasb.org/stm/soi-reit/2015-01-31",
-	"http://fasb.org/stm/scf-re/2015-01-31",
-	"http://fasb.org/stm/sheci/2015-01-31",
-	"http://fasb.org/stm/soi-indira/2015-01-31",
-	"http://fasb.org/stm/soi/2015-01-31",
-	"http://fasb.org/stm/sfp-cls/2015-01-31",
-	"http://fasb.org/stm/scf-dir/2015-01-31",
-	"http://fasb.org/stm/scf-indir/2015-01-31",
-	"http://fasb.org/stm/spc/2015-01-31",
-	"http://fasb.org/stm/soc/2015-01-31",
-	"http://fasb.org/stm/soi-int/2015-01-31",
-	"http://fasb.org/stm/sfp-dbo/2015-01-31",
-	"http://fasb.org/stm/scf-dbo/2015-01-31",
-	"http://fasb.org/stm/soi-ins/2015-01-31",
-	"http://fasb.org/stm/sfp-ibo/2015-01-31",
-	"http://fasb.org/stm/scf-inv/2015-01-31",
-	"http://fasb.org/stm/soi-sbi/2015-01-31",
-	"http://fasb.org/stm/sfp-sbo/2015-01-31",
-	"http://fasb.org/stm/scf-sbo/2015-01-31",
-	"http://fasb.org/stm/scf-indira/2015-01-31",
-	"http://fasb.org/stm/scf-sd/2015-01-31",
-	"http://fasb.org/dis/bsoff/2015-01-31",
-	"http://fasb.org/dis/schedoi-hold/2015-01-31",
-	"http://fasb.org/dis/schedoi-shorthold/2015-01-31",
-	"http://fasb.org/dis/schedoi-sumhold/2015-01-31",
-	"http://fasb.org/dis/schedoi-oocw/2015-01-31",
-	"http://fasb.org/dis/schedoi-iiaa/2015-01-31",
-	"http://fasb.org/dis/schedoi-otsh/2015-01-31",
-	"http://fasb.org/dis/schedoi-fednote/2015-01-31",
-	"http://fasb.org/dis/fs-interest/2015-01-31",
-	"http://fasb.org/dis/sec-cndfir/2015-01-31",
-	"http://fasb.org/dis/lea/2015-01-31",
-	"http://fasb.org/dis/fs-fhlb/2015-01-31",
-	"http://fasb.org/dis/ctbl/2015-01-31",
-	"http://fasb.org/dis/ru/2015-01-31",
-	"http://fasb.org/dis/cce/2015-01-31",
-	"http://fasb.org/dis/inv/2015-01-31",
-	"http://fasb.org/dis/iago/2015-01-31",
-	"http://fasb.org/dis/pay/2015-01-31",
-	"http://fasb.org/dis/aro/2015-01-31",
-	"http://fasb.org/dis/ocpfs/2015-01-31",
-	"http://fasb.org/dis/acec/2015-01-31",
-	"http://fasb.org/dis/ir/2015-01-31",
-	"http://fasb.org/dis/ap/2015-01-31",
-	"http://fasb.org/dis/rlnro/2015-01-31",
-	"http://fasb.org/dis/ides/2015-01-31",
-	"http://fasb.org/dis/emjv/2015-01-31",
-	"http://fasb.org/dis/iaoi/2015-01-31",
-	"http://fasb.org/dis/dccpoa/2015-01-31",
-	"http://fasb.org/dis/ppe/2015-01-31",
-	"http://fasb.org/dis/ero/2015-01-31",
-	"http://fasb.org/dis/edco/2015-01-31",
-	"http://fasb.org/dis/dr/2015-01-31",
-	"http://fasb.org/dis/cc/2015-01-31",
-	"http://fasb.org/dis/guarantees/2015-01-31",
-	"http://fasb.org/dis/debt/2015-01-31",
-	"http://fasb.org/dis/othliab/2015-01-31",
-	"http://fasb.org/dis/ni/2015-01-31",
-	"http://fasb.org/dis/te/2015-01-31",
-	"http://fasb.org/dis/equity/2015-01-31",
-	"http://fasb.org/dis/crcgen/2015-01-31",
-	"http://fasb.org/dis/crcsbp/2015-01-31",
-	"http://fasb.org/dis/crcrb/2015-01-31",
-	"http://fasb.org/dis/crcpb/2015-01-31",
-	"http://fasb.org/dis/otherexp/2015-01-31",
-	"http://fasb.org/dis/rd/2015-01-31",
-	"http://fasb.org/dis/inctax/2015-01-31",
-	"http://fasb.org/dis/disops/2015-01-31",
-	"http://fasb.org/dis/eui/2015-01-31",
-	"http://fasb.org/dis/eps/2015-01-31",
-	"http://fasb.org/dis/sr/2015-01-31",
-	"http://fasb.org/dis/bc/2015-01-31",
-	"http://fasb.org/dis/reorg/2015-01-31",
-	"http://fasb.org/dis/diha/2015-01-31",
-	"http://fasb.org/dis/fifvd/2015-01-31",
-	"http://fasb.org/dis/foct/2015-01-31",
-	"http://fasb.org/dis/nt/2015-01-31",
-	"http://fasb.org/dis/rpd/2015-01-31",
-	"http://fasb.org/dis/ts/2015-01-31",
-	"http://fasb.org/dis/se/2015-01-31",
-	"http://fasb.org/dis/con/2015-01-31",
-	"http://fasb.org/dis/fs-bt/2015-01-31",
-	"http://fasb.org/dis/fs-bd/2015-01-31",
-	"http://fasb.org/dis/fs-ins/2015-01-31",
-	"http://fasb.org/dis/fs-mort/2015-01-31",
-	"http://fasb.org/dis/hco/2015-01-31",
-	"http://fasb.org/dis/ei/2015-01-31",
-	"http://fasb.org/dis/re/2015-01-31",
-	"http://fasb.org/dis/regop/2015-01-31",
-	"http://fasb.org/dis/sec-vq/2015-01-31",
-	"http://fasb.org/dis/sec-re/2015-01-31",
-	"http://fasb.org/dis/sec-mort/2015-01-31",
-	"http://fasb.org/dis/sec-sum/2015-01-31",
-	"http://fasb.org/dis/sec-supins/2015-01-31",
-	"http://fasb.org/dis/sec-reins/2015-01-31",
-	"http://fasb.org/dis/sec-suppc/2015-01-31",
-	"http://fasb.org/dis/oi/2015-01-31",
-	"http://fasb.org/codification-part/2015-01-31",
-	"http://fasb.org/legacy-part/2015-01-31",
-	"http://fasb.org/us-types/2015-01-31",
-	"http://xbrl.sec.gov/country-ent-all/2013-01-31",
-	"http://xbrl.sec.gov/currency-all/2014-01-31",
-	"http://xbrl.sec.gov/dei/2014-01-31",
-	"http://xbrl.sec.gov/dei-all/2014-01-31",
-	"http://xbrl.sec.gov/dei-std/2014-01-31",
-	"http://xbrl.sec.gov/exch-ent-all/2015-01-31",
-	"http://xbrl.sec.gov/invest/2013-01-31",
-	"http://xbrl.sec.gov/invest-all/2013-01-31",
-	"http://xbrl.sec.gov/invest-std/2013-01-31",
-	"http://www.xbrl.org/2009/role/deprecated",
-	"http://xbrl.sec.gov/country-ent-std/2013-01-31",
-	"http://xbrl.sec.gov/country-std/2013-01-31",
-	"http://xbrl.sec.gov/country/2013-01-31",
-	"http://xbrl.sec.gov/country-all/2013-01-31",
-	"http://xbrl.sec.gov/exch-all/2015-01-31",
-	"http://xbrl.sec.gov/exch-std/2015-01-31",
-	"http://xbrl.sec.gov/exch-ent-std/2015-01-31",
-	"http://xbrl.sec.gov/currency-std/2014-01-31",
-	"http://xbrl.sec.gov/currency/2014-01-31",
-	"http://xbrl.sec.gov/exch/2015-01-31",
-), $entrypoint_namespaces_2015 ), "XBRL_US_GAAP_2015" );
-XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
-
-XBRL::add_namespace_to_class_map_entries( array_merge( array(
-	"http://fasb.org/stm/com/2015-01-31",
-	"http://fasb.org/stm/sfp-ucreo/2015-01-31",
-	"http://fasb.org/stm/sfp-clreo/2015-01-31",
-	"http://fasb.org/stm/soi-egm/2015-01-31",
-	"http://fasb.org/stm/soi-re/2015-01-31",
-	"http://fasb.org/stm/soi-reit/2015-01-31",
-	"http://fasb.org/stm/scf-re/2015-01-31",
-	"http://fasb.org/stm/sheci/2015-01-31",
-	"http://fasb.org/stm/soi-indira/2015-01-31",
-	"http://fasb.org/stm/soi/2015-01-31",
-	"http://fasb.org/stm/sfp-cls/2015-01-31",
-	"http://fasb.org/stm/scf-dir/2015-01-31",
-	"http://fasb.org/stm/scf-indir/2015-01-31",
-	"http://fasb.org/stm/spc/2015-01-31",
-	"http://fasb.org/stm/soc/2015-01-31",
-	"http://fasb.org/stm/soi-int/2015-01-31",
-	"http://fasb.org/stm/sfp-dbo/2015-01-31",
-	"http://fasb.org/stm/scf-dbo/2015-01-31",
-	"http://fasb.org/stm/soi-ins/2015-01-31",
-	"http://fasb.org/stm/sfp-ibo/2015-01-31",
-	"http://fasb.org/stm/scf-inv/2015-01-31",
-	"http://fasb.org/stm/soi-sbi/2015-01-31",
-	"http://fasb.org/stm/sfp-sbo/2015-01-31",
-	"http://fasb.org/stm/scf-sbo/2015-01-31",
-	"http://fasb.org/stm/scf-indira/2015-01-31",
-	"http://fasb.org/stm/scf-sd/2015-01-31",
-	"http://fasb.org/dis/bsoff/2015-01-31",
-	"http://fasb.org/dis/schedoi-hold/2015-01-31",
-	"http://fasb.org/dis/schedoi-shorthold/2015-01-31",
-	"http://fasb.org/dis/schedoi-sumhold/2015-01-31",
-	"http://fasb.org/dis/schedoi-oocw/2015-01-31",
-	"http://fasb.org/dis/schedoi-iiaa/2015-01-31",
-	"http://fasb.org/dis/schedoi-otsh/2015-01-31",
-	"http://fasb.org/dis/schedoi-fednote/2015-01-31",
-	"http://fasb.org/dis/fs-interest/2015-01-31",
-	"http://fasb.org/dis/sec-cndfir/2015-01-31",
-	"http://fasb.org/dis/lea/2015-01-31",
-	"http://fasb.org/dis/fs-fhlb/2015-01-31",
-	"http://fasb.org/dis/ctbl/2015-01-31",
-	"http://fasb.org/dis/ru/2015-01-31",
-	"http://fasb.org/dis/cce/2015-01-31",
-	"http://fasb.org/dis/inv/2015-01-31",
-	"http://fasb.org/dis/iago/2015-01-31",
-	"http://fasb.org/dis/pay/2015-01-31",
-	"http://fasb.org/dis/aro/2015-01-31",
-	"http://fasb.org/dis/ocpfs/2015-01-31",
-	"http://fasb.org/dis/acec/2015-01-31",
-	"http://fasb.org/dis/ir/2015-01-31",
-	"http://fasb.org/dis/ap/2015-01-31",
-	"http://fasb.org/dis/rlnro/2015-01-31",
-	"http://fasb.org/dis/ides/2015-01-31",
-	"http://fasb.org/dis/emjv/2015-01-31",
-	"http://fasb.org/dis/iaoi/2015-01-31",
-	"http://fasb.org/dis/dccpoa/2015-01-31",
-	"http://fasb.org/dis/ppe/2015-01-31",
-	"http://fasb.org/dis/ero/2015-01-31",
-	"http://fasb.org/dis/edco/2015-01-31",
-	"http://fasb.org/dis/dr/2015-01-31",
-	"http://fasb.org/dis/cc/2015-01-31",
-	"http://fasb.org/dis/guarantees/2015-01-31",
-	"http://fasb.org/dis/debt/2015-01-31",
-	"http://fasb.org/dis/othliab/2015-01-31",
-	"http://fasb.org/dis/ni/2015-01-31",
-	"http://fasb.org/dis/te/2015-01-31",
-	"http://fasb.org/dis/equity/2015-01-31",
-	"http://fasb.org/dis/crcgen/2015-01-31",
-	"http://fasb.org/dis/crcsbp/2015-01-31",
-	"http://fasb.org/dis/crcrb/2015-01-31",
-	"http://fasb.org/dis/crcpb/2015-01-31",
-	"http://fasb.org/dis/otherexp/2015-01-31",
-	"http://fasb.org/dis/rd/2015-01-31",
-	"http://fasb.org/dis/inctax/2015-01-31",
-	"http://fasb.org/dis/disops/2015-01-31",
-	"http://fasb.org/dis/eui/2015-01-31",
-	"http://fasb.org/dis/eps/2015-01-31",
-	"http://fasb.org/dis/sr/2015-01-31",
-	"http://fasb.org/dis/bc/2015-01-31",
-	"http://fasb.org/dis/reorg/2015-01-31",
-	"http://fasb.org/dis/diha/2015-01-31",
-	"http://fasb.org/dis/fifvd/2015-01-31",
-	"http://fasb.org/dis/foct/2015-01-31",
-	"http://fasb.org/dis/nt/2015-01-31",
-	"http://fasb.org/dis/rpd/2015-01-31",
-	"http://fasb.org/dis/ts/2015-01-31",
-	"http://fasb.org/dis/se/2015-01-31",
-	"http://fasb.org/dis/con/2015-01-31",
-	"http://fasb.org/dis/fs-bt/2015-01-31",
-	"http://fasb.org/dis/fs-bd/2015-01-31",
-	"http://fasb.org/dis/fs-ins/2015-01-31",
-	"http://fasb.org/dis/fs-mort/2015-01-31",
-	"http://fasb.org/dis/hco/2015-01-31",
-	"http://fasb.org/dis/ei/2015-01-31",
-	"http://fasb.org/dis/re/2015-01-31",
-	"http://fasb.org/dis/regop/2015-01-31",
-	"http://fasb.org/dis/sec-vq/2015-01-31",
-	"http://fasb.org/dis/sec-re/2015-01-31",
-	"http://fasb.org/dis/sec-mort/2015-01-31",
-	"http://fasb.org/dis/sec-sum/2015-01-31",
-	"http://fasb.org/dis/sec-supins/2015-01-31",
-	"http://fasb.org/dis/sec-reins/2015-01-31",
-	"http://fasb.org/dis/sec-suppc/2015-01-31",
-	"http://fasb.org/dis/oi/2015-01-31",
-	"http://fasb.org/codification-part/2014-01-31",
-	"http://fasb.org/legacy-part/2014-01-31",
-	"http://xbrl.sec.gov/country-ent-all/2013-01-31",
-	"http://xbrl.sec.gov/currency-all/2014-01-31",
-	"http://xbrl.sec.gov/dei/2014-01-31",
-	"http://xbrl.sec.gov/dei-all/2014-01-31",
-	"http://xbrl.sec.gov/dei-std/2014-01-31",
-	"http://xbrl.sec.gov/exch-ent-all/2015-01-31",
-	"http://xbrl.sec.gov/invest/2013-01-31",
-	"http://xbrl.sec.gov/invest-all/2013-01-31",
-	"http://xbrl.sec.gov/invest-std/2013-01-31",
-	"http://xbrl.sec.gov/country-ent-std/2013-01-31",
-	"http://xbrl.sec.gov/country-std/2013-01-31",
-	"http://xbrl.sec.gov/country/2013-01-31",
-	"http://xbrl.sec.gov/country-all/2013-01-31",
-	"http://xbrl.sec.gov/exch-all/2014-01-31",
-	"http://xbrl.sec.gov/exch-std/2014-01-31",
-	"http://xbrl.sec.gov/exch-ent-std/2014-01-31",
-	"http://xbrl.sec.gov/currency/2014-01-31",
-	"http://xbrl.sec.gov/exch/2014-01-31",
-	"http://fasb.org/us-types/2014-01-31",
-	"ttp://xbrl.sec.gov/stpr/2011-01-31",
-), $entrypoint_namespaces_2014 ), "XBRL_US_GAAP_2015" );
-XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2014" );
-XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
-XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
-XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
-
-/**
- * Register XSD to compiled taxonomy entries
- */
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2018-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2018-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd"), "us-gaap-2018-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2018-01-31.xsd"), "us-gaap-std-2018-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2018-01-31.xsd"), "us-gaap-ent-std-2018-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2018-01-31.xsd"), "us-gaap-ent-all-2018-01-31" );
-
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2017-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-all-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2017-01-31.xsd"), "us-gaap-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2017-01-31.xsd"), "us-gaap-std-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2017-01-31.xsd"), "us-gaap-ent-std-2017-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2017-01-31.xsd"), "us-gaap-ent-all-2017-01-31" );
-
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2016-01-31.xsd" ), "us-gaap-entire-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-all-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2016-01-31.xsd"), "us-gaap-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2016-01-31.xsd"), "us-gaap-std-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2016-01-31.xsd"), "us-gaap-ent-std-2016-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2016-01-31.xsd"), "us-gaap-ent-all-2016-01-31" );
-
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2015-01-31.xsd" ), "us-gaap-entire-2015-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-all-2015-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2015-01-31.xsd"), "us-gaap-2015-01-31" );
-
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2014-01-31.xsd" ), "us-gaap-entire-2014-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-all-2014-01-31" );
-XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2014-01-31.xsd"), "us-gaap-2014-01-31" );
-
-/**
  * Implements an XBRL descendent for the US GAAP taxonomy.
  * @author Bill Seddon
  */
 class XBRL_US_GAAP_2015 extends XBRL
 {
+	public static function initialize()
+	{
+		/**
+		 * Define the namespaces of the entry points supported by this taxonomy
+		 * @var array
+		 */
+		$entrypoint_namespaces_2014 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2014_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2014_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2014_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2014_ROLES_NS,
+		);
+
+		$entrypoint_namespaces_2015 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2015_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2015_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2015_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2015_ROLES_NS,
+		);
+
+		$entrypoint_namespaces_2016 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2016_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2016_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2016_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2016_ROLES_NS,
+		);
+
+		$entrypoint_namespaces_2017 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2017_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2017_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2017_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2017_ROLES_NS,
+		);
+
+		$entrypoint_namespaces_2018 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2018_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2018_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2018_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
+		);
+
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
+
+		/**
+		 * Register xsd to class map entries
+		 *
+		 * This call defines the namespaces that apply to the use of the XBRL decendent class defined in this file.
+		 * The static function XBRL::withtaxonomy() will use the information provided by this call to instantiate
+		 * the correct (this) class.
+		 */
+		XBRL::add_namespace_to_class_map_entries( array_merge( array(
+			"http://fasb.org/stm/com/2015-01-31",
+			"http://fasb.org/stm/sfp-ucreo/2015-01-31",
+			"http://fasb.org/stm/sfp-clreo/2015-01-31",
+			"http://fasb.org/stm/soi-egm/2015-01-31",
+			"http://fasb.org/stm/soi-re/2015-01-31",
+			"http://fasb.org/stm/soi-reit/2015-01-31",
+			"http://fasb.org/stm/scf-re/2015-01-31",
+			"http://fasb.org/stm/sheci/2015-01-31",
+			"http://fasb.org/stm/soi-indira/2015-01-31",
+			"http://fasb.org/stm/soi/2015-01-31",
+			"http://fasb.org/stm/sfp-cls/2015-01-31",
+			"http://fasb.org/stm/scf-dir/2015-01-31",
+			"http://fasb.org/stm/scf-indir/2015-01-31",
+			"http://fasb.org/stm/spc/2015-01-31",
+			"http://fasb.org/stm/soc/2015-01-31",
+			"http://fasb.org/stm/soi-int/2015-01-31",
+			"http://fasb.org/stm/sfp-dbo/2015-01-31",
+			"http://fasb.org/stm/scf-dbo/2015-01-31",
+			"http://fasb.org/stm/soi-ins/2015-01-31",
+			"http://fasb.org/stm/sfp-ibo/2015-01-31",
+			"http://fasb.org/stm/scf-inv/2015-01-31",
+			"http://fasb.org/stm/soi-sbi/2015-01-31",
+			"http://fasb.org/stm/sfp-sbo/2015-01-31",
+			"http://fasb.org/stm/scf-sbo/2015-01-31",
+			"http://fasb.org/stm/scf-indira/2015-01-31",
+			"http://fasb.org/stm/scf-sd/2015-01-31",
+			"http://fasb.org/dis/bsoff/2015-01-31",
+			"http://fasb.org/dis/schedoi-hold/2015-01-31",
+			"http://fasb.org/dis/schedoi-shorthold/2015-01-31",
+			"http://fasb.org/dis/schedoi-sumhold/2015-01-31",
+			"http://fasb.org/dis/schedoi-oocw/2015-01-31",
+			"http://fasb.org/dis/schedoi-iiaa/2015-01-31",
+			"http://fasb.org/dis/schedoi-otsh/2015-01-31",
+			"http://fasb.org/dis/schedoi-fednote/2015-01-31",
+			"http://fasb.org/dis/fs-interest/2015-01-31",
+			"http://fasb.org/dis/sec-cndfir/2015-01-31",
+			"http://fasb.org/dis/lea/2015-01-31",
+			"http://fasb.org/dis/fs-fhlb/2015-01-31",
+			"http://fasb.org/dis/ctbl/2015-01-31",
+			"http://fasb.org/dis/ru/2015-01-31",
+			"http://fasb.org/dis/cce/2015-01-31",
+			"http://fasb.org/dis/inv/2015-01-31",
+			"http://fasb.org/dis/iago/2015-01-31",
+			"http://fasb.org/dis/pay/2015-01-31",
+			"http://fasb.org/dis/aro/2015-01-31",
+			"http://fasb.org/dis/ocpfs/2015-01-31",
+			"http://fasb.org/dis/acec/2015-01-31",
+			"http://fasb.org/dis/ir/2015-01-31",
+			"http://fasb.org/dis/ap/2015-01-31",
+			"http://fasb.org/dis/rlnro/2015-01-31",
+			"http://fasb.org/dis/ides/2015-01-31",
+			"http://fasb.org/dis/emjv/2015-01-31",
+			"http://fasb.org/dis/iaoi/2015-01-31",
+			"http://fasb.org/dis/dccpoa/2015-01-31",
+			"http://fasb.org/dis/ppe/2015-01-31",
+			"http://fasb.org/dis/ero/2015-01-31",
+			"http://fasb.org/dis/edco/2015-01-31",
+			"http://fasb.org/dis/dr/2015-01-31",
+			"http://fasb.org/dis/cc/2015-01-31",
+			"http://fasb.org/dis/guarantees/2015-01-31",
+			"http://fasb.org/dis/debt/2015-01-31",
+			"http://fasb.org/dis/othliab/2015-01-31",
+			"http://fasb.org/dis/ni/2015-01-31",
+			"http://fasb.org/dis/te/2015-01-31",
+			"http://fasb.org/dis/equity/2015-01-31",
+			"http://fasb.org/dis/crcgen/2015-01-31",
+			"http://fasb.org/dis/crcsbp/2015-01-31",
+			"http://fasb.org/dis/crcrb/2015-01-31",
+			"http://fasb.org/dis/crcpb/2015-01-31",
+			"http://fasb.org/dis/otherexp/2015-01-31",
+			"http://fasb.org/dis/rd/2015-01-31",
+			"http://fasb.org/dis/inctax/2015-01-31",
+			"http://fasb.org/dis/disops/2015-01-31",
+			"http://fasb.org/dis/eui/2015-01-31",
+			"http://fasb.org/dis/eps/2015-01-31",
+			"http://fasb.org/dis/sr/2015-01-31",
+			"http://fasb.org/dis/bc/2015-01-31",
+			"http://fasb.org/dis/reorg/2015-01-31",
+			"http://fasb.org/dis/diha/2015-01-31",
+			"http://fasb.org/dis/fifvd/2015-01-31",
+			"http://fasb.org/dis/foct/2015-01-31",
+			"http://fasb.org/dis/nt/2015-01-31",
+			"http://fasb.org/dis/rpd/2015-01-31",
+			"http://fasb.org/dis/ts/2015-01-31",
+			"http://fasb.org/dis/se/2015-01-31",
+			"http://fasb.org/dis/con/2015-01-31",
+			"http://fasb.org/dis/fs-bt/2015-01-31",
+			"http://fasb.org/dis/fs-bd/2015-01-31",
+			"http://fasb.org/dis/fs-ins/2015-01-31",
+			"http://fasb.org/dis/fs-mort/2015-01-31",
+			"http://fasb.org/dis/hco/2015-01-31",
+			"http://fasb.org/dis/ei/2015-01-31",
+			"http://fasb.org/dis/re/2015-01-31",
+			"http://fasb.org/dis/regop/2015-01-31",
+			"http://fasb.org/dis/sec-vq/2015-01-31",
+			"http://fasb.org/dis/sec-re/2015-01-31",
+			"http://fasb.org/dis/sec-mort/2015-01-31",
+			"http://fasb.org/dis/sec-sum/2015-01-31",
+			"http://fasb.org/dis/sec-supins/2015-01-31",
+			"http://fasb.org/dis/sec-reins/2015-01-31",
+			"http://fasb.org/dis/sec-suppc/2015-01-31",
+			"http://fasb.org/dis/oi/2015-01-31",
+			"http://fasb.org/codification-part/2015-01-31",
+			"http://fasb.org/legacy-part/2015-01-31",
+			"http://fasb.org/us-types/2015-01-31",
+			"http://xbrl.sec.gov/country-ent-all/2013-01-31",
+			"http://xbrl.sec.gov/currency-all/2014-01-31",
+			"http://xbrl.sec.gov/dei/2014-01-31",
+			"http://xbrl.sec.gov/dei-all/2014-01-31",
+			"http://xbrl.sec.gov/dei-std/2014-01-31",
+			"http://xbrl.sec.gov/exch-ent-all/2015-01-31",
+			"http://xbrl.sec.gov/invest/2013-01-31",
+			"http://xbrl.sec.gov/invest-all/2013-01-31",
+			"http://xbrl.sec.gov/invest-std/2013-01-31",
+			"http://www.xbrl.org/2009/role/deprecated",
+			"http://xbrl.sec.gov/country-ent-std/2013-01-31",
+			"http://xbrl.sec.gov/country-std/2013-01-31",
+			"http://xbrl.sec.gov/country/2013-01-31",
+			"http://xbrl.sec.gov/country-all/2013-01-31",
+			"http://xbrl.sec.gov/exch-all/2015-01-31",
+			"http://xbrl.sec.gov/exch-std/2015-01-31",
+			"http://xbrl.sec.gov/exch-ent-std/2015-01-31",
+			"http://xbrl.sec.gov/currency-std/2014-01-31",
+			"http://xbrl.sec.gov/currency/2014-01-31",
+			"http://xbrl.sec.gov/exch/2015-01-31",
+		), $entrypoint_namespaces_2015 ), "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
+
+		XBRL::add_namespace_to_class_map_entries( array_merge( array(
+			"http://fasb.org/stm/com/2015-01-31",
+			"http://fasb.org/stm/sfp-ucreo/2015-01-31",
+			"http://fasb.org/stm/sfp-clreo/2015-01-31",
+			"http://fasb.org/stm/soi-egm/2015-01-31",
+			"http://fasb.org/stm/soi-re/2015-01-31",
+			"http://fasb.org/stm/soi-reit/2015-01-31",
+			"http://fasb.org/stm/scf-re/2015-01-31",
+			"http://fasb.org/stm/sheci/2015-01-31",
+			"http://fasb.org/stm/soi-indira/2015-01-31",
+			"http://fasb.org/stm/soi/2015-01-31",
+			"http://fasb.org/stm/sfp-cls/2015-01-31",
+			"http://fasb.org/stm/scf-dir/2015-01-31",
+			"http://fasb.org/stm/scf-indir/2015-01-31",
+			"http://fasb.org/stm/spc/2015-01-31",
+			"http://fasb.org/stm/soc/2015-01-31",
+			"http://fasb.org/stm/soi-int/2015-01-31",
+			"http://fasb.org/stm/sfp-dbo/2015-01-31",
+			"http://fasb.org/stm/scf-dbo/2015-01-31",
+			"http://fasb.org/stm/soi-ins/2015-01-31",
+			"http://fasb.org/stm/sfp-ibo/2015-01-31",
+			"http://fasb.org/stm/scf-inv/2015-01-31",
+			"http://fasb.org/stm/soi-sbi/2015-01-31",
+			"http://fasb.org/stm/sfp-sbo/2015-01-31",
+			"http://fasb.org/stm/scf-sbo/2015-01-31",
+			"http://fasb.org/stm/scf-indira/2015-01-31",
+			"http://fasb.org/stm/scf-sd/2015-01-31",
+			"http://fasb.org/dis/bsoff/2015-01-31",
+			"http://fasb.org/dis/schedoi-hold/2015-01-31",
+			"http://fasb.org/dis/schedoi-shorthold/2015-01-31",
+			"http://fasb.org/dis/schedoi-sumhold/2015-01-31",
+			"http://fasb.org/dis/schedoi-oocw/2015-01-31",
+			"http://fasb.org/dis/schedoi-iiaa/2015-01-31",
+			"http://fasb.org/dis/schedoi-otsh/2015-01-31",
+			"http://fasb.org/dis/schedoi-fednote/2015-01-31",
+			"http://fasb.org/dis/fs-interest/2015-01-31",
+			"http://fasb.org/dis/sec-cndfir/2015-01-31",
+			"http://fasb.org/dis/lea/2015-01-31",
+			"http://fasb.org/dis/fs-fhlb/2015-01-31",
+			"http://fasb.org/dis/ctbl/2015-01-31",
+			"http://fasb.org/dis/ru/2015-01-31",
+			"http://fasb.org/dis/cce/2015-01-31",
+			"http://fasb.org/dis/inv/2015-01-31",
+			"http://fasb.org/dis/iago/2015-01-31",
+			"http://fasb.org/dis/pay/2015-01-31",
+			"http://fasb.org/dis/aro/2015-01-31",
+			"http://fasb.org/dis/ocpfs/2015-01-31",
+			"http://fasb.org/dis/acec/2015-01-31",
+			"http://fasb.org/dis/ir/2015-01-31",
+			"http://fasb.org/dis/ap/2015-01-31",
+			"http://fasb.org/dis/rlnro/2015-01-31",
+			"http://fasb.org/dis/ides/2015-01-31",
+			"http://fasb.org/dis/emjv/2015-01-31",
+			"http://fasb.org/dis/iaoi/2015-01-31",
+			"http://fasb.org/dis/dccpoa/2015-01-31",
+			"http://fasb.org/dis/ppe/2015-01-31",
+			"http://fasb.org/dis/ero/2015-01-31",
+			"http://fasb.org/dis/edco/2015-01-31",
+			"http://fasb.org/dis/dr/2015-01-31",
+			"http://fasb.org/dis/cc/2015-01-31",
+			"http://fasb.org/dis/guarantees/2015-01-31",
+			"http://fasb.org/dis/debt/2015-01-31",
+			"http://fasb.org/dis/othliab/2015-01-31",
+			"http://fasb.org/dis/ni/2015-01-31",
+			"http://fasb.org/dis/te/2015-01-31",
+			"http://fasb.org/dis/equity/2015-01-31",
+			"http://fasb.org/dis/crcgen/2015-01-31",
+			"http://fasb.org/dis/crcsbp/2015-01-31",
+			"http://fasb.org/dis/crcrb/2015-01-31",
+			"http://fasb.org/dis/crcpb/2015-01-31",
+			"http://fasb.org/dis/otherexp/2015-01-31",
+			"http://fasb.org/dis/rd/2015-01-31",
+			"http://fasb.org/dis/inctax/2015-01-31",
+			"http://fasb.org/dis/disops/2015-01-31",
+			"http://fasb.org/dis/eui/2015-01-31",
+			"http://fasb.org/dis/eps/2015-01-31",
+			"http://fasb.org/dis/sr/2015-01-31",
+			"http://fasb.org/dis/bc/2015-01-31",
+			"http://fasb.org/dis/reorg/2015-01-31",
+			"http://fasb.org/dis/diha/2015-01-31",
+			"http://fasb.org/dis/fifvd/2015-01-31",
+			"http://fasb.org/dis/foct/2015-01-31",
+			"http://fasb.org/dis/nt/2015-01-31",
+			"http://fasb.org/dis/rpd/2015-01-31",
+			"http://fasb.org/dis/ts/2015-01-31",
+			"http://fasb.org/dis/se/2015-01-31",
+			"http://fasb.org/dis/con/2015-01-31",
+			"http://fasb.org/dis/fs-bt/2015-01-31",
+			"http://fasb.org/dis/fs-bd/2015-01-31",
+			"http://fasb.org/dis/fs-ins/2015-01-31",
+			"http://fasb.org/dis/fs-mort/2015-01-31",
+			"http://fasb.org/dis/hco/2015-01-31",
+			"http://fasb.org/dis/ei/2015-01-31",
+			"http://fasb.org/dis/re/2015-01-31",
+			"http://fasb.org/dis/regop/2015-01-31",
+			"http://fasb.org/dis/sec-vq/2015-01-31",
+			"http://fasb.org/dis/sec-re/2015-01-31",
+			"http://fasb.org/dis/sec-mort/2015-01-31",
+			"http://fasb.org/dis/sec-sum/2015-01-31",
+			"http://fasb.org/dis/sec-supins/2015-01-31",
+			"http://fasb.org/dis/sec-reins/2015-01-31",
+			"http://fasb.org/dis/sec-suppc/2015-01-31",
+			"http://fasb.org/dis/oi/2015-01-31",
+			"http://fasb.org/codification-part/2014-01-31",
+			"http://fasb.org/legacy-part/2014-01-31",
+			"http://xbrl.sec.gov/country-ent-all/2013-01-31",
+			"http://xbrl.sec.gov/currency-all/2014-01-31",
+			"http://xbrl.sec.gov/dei/2014-01-31",
+			"http://xbrl.sec.gov/dei-all/2014-01-31",
+			"http://xbrl.sec.gov/dei-std/2014-01-31",
+			"http://xbrl.sec.gov/exch-ent-all/2015-01-31",
+			"http://xbrl.sec.gov/invest/2013-01-31",
+			"http://xbrl.sec.gov/invest-all/2013-01-31",
+			"http://xbrl.sec.gov/invest-std/2013-01-31",
+			"http://xbrl.sec.gov/country-ent-std/2013-01-31",
+			"http://xbrl.sec.gov/country-std/2013-01-31",
+			"http://xbrl.sec.gov/country/2013-01-31",
+			"http://xbrl.sec.gov/country-all/2013-01-31",
+			"http://xbrl.sec.gov/exch-all/2014-01-31",
+			"http://xbrl.sec.gov/exch-std/2014-01-31",
+			"http://xbrl.sec.gov/exch-ent-std/2014-01-31",
+			"http://xbrl.sec.gov/currency/2014-01-31",
+			"http://xbrl.sec.gov/exch/2014-01-31",
+			"http://fasb.org/us-types/2014-01-31",
+			"ttp://xbrl.sec.gov/stpr/2011-01-31",
+		), $entrypoint_namespaces_2014 ), "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2014" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
+
+		/**
+		 * Register XSD to compiled taxonomy entries
+		 */
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2018-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2018-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd"), "us-gaap-2018-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2018-01-31.xsd"), "us-gaap-std-2018-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2018-01-31.xsd"), "us-gaap-ent-std-2018-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2018-01-31.xsd"), "us-gaap-ent-all-2018-01-31" );
+
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2017-01-31.xsd" ), "us-gaap-entire-2017-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2017-01-31.xsd", "us-gaap-2017-01-31.xsd" ), "us-gaap-all-2017-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2017-01-31.xsd"), "us-gaap-2017-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2017-01-31.xsd"), "us-gaap-std-2017-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2017-01-31.xsd"), "us-gaap-ent-std-2017-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2017-01-31.xsd"), "us-gaap-ent-all-2017-01-31" );
+
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2016-01-31.xsd" ), "us-gaap-entire-2016-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2016-01-31.xsd", "us-gaap-2016-01-31.xsd" ), "us-gaap-all-2016-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2016-01-31.xsd"), "us-gaap-2016-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2016-01-31.xsd"), "us-gaap-std-2016-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2016-01-31.xsd"), "us-gaap-ent-std-2016-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2016-01-31.xsd"), "us-gaap-ent-all-2016-01-31" );
+
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2015-01-31.xsd" ), "us-gaap-entire-2015-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2015-01-31.xsd", "us-gaap-2015-01-31.xsd" ), "us-gaap-all-2015-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2015-01-31.xsd"), "us-gaap-2015-01-31" );
+
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2014-01-31.xsd" ), "us-gaap-entire-2014-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2014-01-31.xsd", "us-gaap-2014-01-31.xsd" ), "us-gaap-all-2014-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2014-01-31.xsd"), "us-gaap-2014-01-31" );
+
+	}
 
 	/**
 	 * http://fasb.org/us-gaap-entryPoint-all/2015-01-31
@@ -1115,6 +1118,11 @@ class XBRL_US_GAAP_2015 extends XBRL
 		switch ( $type )
 		{
 			case 'us-types:dateStringItemType':
+			case 'dei:fiscalPeriodItemType':
+			case 'dei:submissionTypeItemType':
+			case 'dei:centralIndexKeyItemType':
+			case 'dei:yesNoItemType':
+			case 'dei:filerCategoryItemType':
 			default:
 				return "left";
 		}
@@ -1195,5 +1203,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 		return $result;
 	}
 }
+
+XBRL_US_GAAP_2015::initialize();
 
 ?>
