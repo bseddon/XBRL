@@ -1167,71 +1167,71 @@ class XBRL_Instance
 		// Import schema references
 		$base = "";
 
-		if ( is_null( $taxonomy_file ) )
+		$taxonomy_files = array();
+		$xbrl = null;
+
+		// There may be more than one schema referenced
+		foreach ( $link_children->schemaRef as $elementKey => $schemaRef )
 		{
-			$taxonomy_files = array();
-			$xbrl = null;
+			$xlinkAttributes = $schemaRef->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 
-			// There may be more than one schema referenced
-			foreach ( $link_children->schemaRef as $elementKey => $schemaRef )
+			// Check there is an href
+			if ( ! isset( $xlinkAttributes['href'] ) )
 			{
-				$xlinkAttributes = $schemaRef->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-
-				// Check there is an href
-				if ( ! isset( $xlinkAttributes['href'] ) )
-				{
-					XBRL_Log::getInstance()->instance_validation( "4.2.2", "There must be an href attribute on the schemaRef element ", array() );
-					return false;
-				}
-
-				$schemaFilename = (string) $xlinkAttributes['href'];
-				// Adjust the url if necessary.  This will be important if the schemaRef is taken
-				// from an instance document contained in a package and the schemaRef is local
-				// (into the package) but the schema has been added to the cache.
-				global $mapUrl;  // A map url function may have been created by one of the package classes.
-				if ( $mapUrl )
-				{
-					$schemaFilename = $mapUrl( $schemaFilename );
-				}
-
-				// BMS 2019-03-10 Moved down
-				// $resolvedPath = XBRL::resolve_path( $this->document_name, $schemaFilename );
-
-				// Maybe a base as well
-				$attributes = $schemaRef->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
-				$base = isset( $attributes['base'] )
-					? ( (string) $attributes['base'] )
-					: "";
-
-				if ( ! empty( $base ) && ! XBRL::endsWith( $base , '/' ) )
-				{
-					$base .= '/';
-				}
-
-				// BMS 2019-03-10 Moved from above
-				$resolvedPath = XBRL::resolve_path( $this->document_name, $base . $schemaFilename );
-
-				// The schema may have been loaded already for example by a custom linkbase definition
-				// $xsd = pathinfo( $resolvedPath, PATHINFO_BASENAME );
-				if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $resolvedPath ] ) )
-				{
-					$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $resolvedPath );
-					continue;
-				}
-
-				// BMS 2019-03-10 Why is a local file being used?
-				// $path = pathinfo( $instance_document, PATHINFO_DIRNAME ) . "/" . $base . basename( $resolvedPath );
-				// if ( ! file_exists( $path ) )
-				// {
-				// $path = $resolvedPath;
-				// }
-
-				// $taxonomy_files[] = $path;
-				$taxonomy_files[] = $resolvedPath;
-				unset($xlinkAttributes );
-
+				XBRL_Log::getInstance()->instance_validation( "4.2.2", "There must be an href attribute on the schemaRef element ", array() );
+				return false;
 			}
 
+			$schemaFilename = (string) $xlinkAttributes['href'];
+			// Adjust the url if necessary.  This will be important if the schemaRef is taken
+			// from an instance document contained in a package and the schemaRef is local
+			// (into the package) but the schema has been added to the cache.
+			global $mapUrl;  // A map url function may have been created by one of the package classes.
+			if ( $mapUrl )
+			{
+				$schemaFilename = $mapUrl( $schemaFilename );
+			}
+
+			// BMS 2019-03-10 Moved down
+			// $resolvedPath = XBRL::resolve_path( $this->document_name, $schemaFilename );
+
+			// Maybe a base as well
+			$attributes = $schemaRef->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ] );
+			$base = isset( $attributes['base'] )
+				? ( (string) $attributes['base'] )
+				: "";
+
+			if ( ! empty( $base ) && ! XBRL::endsWith( $base , '/' ) )
+			{
+				$base .= '/';
+			}
+
+			// BMS 2019-03-10 Moved from above
+			$resolvedPath = XBRL::resolve_path( $this->document_name, $base . $schemaFilename );
+
+			// The schema may have been loaded already for example by a custom linkbase definition
+			// $xsd = pathinfo( $resolvedPath, PATHINFO_BASENAME );
+			if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $resolvedPath ] ) )
+			{
+				$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $resolvedPath );
+				continue;
+			}
+
+			// BMS 2019-03-10 Why is a local file being used?
+			// $path = pathinfo( $instance_document, PATHINFO_DIRNAME ) . "/" . $base . basename( $resolvedPath );
+			// if ( ! file_exists( $path ) )
+			// {
+			// $path = $resolvedPath;
+			// }
+
+			// $taxonomy_files[] = $path;
+			$taxonomy_files[] = $resolvedPath;
+			unset($xlinkAttributes );
+
+		}
+
+		if ( is_null( $taxonomy_file ) )
+		{
 			if ( count( $taxonomy_files ) )
 			{
 				// If there is a compiled taxonomy folder then see if any of the xsds
@@ -1340,25 +1340,26 @@ class XBRL_Instance
 				}
 				else
 				{
+					$key = "";
+
 					// Only load the schema if it not one of the core ones that are pre-loaded
 					$href = XBRL::resolve_path( $instance_document, $part );
-					if ( ! isset( $this->context->schemaFileToNamespace[ $href ] ) )
+					// If the schema location is one of the imported schemas ignore
+					if ( in_array( $href, $taxonomy_files ) ) continue;
+					if ( isset( $this->context->schemaFileToNamespace[ $href ] ) ) continue;
+
+					if ( isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) ) continue;
+
+					// This taxonomy may already exist in the global cache
+					if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $href ] ) )
 					{
-						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) )
-						{
-							// This taxonomy may already exist in the global cache
-							if ( isset( XBRL_Global::getInstance()->schemaFileToNamespace[ $href ] ) )
-							{
-								$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $href );
-							}
-							else
-							{
-								$result = XBRL::withTaxonomy( $href, true );
-							}
-						}
+						$xbrl = XBRL_Global::getInstance()->getTaxonomyForXSD( $href );
+					}
+					else
+					{
+						$result = XBRL::withTaxonomy( $href, true );
 					}
 
-					$key = "";
 				}
 			}
 
@@ -2871,7 +2872,7 @@ class XBRL_Instance
 		if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) )
 		{
 			if ( ( $pos = strpos( $lang, '-' ) ) ) $lang = substr( $lang, 0, $pos );
-			if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) ) return false;
+		if ( ! isset( $this->footnotes[ XBRL_Constants::$footnote ][ $lang ] ) ) return false;
 		}
 
 		if ( is_null( $linkrole ) ) $linkrole = XBRL_Constants::$defaultLinkRole;
