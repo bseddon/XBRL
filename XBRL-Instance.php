@@ -6589,7 +6589,10 @@ class ContextsFilter
 	{
 		$filtered = array_filter( $this->contexts, function( $context ) {
 			// The context may be invalid in which case exclude
-			return ! isset( $context['entity']['segment']['explicitMember'] ) || count( $context['entity']['segment']['explicitMember'] ) == 0;
+			return ( ! isset( $context['entity']['segment']['explicitMember'] ) || count( $context['entity']['segment']['explicitMember'] ) == 0 ) &&
+				   ( ! isset( $context['entity']['scenario']['explicitMember'] ) || count( $context['entity']['scenario']['explicitMember'] ) == 0 ) &&
+				   ( ! isset( $context['segment']['explicitMember'] ) || count( $context['segment']['explicitMember'] ) == 0 ) &&
+				   ( ! isset( $context['scenario']['explicitMember'] ) || count( $context['scenario']['explicitMember'] ) == 0 );
 		} );
 
 		return new ContextsFilter( $this->instance, $filtered );
