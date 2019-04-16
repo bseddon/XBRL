@@ -1557,22 +1557,22 @@ class XBRL_DFR extends XBRL
 
 			$axis = $axes[ $axisLabel ];
 
-			if ( in_array( $element['name'], $this->axesToExclude ) )
-			{
-				if ( $element['name'] == XBRL_Constants::$dfrReportDateAxis )
-				{
-					// Must have more than one member
-					if ( count( $axis['members'] ) > 1 )
-					{
-						// Must be more than one context
-						if ( $instance->getContexts()->SegmentContexts( strstr( $axisLabel, '#' ), $taxonomy->getNamespace() )->count() > ( $axis['default-member'] ? 0 : 1 ) )
-						{
-							$hasReportDateAxis = $axisLabel;
-						}
-					}
-				}
-				return $carry;
-			}
+			// if ( in_array( $element['name'], $this->axesToExclude ) )
+			// {
+			// 	if ( $element['name'] == XBRL_Constants::$dfrReportDateAxis )
+			// 	{
+			// 		// Must have more than one member
+			// 		if ( count( $axis['members'] ) > 1 )
+			// 		{
+			// 			// Must be more than one context
+			// 			if ( $instance->getContexts()->SegmentContexts( strstr( $axisLabel, '#' ), $taxonomy->getNamespace() )->count() > ( $axis['default-member'] ? 0 : 1 ) )
+			// 			{
+			// 				$hasReportDateAxis = $axisLabel;
+			// 			}
+			// 		}
+			// 	}
+			// 	return $carry;
+			// }
 
 			if ( ! isset( $axis['dimension'] ) || // Ignore member only items
 				 (
@@ -1580,6 +1580,20 @@ class XBRL_DFR extends XBRL
 				   ! isset( $axes[ key( $axis['members'] ) ] ) // Or that has sub-members
 				 )
 			) return $carry;
+
+			if ( in_array( $element['name'], $this->axesToExclude ) )
+			{
+				if ( $element['name'] == XBRL_Constants::$dfrReportDateAxis )
+				{
+					// Must be more than one context
+					if ( $instance->getContexts()->SegmentContexts( strstr( $axisLabel, '#' ), $taxonomy->getNamespace() )->count() > ( $axis['default-member'] ? 0 : 1 ) )
+					{
+						$hasReportDateAxis = $axisLabel;
+					}
+				}
+				return $carry; // ReportDateAxis is not reported as a column
+			}
+
 			return $carry + array( $axisLabel );
 		}, array() );
 
@@ -1874,15 +1888,18 @@ class XBRL_DFR extends XBRL
 
 		/**
 		 * Return the fact corresponding to the originally stated or restated condition
-		 * @var callable $getStatedFacts
 		 * @param XBRL_DFR $nodeTaxonomy
 		 * @param array $facts (ref)
 		 * @param array $axis an entry for an axis in $axes
 		 * @param ContextsFilter $cf A filter of instant contexts
 		 * @param bool $originally True gets the facts for the orginally stated case; false restated
+		 * @var callable $getStatedFacts
+		 * @var bool $hasReportDateAxis
 		 */
-		$getStatedFacts = function( $nodeTaxonomy, &$facts, &$axis, /** @var ContextsFilter $cf */ $cf, $orginally = false ) use ( &$getStatedFacts, $hasReportDateAxis )
+		$getStatedFacts = function( $nodeTaxonomy, &$facts, &$axis, /** @var ContextsFilter $cf */ $cf, $originally = false ) use ( &$getStatedFacts, $hasReportDateAxis )
 		{
+			// !! This is a spepcial case and there will be only one prior value not prior values for several previuous years
+
 			// The opening balance value is the one that has a context with the non-default/non-domain member
 			$members = array_reduce( $axis['members'], function( $carry, $memberQName ) use( &$axis, $nodeTaxonomy ) {
 				$memberTaxonomy = $nodeTaxonomy->getTaxonomyForPrefix( $memberQName->prefix );
@@ -1902,26 +1919,36 @@ class XBRL_DFR extends XBRL
 			$filteredContexts = $axis['default-member']
 				? $cf->NoSegmentContexts()
 				: $cf->SegmentContexts( strstr( $hasReportDateAxis, '#' ), $reportDateAxisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
-			// There should be only one
-			$contextRef = key( $filteredContexts->getContexts() );
+
+			$contextRefs = array_keys( $filteredContexts->getContexts() );
+
+			// Need to find the next newest context in $filteredContexts
+			// get then and sort them in date order
+			$contexts = $filteredContexts->getContexts();
+			uksort( $contexts, function( $a, $b ) use ( &$contexts )
+			{
+				return -1 * strcmp( $contexts[ $a] ['period']['endDate'], $contexts[ $b]['period']['endDate'] );
+			} );
 
 			// Find the fact WITHOUT this context
 			$cbFacts = $facts;
 			$facts = array();
 			foreach ( $cbFacts as $factIndex => $fact )
 			{
-				if ( $orginally ? $fact['contextRef'] == $contextRef : $fact['contextRef'] != $contextRef ) continue;
-				if ( ! $hasReportDateAxis )
-				{
-					$fact['contextRef'] = $cbFact['contextRef'];
-				}
+				if ( $originally ? in_array( $fact['contextRef'], $contextRefs ) : ! in_array( $fact['contextRef'], $contextRefs ) ) continue;
 				$facts[ $factIndex ] = $fact;
-				break;
+				// break;
+
+				if ( ! $originally ) continue;
+
+				// $fact is the originally stated value
+				$facts[ $factIndex ]['contextRefRestated'] = key( $contexts );
 			}
 		};
 
 		// Now workout the facts layout.
 		// Note to me.  This is probably the way to go as it separates the generation of the facts from the rendering layout
+		// Right now it is used to drop columns
 		$getFactsLayout = function( $nodes, $lineItems = false ) use( &$getFactsLayout, &$getStatedFacts, $instance, &$axes, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $hasReportDateAxis )
 		{
 			$rows = array();
@@ -2091,7 +2118,7 @@ class XBRL_DFR extends XBRL
 
 		$factsLayout = $getFactsLayout( $network['hierarchy'] );
 
-		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout ) use( &$createContextRefColumns, &$removeColumn )
+		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout, $foundDroppableTypes ) use( &$createContextRefColumns, &$removeColumn )
 		{
 			$columnsToDrop = array();
 			$flipped = array_flip( $columnRefs );
@@ -2101,8 +2128,15 @@ class XBRL_DFR extends XBRL
 
 				foreach ( $rows as $label => $row )
 				{
-					$closingBalance = isset( $row['node']['preferredLabel'] ) && $row['node']['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel;
-					if ( $closingBalance ) continue;  // Ignore closing balance
+					if ( isset( $row['node']['preferredLabel'] ) )
+					{
+						$preferredLabel = $row['node']['preferredLabel'];
+						$balanceItem =	$preferredLabel == XBRL_Constants::$labelRolePeriodEndLabel ||
+										$preferredLabel == XBRL_Constants::$labelRolePeriodStartLabel ||
+										$preferredLabel == XBRL_Constants::$labelRoleRestatedLabel ||
+										$preferredLabel == self::$originallyStatedLabel;
+						if ( $balanceItem ) continue;  // Ignore closing balance
+					}
 					if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
 
 					$empty = false;
@@ -2123,7 +2157,12 @@ class XBRL_DFR extends XBRL
 
 		};
 
-		$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout );
+		$droppableTypesList = array( 'adjustment', 'rollforward' );
+		$foundDroppableTypes = array_filter( $factSetTypes, function( $type ) use ( $droppableTypesList ) { return in_array( $type, $droppableTypesList ); } );
+		if ( $foundDroppableTypes )
+		{
+			$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout, $foundDroppableTypes );
+		}
 
 		// Now workout the layout.
 		$createLayout = function( &$footnotes, $nodes, $lineItems = false, $patternType = 'set', $main = false, &$row = 0, $headersDisplayed = false ) use( &$createLayout, &$getStatedFacts, $instance, &$axes, $columnCount, $columnLayout, $columnRefs, $contextRefColumns, $contexts, $headerColumnCount, $headerRowCount, $rowCount, $factSetTypes, $hasReportDateAxis )
@@ -2376,6 +2415,8 @@ class XBRL_DFR extends XBRL
 									}
 								}
 
+
+								if ( $fact['contextRefRestated'] ) $facts[ $fact['guid'] ]['contextRef'] = $fact['contextRefRestated'];
 							}
 
 							else if ( $axis['default-member'] )
@@ -2424,7 +2465,10 @@ class XBRL_DFR extends XBRL
 								: '';
 							$type = (string) XBRL_Instance::getElementType( $fact );
 							$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
-							// $value = $nodeTaxonomy->sanitizeText( $nodeTaxonomy->formattedValue( $fact, $instance, false ) );
+							if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRoleNegatedLabel && is_numeric( $fact['value'] ) )
+							{
+								$fact['value'] *= -1;
+							}
 							$value = $nodeTaxonomy->formattedValue( $fact, $instance, false );
 							if ( strlen( $fact['value'] ) && is_numeric( $fact['value'] ) )
 							{
@@ -2478,7 +2522,7 @@ class XBRL_DFR extends XBRL
 			return $divs;
 		};
 
-		$columnWidth = array_search( 'text', $factSetTypes ) ? 'auto' : '90px';
+		$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'auto' : '90px';
 
 		$reportDateColumn = $hasReportDateAxis ? ' auto ' : '';
 		$footnotes = array();

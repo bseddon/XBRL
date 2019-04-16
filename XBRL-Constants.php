@@ -1549,6 +1549,12 @@ class XBRL_Constants
 	public static $labelRoleExampleGuidance		= "http://www.xbrl.org/2003/role/exampleGuidance";
 
 	/**
+	 * http://www.xbrl.org/2009/role/negatedLabel
+	 * @var string
+	 */
+	public static $labelRoleNegatedLabel = "http://www.xbrl.org/2009/role/negatedLabel";
+
+	/**
 	 * http://www.xbrl.org/2006/role/restatedLabel
 	 * @var string
 	 */
