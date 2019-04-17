@@ -101,7 +101,7 @@ class to use to processes the taxonomies.  Examples provided include:
 
 The project passes almost all conformance tests, the omissions arising because there is no support for reference linkbases.
 
-A separate project [XBRL-tests](https//:github.com/bseddon/XBRL-tests) provides a means to verify the project passes the conformance test.  This
+A separate project [XBRL-tests](https://github.com/bseddon/XBRL-tests) provides a means to verify the project passes the conformance test.  This
 project is a copy of the test harness we use to run the conformance tests.
 
 ### Signing
