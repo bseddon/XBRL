@@ -6407,10 +6407,10 @@ class ContextsFilter
 			if ( ! isset( $context['period'] ) || ! isset( $context['period']['startDate'] ) || ! isset( $context['period']['endDate'] ) ) return false;
 
 			$startDate = DateTime::createFromFormat( "!Y-m-d", $context['period']['startDate'] );
-			if ( $startDate >= $date ) return false;
+			if ( ! $context['period']['is_instant'] && $startDate >= $date ) return false;
 
 			$endDate   = DateTime::createFromFormat( "!Y-m-d", $context['period']['endDate'] );
-			return $endDate >= $date;
+			return $context['period']['is_instant'] ? $endDate == $date : $endDate >= $date;
 		} );
 
 		return new ContextsFilter( $this->instance, $filtered );
