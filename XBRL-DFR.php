@@ -48,7 +48,14 @@ class XBRL_DFR extends XBRL
 	 * @var array|null
 	 */
 	private static $conceptualModelRoles;
+	private static $defaultConceptualModelRoles;
 
+	/**
+	 * Returns the current set of conceptual model roles.  If not defined, creates a default set from?:
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/reporting-scheme/ipsas/model-structure/ModelStructure-rules-ipsas-def.xml
+	 * @param string $cacheLocation (optional)
+	 * @return array
+	 */
 	public static function getConceptualModelRoles( $cacheLocation = null )
 	{
 		if ( is_null( self::$conceptualModelRoles ) )
@@ -65,20 +72,46 @@ class XBRL_DFR extends XBRL
 			$taxonomy->context = $context;
 			$taxonomy->addLinkbaseRef( "http://xbrlsite.azurewebsites.net/2016/conceptual-model/reporting-scheme/ipsas/model-structure/ModelStructure-rules-ipsas-def.xml", "conceptual-model");
 			$roleTypes = $taxonomy->getRoleTypes();
-			$cm = $taxonomy->getTaxonomyForXSD("cm.xsd");
-			$nonDimensionalRoleRef = $cm->getNonDimensionalRoleRefs( XBRL_Constants::$defaultLinkRole );
-			$cmArcRoles = $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ];
+			// $cm = $taxonomy->getTaxonomyForXSD("cm.xsd");
+			// $nonDimensionalRoleRef = $cm->getNonDimensionalRoleRefs( XBRL_Constants::$defaultLinkRole );
+			// $cmArcRoles = $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ];
 
 			$originallyStated = array_filter( $roleTypes['link:label'], function( $role ) { return $role['id']; } );
 			self::$originallyStatedLabel = reset( $originallyStated )['roleURI'];
 
+			self::setConceptualModelRoles( $taxonomy );
+			self::$defaultConceptualModelRoles = self::$conceptualModelRoles;
+
 			unset( $taxonomy );
 			XBRL::reset();
 
-			self::$conceptualModelRoles = $cmArcRoles;
+			// self::$conceptualModelRoles = $cmArcRoles;
 		}
 		return self::$conceptualModelRoles;
 
+	}
+
+	/**
+	 * Sets some model roles if there are any in the taxonomy or sets the default model roles
+	 * @param XBRL $taxonomy A taxonomy to use or null
+	 */
+	public static function setConceptualModelRoles( $taxonomy = null )
+	{
+		$cmTaxonomy = $taxonomy ? $taxonomy->getTaxonomyForXSD("cm.xsd") : null;
+		if ( $cmTaxonomy )
+		{
+			$nonDimensionalRoleRef = $cmTaxonomy->getNonDimensionalRoleRefs( XBRL_Constants::$defaultLinkRole );
+			if ( isset( $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ] ) )
+			{
+				$cmArcRoles = $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ];
+				self::$conceptualModelRoles = $cmArcRoles;
+
+				return;
+			}
+		}
+
+		// Fallback
+		self::$conceptualModelRoles = self::$defaultConceptualModelRoles;
 	}
 
 	/**
@@ -373,11 +406,17 @@ class XBRL_DFR extends XBRL
 		// Makes sure they are reset in case the same taxonomy is validated twice.
 		$this->calculationNetworks = array();
 		$this->presentationNetworks = array();
-
 		$this->definitionNetworks = $this->getAllDefinitionRoles();
+
 		foreach ( $this->definitionNetworks as $elr => &$roleRef )
 		{
 			$roleRef = $this->getDefinitionRoleRef( $elr );
+
+			if ( property_exists( $this, 'definitionRoles' ) && ! in_array( $elr, $this->definitionRoles ) )
+			{
+				unset( $this->definitionNetworks[ $elr ] );
+				continue;
+			}
 
 			// Capture primary items
 			$this->definitionPIs[ $elr ] = array_filter( array_keys( $roleRef['primaryitems'] ), function( $label )
@@ -465,6 +504,12 @@ class XBRL_DFR extends XBRL
 		$this->calculationNetworks = array_filter( $this->calculationNetworks, function( $roleRef ) { return isset( $roleRef['calculations'] ); } );
 		foreach ( $this->calculationNetworks as $elr => $role )
 		{
+			if ( property_exists( $this, 'calculationRoles' ) && ! in_array( $elr, $this->calculationRoles ) )
+			{
+				unset( $this->calculationNetworks[ $elr ] );
+				continue;
+			}
+
 			if ( ! isset( $role['calculations'] ) ) continue;
 
 			foreach ( $role['calculations'] as $totalLabel => $components )
@@ -482,6 +527,13 @@ class XBRL_DFR extends XBRL
 
 		$this->presentationNetworks = &$this->getPresentationRoleRefs();
 
+		if ( property_exists( $this, 'presentationRoles' ) )
+		foreach ( $this->presentationNetworks as $elr => $role )
+		{
+			if ( in_array( $elr, $this->presentationRoles ) ) continue;
+			unset( $this->presentationNetworks[ $elr ] );
+		}
+
 		// Check the definition and presentation roles are consistent then make sure the calculation roles are a sub-set
 		if ( $this->definitionNetworks && array_diff_key( $this->presentationNetworks, $this->definitionNetworks ) || array_diff_key( $this->definitionNetworks, $this->presentationNetworks ) )
 		{
@@ -497,7 +549,7 @@ class XBRL_DFR extends XBRL
 		{
 			if ( array_diff_key( $this->calculationNetworks, $this->presentationNetworks ) )
 			{
-				$log->business_rules_validation('Model Structure Rules', 'Networks in calculation linkbases MUST be a sub-set of those definition and presentation linkbases',
+				$log->business_rules_validation('Model Structure Rules', 'Networks in calculation linkbases MUST be a sub-set of those in definition and presentation linkbases',
 					array(
 						'calculation' => implode( ', ', array_keys( array_diff_key( $this->calculationNetworks, $this->presentationNetworks ) ) ),
 						'error' => 'error:NetworksMustBeTheSame'
@@ -510,6 +562,12 @@ class XBRL_DFR extends XBRL
 
 		foreach ( $this->presentationNetworks as $elr => &$role )
 		{
+			if ( ! isset( $this->definitionNetworks[ $elr ] ) )
+			{
+				unset( $this->presentationNetworks[ $elr ] );
+				continue;
+			}
+
 			$this->presentationPIs[$elr] = array();
 
 			foreach ( $role['locators'] as $id => $label )
@@ -810,7 +868,7 @@ class XBRL_DFR extends XBRL
 						if ( $ok )
 						{
 							$dimension = $this->definitionNetworks[ $elr ]['hypercubes'][ @reset($tables) ]['dimensions'][ $label ];
-							$defaultMember = isset( $dimension['default'] ) ? $dimension['default']['label'] : false;
+							$defaultMember = isset( $this->context->dimensionDefaults[ $label ]['label'] ) ? $this->context->dimensionDefaults[ $label ]['label'] : false;
 
 							if ( ! $defaultMember && in_array( $element['name'], $this->reportDateAxisAliases ) )
 							{
@@ -1171,41 +1229,90 @@ class XBRL_DFR extends XBRL
 				// Check that the calculation components are not mixed up
 				// Check that the node children can be described by the members of just one calculation relationship
 				// Begin by checking to see if the children have a total member
+				$isDescendent = function( $label, $child ) use( &$isDescendent, $elr )
+				{
+					if ( ! isset( $this->calculationNetworks[ $elr ]['calculations'][ $label ] ) ) return false;
+
+					$children = $this->calculationNetworks[ $elr ]['calculations'][ $label ];
+					if ( isset( $children[ $child ] ) ) return true;
+
+					foreach ( $children as $subChild )
+					{
+						if ( $isDescendent( $subChild['label'], $child ) ) return true;
+					}
+
+					return false;
+				};
+
 				$error = false;
 				$totals = array_intersect_key( $this->calculationNetworks[ $elr ]['calculations'], $node['children'] );
 				$error = count( $totals ) > 1;
+				if ( $error )
+				{
+					// Check to see if one is the parents of all the others
+					foreach ( $totals as $calcLabel => $calcChildren )
+					{
+						// Get a list of the other calculations totals so they can be tested
+						$rest = array_filter( array_keys( $totals ), function( $label ) use( $calcLabel ) { return $label != $calcLabel; } );
+						$found = true; // Assume success
+						// Check each of the other totals to see if the primary is the parent of all the others
+						foreach ( $rest as $other )
+						{
+							// If the other is a descendent of the primary check the other
+							if ( $isDescendent( $calcLabel, $other ) ) continue;
+							$found = false;
+							break;
+						}
+
+						// When $found is true it means all the other are a child of the primary
+						if ( $found )
+						{
+							$error = false;
+							$totals = array( $calcLabel => $totals[ $calcLabel ] );
+							break;
+						}
+					}
+				}
+
 				if ( ! $error )
 				{
-					$nonAbstractNodes = $getNonAbstract( $node['children'] );
 					if ( $totals )
 					{
+						$nonAbstractNodes = $getNonAbstract( $node['children'] );
+
 						// Its an error if all the node members are not described by this relation
 						$total = key( $totals );
-						// diff should have one member and it should be the total
-						$diff = array_diff( $nonAbstractNodes, array_keys( $this->calculationNetworks[ $elr ]['calculations'][ $total ] ) );
-						if ( $diff )
+						foreach ( $nonAbstractNodes as $nonAbstractNode )
 						{
-							$totalKey = array_search( $total, $diff );
-							if ( $totalKey )
-							{
-								unset( $diff[ $totalKey ] );
-							}
-
-							// Check that any remaining elements are not in another rollup
-							if ( $diff )
-							{
-								foreach ( $this->calculationNetworks[ $elr ]['calculations'] as $totalLabel => $components )
-								{
-									// No need to look in the current rollup
-									if ( $totalLabel == $total ) continue;
-									// If any diff elements are the same as any component members, that's bad
-									if ( ! array_intersect( $diff, array_keys( $components ) ) ) continue;
-									$error = true;
-									break;
-								}
-							}
+							if ( $nonAbstractNode == $total ) continue;
+							if ( $isDescendent( $total, $nonAbstractNode ) ) continue;
+							$error = true;
+							break;
 						}
-						// $error = count( $diff ) != 1 || reset( $diff ) != $total;
+						// // diff should have one member and it should be the total
+						// $diff = array_diff( $nonAbstractNodes, array_keys( $this->calculationNetworks[ $elr ]['calculations'][ $total ] ) );
+						// if ( $diff )
+						// {
+						// 	$totalKey = array_search( $total, $diff );
+						// 	if ( $totalKey )
+						// 	{
+						// 		unset( $diff[ $totalKey ] );
+						// 	}
+                        //
+						// 	// Check that any remaining elements are not in another rollup
+						// 	if ( $diff )
+						// 	{
+						// 		foreach ( $this->calculationNetworks[ $elr ]['calculations'] as $totalLabel => $components )
+						// 		{
+						// 			// No need to look in the current rollup
+						// 			if ( $totalLabel == $total ) continue;
+						// 			// If any diff elements are the same as any component members, that's bad
+						// 			if ( ! array_intersect( $diff, array_keys( $components ) ) ) continue;
+						// 			$error = true;
+						// 			break;
+						// 		}
+						// 	}
+						// }
 					}
 					else
 					{
@@ -1639,6 +1746,16 @@ class XBRL_DFR extends XBRL
 		}
 
 		$contexts = $cf->getContexts();
+		// Should report here that there are no contexts
+		if ( ! $contexts )
+		{
+			return "	<div style='display: grid; grid-template-columns: 1fr; '>" .
+				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
+				"			There is no data to report" .
+				"		</div>" .
+				"	</div>";
+		;
+		}
 
 		// The number of columns is the number of $years * the number of members for each dimension
 		$headerColumnCount = count( $years );
@@ -1664,8 +1781,6 @@ class XBRL_DFR extends XBRL
 		{
 			$headerColumnCount *= count( $getAxisMembers( $axes[ $axisLabel ]['members'] ) );
 		}
-
-		$columnCount = $headerColumnCount + 1 + ( $hasReportDateAxis ? 1 : 0 ); // Add the description column
 
 		$getRowCount = function( $nodes, $lineItems = false ) use( &$getRowCount, $instance )
 		{
@@ -1755,16 +1870,19 @@ class XBRL_DFR extends XBRL
 									: $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
 
 								$guid = XBRL::GUID();
-								$nextMembers[ $guid ] = array(
-									'text' => $memberText,
-									'contextRefs' => array_keys( $filteredContexts->getContexts() ),
-									'default-member' => $axis['default-member'] == $memberLabel,
-									'domain-member' => $axis['domain-member'] == $memberLabel,
-									'root-member' => $axis['root-member'] == $memberLabel
-								);
+								if ( $filteredContexts->count() )
+								{
+									$nextMembers[ $guid ] = array(
+										'text' => $memberText,
+										'contextRefs' => array_keys( $filteredContexts->getContexts() ),
+										'default-member' => $axis['default-member'] == $memberLabel,
+										'domain-member' => $axis['domain-member'] == $memberLabel,
+										'root-member' => $axis['root-member'] == $memberLabel
+									);
+								}
 							}
 
-							$nextMembers['total-children'] = count( $axisMembers );
+							$nextMembers['total-children'] = count( $nextMembers );
 							$member['children'][ $axisText ] = $nextMembers;
 
 							// if ( count( $multiMemberAxes ) == 1 ) continue;
@@ -1784,8 +1902,10 @@ class XBRL_DFR extends XBRL
 				return $totalChildren;
 			};
 
-			$c = $addToColumnHierarchy( $columnHierarchy, $multiMemberAxes );
+			$headerColumnCount = $addToColumnHierarchy( $columnHierarchy, $multiMemberAxes );
 		}
+
+		$columnCount = $headerColumnCount + 1 + ( $hasReportDateAxis ? 1 : 0 ); // Add the description column
 
 		// Create an index of contextRef to column.  Should be only one column for each context.
 		// At the same time create a column layout array that can be used to generate the column headers
@@ -2082,6 +2202,9 @@ class XBRL_DFR extends XBRL
 								$axis = $axes[ $hasReportDateAxis ];
 								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
 								{
+									$cf = new ContextsFilter( $instance, $contexts );
+									/** @var ContextsFilter $instantContextsFilter */
+									$instantContextsFilter = $cf->InstantContexts();
 									$facts = $getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, false );
 									// $fact = reset( $facts );
 								}
@@ -2399,12 +2522,16 @@ class XBRL_DFR extends XBRL
 						// Look for the fact with $contextRef
 						if ( $hasReportDateAxis )
 						{
+							$axis = $axes[ $hasReportDateAxis ];
 							// Find the segment with $hasReportDateAxis
 							if ( isset( $node['preferredLabel'] ) && $last ) // && $node['preferredLabel'] == XBRL_Constants::$labelRoleRestatedLabel )
 							{
 								$axis = $axes[ $hasReportDateAxis ];
 								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
 								{
+									$cf = new ContextsFilter( $instance, $contexts );
+									/** @var ContextsFilter $instantContextsFilter */
+									$instantContextsFilter = $cf->InstantContexts();
 									// Called with 'false' parameter to exclude the fact with the 'original' context
 									$facts = $getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, false );
 								}
@@ -2460,7 +2587,7 @@ class XBRL_DFR extends XBRL
 								}
 
 
-								if ( $fact['contextRefRestated'] ) $facts[ $fact['guid'] ]['contextRef'] = $fact['contextRefRestated'];
+								if ( isset( $fact['contextRefRestated'] ) && $fact['contextRefRestated'] ) $facts[ $fact['guid'] ]['contextRef'] = $fact['contextRefRestated'];
 							}
 
 							else if ( $axis['default-member'] )
@@ -2471,7 +2598,7 @@ class XBRL_DFR extends XBRL
 
 							$divs[] = "<div class='report-line member-label value $reportAxisMemberClass' title='$title'>$text</div>";
 						}
-						else if ( $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel && $patternType == 'rollforward' )
+						else if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel && $patternType == 'rollforward' )
 						{
 							$totalClass = 'total';
 						}
@@ -2599,6 +2726,8 @@ class XBRL_DFR extends XBRL
 			"				<div class='control-header'>Columns:</div><div class='control-wider'>&lt;&nbsp;Wider&nbsp;&gt;</div><div>|</div><div class='control-narrower'>&gt;&nbsp;Narrower&nbsp;&lt;</div>" .
 			"			</div><div></div>" .
 			"			<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
+
+		echo "$elr\n";
 
 		$reportTable .= implode( '', $createLayout( $footnotes, $network['hierarchy'] ) );
 
