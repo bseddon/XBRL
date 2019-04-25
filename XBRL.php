@@ -1918,7 +1918,15 @@ class XBRL {
 				break;
 
 			default:
-				$this->log()->warning( "valueAlignmentForNamespace: Need to handle '$namespace'" );
+				$tax = $this->getTaxonomyForNamespace( $namespace );
+				if ( $tax )
+				{
+					$prefix = $tax->getPrefix();
+				}
+				else
+				{
+					$this->log()->warning( "valueAlignmentForNamespace: Need to handle '$namespace'" );
+				}
 				break;
 		}
 
@@ -1943,6 +1951,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			case 'xbrli:sharesItemType':
 			case 'xbrli:integerItemType':
 			case 'xbrli:pureItemType':
+			case 'types:EPSItemType';
 				return "right";
 
 			case 'nonnum:textBlockItemType':
@@ -1954,6 +1963,10 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			case 'xbrli:gYearItemType':
 			case 'xbrli:durationItemType':
 			case 'xbrli:tokenItemType':
+			case 'types:RelatedPartyItemType':
+			case 'types:TextBlockNoteItemType':
+			case 'types:TextBlockScheduleItemType':
+			case 'types:TextBlockPolicyItemType':
 				return "left";
 
 			default:
@@ -5819,6 +5832,11 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		$xml_basename = pathinfo( $parts[0], PATHINFO_BASENAME );
 		$fragment = isset( $parts[1] ) ? $parts[1] : "";
 
+		if ( isset( $this->context->processedLinkbases[ 'gen:arc:' . $xml_basename ] ) )
+		{
+			return;
+		}
+
 		// TODO Change this to use SchemaTypes::resolve_path
 		$path = XBRL::resolve_path( $linkbaseRef['href'], $linkbaseRef['base'] . $xml_basename );
 		// $path = str_replace( "//", "/", pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ) . "/" . $linkbaseRef['base'] . $xml_basename );
@@ -5994,6 +6012,11 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 			$parts['usedOn'] = $usedOn;
 			$arcroleRefs[ $arcroleUri ] = $parts;
+
+			if ( ! isset( $this->context->processedLinkbases[ "$usedOn:$xml_basename" ] ) )
+			{
+				$this->context->processedLinkbases[ "$usedOn:$xml_basename" ] = array( 'linkbase' => $xml_basename, 'usedOn' => $usedOn );
+			}
 		}
 
 		foreach ( $xml->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->roleRef as $roleRefKey => $roleRef )
@@ -10395,7 +10418,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 									'nodeclass' => 'dimension',
 								);
 
-								// XDT 2.7.1 Dimension defaults are global so there should never be two default for the same dimension
+								// XDT 2.7.1 Dimension defaults are global so there should never be two defaults for the same dimension
 								if ( isset( $this->context->dimensionDefaults[ $from ] ) )
 								{
 									if ( xbrl::isValidating() )
