@@ -326,6 +326,19 @@ class XBRL_Global
 	}
 
 	/**
+	 * Returns an array of any taxonomies where the id is one for an arcrole type
+	 * @param string $id
+	 * @return XBRL[]
+	 */
+	public function getTaxonomiesWithArcRoleTypeId( $id )
+	{
+		return array_filter( $this->importedSchemas, function( /** @var XBRL $taxonomy */ $taxonomy ) use( $id )
+		{
+			return $taxonomy->hasArcRoleTypeId( $id ); }
+		);
+	}
+
+	/**
 	 * Create a path to the parallel folder for a url
 	 * @param string $url
 	 * @param string $cacheLocation
