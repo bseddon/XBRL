@@ -138,5 +138,7 @@ function getIsNumeric( $context, $provider, $args )
 		// Do nothing
 	}
 
+	if ( isset( $ex ) )	\XBRL_Log::getInstance()->debug( $ex->getTraceAsString() );
+
 	throw XPath2Exception::withErrorCode( "XPTY0004", Resources::GeneralXFIFailure );
 }
