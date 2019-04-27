@@ -1000,12 +1000,17 @@ class XBRL_Constants
 	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-disallowedChildCategory
 	 * @var string
 	 */
-	public static $arcRoleConceptualModeDisAllowed = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-disallowedChildCategory';
+	public static $arcRoleConceptualModelDisAllowed = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-disallowedChildCategory';
 	/**
 	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-discouragedChildCategory
 	 * @var string
 	 */
-	public static $arcRoleConceptualModeDiscouraged = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-discouragedChildCategory';
+	public static $arcRoleConceptualModelDiscouraged = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/parentCategory-discouragedChildCategory';
+	/**
+	 * http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/class-equivalentClass
+	 * @var string
+	 */
+	public static $arcRoleConceptualModelClassEquivalent = 'http://xbrlsite.azurewebsites.net/2016/conceptual-model/arcrole/class-equivalentClass';
 
 	/* -----------------------------------------------------------------------------
 	 * Severity values
