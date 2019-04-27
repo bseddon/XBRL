@@ -724,6 +724,107 @@ class XBRL_DFR extends XBRL
 	}
 
 	/**
+	 * If there are class-equivalent arcs check all formula filters to see if they need to be updated
+	 */
+	public function fixupFormulas()
+	{
+		// Find the class-equivalentClass arc role(s)
+		$taxonomies = $this->context->getTaxonomiesWithArcRoleTypeId('class-equivalentClass');
+		$arcRoles = array_map( function( /** @var XBRL $taxonomy */ $taxonomy )
+		{
+			$arcRole = $taxonomy->getArcRoleTypeForId( 'class-equivalentClass' );
+			if ( ! $arcRole ) return '';
+			return str_replace( 'link:definitionArc/', '', $arcRole );
+		}, $taxonomies  );
+
+		if ( ! $arcRoles ) return;
+
+		$nonDimensionalRoleRef = $this->getNonDimensionalRoleRefs();
+		$classEquivalents = null;
+		foreach ( $arcRoles as $arcRole )
+		{
+			if ( ! isset( $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ][ $arcRole ] ) ) continue;
+			$classEquivalents = $nonDimensionalRoleRef[ XBRL_Constants::$defaultLinkRole ][ $arcRole ];
+			break;
+		}
+
+		if ( ! $classEquivalents ) return;
+
+		foreach ( $this->getImportedSchemas() as $label => $taxonomy )
+		{
+			if ( ! $taxonomy->getHasFormulas() ) continue;
+
+			$resources = $taxonomy->getGenericResource('filter', 'conceptName' );
+			if ( ! $resources ) continue;
+
+			foreach ( $classEquivalents['arcs'] as $fac => $gaaps )
+			{
+				$facTaxonomy = $this->getTaxonomyForXSD( $fac );
+				if ( ! $facTaxonomy ) continue;
+
+				$facElement = $facTaxonomy->getElementById( $fac );
+				if ( ! $facElement ) continue;
+
+				$facClark = "{{$facTaxonomy->getNamespace()}}{$facElement['name']}";
+
+				foreach ( $resources as $resource )
+				{
+					$changed = false;
+
+					foreach ( $resource['filter']['qnames'] as $qnIndex => $qname )
+					{
+						if ( $qname != $facClark ) continue;
+
+						foreach ( $gaaps as $gaapLabel => $gaap )
+						{
+							$gaapTaxonomy = $this->getTaxonomyForXSD( $gaapLabel );
+							if ( ! $gaapTaxonomy ) continue;
+
+							$gaapElement = $gaapTaxonomy->getElementById( $gaapLabel );
+							if ( ! $gaapElement ) continue;
+
+							$gaapClark = "{{$gaapTaxonomy->getNamespace()}}{$gaapElement['name']}";
+
+							echo "{$resource['linkbase']} - {$resource['resourceName']}: from $facClark to $gaapClark\n";
+
+							//$taxonomy->genericRoles['roles']
+							//		[ $resource['roleUri'] ]
+							//		['resources']
+							//		[ $resource['linkbase'] ]
+							//		[ $resource['resourceName'] ]
+							//		[ $resource['index'] ]['qnames'][ $qnIndex ] = $gaapClark;
+							if ( $resource['filter']['qnames'][ $qnIndex ] == $facClark )
+							{
+								$resource['filter']['qnames'][ $qnIndex ] = $gaapClark;
+							}
+							else
+							{
+								$resource['filter']['qnames'][] = $gaapClark;
+							}
+							$changed = true;
+						}
+					}
+
+					if ( $changed )
+					{
+						$taxonomy->updateGenericResource( $resource['roleUri'], $resource['linkbase'], $resource['resourceName'], $resource['index'], $resource['filter'] );
+					}
+				}
+			}
+		}
+	}
+
+	// public function updateGenericResource( $taxonomy, $roleUri, $linkbase, $resourceName, $index, $resource )
+	// {
+	// 	$taxonomy->genericRoles['roles']
+	// 			[ $roleUri ]
+	// 			['resources']
+	// 			[ $linkbase ]
+	// 			[ $resourceName ]
+	// 			[ $index ] = $resource;
+	// }
+
+	/**
 	 * Return the label of an axis if it exists in $axes or false
 	 * @param string $axisName
 	 * @param array $axes
@@ -1276,10 +1377,10 @@ class XBRL_DFR extends XBRL
 
 				if ( ! $error )
 				{
+					$nonAbstractNodes = $getNonAbstract( $node['children'] );
+
 					if ( $totals )
 					{
-						$nonAbstractNodes = $getNonAbstract( $node['children'] );
-
 						// Its an error if all the node members are not described by this relation
 						$total = key( $totals );
 						foreach ( $nonAbstractNodes as $nonAbstractNode )
