@@ -245,7 +245,7 @@ class XBRL {
 	 * A list of any generic link indexed by roleUri
 	 * @var array
 	 */
-	private $genericRoles						= array();
+	protected $genericRoles						= array();
 
 	/**
 	 * The file name of the taxonomy
@@ -3361,6 +3361,27 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 	}
 
 	/**
+	 * Returns true if the id is one for an arcrole type
+	 * @param unknown $id
+	 * @return  bool
+	 */
+	public function hasArcRoleTypeId( $id )
+	{
+		return isset( $this->arcroleTypeIds[ $id ] );
+	}
+
+	/**
+	 * Return the arcrole type string or false
+	 * @param string $id
+	 * @return boolean|mixed
+	 */
+	public function getArcRoleTypeForId( $id )
+	{
+		if ( ! $this->hasArcRoleTypeId( $id ) ) return false;
+		return $this->arcroleTypeIds[ $id ];
+	}
+
+	/**
 	 * Returns true if the $root contains an element with a has-hypercube arcrole
 	 * @param array $root An array representing a node to be tested
 	 */
@@ -6282,6 +6303,31 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		return $results;
 	}
 
+	public function removeGenerics()
+	{
+		$this->genericRoles = array();
+		$this->customArcsAdded['genericRoles'] = array();
+	}
+
+	/**
+	 * Update a specific indexed generic resource
+	 * Mainly used to update formulas filter
+	 * @param string $roleUri
+	 * @param string $linkbase
+	 * @param string $resourceName
+	 * @param int $index
+	 * @param array $resource
+	 */
+	public function updateGenericResource( $roleUri, $linkbase, $resourceName, $index, $resource )
+	{
+		$this->genericRoles['roles']
+				[ $roleUri ]
+				['resources']
+				[ $linkbase ]
+				[ $resourceName ]
+				[ $index ] = $resource;
+	}
+
 	/**
 	 * Get an arc for an arcrole and an optional resource.  If the label of a source resource
 	 * is not supplied all resources associated with an arc role are returned
@@ -7300,7 +7346,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 										// BMS 2018-08-25 The from id could also be in the annoations (role/arcrole types) of the schema
 										if ( is_array( $el ) ||
 											 isset( $tax->roleTypeIds[ $fromParts['fragment'] ] ) ||
-											 isset( $tax->arcroleTypeIdsp[ $fromParts['fragment'] ] ) ||
+											 isset( $tax->arcroleTypeIds[ $fromParts['fragment'] ] ) ||
 											 $types->getTypeById( $fromParts['fragment'], $tax->getPrefix() )
 										)
 										{
@@ -8141,6 +8187,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		// Once all the arcs have been processed apply overrides and probition
 		foreach ( $this->customArcsAdded as $roleListName => $roles )
 		{
+			if ( ! isset( $roles['roles'] ) ) continue;
+
 			foreach ( $roles['roles'] as $roleUri => $arcroles )
 			{
 				foreach ( $this->{$roleListName}['roles'][ $roleUri ]['arcroles'] as $arcroleUri => $links )
@@ -12774,7 +12822,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 		// Remove unused roles
 		$this->context->presentationRoleRefs = array_filter( $this->context->presentationRoleRefs, function( $item ) { return isset( $item['used'] ) && $item['used']; } );
-
 	}
 
 	/**
@@ -13328,7 +13375,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			$element =& $taxonomy->getElementById( $locatorParts['fragment'] );
 			if ( ! $element &&
 				 ! isset( $taxonomy->roleTypeIds[ $locatorParts['fragment'] ] ) &&
-				 ! isset( $taxonomy->arcroleTypeIdsp[ $locatorParts['fragment'] ] ) &&
+				 ! isset( $taxonomy->arcroleTypeIds[ $locatorParts['fragment'] ] ) &&
 				 ! $taxonomy->context->types->getTypeById( $locatorParts['fragment'], $taxonomy->getPrefix() )
 			)
 			{
@@ -14719,7 +14766,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		$types = $this->context->types;
 		$isTaxonomySchema = $this->xbrlDocument->getName() == 'schema' && ! isset( XBRL_Constants::$standardPrefixes[ $this->getPrefix() ] );
 
-		if ( $forceNodeProcessing || ! $types->hasProcessedSchema( $this->prefix ) )
+		if ( $forceNodeProcessing || ! $types->hasProcessedSchema( $this->prefix ) || ! $types->getPrefixForNamespace( $this->getNamespace() ) )
 		{
 			$types->processNode( $this->xbrlDocument, $this->xbrlDocument->getName(), $this->getPrefix(), true );
 		}
@@ -14785,7 +14832,12 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		}
 
 		$taxonomy_namespace = $this->getNamespace();
-		$types->setProcessedSchema( $this->prefix, $taxonomy_namespace );
+		// Its possible that when multiple versions of a taxonomy are loaded that the
+		// same prefix will appear.  Assume the first loaded is the correct one to use.
+		if ( ! $types->hasProcessedSchema( $this->prefix ) )
+		{
+			$types->setProcessedSchema( $this->prefix, $taxonomy_namespace );
+		}
 	}
 
 	/**
