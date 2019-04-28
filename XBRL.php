@@ -4926,7 +4926,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			{
 				// If the acrole type is defined, get the cycles allowed otherwise set it to be 'none'
 				$arcRoleTaxonomy = $this->getTaxonomyForXSD( $arcrole['href'] );
-				$arcRoleRefs = $arcRoleTaxonomy->getArcroleTypes();
+				$arcRoleRefs = $arcRoleTaxonomy ? $arcRoleTaxonomy->getArcroleTypes() : false;
 				if ( $arcRoleRefs && isset( $arcRoleRefs['link:definitionArc'][ $arcroleKey ] ) )
 				{
 					$arcRoleRef = $arcRoleRefs['link:definitionArc'][ $arcroleKey ];
