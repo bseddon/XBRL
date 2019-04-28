@@ -750,7 +750,8 @@ class VariableSet extends Resource
 
 		foreach ( $substitutions as $name => $substitution )
 		{
-			$test = str_replace( $name, $name . " " . $substitution, $test );
+			$test = preg_replace('/\b' . $name . '\b/', "$name $substitution", $test);
+			// $test = str_replace( $name, $name . " " . $substitution, $test );
 		}
 
 		return $test;
