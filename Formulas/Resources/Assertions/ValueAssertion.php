@@ -273,7 +273,7 @@ class ValueAssertion extends VariableSetAssertion
 		// \XBRL_Log::getInstance()->info("Value assertion result for '{$this->label}': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.");
 		\XBRL_Log::getInstance()->formula_evaluation(
 			"Value assertion",
-			"Result for '{$this->label}': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.",
+			"Result for '{$this->id} ($this->linkbase)': There are $satisfied satisfied and $unsatisfied not satisfied evaluations.",
 			array(
 				'formula' => $this->label,
 				'satisfied' => $satisfied,

@@ -298,7 +298,7 @@ class ExistenceAssertion extends VariableSetAssertion
 			// \XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
 			\XBRL_Log::getInstance()->formula_evaluation(
 				"Existence assertion",
-				"Result for '{$this->label}' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
+				"Result for '{$this->id} ($this->linkbase)' $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
 				array(
 					'formula' => $this->label,
 					'state' => $message,
@@ -322,7 +322,7 @@ class ExistenceAssertion extends VariableSetAssertion
 			// \XBRL_Log::getInstance()->info("Existence assertion result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations." );
 			\XBRL_Log::getInstance()->formula_evaluation(
 				"Existence assertion",
-				"Result for '{$this->label}' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
+				"Result for '{$this->id} ($this->linkbase)' with test expression $message: There are {$countSatisfied} satisfied and {$countNotSatisfied} not satisfied existence evaluations.",
 				array(
 					'formula' => $this->label,
 					'state' => $message,
