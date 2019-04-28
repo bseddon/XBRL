@@ -562,12 +562,6 @@ class XBRL_DFR extends XBRL
 
 		foreach ( $this->presentationNetworks as $elr => &$role )
 		{
-			if ( ! isset( $this->definitionNetworks[ $elr ] ) )
-			{
-				unset( $this->presentationNetworks[ $elr ] );
-				continue;
-			}
-
 			$this->presentationPIs[$elr] = array();
 
 			foreach ( $role['locators'] as $id => $label )
@@ -611,26 +605,34 @@ class XBRL_DFR extends XBRL
 
 			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR );
 
-			if ( $this->definitionNetworks && count( $tables ) != 1 )
+			if ( isset( $this->definitionNetworks[ $elr ] ) )
 			{
-				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one table per network',
-					array(
-						'tables' => $tables ? implode( ', ', $tables ) : 'There is no table',
-						'role' => $elr,
-						'error' => 'error:MustBeOnlyOneTablePerNetwork'
-					)
-				);
-			}
+				if ( count( $tables ) != 1 )
+				{
+					XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one table per network',
+						array(
+							'tables' => $tables ? implode( ', ', $tables ) : 'There is no table',
+							'role' => $elr,
+							'error' => 'error:MustBeOnlyOneTablePerNetwork'
+						)
+					);
+				}
 
-			if ( $this->definitionNetworks && count( $lineItems ) != 1 )
+				if (  count( $lineItems ) != 1 )
+				{
+					XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one line items node per table',
+						array(
+							'lineitems' => $lineItems ? implode( ', ', $lineItems ) : 'There is no line item node',
+							'role' => $elr,
+							'error' => 'error:OneAndOnlyOneLineItems'
+						)
+					);
+				}
+			}
+			else if ( $tables )
 			{
-				XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'There MUST be one and only one line items node per table',
-					array(
-						'lineitems' => $lineItems ? implode( ', ', $lineItems ) : 'There is no line item node',
-						'role' => $elr,
-						'error' => 'error:OneAndOnlyOneLineItems'
-					)
-				);
+				// If there are tables defined in the presentation but no tables in the defintion then drop the presentation
+				unset( $this->presentationNetworks['$elr'] );
 			}
 
 			$role['axes'] = $axes;
@@ -757,6 +759,8 @@ class XBRL_DFR extends XBRL
 			$resources = $taxonomy->getGenericResource('filter', 'conceptName' );
 			if ( ! $resources ) continue;
 
+			$baseTaxonomy = null; // $this->getBaseTaxonomy() ? $this->getTaxonomyForXSD( $this->getBaseTaxonomy() ) : null;
+
 			foreach ( $classEquivalents['arcs'] as $fac => $gaaps )
 			{
 				$facTaxonomy = $this->getTaxonomyForXSD( $fac );
@@ -783,7 +787,10 @@ class XBRL_DFR extends XBRL
 							$gaapElement = $gaapTaxonomy->getElementById( $gaapLabel );
 							if ( ! $gaapElement ) continue;
 
-							$gaapClark = "{{$gaapTaxonomy->getNamespace()}}{$gaapElement['name']}";
+							// $gaapClark = "{{$gaapTaxonomy->getNamespace()}}{$gaapElement['name']}";
+							$gaapClark = $baseTaxonomy
+								? "{{$baseTaxonomy->getNamespace()}}{$gaapElement['name']}"
+								: "{{$gaapTaxonomy->getNamespace()}}{$gaapElement['name']}";
 
 							echo "{$resource['linkbase']} - {$resource['resourceName']}: from $facClark to $gaapClark\n";
 
@@ -813,16 +820,6 @@ class XBRL_DFR extends XBRL
 			}
 		}
 	}
-
-	// public function updateGenericResource( $taxonomy, $roleUri, $linkbase, $resourceName, $index, $resource )
-	// {
-	// 	$taxonomy->genericRoles['roles']
-	// 			[ $roleUri ]
-	// 			['resources']
-	// 			[ $linkbase ]
-	// 			[ $resourceName ]
-	// 			[ $index ] = $resource;
-	// }
 
 	/**
 	 * Return the label of an axis if it exists in $axes or false
@@ -1241,7 +1238,7 @@ class XBRL_DFR extends XBRL
 					array(
 						'parent' => $parentLabel ? $parentLabel : 'Network',
 						'concept' => $label,
-						'expected' => implode(', ', array_keys( $validNodeTypes ) ),
+						'expected' => $validNodeTypes ? implode(', ', array_keys( $validNodeTypes ) ) : 'There are no allowed node types for the parent node',
 						'role' => $elr,
 						'error' => 'error:InvalidModelStructure'
 					)
