@@ -266,6 +266,7 @@ class XBRL_Formulas extends Resource
 
 				// Look for any non-standard instances
 				$instanceResources = $taxonomy->getGenericResource( "variable", "instance" );
+				if ( $instanceResources )
 				foreach ( $instanceResources as $instanceKey => $instanceResource )
 				{
 					/**
@@ -718,6 +719,7 @@ class XBRL_Formulas extends Resource
 		// Variable sets are headed by a formula or assertion
 		$variableSets = $taxonomy->getGenericResource( 'variableset', null );
 
+		if ( $variableSets )
 		foreach ( $variableSets as $index => $variableSet )
 		{
 			$variableSetResource = $variableSet['variableset'];
@@ -1993,6 +1995,7 @@ class XBRL_Formulas extends Resource
 	private function evaluate( $variableSet )
 	{
 		if ( ! $this->canEvaluate ) return;
+		if ( isset( $variableSet->evaluated ) ) return true;
 
 		// Process the variables in hierarchy order
 		// $variableSet->parameters =& $this->parameterQnames;
@@ -2016,6 +2019,8 @@ class XBRL_Formulas extends Resource
 				$this->formulaFactsContainer = $variableSet->factsContainer;
 			}
 		}
+
+		$variableSet->evaluated = true;
 
 		return true;
 	}
