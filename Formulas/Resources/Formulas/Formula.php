@@ -1989,7 +1989,7 @@ class Formula extends VariableSet
 
 				if ( isset( $fact['decimals'] ) )
 				{
-					$fact['value'] = number_format( $fact['value'], $fact['decimals'], ".", "" );
+					$fact['value'] = number_format( $fact['value'], $fact['decimals'] == INF || $fact['decimals'] == 'INF' ? null : $fact['decimals'], ".", "" );
 				}
 			}
 
