@@ -196,7 +196,11 @@ class Resource
 
 		if ( $xbrlInstance && is_file( $xbrlInstance->getDocumentName() ) && ! $variableSet->changedDirectory )
 		{
-			chdir( dirname( $xbrlInstance->getDocumentName() ) );
+			$dir = dirname( $xbrlInstance->getDocumentName() );
+			if ( is_dir( $dir ) )
+			{
+				chdir( $dir );
+			}
 			$variableSet->changedDirectory = true;
 		}
 
