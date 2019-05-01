@@ -171,6 +171,14 @@ class XBRL_Formulas extends Resource
 	}
 
 	/**
+	 * Get the namespaces for the formulas
+	 */
+	public function getNamespaceManager()
+	{
+		return $this->nsMgr;
+	}
+
+	/**
 	 * Return the list of variable set.  This can be useful to access generated messages on an assertion variable set
 	 */
 	public function getVariableSets()
@@ -425,6 +433,15 @@ class XBRL_Formulas extends Resource
 		}
 
 		return false;
+	}
+
+	/**
+	 * Get reference to the facts container
+	 * @return GeneratedFacts
+	 */
+	public function getFactsContainer()
+	{
+		return $this->formulaFactsContainer;
 	}
 
 	/**
