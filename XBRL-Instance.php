@@ -6388,6 +6388,25 @@ class ContextsFilter
 	}
 
 	/**
+	 * Get a set of contexts by reference
+	 * @param string $refs
+	 * @return ContextsFilter
+	 */
+	public function getContextsByRef( $refs )
+	{
+		$contexts = array();
+
+		if ( is_array( $refs ) )
+		foreach ( $refs as $ref )
+		{
+			if ( ! isset( $this->contexts[ $ref ] ) ) continue;
+			$contexts[ $ref ] = $this->contexts[ $ref ];
+		}
+
+		return new ContextsFilter( $this->instance, $contexts );
+	}
+
+	/**
 	 * Returns all contexts that include $date in their date range
 	 * @param string|DateTime $date
 	 * @return ContextsFilter
@@ -6592,8 +6611,11 @@ class ContextsFilter
 			return ( ! isset( $context['entity']['segment']['explicitMember'] ) || count( $context['entity']['segment']['explicitMember'] ) == 0 ) &&
 				   ( ! isset( $context['entity']['scenario']['explicitMember'] ) || count( $context['entity']['scenario']['explicitMember'] ) == 0 ) &&
 				   ( ! isset( $context['segment']['explicitMember'] ) || count( $context['segment']['explicitMember'] ) == 0 ) &&
-				   ( ! isset( $context['scenario']['explicitMember'] ) || count( $context['scenario']['explicitMember'] ) == 0 );
-		} );
+				   ( ! isset( $context['scenario']['explicitMember'] ) || count( $context['scenario']['explicitMember'] ) == 0 ) &&
+				   ( ! isset( $context['entity']['segment']['typedMember'] ) || count( $context['entity']['segment']['typedMember'] ) == 0 ) &&
+				   ( ! isset( $context['entity']['scenario']['typedMember'] ) || count( $context['entity']['scenario']['typedMember'] ) == 0 ) &&
+				   ( ! isset( $context['segment']['typedMember'] ) || count( $context['segment']['typedMember'] ) == 0 ) &&
+				   ( ! isset( $context['scenario']['typedMember'] ) || count( $context['scenario']['typedMember'] ) == 0 );		} );
 
 		return new ContextsFilter( $this->instance, $filtered );
 	}
@@ -6804,9 +6826,39 @@ class ContextsFilter
 	}
 
 	/**
+	 * Return a period label for the context collection
+	 * @return string
+	 */
+	public function getPeriodLabel()
+	{
+		$contexts = $this->contexts; // Protect the contexts
+		try
+		{
+			// If there are only instant context and all the contexts have the same date...
+			if ( ! $this->DurationContexts()->count() && count( $this->AllYears() ) == 1 )
+			{
+				$context = reset( $this->contexts );
+				return $context['period']['endDate'];
+			}
+			else
+			{
+				$this->sortByStartDate();
+				$startContext = reset( $this->contexts );
+				$this->sortByEndDate();
+				$endContext = end( $this->contexts );
+				return "{$startContext['period']['startDate']} - {$endContext['period']['endDate']}";
+			}
+		}
+		finally
+		{
+			$this->contexts = $contexts; // Restore
+		}
+	}
+
+	/**
 	 * Return a context filter instance with only those contexts that have the same segment(s) as those in $context
 	 * @param array $context
-	 * @return ContexstFilter
+	 * @return ContextsFilter
 	 */
 	public function SameContextSegment( $context )
 	{
@@ -6870,6 +6922,34 @@ class ContextsFilter
 				unset( $this->contexts[ $context ] );
 			}
 		}
+
+		return $this;
+	}
+
+	/**
+	 * Sorts the current context collection by the period start date
+	 * @return ContextsFilter
+	 */
+	public function sortByStartDate()
+	{
+		uksort( $this->contexts, function( $a, $b ) use ( &$contexts )
+		{
+			return -1 * strcmp( $this->contexts[ $a] ['period']['startDate'], $this->contexts[ $b]['period']['startDate'] );
+		} );
+
+		return $this;
+	}
+
+	/**
+	 * Sorts the current context collection by the period start date
+	 * @return ContextsFilter
+	 */
+	public function sortByEndDate()
+	{
+		uksort( $this->contexts, function( $a, $b ) use ( &$contexts )
+		{
+			return -1 * strcmp( $this->contexts[ $a] ['period']['endDate'], $this->contexts[ $b]['period']['endDate'] );
+		} );
 
 		return $this;
 	}
