@@ -6608,14 +6608,30 @@ class ContextsFilter
 	{
 		$filtered = array_filter( $this->contexts, function( $context ) {
 			// The context may be invalid in which case exclude
-			return ( ! isset( $context['entity']['segment']['explicitMember'] ) || count( $context['entity']['segment']['explicitMember'] ) == 0 ) &&
-				   ( ! isset( $context['entity']['scenario']['explicitMember'] ) || count( $context['entity']['scenario']['explicitMember'] ) == 0 ) &&
-				   ( ! isset( $context['segment']['explicitMember'] ) || count( $context['segment']['explicitMember'] ) == 0 ) &&
-				   ( ! isset( $context['scenario']['explicitMember'] ) || count( $context['scenario']['explicitMember'] ) == 0 ) &&
-				   ( ! isset( $context['entity']['segment']['typedMember'] ) || count( $context['entity']['segment']['typedMember'] ) == 0 ) &&
-				   ( ! isset( $context['entity']['scenario']['typedMember'] ) || count( $context['entity']['scenario']['typedMember'] ) == 0 ) &&
-				   ( ! isset( $context['segment']['typedMember'] ) || count( $context['segment']['typedMember'] ) == 0 ) &&
-				   ( ! isset( $context['scenario']['typedMember'] ) || count( $context['scenario']['typedMember'] ) == 0 );		} );
+			// return ( ! isset( $context['entity']['segment']['explicitMember'] ) || count( $context['entity']['segment']['explicitMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['entity']['scenario']['explicitMember'] ) || count( $context['entity']['scenario']['explicitMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['segment']['explicitMember'] ) || count( $context['segment']['explicitMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['scenario']['explicitMember'] ) || count( $context['scenario']['explicitMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['entity']['segment']['typedMember'] ) || count( $context['entity']['segment']['typedMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['entity']['scenario']['typedMember'] ) || count( $context['entity']['scenario']['typedMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['segment']['typedMember'] ) || count( $context['segment']['typedMember'] ) == 0 ) &&
+			// 	   ( ! isset( $context['scenario']['typedMember'] ) || count( $context['scenario']['typedMember'] ) == 0 );
+
+			$segment = isset( $context['entity']['segment'] )
+				? $context['entity']['segment']
+				: ( isset( $context['entity']['scenario'] )
+					? $context['entity']['scenario']
+					: (isset( $context['segment'] )
+						? $context['segment']
+						: ( isset( $context['scenario'] )
+							? isset( $context['scenario'] )
+							: null
+						)
+					)
+				);
+
+			return is_null( $segment ) || ! ( isset( $segment['explicitMember'] ) || isset( $segment['typedMember'] ) );
+		} );
 
 		return new ContextsFilter( $this->instance, $filtered );
 	}
