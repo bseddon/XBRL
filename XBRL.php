@@ -2848,12 +2848,64 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 							}
 
 							$role['primaryitems'][ $targetPrimaryItemId ] = $targetPrimaryItem;
+
+							// $childTargetPrimaryItems = array_filter( $targetRole['primaryitems'], function( $targetPrimaryItem ) use( $targetPrimaryItemId )
+							// {
+							// 	return isset( $targetPrimaryItem['parents'][ $targetPrimaryItemId ] ) ;
+							// } );
+                            //
+							// foreach ( $childTargetPrimaryItems as $childTargetPrimaryItemId => $childTargetPrimaryItem )
+							// {
+							// 	if ( isset( $role['primaryitems'][ $childTargetPrimaryItemId ] ) ) continue;
+							// 	array_walk( $childTargetPrimaryItem['parents'], function( &$parent, $parentId ) use( $parentPrimaryItem, $targetPrimaryItemId )
+							// 	{
+							// 		if ( $parentId != $targetPrimaryItemId ) return;
+							// 		$parent['targetRole'] = $parentPrimaryItem['targetRole'];
+							// 	} );
+                            //
+							// 	$role['primaryitems'][ $childTargetPrimaryItemId ] = $childTargetPrimaryItem;
+							// }
+
+							// continue;
+
+							// Find child nodes and locate descendants recursively
+							// Should find multi-level nested primary items
+							$getDescendentPrimaryItems = function ( &$primaryItem, $primaryItemId, $targetRoleUri, &$targetRole ) use( &$getDescendentPrimaryItems )
+							{
+								$childPrimaryItems = array_filter( $targetRole['primaryitems'], function( $primaryItem ) use( $primaryItemId )
+								{
+									return isset( $primaryItem['parents'][ $primaryItemId ] ) ;
+								} );
+
+								$result =& $childPrimaryItems;
+
+								// Still need to handle ones that are in a different target role
+								foreach ( $childPrimaryItems as $childPrimaryItemId => $childPrimaryItem )
+								{
+									array_walk( $childPrimaryItem['parents'], function( &$parent, $parentId ) use( $targetRoleUri, $primaryItemId )
+									{
+										if ( $parentId != $primaryItemId ) return;
+										$parent['targetRole'] = $targetRoleUri;
+									} );
+
+									$result = array_merge( $result, $getDescendentPrimaryItems( $childPrimaryItem, $childPrimaryItemId, $targetRoleUri, $targetRole ) );
+								}
+
+								return $result;
+							};
+
+							$childTargetPrimaryItems = $getDescendentPrimaryItems( $targetPrimaryItem, $targetPrimaryItemId, $parentPrimaryItem['targetRole'], $targetRole );
+
+							foreach ( $childTargetPrimaryItems as $childTargetPrimaryItemId => $childTargetPrimaryItem )
+							{
+								if ( isset( $role['primaryitems'][ $childTargetPrimaryItemId ] ) ) continue;
+								$role['primaryitems'][ $childTargetPrimaryItemId ] = $childTargetPrimaryItem;
+							}
 						}
 					}
 				}
-
-
 			}
+
 			$rolePrimaryItems = $role['primaryitems'];
 		}
 
@@ -11017,6 +11069,17 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				return $result;
 			};
 
+			$targetRoleNodes =	XBRL::array_reduce_key( $nodes, function( $carry, $node, $key )
+			{
+				if ( ! isset( $node['parents'] ) ) return $carry;
+				foreach( $node['parents'] as $parentKey => $parentNode )
+				{
+					if ( ! isset( $parentNode['targetRole'] ) ) continue;
+					$carry[ $key ][ $parentKey ] = $parentNode;
+				}
+				return $carry;
+			}, [] );
+
 			// Process the nodes to popuplate hypercube references with their respective dimensions and defaults
 			// It is possible to rely on targetRoles being available even if they are in a different base set
 			// because the imports will have been processed first.
@@ -14177,27 +14240,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				$locators = $this->retrieveLocators( $labelLink, XBRL_Constants::$LabelLinkbaseRef, $linkbaseRef['href'] );
 				// BMS 2018-04-16 For now, label locators are single dimension so re-org the $locators array which allows mutiple text values per label
 				$locators = array_map( function( $refsArray ) { return $refsArray[0]; }, $locators );
-				//foreach ( $labelLink->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->loc as $locatorKey => /* @var SimpleXMLElement $loc */ $loc )
-				//{
-				//	$xlinkAttributes = $loc->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-                //
-				//	if ( ! $this->validateXLinkLocatorAttributes( $xlinkAttributes, 'labels', $linkbaseRef['href'] ) )
-				//	{
-				//		continue;
-				//	}
-                //
-				//	$type = (string) $xlinkAttributes->type;
-				//	$this->validateXLinkLocatorType( 'labels', $type );
-                //
-				//	$label = (string) $xlinkAttributes->label;
-				//	$this->validateXLinkLabel( 'labels', $label );
-                //
-				//	$parts = parse_url( (string) $xlinkAttributes->href );
-				//	if ( ! isset( $parts['path'] ) ) return false;
-				//	$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
-                //
-				//	$locators[ $label ] = "$xsd#{$parts['fragment']}";
-				//}
 
 				/**
 				 * A list of the labels indexed by [$role][$lang][$label]
@@ -14397,7 +14439,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				 *	makes the two labelArc equivalent.  As a consequence, both are excluded from the relatationship network.
 				 */
 
-				// Used to catch duplicated from/to label pairs which is not alloed by the XLink specification
+				// Used to catch duplicated from/to label pairs which is not allowed by the XLink specification
 				$fromToPairs = array();
 
 				// Note: The XBRL specification explicitly defines an element calle 'labelArc' to be the arc.  However,
@@ -14418,7 +14460,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 							array(
 								'role' => $roleRefsKey,
 								'from' => (string)$xlinkAttributes->from,
-								'to' => (string)$xlinkAttributes->to
+								'to' => (string)$xlinkAttributes->to,
+								'linkbase' => $xml_basename
 							)
 						);
 					}
@@ -14569,30 +14612,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 									'hash' => $hash, // Hash is used to determine arc equivalence
 							);
 						};
-
 					}
 
-					/*
-
-					// Create an arc for the 'to' component
-					if ( ! isset( $arcs[ $from ] ) )
-					{
-						$arcs[ $from ] = array();
-					}
-
-					if ( ! isset( $arcs[ $from ][ $toLabel ] ) )
-					{
-						$arcs[ $from ][ $toLabel ] = array();
-					}
-
-					$arcs[ $from ][ $toLabel ][] = array(
-						'label' => $toLabel,
-						'priority' => $priority,
-						'use' => $use,
-						'hash' => $hash, // Hash is used to determine arc equivalence
-					);
-
-					*/
 				}
 
 				unset( $labelsByLabel );
@@ -14605,7 +14626,10 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				{
 					foreach ( $to as $toLabel => $details )
 					{
-						if ( ! isset( $this->context->labels[ $roleRefsKey ]['arcs'][ $from ][ $toLabel ] ) ) continue;
+						// BMS 2019-05-13	Applying this change to ALL labels because the same label might be used
+						//					in different linkbases (for example, see DK IFRS 2016 label_newItem
+						//					which is used in four linkbases
+						// if ( ! isset( $this->context->labels[ $roleRefsKey ]['arcs'][ $from ][ $toLabel ] ) ) continue;
 
 						// A label with this combination already exists so this $toLabel needs
 						// to be made unique or it will cause problem accessing the label later
@@ -14614,23 +14638,16 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 						// The label should be unique within an extended link so generating a hash
 						// that includes the extended link role and the linkbase file name should
 						// be good enough
-						$newLabel = "{$toLabel}_" . hash( "SHA256", "$roleRefsKey$xml_basename" );
+						// $newLabel = "{$toLabel}_" . hash( "SHA256", "$roleRefsKey$xml_basename" );
+						// BMS 2019-05-13	See comment above with the same date
+						//					Using MD5 because it generates a 32 char hash and its good enough
+						$newLabel = hash( "MD5", "{$toLabel}_{$roleRefsKey}_{$xml_basename}" );
 
 						// if ( $roles )
 						// {
 						// Look for labels with these characteristics
 						foreach ( $details as $index => $detail )
 						{
-							/*
-							foreach ( $roles as $role )
-							{
-								if ( ! isset( $labels[ $role ][ $detail['lang'] ][ $toLabel ] ) ) continue;
-
-								$existing = $labels[ $role ][ $detail['lang'] ][ $toLabel ];
-								unset( $labels[ $role ][ $detail['lang'] ][ $toLabel ] );
-								$labels[ $role ][ $detail['lang'] ][ $newLabel ] = $existing;
-							}
-							*/
 							if ( ! isset( $labels[ $detail['role'] ][ $detail['lang'] ][ $toLabel ] ) )
 							{
 								continue;
@@ -18144,6 +18161,26 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		}
 		return $result;
 	}
+
+	/**
+	 * Missing array function to reduce an array and have access to the key
+	 * @param array $array The array to reduce
+	 * @param callable $callback The function to call.
+	 * @param mixed $initial The initial value
+	 * @return mixed
+	 * callable $callback $carry, $value, $key mixed
+	 */
+	public static function array_reduce_key( &$array, $callback, $initial )
+	{
+		$carry = $initial;
+		foreach ( array_keys( $array) as $key )
+		{
+			$carry = $callback( $carry, $array[ $key ], $key );
+		}
+
+		return $carry;
+	}
+
 
 	/**
 	 * Get the member corresponding to a member label.  Dimension members are held in a hierarchical structure.
