@@ -17918,7 +17918,10 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				}
 			}
 		}
-
+		else
+		{
+			// error_log('Empty XML file');
+		}
 		return $xml;
 	}
 
@@ -18168,7 +18171,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 	 * @param callable $callback The function to call.
 	 * @param mixed $initial The initial value
 	 * @return mixed
-	 * callable $callback $carry, $value, $key mixed
+	 * callable $callback mixed $carry, mixed $value, mixed $key
 	 */
 	public static function array_reduce_key( &$array, $callback, $initial )
 	{
@@ -18220,6 +18223,30 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		$patterns = array('~/{2,}~', '~/(\./)+~', '~([^/\.]+/(?R)*\.{2,}/)~', '~\.\./~');
 	    $replacements = array('/', '/', '', '');
 	    return preg_replace($patterns, $replacements, $path);
+	}
+
+	/**
+	 * Return a list of array members for with the key contains $fragment
+	 * @param array $array The associative array with keys to search
+	 * @param string $fragment The test fragment to search for
+	 * @param bool $caseSensitive
+	 * @return array
+	 */
+	public static function keyContains( $array, $fragment, $caseSensitive = false )
+	{
+		return XBRL::array_reduce_key( $array, function( $carry, $value, $key ) use( $fragment, $caseSensitive )
+		{
+			if ( $caseSensitive )
+			{
+				if ( strpos( $key, $fragment ) === false ) return $carry;
+			}
+			else
+			{
+				if ( stripos( $key, $fragment ) === false ) return $carry;
+			}
+			$carry[ $key ] = $value;
+			return $carry;
+		}, array() );
 	}
 
 	/**
