@@ -2198,25 +2198,25 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			$pathNode =& $nodes[ $pathsParts[ $i ] ];
 
 			// Get the text for the node if not already retrieved
-			if ( ! isset( $pathNode['text'] ) )
-			{
+			// if ( ! isset( $pathNode['text'] ) )
+			// {
 				// $element_xsd = parse_url( $pathNode['label'], PHP_URL_PATH );
 				// $key = "$element_xsd#{$pathNode['taxonomy_element']['id']}";
 
-				$taxonomy = $this->getTaxonomyForXSD( $pathNode['label'] );
-				$key = $pathNode['label'];
+				// $taxonomy = $this->getTaxonomyForXSD( $pathNode['label'] );
+				// $key = $pathNode['label'];
 
-				$pathNode['text'] = $this->getTaxonomyDescriptionForIdWithDefaults(
-					$key,
-					isset( $pathNode['preferredLabel'] ) ? $pathNode['preferredLabel'] : null,
-					$this->getDefaultLanguage()
-				);
+				// $pathNode['text'] = $this->getTaxonomyDescriptionForIdWithDefaults(
+				// 	$key,
+				// 	isset( $pathNode['preferredLabel'] ) ? $pathNode['preferredLabel'] : null,
+				// 	$this->getDefaultLanguage()
+				// );
 
-				if ( ! $pathNode['text'] )
-				{
-					$pathNode['text'] = $pathNode['label'];
-				}
-			}
+				// if ( ! $pathNode['text'] )
+				// {
+				// 	$pathNode['text'] = $pathNode['label'];
+				// }
+			// }
 
 			$nodes =& $pathNode['children'];
 		}
@@ -5320,34 +5320,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 						}
 
 					}
-
-					/*
-					$roleHypercubes = $this->getDefinitionRoleHypercubes( $role );
-					if ( $roleHypercubes !== false )
-					foreach ( $roleHypercubes as $hypercubeKey => $hypercube )
-					{
-						// If there's no hypercube with the key assigned yet or if the role of the hypercube is a better match for the presentation role use it instead
-						if ( ! isset( $hypercubes[ $hypercubeKey ] ) || $hypercube['role'] === $presentationRole )
-						{
-							$hypercubes[ $hypercubeKey ] = array(
-								'namespace' => $hypercube['namespace'],
-								'role' => $hypercube['role'],
-								'href' => $hypercube['href'],
-								'dimensioncount' => count( $hypercube['dimensions'] ),
-								'hasdefaults' => array_reduce($hypercube['dimensions'], function( $carry, $dim ) {
-									if ( $carry ) return true;
-									return isset( $dim['default'] );
-								}, false ),
-								'closed' => isset( $hypercube['closed'] ) ? $hypercube['closed'] : false,
-							);
-
-							if ( isset( $node['preferredLabel'] ) )
-							{
-								$hypercubes[ $hypercubeKey ]['preferredLabel'] = $node['preferredLabel'];
-							}
-						}
-					}
-					*/
 				}
 				$node['hypercubes'] = $hypercubes;
 				$result += $hypercubes; // Build a list of all the hypercubes used by the role
@@ -9482,13 +9454,27 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 	/**
 	 * Find the taxonomy element for the href.  The namespace of the located element is also retrieved.
 	 *
-	 * @param string $href
-	 * @param string $linkbase
-	 * @param string $namespace
-	 * @return NULL|mixed
+	 * @param string $href		Bookmark of the element to retrieve (xxx.com#yyy)
+	 * @param string $linkbase  Caller provided label to include in an error message
+	 * @param string $namespace	Optional namespace (not used)
+	 * @return NULL|array
 	 */
 	private function findTaxonomyElement( $href, $linkbase, &$namespace = null )
 	{
+		// BMS 2019-05-20 This function is almost redundant - at least in its original form
+		$taxonomy = $this->getTaxonomyForXSD( $href );
+		if ( ! $taxonomy )
+		{
+			$this->log()->warning( "Taxonomy cannot be found for $href" );
+			return null;
+		}
+
+		$element = $taxonomy->getElementById( $href );
+		if ( $element ) return $element;
+
+		$this->log()->warning( "Cannot find an element for linkbase '$linkbase' element '$href'" );
+		return null;
+
 		$taxonomy =& $this;
 
 		// BMS 2019-01-26 Don't know why this test is looking at the PHP_URL_PATH as it is unlikely to match
@@ -12244,27 +12230,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			$locators = array();
 			// BMS 2018-04-16 Change to use the standard 'retrieveLocators' function like other linkbase processors
 			$locators = $this->retrieveLocators( $presentationLink, XBRL_Constants::$PresentationLinkbaseRef, $linkbaseRef['href'] );
-			// foreach ( $presentationLink->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->loc as $locatorKey => $loc )
-			// {
-			// 	$xlinkAttributes = $loc->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
-            //
-			// 	if ( ! $this->validateXLinkLocatorAttributes( $xlinkAttributes, 'presentation', $linkbaseRef['href'] ) )
-			// 	{
-			// 		continue;
-			// 	}
-            //
-			// 	$type = (string) $xlinkAttributes->type;
-			// 	$this->validateXLinkLocatorType( 'presentation', $type );
-            //
-			// 	$label = (string) $xlinkAttributes->label;
-			// 	$this->validateXLinkLabel( 'presentation', $label );
-            //
-			// 	$parts = parse_url( (string) $xlinkAttributes->href );
-			// 	if ( ! isset( $parts['path'] ) ) return false;
-			// 	$xsd = pathinfo( $parts['path'], PATHINFO_BASENAME );
-			// 	$fragment = $parts['fragment'];
-			// 	$locators[ $label ] = "$xsd#{$parts['fragment']}";
-			// }
 
 			// BMS 2018-04-16 For now, presentation locators are single dimension at the moment so re-org the $locators array
 			$locators = array_map( function( $refsArray ) { return $refsArray[0]; }, $locators );
@@ -12278,6 +12243,13 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 			// Used to catch duplicated from/to label pairs which is not alloed by the XLink specification
 			$fromToPairs = array();
+			// Record nodes that are both the source and target of a preferred label pair
+			$nodesToPrune = array();
+
+			// Get this extended role content
+			// BMS 2019-05-21 Moved from further down (see comment with the same date)
+			//					So nodes from other ELRs with the same role uri can be referenced
+			$roleRef =& $this->context->presentationRoleRefs[ $roleRefsKey ];
 
 			// Process the presentation arcs and build a hierarchy
 			// $this->log()->info( "Process the presentation arcs and build a hierarchy ($roleRefsKey)" );
@@ -12289,6 +12261,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				{
 					continue;
 				}
+
+				// $lineNo = dom_import_simplexml( $presentationArc )->getLineNo();
 
 				if ( isset( $fromToPairs[ (string)$xlinkAttributes->from ][ (string)$xlinkAttributes->to ] ) )
 				{
@@ -12348,7 +12322,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				// or end.  If it is, then the task is to modify the 'to' label and also
 				// update the corresponding locator so it finds the new label.
 				// if ( in_array( $preferredLabel, array( XBRL_Constants::$labelRolePeriodStartLabel, XBRL_Constants::$labelRolePeriodEndLabel ) ) )
-				if ( $this->getBeginEndPreferredLabelPair( $preferredLabel ) )
+				$preferredLabelPairs = $preferredLabel && $this->getBeginEndPreferredLabelPair( $preferredLabel );
+				if ( $preferredLabelPairs )
 				{
 					// Resolve the toLabel...
 					$href = $locators[ $toLabel ];
@@ -12384,6 +12359,113 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 					// And test it
 					$to		= $locators[ $toLabel . $preferredRoleName ];
+
+					// Need to fix up any nodes with parents that are $href
+					// Get a list of node key with this condition
+					// This happens in the DK IFRS (see ./2017-01-01/dst/001dst_pre.xml and look for
+					// fsa.xsd#fsa_ManufacturedGoodsAndGoodsForResale).  This concept is the head of a block
+					// in the ELR http://xbrl.dcca.dk/role/001.00/InformationForStatisticsDenmark
+					// The is referenced by fsa.xsd#fsa_StocksAbstract using both period start and end preferred labels.
+					// The whole block has be presented as a child of both perferred label nodes.
+					// This code looks for such instances and copies the block.
+					$keys = array_keys( array_filter( $nodes, function( $node ) use( $href ) { return isset( $node['parents'][ $href ] ); } ) );
+					foreach ( $keys as $key )
+					{
+						// -- $parent =& $nodes[ $key ]['parents'][ $href ];
+						$parent = $nodes[ $key ]['parents'][ $href ]; // ++
+						$parent['preferredLabel'] = $preferredLabel; // ++
+						// -- unset( $nodes[ $key ]['parents'][ $href ] );
+						$nodes[ $key ]['parents'][ $href . $preferredRoleName ] = $parent;
+						unset( $parent );
+					}
+
+					if ( isset( $nodes[ $href ] ) )
+					{
+						$nodesToPrune[ $href ][] = $to;
+
+						// -- $node =& $nodes[ $href ];
+						// -- unset( $nodes[ $href ] );
+						$node = array();
+						$node['label'] = $to;
+						$node['parents'] =& $nodes[ $href ]['parents']; // ++
+						$node['children'] =& $nodes[ $href ]['children']; // ++
+						$nodes[ $to ] = $node;
+						unset ( $node );
+					}
+					else if ( $nodesToPrune && isset( $nodesToPrune[ $href ] ) )
+					{
+						foreach ( $nodesToPrune[ $href ] as $nodeToPrune )
+						{
+							if ( ! isset( $nodes[ $nodeToPrune ] ) ) continue;
+
+							// Clone this one using the $to as an index and add new parents to any children
+							$nodes[ $to ] = $nodes[ $nodeToPrune ];
+							$nodes[ $to ]['label'] = $to;
+							foreach( $nodes[ $to ]['children'] as $subLabel => $node )
+							{
+								if ( ! isset( $node['parents'][ $nodeToPrune ] ) ) continue;
+								$parent = $node['parents'][ $nodeToPrune ];
+								$parent['preferredLabel'] = $preferredLabel;
+								$nodes[ $to ]['children'][ $subLabel ]['parents'][ $to ] = $parent;
+							}
+
+							unset( $subLabel );
+							unset( $node );
+
+							break;
+						}
+
+						unset( $nodeToPrune );
+					}
+					// BMS 2019-05-23
+					// Look to see if this node has been defined in another instance of the ELR
+					// This happens in the UK GAAP and DK IFRS.
+					// In the UK GAAP uk-gaap-2009-09-01.xsd#uk-gaap_CashBankInHand is defined as the parent of
+					// uk-gaap-2009-09-01.xsd#uk-gaap_CashBank and uk-gaap-2009-09-01.xsd#uk-gaap_CashInHand in
+					// one instance of the ELR http://www.xbrl.org/uk/role/Notes.  This block appears as a child
+					// of uk-gaap-2009-09-01.xsd#uk-gaap_CurrentAssetHeading.  It is also referenced as a child
+					// of uk-gaap-2009-09-01.xsd#uk-gaap_Cash-MovementAnalysisHeading with period start AND
+					// period end preferred labels.
+					// Note that uk-gaap-2009-09-01.xsd#uk-gaap_CashBankInHand is also referenced as a child of
+					// uk-gaap-2009-09-01.xsd#uk-gaap_CurrentAssets in the ELR http://www.xbrl.org/uk/role/BalanceSheet
+					// However, this is a reference to the concept alone not the block.
+					else if ( isset( $roleRef['paths'][ $fragment ] ) )
+					{
+						foreach ( $roleRef['paths'][ $fragment ] as $path )
+						{
+							if ( ! XBRL::endsWith( $path, $fragment ) ) continue;
+
+							$node = false;
+							$this->processNode( $roleRef['hierarchy'], $path, function( &$pathNode ) use( &$node )
+							{
+								if ( ! isset( $pathNode['children'] ) ) return;
+								$node = $pathNode;
+							} );
+
+							if ( ! $node ) continue;
+
+
+							// Process the node
+							$nodes[ $to ] = array();
+							$nodes[ $to ]['label'] = $to;
+							foreach( $node['children'] as $childLabel => $childNode )
+							{
+								unset( $childNode['label'] );
+								unset( $childNode['parent'] );
+								$childNode['preferredLabel'] = $preferredLabel;
+								$nodes[ $to ]['children'][ $childLabel ] = array(
+									'label' => $childLabel,
+									'parents' => array( $to => $childNode )
+								);
+							// 	$parent = $childNode['parents'][ $href ];
+							// 	$parent['preferredLabel'] = $preferredLabel;
+							// 	$nodes[ $to ]['children'][ $subLabel ]['parents'][ $to ] = $parent;
+							}
+							unset( $node );
+							break;
+						}
+					}
+
 				}
 
 				// Create a node for the 'to' component
@@ -12399,22 +12481,9 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 					);
 				}
 
-				if ( $taxonomyElement === null )
-				{
-					// The taxonomy element for label '$to' cannot be found";
-				}
-				else
-				{
-					// print_r( $taxonomyElement );
-					// $nodes[ $to ]['taxonomy_element'] = $taxonomyElement;
-				}
-
 				// the 'parents' array is used to hold the details of a specific link from $from to $to
 				extract( $this->validateArcAttributes( 'presentation', $fromLabel, $toLabel, $arcAttributes ) );
 				$nodes[ $to ]['parents'][ $from ] = array(
-					// 'order'		=> property_exists( $arcAttributes, 'order' )		? (string) $arcAttributes->order    : 1,
-					// 'use'		=> property_exists( $arcAttributes, 'use' )			? (string) $arcAttributes->use		: 'optional',
-					// 'priority'	=> property_exists( $arcAttributes, 'priority' )	? (string) $arcAttributes->priority : 0,
 					'order'		=> $order,
 					'use'		=> $use,
 					'priority'	=> $priority,
@@ -12433,13 +12502,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 						'label' => $from,
 						'arcrole'  => $arcroleUri,
 					);
-
-					// if ( $taxonomyElement === null )
-					// 	; // $this->log()->warning( "The taxonomy element for label '$from' cannot be found" );
-					// else
-					// {
-					// 	$nodes[ $from ]['taxonomy_element'] = $taxonomyElement;
-					// }
 				}
 
 				// $this->log()->info( "Adding relation {$from} -> {$to}" );
@@ -12456,7 +12518,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 					$nodes[ $from ]['children'][ $to ] =& $nodes[ $to ];
 				}
-			}
+			} // Presentation arcs
 
 			// Process any arcs that must be removed
 			if ( $additions !== false && isset( $additions['removearcs'] ) && is_array( $additions['removearcs'] ) && count( $additions['removearcs'] ) > 0 )
@@ -12502,7 +12564,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 					foreach ( $indexes as $label )
 						unset( $toNode['parents'][ $label ] );
 				}
-			}
+			} // if additions
 
 			// Process any arcs that must be deleted
 			if ( $additions !== false && isset( $additions['deletenodes'] ) && is_array( $additions['deletenodes'] ) && count( $additions['deletenodes'] ) > 0 )
@@ -12526,7 +12588,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 					unset( $nodes[ $label ] );
 				}
-			}
+			} // if additions
 
 			// Process any arcs that must be added
 			if ( $additions !== false && isset( $additions['addarcs'] ) && is_array( $additions['addarcs'] ) && count( $additions['addarcs'] ) > 0 )
@@ -12654,7 +12716,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 					$nodes[ $from ]['children'][ $to ] =& $nodes[ $to ];
 
 				}
-			}
+			} // if additions
 
 			// Process any arcs that must be added
 			if ( $additions !== false && isset( $additions['aliases'] ) && is_array( $additions['aliases'] ) && count( $additions['aliases'] ) > 0 )
@@ -12672,12 +12734,13 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 					$fromNode['alt_label'] = $alias;
 
 				}
-			}
+			} // if additions
 
 			foreach ( array_keys( $nodes ) as $i => $nodeKey )
 			{
 				if ( ! isset( $nodes[ $nodeKey ]['children'] ) ) continue;
 				$label = $nodes[ $nodeKey ]['label'];
+				$label = $nodeKey;
 
 				// Need to implement a https://en.wikipedia.org/wiki/Schwartzian_transform because in PHP < 7.0
 				// the order of keys when the sort terms is equal is undefined.  In this case we want the original
@@ -12690,6 +12753,11 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 					{
 						$this->log()->warning( "Sorting: can't find parent $label" );
 						return 0;
+					}
+
+					if ( ! isset( $a['parents'][ $label ]['order'] ) || ! isset( $b['parents'][ $label ]['order'] ) )
+					{
+						$x = 1;
 					}
 
 					if ( $a['parents'][ $label ]['order'] == $b['parents'][ $label ]['order'] )
@@ -12728,12 +12796,20 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 						$children = $node['children'];
 						unset( $node['children'] );
 						$node['children'] = $realizeHierarchy( $children, $label );
+						if ( array_key_exists( 'children', $node ) && is_null( $node['children'] ) )
+						{
+							unset( $node['children'] );
+						}
 					}
 
+					if ( array_key_exists( 'children', $node ) && is_null( $node['children'] ) )
+					{
+						unset( $node['children'] );
+					}
 					$new_nodes[ $nodeKey ] = $node;
 				}
 				return $new_nodes;
-			};
+			}; // $realizeHierarchy
 
 			$hierarchy = array_filter( $nodes, function( &$node ) {
 				return ! isset( $node['parents'] ) || count( $node['parents'] ) === 0;
@@ -12741,22 +12817,11 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 			$hierarchy = $realizeHierarchy($hierarchy);
 
-			/*
-			if ( ! isset ( $this->context->presentationRoleRefs[ $roleRefsKey ] ) )
-			{
-				$this->context->presentationRoleRefs[ $roleRefsKey ] = array(
-					'type' => $presentationRoleRef['type'],
-					'href' => $presentationRoleRef['href'],
-					'roleUri' => $presentationRoleRef['roleUri'],
-				);
-			}
-			*/
-
 			// Find the key node in $nodes.  This function will recursively traverse the
 			// node hierarchy to find the node.  It will then work out if the node is to
 			// be removed or if it is to be left alone.
-			$findSameNode = function( &$nodes, $node ) use( &$findSameNode ) {
-
+			$findSameNode = function( &$nodes, $node ) use( &$findSameNode )
+			{
 				if ( isset( $nodes[ $node['label'] ] ) )
 				{
 					// First need to check if any existing links need to be removed because they have been prohibited
@@ -12799,7 +12864,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				}
 
 				return false;
-			};
+			}; // $findSameNode
 
 			// The $findSameNode function will traverse the entire node structure which, if the
 			// node list is large, may adversely affect performance.  This function allows a set
@@ -12844,10 +12909,11 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				}
 
 				return $result;
-			};
+			}; // $findSameNodeByPath
 
 			// Get this extended role content
-			$roleRef =& $this->context->presentationRoleRefs[ $roleRefsKey ];
+			// BMS 2019-05-21 Moved above $presentationArc loop
+			// $roleRef =& $this->context->presentationRoleRefs[ $roleRefsKey ];
 
 			// BMS 2018-05-02 For some reason this element initializer was in the for loop below
 			if ( ! isset( $roleRef['hierarchy'] ) )
@@ -12855,7 +12921,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				$roleRef['hierarchy'] = array();
 			}
 
-			// Transfer
+			// Transfer to the role refs hierarchy
 			foreach ( $hierarchy as $nodeKey => &$node )
 			{
 				$result = false;
@@ -12876,12 +12942,12 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				{
 					$roleRef['hierarchy'][ $nodeKey ] = $node;
 				}
-			}
+			} // foreach $hierachy
 
 			$roleRef['locators'] = array_merge( isset( $roleRef['locators'] ) ? $roleRef['locators'] : array(), $locators );
 			$roleRef['paths'] = isset( $roleRef['hierarchy'] ) ? $this->createHierarchyPaths( $roleRef['hierarchy'] ) : array();
 			unset( $roleRef );
-		}
+		} // $presentationLink
 
 		// Remove unused roles
 		$this->context->presentationRoleRefs = array_filter( $this->context->presentationRoleRefs, function( $item ) { return isset( $item['used'] ) && $item['used']; } );
@@ -15962,7 +16028,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 	 * @param string $roleUri
 	 * @return mixed
 	 */
-	private function getPrimaryItemDRSForRole( $primaryItem, $roleUri )
+	protected function getPrimaryItemDRSForRole( $primaryItem, $roleUri )
 	{
 		if ( ! isset( $primaryItem[ $roleUri ] ) )
 		{

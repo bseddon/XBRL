@@ -46,12 +46,12 @@ class XBRL_Report extends XBRL_Report_Base
 	 * @param string $instance_file (optional)
 	 * @param string $taxonomy_file (optional)
 	 */
-	public function __construct( $instance_file = null, $taxonomy_file = null )
+	public function __construct( $instance_file = null, $taxonomy_file = null, $useCache = false )
 	{
 		$this->inConstructor = true;
 
 		parent::__construct();
-		$this->addInstanceDocument( $instance_file, $taxonomy_file );
+		$this->addInstanceDocument( $instance_file, $taxonomy_file, $useCache );
 
 		$this->inConstructor = false;
 	}
@@ -62,12 +62,12 @@ class XBRL_Report extends XBRL_Report_Base
 	 * @param string $taxonomy_file If provided the name of the .json or .zip file containing the taxonomy information
 	 * @return void
 	 */
-	public function addInstanceDocument( $instance_file = null, $taxonomy_file = null )
+	public function addInstanceDocument( $instance_file = null, $taxonomy_file = null, $useCache = false )
 	{
 		if ( ! $this->inConstructor )
 			throw new Exception( "Reports created using XBRL_Report do not support multiple instances" );
 
-		parent::addInstanceDocument( $instance_file, $taxonomy_file );
+		parent::addInstanceDocument( $instance_file, $taxonomy_file, $useCache );
 	}
 
 }

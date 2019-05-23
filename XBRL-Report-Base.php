@@ -140,7 +140,7 @@ abstract class XBRL_Report_Base
 	 * @param string $taxonomy_file If provided the name of the .json or .zip file containing the taxonomy information
 	 * @return void
 	 */
-	public function addInstanceDocument( $instance_file = null, $taxonomy_file = null )
+	public function addInstanceDocument( $instance_file = null, $taxonomy_file = null, $useCache = false )
 	{
 		$this->log()->info( "$instance_file" );
 
@@ -159,7 +159,7 @@ abstract class XBRL_Report_Base
 		 * @var XBRL_Instance $instance
 		 */
 		$instance = null;
-		if ( ! XBRL_Instance::FromInstanceDocument( $instance_file, $taxonomy_file, $instance ) )
+		if ( ! XBRL_Instance::FromInstanceDocument( $instance_file, $taxonomy_file, $instance, false, $useCache ) )
 		{
 			throw new Exception( $instance->getError() );
 		}
@@ -2289,8 +2289,8 @@ abstract class XBRL_Report_Base
 			if ( isset( $newNode['children'] ) )	unset( $newNode['children'] );
 			if ( isset( $newNode['parentNode'] ) )	unset( $newNode['parentNode'] );
 
-			$nodeIsDimensional = $node['nodeclass'] === 'dimension' || $node['nodeclass'] === 'member';
-			$nodeIsPrimaryItem = $node['nodeclass'] === 'primaryitem';
+			$nodeIsDimensional = isset( $node['nodeclass'] ) && ( $node['nodeclass'] === 'dimension' || $node['nodeclass'] === 'member' );
+			$nodeIsPrimaryItem = isset( $node['nodeclass'] ) && ( $node['nodeclass'] === 'primaryitem' );
 			$nodeHasElements = isset( $newNode['elements'] ) && count( $newNode['elements'] );
 			$nodeHasChildren = isset( $node['children'] ) && count( $node['children'] );
 			$nodeHasDimensions = isset( $node['dimensions'] ) && count( $node['dimensions'] ) > 0;
