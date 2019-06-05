@@ -28,6 +28,24 @@
 require_once('XBRL.php');
 
 /**
+ * Register a function to process value alignments
+ */
+XBRL::registerValueAlignmentForType( function( $type )
+{
+	switch( $type )
+	{
+		case 'uk-gaap-ae:CompaniesHouseRegisteredNumberType':
+		case 'uk-gaap-ae:CompaniesHouseDocumentAuthenticationType':
+		case 'uk-gaap-ae:trueBooleanItemType':
+		case 'uk-gcd:entityCurrentLegalNameType':
+		case 'uk-gcd:nonEmptyStringItemType':
+			return "left";
+	}
+
+	return false;
+} );
+
+/**
  * Define the namespaces of the entry points supported by this taxonomy
  * @var array
  */
