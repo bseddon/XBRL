@@ -1891,6 +1891,22 @@ class XBRL {
 	}
 
 	/**
+	 * An array of callables with parameters $type
+	 * @var array
+	 * @return false|string
+	 */
+	private static $valueAlignmentForTypeRegistry = array();
+
+	/**
+	 * Add a callable to process value alignments
+	 * @param callable $valueAlignmentForTypeeFunction
+	 */
+	public static function registerValueAlignmentForType( callable $valueAlignmentForTypeFunction )
+	{
+		self::$valueAlignmentForTypeRegistry[] = $valueAlignmentForTypeFunction;
+	}
+
+	/**
 	 * Gets the alignment for the element based on the type
 	 * @param string $namespace
 	 * @param string $name
@@ -1930,16 +1946,6 @@ class XBRL {
 				break;
 		}
 
-		/*
-valueAlignmentForNamespace: Need to handle ''
-valueAlignmentForNamespace: Need to handle 'http://xbrl.sec.gov/dei/2014-01-31'
-valueAlignmentForNamespace: Need to handle type ':centralIndexKeyItemType'
-valueAlignmentForNamespace: Need to handle type ':filerCategoryItemType'
-valueAlignmentForNamespace: Need to handle type ':fiscalPeriodItemType'
-valueAlignmentForNamespace: Need to handle type ':perShareItemType'
-valueAlignmentForNamespace: Need to handle type ':submissionTypeItemType'
-valueAlignmentForNamespace: Need to handle type ':yesNoItemType'
-valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 		$type = "$prefix:$name";
 
 		switch ( $type )
@@ -1963,6 +1969,7 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 			case 'xbrli:gYearItemType':
 			case 'xbrli:durationItemType':
 			case 'xbrli:tokenItemType':
+			case 'xbrli:anyURIItemType':
 			case 'types:RelatedPartyItemType':
 			case 'types:TextBlockNoteItemType':
 			case 'types:TextBlockScheduleItemType':
@@ -1970,6 +1977,12 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 				return "left";
 
 			default:
+				foreach ( self::$valueAlignmentForTypeRegistry as $callback )
+				{
+					if ( ! is_callable( $callback ) ) continue;
+					$result = $callback( $type );
+					if ( $result ) return $result;
+				}
 				$this->log()->warning( "valueAlignmentForNamespace: Need to handle type '$type'" );
 				return "left";
 		}
@@ -12444,7 +12457,6 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 
 							if ( ! $node ) continue;
 
-
 							// Process the node
 							$nodes[ $to ] = array();
 							$nodes[ $to ]['label'] = $to;
@@ -15998,6 +16010,8 @@ valueAlignmentForNamespace: Need to handle type 'xbrli:tokenItemType'		 * */
 	public function getPrimaryItemDRS( $primaryItem )
 	{
 		$result = array();
+
+		if ( ! isset( $primaryItem ) ) return $result;
 
 		foreach ( $primaryItem['roles'] as $roleUri )
 		{
