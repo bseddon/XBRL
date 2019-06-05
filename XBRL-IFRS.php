@@ -93,6 +93,24 @@ XBRL::add_namespace_to_class_map_entries( array_merge( array(
 XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces, "XBRL_IFRS" );
 
 /**
+ * Register a function to process value alignments
+ */
+XBRL::registerValueAlignmentForType( function( $type )
+{
+	switch( $type )
+	{
+		case 'cmn:countryIdentificationCodeItemType':
+		case 'cmn:cvrItemType':
+		case 'cmn:mneItemType':
+		case 'cmn:submittedReportItemType':
+		case 'cmn:TypeOfAuditorAssistanceItemtype':
+			return "left";
+	}
+
+	return false;
+} );
+
+/**
  * Register XSD to compiled taxonomy entries
  */
 XBRL::add_xsd_to_compiled_map_entries( array(
