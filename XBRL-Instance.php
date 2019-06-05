@@ -816,6 +816,27 @@ class XBRL_Instance
 	}
 
 	/**
+	 * Get the segment of the context
+	 * @param array $context
+	 * @return array|NULL
+	 */
+	public function getContextSegment( $context )
+	{
+		return isset( $context['entity']['segment'] )
+			? $context['entity']['segment']
+			: ( isset( $context['entity']['scenario'] )
+				? $context['entity']['scenario']
+				: (isset( $context['segment'] )
+					? $context['segment']
+					: ( isset( $context['scenario'] )
+						? $context['scenario']
+						: null
+					)
+				)
+			);
+	}
+
+	/**
 	 * Caches context refs so they do not need to be accessed more than once
 	 * @var array $cacheContextElements
 	 */
@@ -864,14 +885,14 @@ class XBRL_Instance
 	 * @TODO If the context does not contain an explicitMember element the function should check the dimensional taxonomy.
 	 *       This will require that the primary element is passed as an argument
 	 */
-	public function getElementsForContext( $contextRef, $getText = false, $elementName = 'segment' )
+	public function getElementsForContext( $contextRef, $getText = false, $elementName = '' )
 	{
 		if ( isset( $this->cacheContextElements[ $contextRef ][ $elementName ] ) )
 		{
 			return $this->cacheContextElements[ $contextRef ][ $elementName ];
 		}
 
-		if ( $elementName !== 'segment' && $elementName !== 'scenario' )
+		if ( $elementName && ( $elementName !== 'segment' && $elementName !== 'scenario' ) )
 		{
 			$this->log()->err( "The element name must be 'segment' or 'scenario'" );
 			return false;
@@ -900,7 +921,11 @@ class XBRL_Instance
 
 		$entity = $context['entity'];
 
-		$segment = isset( $context[ $elementName ] ) ? $context[ $elementName ] : null;
+		$segment = $elementName
+			? ( isset( $context[ $elementName ] )
+				? $context[ $elementName ]
+				: null )
+			: $this->getContextSegment( $context );
 
 		if ( is_null( $segment ) )
 		{
@@ -6549,7 +6574,12 @@ class ContextsFilter
 		$filtered = array_filter( array_keys( $this->contexts ), function ( $context ) use( $dimension, $dimensionNamespace, $member, $memberNamespace, &$contexts, &$instance ) {
 
 			// The context may be invalid in which case exclude
-			if ( ! isset( $contexts[ $context ]['entity']['segment']['explicitMember'] ) || count( $contexts[ $context ]['entity']['segment']['explicitMember'] ) == 0 )
+			if ( ! isset( $this->contexts[ $context ] ) ) return false;
+			$contextSegment = $this->instance->getContextSegment( $this->contexts[ $context ] );
+			if ( is_null( $contextSegment ) ) return false;
+
+			if ( ! ( isset( $contextSegment['explicitMember'] ) && count( $contextSegment['explicitMember'] ) ) &&
+				 ! ( isset( $contextSegment['typedMember'] ) && count( $contextSegment['typedMember'] ) ) )
 				return false;
 
 			// If no components are requested return all
@@ -6617,18 +6647,7 @@ class ContextsFilter
 			// 	   ( ! isset( $context['segment']['typedMember'] ) || count( $context['segment']['typedMember'] ) == 0 ) &&
 			// 	   ( ! isset( $context['scenario']['typedMember'] ) || count( $context['scenario']['typedMember'] ) == 0 );
 
-			$segment = isset( $context['entity']['segment'] )
-				? $context['entity']['segment']
-				: ( isset( $context['entity']['scenario'] )
-					? $context['entity']['scenario']
-					: (isset( $context['segment'] )
-						? $context['segment']
-						: ( isset( $context['scenario'] )
-							? isset( $context['scenario'] )
-							: null
-						)
-					)
-				);
+			$segment = $this->instance->getContextSegment( $context );
 
 			return is_null( $segment ) || ! ( isset( $segment['explicitMember'] ) || isset( $segment['typedMember'] ) );
 		} );
