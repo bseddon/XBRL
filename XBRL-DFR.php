@@ -299,10 +299,14 @@ class XBRL_DFR extends XBRL
 
 		foreach ( $networks as $elr => $network )
 		{
+			$entityHasReport = false;
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $entityHasReport, $echo );
+
 			// error_log( $elr );
 			$result[ $elr ] = array(
-				'entities' => $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo ),
-				'text' => $networks[ $elr ]['text']
+				'entities' => $entities,
+				'text' => $networks[ $elr ]['text'],
+				'hasReport' => $entityHasReport
 			);
 		}
 
@@ -316,10 +320,12 @@ class XBRL_DFR extends XBRL
 	 * @param XBRL_Instance $instance
 	 * @param XBRL_Formulas $formulas
 	 * @param Observer $observer
+	 * @param array $evaluationResults
+	 * @param bool $entityHasReport
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $echo = true )
+	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, &$entityHasReport = false, $echo = true )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -343,7 +349,9 @@ class XBRL_DFR extends XBRL
 		{
 			$entityQName = qname( $entity );
 
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $echo );
+			$hasReport = false;
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $hasReport, $echo );
+			$entityHasReport |= $hasReport;
 		}
 
 		return $result;
@@ -2140,12 +2148,6 @@ class XBRL_DFR extends XBRL
 		if ( ! $contexts )
 		{
 			return '';
-			return
-				"	<div style='display: grid; grid-template-columns: 1fr; '>" .
-				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
-				"			There is no data to report " . ( $parentLabel ? " for '$parentLabel'" : '' ) .
-				"		</div>" .
-				"	</div>";
 		}
 
 		// The number of columns is the number of $years * the number of members for each dimension
@@ -2249,13 +2251,14 @@ class XBRL_DFR extends XBRL
 
 							if ( isset( $axis['typedDomainMembers'] ) )
 							{
-								if ( count( $member['contextRefs'] ) != count( $axis['typedDomainMembers'] ) )
+								if ( count( $member['contextRefs'] ) > count( $axis['typedDomainMembers'] ) )
 								{
-									XBRL_Log::getInstance()->warning( "addToColumnHierarchy: The number of contexts in member label '$nextAxisLabel' does not equal the number of typed domain members" );
+									XBRL_Log::getInstance()->warning( "addToColumnHierarchy: The number of contexts in member label '$nextAxisLabel' is greater than the number of typed domain members" );
 								}
 
 								foreach ( $axis['typedDomainMembers'] as $memberText => $contextRef )
 								{
+									if ( ! in_array( $contextRef, $member['contextRefs'] ) ) continue;
 									$guid = XBRL::GUID();
 									$nextMembers[ $guid ] = array(
 										'text' => $memberText,
@@ -2400,7 +2403,7 @@ class XBRL_DFR extends XBRL
 			return $factSetTypes;
 		};
 
-		$factSetTypes = $getFactSetTypes( $nodes );
+		$factSetTypes = $getFactSetTypes( $nodes, $lineItems );
 
 		$removeColumn = function( &$axis, $columnId ) use( &$removeColumn )
 		{
@@ -2781,13 +2784,9 @@ class XBRL_DFR extends XBRL
 			return count( $node['columns'] );
 		} );
 
-		if ( ! $factsLayout ) // Not sure this is required
+		if ( ! $factsLayout )
 		{
-			return "	<div style='display: grid; grid-template-columns: 1fr; '>" .
-				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
-				"			There is no data to report" .
-				"		</div>" .
-				"	</div>";
+			return '';
 		}
 
 		// Update the last entry with details of the current report
@@ -2797,7 +2796,7 @@ class XBRL_DFR extends XBRL
 			'data' => $factsLayout
 		);
 
-		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout, $foundDroppableTypes ) use( &$createContextRefColumns, $hasReportDateAxis, &$removeColumn )
+		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout, &$contextRefColumns, &$factsLayout, $foundDroppableTypes ) use( &$createContextRefColumns, $hasReportDateAxis, &$removeColumn )
 		{
 			$columnsToDrop = array();
 			$flipped = array_flip( $columnRefs );
@@ -2827,6 +2826,8 @@ class XBRL_DFR extends XBRL
 				if ( $empty ) $columnsToDrop[] = $flipped[ $columnIndex ];
 			}
 
+			if ( ! $columnsToDrop ) return;
+
 			foreach ( $columnsToDrop as $columnIndex )
 			{
 				$removeColumn( $columnHierarchy, $columnIndex );
@@ -2837,13 +2838,30 @@ class XBRL_DFR extends XBRL
 				$columnRefs = array_flip( array_values( array_unique( $contextRefColumns ) ) );
 			}
 
+			// BMS 2019-06-06 In the future it may be better to index the column facts by
+			//                the index in the leaf layer of the columnHierarchy structure.
+			// Correct the facts layout rows
+			foreach ( $factsLayout as $rowIndex => $row )
+			{
+				// Make sure the facts are sorted in column order so they are shuffled into their new places without cause a clash
+				ksort( $row['columns'] );
+
+				// Create a new column index for each fact, effectively shuffling them up
+				foreach ( $row['columns'] as $columnIndex => $fact )
+				{
+					if ( ! isset( $contextRefColumns[ $fact['contextRef'] ] ) ) continue;
+					unset( $factsLayout[ $rowIndex ]['columns'][ $columnIndex ] );
+					$newColumnIndex = $columnRefs[ $contextRefColumns[ $fact['contextRef'] ] ];
+					$factsLayout[ $rowIndex ]['columns'][ $newColumnIndex ] = $fact;
+				}
+			}
 		};
 
 		$droppableTypesList = array( 'adjustment', 'rollforward', 'rollforwardinfo', 'set' );
 		$foundDroppableTypes = array_filter( $factSetTypes, function( $type ) use ( $droppableTypesList ) { return in_array( $type, $droppableTypesList ); } );
-		if ( $foundDroppableTypes )
+		if ( $lineItems || $foundDroppableTypes )
 		{
-			$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout, $foundDroppableTypes );
+			$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout, $contextRefColumns, $factsLayout, $foundDroppableTypes );
 		}
 
 		// Generate a top for the report table
@@ -3338,11 +3356,12 @@ class XBRL_DFR extends XBRL
 	 * @param QName $entityQName
 	 * @param XBRL_Formulas $formulas	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
-	 * @param $evaluationResults		The results of validating the formulas
+	 * @param array $evaluationResults	The results of validating the formulas
+	 * @param bool $hasReport
 	 * @param $echo						If true the HTML will be echoed
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $echo = true )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$hasReport = false, $echo = true )
 	{
 		$componentTable = $this->renderComponentTable( $network, $elr );
 
@@ -3370,6 +3389,7 @@ class XBRL_DFR extends XBRL
 			false, $excludeEmptyHeadrers, $row, array() );
 
 		$factsLayouts = array_filter( $factsLayouts );
+		$hasReport = ! empty( $reportTable );
 
 		if ( ! $reportTable )
 		{
