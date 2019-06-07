@@ -1,0 +1,594 @@
+/**
+	General CSS stuff
+ */
+ 
+#footer,
+.fadein-slider
+{
+	display: none;
+}
+
+@media (min-width: 992px)
+{
+	.container.xbrl 
+	{
+		width: auto;
+	}
+}
+
+div#primary
+{
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+div#primary p, div#primary blockquote, div#primary pre, div#primary a, div#primary abbr, div#primary acronym, 
+div#primary address, div#primary big, div#primary cite, div#primary code, div#primary del, div#primary dfn, 
+div#primary em, div#primary font, div#primary ins, div#primary kbd, div#primary q, div#primary s, div#primary div,
+div#primary samp, div#primary small, div#primary strike, div#primary strong, div#primary sub, div#primary sup,
+div#primary tt, div#primary var, div#primary dl, div#primary dt, div#primary dd, div#primary ol, div#primary ul,
+div#primary li, div#primary fieldset, div#primary form, div#primary label, div#primary legend, div#primary table,
+div#primary caption, div#primary tbody, div#primary tfoot, div#primary th, div#primary td, div#primary span
+{
+	font-size: 12px;
+	text-align: left;
+}
+
+div#primary 
+{
+	color: black;
+}
+
+div#primary 
+{
+	line-height: 1.2;
+}
+
+div#primary h1, div#primary h2, div#primary h3, div#primary h4, div#primary h5
+{
+	margin-bottom: 0;
+}
+
+/**
+	model-structure CSS
+ */
+
+div#primary .model-structure 
+{
+	display: grid;
+	grid-template-rows: auto auto auto auto auto 1fr; /* Let the component table, slicers table, structure table, report table and facts table have what they need but give the rest to the business table */
+	grid-row-gap: 20px;
+	padding: 2px;
+}
+ 
+/**
+	Component table CSS
+ */
+ 
+div#primary .component-table
+{
+	display: grid;
+	grid-template-rows: auto auto; /* The component table has a header and body */	 
+	border: 1px solid black;
+}
+ 
+div#primary .component-table .ct-header
+{
+	background-color: lightgrey;
+	border-bottom: 1px solid black;
+	text-align: left;
+	font-weight: bold;
+	padding: 4px;
+}
+ 
+div#primary .component-table .ct-body
+{
+	display: grid;
+	grid-template-columns: 100px 1fr; /* The component table body has two columns */
+	grid-template-rows: auto auto; /* The component table body has two row */	 
+}
+
+div#primary .slicer-header,
+div#primary .component-table .ct-body-header
+{
+	background-color: #8DB4E3;
+	border-right: 1px solid black;
+	padding: 4px;
+}
+
+div#primary .component-table .ct-body-content
+{
+	padding: 4px;	
+}
+
+div#primary .component-table .ct-body .network
+{
+	border-bottom: 1px solid black;
+}
+
+/**
+	Slicers table CSS
+ */
+div#primary .slicers 
+{
+	display: grid;
+	grid-template-columns: 400px 1fr; /* The slicers table body has two columns */
+	border: 1px solid black;
+}
+
+div#primary .slicers div:not(:nth-last-child(1)):not(:nth-last-child(2))
+{
+	border-bottom: 1px solid black;	
+}
+
+div#primary .slicer-content
+{
+	padding: 4px;	
+}
+
+/**
+	Structure table CSS
+ */
+div#primary .structure-table 
+{
+	display: grid;
+	grid-template-columns: 400px auto auto auto auto 1fr; /* The structure-table table body has five columns */
+	border: 2px solid black;
+}
+
+div#primary .structure-table div:nth-child(-n+6) /* Header row */
+{
+	background-color: #8DB4E3;
+	font-weight: bold;
+	padding: 2px;
+}
+
+div#primary .structure-table div:not(:nth-child(-n+6)) /* Not header row */
+{
+	border-top: 1px solid black;
+	padding: 2px;
+}
+
+div#primary .structure-table div:nth-child(6n+1), /* Vertical bars */
+div#primary .structure-table div:nth-child(6n+2),
+div#primary .structure-table div:nth-child(6n+3),
+div#primary .structure-table div:nth-child(6n+4),
+div#primary .structure-table div:nth-child(6n+5)
+{
+	border-right: 1px solid black;	
+}
+
+div#primary .structure-table div:nth-child(12n+1):not(:nth-child(-n+6)), /* Alternating background color */
+div#primary .structure-table div:nth-child(12n+2):not(:nth-child(-n+6)),
+div#primary .structure-table div:nth-child(12n+3):not(:nth-child(-n+6)),
+div#primary .structure-table div:nth-child(12n+4):not(:nth-child(-n+6)),
+div#primary .structure-table div:nth-child(12n+5):not(:nth-child(-n+6)),
+div#primary .structure-table div:nth-child(12n+6):not(:nth-child(-n+6))
+{
+	background-color: #ddeafa;
+}
+
+div#primary .structure-table div:hover:not(:nth-child(-n+6))
+{
+	background-color: gray !important;
+}
+
+div#primary .report-line.line-item.depth1,
+div#primary span.depth1 
+{
+	padding-left: 10px;
+}
+
+div#primary .report-line.line-item.depth2,
+div#primary span.depth2 
+{
+	padding-left: 20px;
+}
+
+div#primary .report-line.line-item.depth3,
+div#primary span.depth3 
+{
+	padding-left: 30px;
+}
+
+div#primary .report-line.line-item.depth4,
+div#primary span.depth4 
+{
+	padding-left: 40px;
+}
+
+div#primary .report-line.line-item.depth5,
+div#primary span.depth5 
+{
+	padding-left: 50px;
+}
+
+div#primary .report-line.line-item.depth6,
+div#primary span.depth6 
+{
+	padding-left: 60px;
+}
+
+div#primary .report-line.line-item.depth7,
+div#primary span.depth7 
+{
+	padding-left: 70px;
+}
+
+div#primary .report-line.line-item.depth8,
+div#primary span.depth8 
+{
+	padding-left: 80px;
+}
+
+div#primary .report-line.line-item.depth9,
+div#primary span.depth9 
+{
+	padding-left: 90px;
+}
+
+div#primary span.hypercube,
+div#primary span.axis,
+div#primary span.member,
+div#primary span.lineitem
+{
+	font-weight: bold;
+}
+
+div#primary span.abstract
+{
+	font-style: italic;
+}
+
+div#primary .report-table-controls
+{
+	display: grid;
+	grid-template-columns: auto auto auto auto 1fr;
+	padding: 4px;
+}
+
+div#primary .report-table-controls .control-header
+{
+	font-weight: bold;
+	padding-right: 4px;
+}
+
+div#primary .report-table-controls .control-narrower,
+div#primary .report-table-controls .control-wider
+{
+	padding-right: 4px;
+	color: blue;
+	cursor: pointer;
+}
+
+div#primary .report-table-controls .control-wider + div
+{
+	padding-right: 4px;
+}
+
+div#primary .report-table 
+{
+	border: 2px solid black;
+}
+
+div#primary .report-header.line-item 
+{
+	background-color: #8DB4E3;
+	border-bottom: 2px solid black;
+	display: grid;
+	align-items: end;
+	justify-content: center;
+}
+
+div#primary .report-header.axis-label 
+{
+	border-left: 1px solid black;
+	text-align: center;
+	background-color: #8DB4E3;
+	padding: 2px;
+}
+
+div#primary .report-header.member-label 
+{
+	background-color: #DDEAFA;
+	border-left: 1px solid black;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	text-align: center;
+	padding: 2px;
+}
+
+div#primary .report-header.member-label.last
+{
+	border-bottom: 2px solid black;	
+}
+
+div#primary .report-line 
+{
+	border-bottom: 1px solid #ddd;
+	padding: 2px;
+}
+
+div#primary .report-line.value 
+{
+	border-left: 1px solid #ddd;
+}
+
+div#primary .report-line.value.first-fact
+{
+	border-left: 1px solid black;
+}
+
+div#primary .report-line.line-item  
+{
+	background-color: #DDEAFA;
+}
+
+div#primary .report-line.abstract  
+{
+	background-color: #DDEAFA;
+	font-size: 12px;
+	font-weight: bold;
+	padding-top: 4px;
+	color: #404040;
+}
+
+div#primary .report-line.abstract-value 
+{
+	background-color: #F0F0F0;
+	border-left: 1px solid #ddd;
+}
+
+div#primary .report-line.line-item.total 
+{
+	text-align: right;
+	font-style: normal;
+}
+
+div#primary .business-rules-row.calculated,
+div#primary .report-line.value.right div.value,
+div#primary .report-line.value.right 
+{
+	text-align: right;
+}
+
+div#primary .business-rules-row.calculated.total,
+div#primary .report-line.value.total 
+{
+	/* background-color: #c5ffc2; */
+	border-bottom: 3px double black !important;
+    border-top: 1px solid #000;
+	margin-top: -1px;
+	border-left: 1px solid #acd6a9;
+}
+
+div#primary .report-line.abstract-value.first-fact,
+div#primary .report-line.value.first-fact
+{
+	border-left: 1px solid black;
+}
+
+div#primary .report-line.value.total.main
+{
+	background-color: #c5ffc2;
+	border-bottom: 3px double black;
+}
+
+div#primary .report-line.abstract.final
+{
+	padding-top: 0;
+}
+
+div#primary .business-rules-row.calculated.pos,
+div#primary .report-line.value.right.pos 
+{
+    padding-right: 0.4em;
+}
+
+div#primary .business-rules-row.calculated.neg,
+div#primary .report-line.value.right.neg 
+{
+}
+
+div#primary div.xbrl-footnotes
+{
+	padding-top: 4px;
+}
+
+div#primary div.xbrl-footnotes div.footnote-list
+{
+	display: grid;
+	grid-template-columns: auto 1fr;
+}
+
+div#primary .report-line.value.total
+{
+	display: grid;
+	grid-template-columns: auto auto 1fr;
+}
+
+div#primary .report-line.value.xbrl-footnote 
+{
+	display: grid;
+	grid-template-columns: auto auto 1fr;
+}
+
+div#primary div.report-line div.footnote-id
+{
+	font-size: 8px;
+}
+
+div#primary div.xbrl-footnotes div.footnote-id
+{
+	padding-right: 10px;
+}
+
+div#primary .report-header.member-label.last.default-member 
+{
+    font-weight: bold;
+}
+
+div#primary .report-header.member-label.last.domain-member 
+{
+    background-color: #bccde3;
+}
+
+div#primary .report-line.member-label.default-member
+{
+    background-color: #bccde3;	
+}
+
+/* Alternating background color */
+/*
+div#primary .report-table div:nth-child(6n+2):not(:nth-child(-n+3)),
+div#primary .report-table div:nth-child(6n+3):not(:nth-child(-n+3)),
+div#primary .report-table div:nth-child(6n+4):not(:nth-child(-n+3))
+{
+	background-color: #ddeafa;
+}
+*/
+
+/* Facts table CSS */
+
+div#primary .fact-table
+{
+	border: 2px solid black;
+}
+
+div#primary .fact-table .fact-table-header /* Header row */
+{
+	background-color: #8DB4E3;
+	font-weight: bold;
+	padding: 2px;
+}
+
+div#primary  div.fact-table-header:not(.last),
+div#primary  div.fact-table-line:not(.last) 
+{
+    border-right: 1px solid black;
+}
+
+div#primary  div.fact-table-header,
+div#primary  div.fact-table-line
+{
+    border-bottom: 1px solid black;
+	padding: 2px;
+}
+
+div#primary .fact-table-line.right 
+{
+	text-align:right;
+}
+
+/* Business rules table CSS */
+
+div#primary div.business-rules-section
+{
+}
+
+div#primary div.business-rules-table
+{
+	border-left: 1px solid black;
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+	margin-bottom: 20px;
+}
+
+div#primary div.business-rules-table .business-rules-roles
+{
+	background-color: lightgrey;
+	border-bottom: 1px solid black;
+	text-align: left;
+	font-weight: bold;
+	padding: 4px;
+}
+
+div#primary div.business-rules-table .business-rules-header /* Header row */
+{
+	background-color: #8DB4E3;
+	font-weight: bold;
+	padding: 2px;
+}
+
+div#primary  div.business-rules-table .business-rules-row:not(.last):not(.final)
+{
+    border-right: 1px solid gray;
+}
+
+div#primary  div.business-rules-table .business-rules-header:not(.last)
+{
+    border-right: 1px solid black;
+}
+
+div#primary  div.business-rules-table .business-rules-header
+{
+    border-bottom: 1px solid black;
+	padding: 2px;	
+}
+
+div#primary  div.business-rules-table .business-rules-row:not(.final)
+{
+    border-bottom: 1px solid gray;	
+}
+
+div#primary  div.business-rules-table .business-rules-row
+{
+	padding: 2px;	
+}
+
+div#primary  div.report-selection
+{
+	padding: 8px 4px;
+}
+
+div#primary  span.report-selection-title
+{
+	font-weight: bold;
+    margin-right: 8px;	
+}
+
+div#primary  div.report-selection label
+{
+    vertical-align: text-top;
+	padding-right: 8px;
+}
+
+.hide-section
+{
+	display: none !important;
+}
+
+div#primary .business-rules-row.calculated.match,
+div#primary .report-line.value.total.match
+{
+	background-color: #c5ffc2;
+}
+
+div#primary .report-line.value.total .match:before 
+{
+    content: '\f00c';
+    color: green;
+    font-family: FontAwesome;
+    padding-right: 4px;
+}
+
+div#primary .business-rules-row.calculated.mismatch,
+div#primary .report-line.value.total.mismatch
+{
+	background-color: pink;	
+}
+
+div#primary .report-line.value.total .mismatch:before 
+{
+    content: '\f00d';
+    color: red;
+    font-family: FontAwesome;
+    padding-right: 4px;
+    font-size: 1.2em;
+}
+
+div#primary .facts-section .fact-section-title 
+{
+    margin-top: 8px;
+    margin-bottom: 4px;
+}

@@ -116,7 +116,7 @@ try
 {
 	foreach ( $taxonomies as $taxonomyPackageFile )
 	{
-		echo "Processing taxonomy '$taxonomyPackageFile'";
+		echo "Processing taxonomy '$taxonomyPackageFile'\n";
 		// Pass the name of the custom package as an alternative format to try
 		$ns = __NAMESPACE__;
 		$package = \XBRL_Package::getPackage( "$taxonomiesLocation/$taxonomyPackageFile", array( DKDBAPackage::class, DKIFRSPackage::class ) );
@@ -184,7 +184,7 @@ function processTaxonomyPackage( $observer, $file, $package )
 	// I have been trying to avoid this sort of exceptional condition.
 	// However the correctly packaged DBA taxonomies do not include
 	// 'entryAll.xsd' among the advertised entry points even though
-	// the file exists in the schema.  The alternative is to created
+	// the file exists in the schema.  The alternative is to create
 	// yet another packaging class just to handle this condition.
 	if ( ! $all && $package instanceof \XBRL_TaxonomyPackage )
 	{
@@ -204,6 +204,13 @@ function processTaxonomyPackage( $observer, $file, $package )
 		$observer->addItem("error", "Unable to find the version number for the taxonomy");
 		return false;
 	}
+
+	// Make sure the XBRL instance is XBRL_DFR or any other that prevents removing dimension nodes from presentation hierarchies
+	\XBRL::add_namespace_to_class_map_entries( array(
+		'http://xbrl.dcca.dk/entryAll',
+		$package->getNamespaceForSchema( $package->getAllEntryPoint() )
+	), 'XBRL_DFR' );
+
 	$version = $matches['version'];
 
 	if ( ( $compiledTaxonomy = \XBRL::isCompiled( $compiledLocation, "$entryAllBasename$version" ) ) == false )
@@ -223,7 +230,7 @@ function processTaxonomyPackage( $observer, $file, $package )
 		}
 
 		// ALways compile the 'all' entry point. This makes sure the compiled taxonomy is a superset of all the other entry points
-		if ( ! \XBRL::compile( $all, $namespace, $compiledLocation . "/$entryAllBasename$version" ) )
+		if ( ! ( $taxonomy = \XBRL::compile( $all, $namespace, $compiledLocation . "/$entryAllBasename$version" ) ) )
 		{
 			$observer->addItem( "action", "taxonomy $version failed to compile" );
 			return false;

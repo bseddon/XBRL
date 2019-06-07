@@ -265,7 +265,8 @@ try
 		$year = substr( reset( $facts )['value'], 0, 4 );
 
 		// Find all the contexts specific to the year so facts can be filtered
-		$endingBalanceContexts = $instance->getContexts()->ContextsForYear( $year, true )->getContexts();
+		/** @var \ContextsFilter $endingBalanceContexts */
+		$endingBalanceContexts = $instance->getContexts()->ContextsForYear( $year, true )->NoSegmentContexts()->getContexts();
 
 		// Get the facts for the current year
 		$currentYearElements = $instance->getElements()->ElementsByContexts( array_keys( $endingBalanceContexts ) );
