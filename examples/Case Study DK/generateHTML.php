@@ -95,30 +95,15 @@ $use_xbrl_functions = true;
 // The set of instance documents to report
 // There needs to be some mechanism to generate sets of company files.
 $instanceGroupss = array( // !!! Change this
-	'aarsrapport' => array(
-		'10403782.2016.AARSRAPPORT.xml',
-		// '15505281.2015.AARSRAPPORT.xml',
-		// '49260016.2017.AARSRAPPORT.xml',
-		// '81822514.2017.AARSRAPPORT.xml',
-	),
 	'andco' => array(
 		'and co 2014.xml',
 		'and co 2015.xml',
 		'and co 2016.xml',
 		'and co 2017.xml'
-	),
-	'other' => array(
-		'ZG9rdW1lbnRsYWdlcjovLzAzLzc1LzYzLzdhLzIzL2YzZGEtNGEwMS1iNTJiLTA2YjI1ZjdmYjc2MQ.xml'
-	),
-	'other2' => array(
-		'38463497.2017.AARSRAPPORT.xml'
-	),
-	'other3' => array(
-		'34079137.2017.AARSRAPPORT.xml'
 	)
 );
 
-$instances = $instanceGroupss['other3'];
+$instances = $instanceGroupss['andco'];
 
 /* ------------------------------------------------------------
  * Make the processor code accessible
