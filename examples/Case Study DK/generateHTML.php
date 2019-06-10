@@ -82,7 +82,11 @@ $instancesLocation = __DIR__ . "/instances"; // !!! Change this
 // The location to store generated HTML renderings
 $htmlLocation = __DIR__ . "/html"; // !!! Change this
 
-$htmlAssetsLocation = $htmlLocation . '/../assets';
+// The location of HTMLK JS and CSS assets
+$htmlAssetsLocation = '../../assets';
+
+// Use null for the default language
+$languageCode = 'da';
 
 // Allow formulas to be evaluated
 global $use_xbrl_functions;
@@ -95,6 +99,12 @@ $use_xbrl_functions = true;
 // The set of instance documents to report
 // There needs to be some mechanism to generate sets of company files.
 $instanceGroupss = array( // !!! Change this
+	'aarsrapport' => array(
+		'10403782.2016.AARSRAPPORT.xml',
+		// '15505281.2015.AARSRAPPORT.xml',
+		// '49260016.2017.AARSRAPPORT.xml',
+		// '81822514.2017.AARSRAPPORT.xml',
+	),
 	'andco' => array(
 		'and co 2014.xml',
 		'and co 2015.xml',
@@ -230,7 +240,7 @@ try
 	$instanceTaxonomy = $instance->getInstanceTaxonomy();
 	$presentationNetworks = $instanceTaxonomy->validateDFR( $formulas );
 	// $presentationNetworks = array_slice( $presentationNetworks, 0, 1 );
-	$renders = $instanceTaxonomy->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $results, false );
+	$renders = $instanceTaxonomy->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $results, $languageCode, false );
 
 	// Delete/create a sub-folder for the HTML
 	if ( is_dir( "$htmlLocation/$instanceBasename" ) )
@@ -286,6 +296,7 @@ try
 		foreach ( $render['entities'] as $entity => $networkHTML )
 		{
 			$html =
+				"<!DOCTYPE html>\n" .
 				"<html>\n" .
 				"	<head>\n" .
 				"		<title>XBRL Rendered View</title>\n" .
@@ -297,6 +308,7 @@ try
 				"		<style>\n" .
 				"			body { margin-left: 20px; margin-right: 20px; }\n" .
 				"		</style>\n" .
+				"		<meta charset='utf-8'/>\n" .
 				"	</head>\n" .
 				"	<body>\n" .
 				"		<div id='primary'>\n" . $networkHTML .
@@ -304,11 +316,12 @@ try
 				"	</body>\n" .
 				"</html>";
 
-			file_put_contents( "$htmlLocation/$instanceBasename/$count.html", $html );
+			$filename = $count . ( $languageCode ? "-$languageCode" : "" );
+			file_put_contents( "$htmlLocation/$instanceBasename/$filename.html", $html );
 
 			$indexContent .=
 				"			<div class='index-entry'>\n" .
-				"				<a href='$count.html' target='_blank' title='$role'>{$render['text']}</a>\n" .
+				"				<a href='$filename.html' target='_blank' title='$role'>{$render['text']}</a>\n" .
 				"			</div>\n";
 		}
 
@@ -319,9 +332,10 @@ try
 		$indexContent = "<div class='no-reports'>There are no reports to display</div>";
 	}
 
-	file_put_contents( "$htmlLocation/$instanceBasename/index.html", str_replace("%content%", $indexContent, $indexHTML ) );
+	$filename = "index" . ( $languageCode ? "-$languageCode" : "" );
+	file_put_contents( "$htmlLocation/$instanceBasename/$filename.html", str_replace("%content%", $indexContent, $indexHTML ) );
 
-	echo "Index file written to '$htmlLocation/$instanceBasename/index.html'\n";
+	echo "Index file written to '$htmlLocation/$instanceBasename/$filename.html'\n";
 }
 catch( \Exception $ex )
 {
