@@ -184,6 +184,208 @@ class XBRL_DFR extends XBRL
 	private $presentationNetworks = array();
 
 	/**
+	 * A list of translations of the reporting constants like 'axis' and 'period'
+	 * @var array $constantLabels
+	 */
+	private static $constantTextTranslations = array(
+		'da' => array(
+			'Axis' => 'Akse',
+			'Component' => 'Komponent',
+			'Component: Network plus Table' => 'Komponent: Netv&aelig;rk plus tabel',
+			'Network' => 'Net&aelig;rk',
+			'Network plus Table' => 'Netv&aelig;rk plus tabel',
+			'Period' => 'Periode',
+			'Period [Axis]' => 'Periode [Akse]',
+			'Reporting Entity' => 'Rapporteringsenhed',
+			'Reporting Entity [Axis]' => 'Rapporteringsenhed [Akse]',
+			'Table' => 'Tabel',
+			'Context' => 'Kontekst',
+			'Concept' => 'koncept',
+			'Value' => 'V&aelig;rdi',
+			'Unit' => 'Enhed',
+			'Rounding' => 'Afrunding',
+			'Fact table for' => 'Fakta tabel for',
+			'Label' => 'Etiket',
+			'Fact set type' => 'Fakta s&aeligt type',
+			'Report Element Class' => 'Rapport Element Klasse',
+			'Period Type' => 'Periode Type',
+			'Balance' => 'Balance',
+			'Name' => 'Navn',
+			'Report sections' => 'Rapport sektioner',
+			'Structure' => 'Struktur',
+			'Slicers' => 'Slicers',
+			'Report' => 'Rapport',
+			'Facts' => 'Fakta',
+			'Rules' => 'Regler',
+			'There are no business rules' => 'Der er ingen forretningsregler',
+			'Business rules' => 'Forretningsregel',
+			'Line item' => 'Regnskabskoncept',
+			'Calculated' => 'Beregnet',
+			'Decimals' => 'Decimaler',
+			'There is no data to report' => 'Der er ingen data at rapportere',
+			'Columns' => 'Kolonner',
+			'Wider' => 'Bredere',
+			'Narrower' => 'Smallere'
+		),
+		'de' => array(
+			'Axis' => 'Achse',
+			'Component' => 'Komponente',
+			'Component: Network plus Table' => 'Komponente: Netzwerk plus tabelle',
+			'Network' => 'Netzwerk',
+			'Network plus Table' => 'Netzwerk plus tabelle',
+			'Period' => 'Zeitspanne',
+			'Period [Axis]' => 'Zeitspanne [Achse]',
+			'Reporting Entity' => 'Berichtseinheit',
+			'Reporting Entity [Axis]' => 'Berichtseinheit [Achse]',
+			'Table' => 'Tabelle',
+			'Context' => 'Zusammenhang',
+			'Concept' => 'Konzept',
+			'Value' => 'Wert',
+			'Unit' => 'Einheit',
+			'Rounding' => 'Runden',
+			'Fact table for' => 'Faktentabelle für',
+			'Label' => 'Etikette',
+			'Fact set type' => 'Typ des Faktensatzes',
+			'Report Element Class' => 'Berichtselementklasse',
+			'Period Type' => 'Periodentyp',
+			'Balance' => 'Balance',
+			'Name' => 'Name',
+			'Report sections' => 'Berichtsabschnitte',
+			'Structure' => 'Struktur',
+			'Slicers' => 'Slicers',
+			'Report' => 'Bericht',
+			'Facts' => 'Fakten',
+			'Rules' => 'Regeln',
+			'There are no business rules' => 'Es gibt keine Geschäftsregeln',
+			'Business rules' => 'Geschäftsregel',
+			'Line item' => 'Buchhaltungbegriff',
+			'Calculated' => 'Berechnet',
+			'Decimals' => 'Dezimalstellen',
+			'There is no data to report' => 'Es sind keine Daten zu melden',
+			'Columns' => 'Säulen',
+			'Wider' => 'Breiter',
+			'Narrower' => 'Schmaler'
+		),
+		'es' => array(
+			'Axis' => 'Eje',
+			'Component' => 'Componente',
+			'Component: Network plus Table' => 'Componente: Red más tabla',
+			'Network' => 'Red',
+			'Network plus Table' => 'Red más tabla',
+			'Period' => 'Período',
+			'Period [Axis]' => 'Período [Eje]',
+			'Reporting Entity' => 'Entidad que informa',
+			'Reporting Entity [Axis]' => 'Entidad que informa [Eje]',
+			'Table' => 'Tabla',
+			'Context' => 'Contexto',
+			'Concept' => 'Concepto',
+			'Value' => 'Valor',
+			'Unit' => 'Unidad',
+			'Rounding' => 'Redondeo',
+			'Fact table for' => 'Tabla de hechos para',
+			'Label' => 'Etiqueta',
+			'Fact set type' => 'Tipo de conjunto de hechos',
+			'Report Element Class' => 'Clase de elemento de informe',
+			'Period Type' => 'Tipo de periodo',
+			'Balance' => 'Equilibrar',
+			'Name' => 'Nombre',
+			'Report sections' => 'Secciones de informes',
+			'Structure' => 'Estructura',
+			'Slicers' => 'Slicers',
+			'Report' => 'Informe',
+			'Facts' => 'Hechos',
+			'Rules' => 'Reglas',
+			'There are no business rules' => 'No hay reglas de negocio',
+			'Business rules' => 'Reglas de negocio',
+			'Line item' => 'Término contable',
+			'Calculated' => 'Calculado',
+			'Decimals' => 'Decimales',
+			'There is no data to report' => 'No hay datos para reportar',
+			'Columns' => 'Columnas',
+			'Wider' => 'Más amplio',
+			'Narrower' => 'Más estrecho'
+		),
+		'fr' => array(
+			'Axis' => 'Axe',
+			'Component' => 'Composant',
+			'Component: Network plus Table' => 'Composant: Réseau de tableau',
+			'Network' => 'Réseau',
+			'Network plus Table' => 'Réseau de tableau',
+			'Period' => 'Période',
+			'Period [Axis]' => 'Période [Axe]',
+			'Reporting Entity' => 'Entité comptable',
+			'Reporting Entity [Axis]' => 'Entité comptable [Axe]',
+			'Table' => 'Tableau',
+			'Context' => 'Contexte',
+			'Concept' => 'Concept',
+			'Value' => 'Valeur',
+			'Unit' => 'Unité',
+			'Rounding' => 'Arrondi',
+			'Fact table for' => 'Table de faits pour',
+			'Label' => 'Étiquette',
+			'Fact set type' => 'Type d\'ensemble factuel',
+			'Report Element Class' => 'Classe d\'élément de rapport',
+			'Period Type' => 'Type de période',
+			'Balance' => 'Équilibre',
+			'Name' => 'Nom',
+			'Report sections' => 'Sections du rapport',
+			'Structure' => 'Structure',
+			'Slicers' => 'Slicers',
+			'Report' => 'Rapport',
+			'Facts' => 'Faits',
+			'Rules' => 'Règles',
+			'There are no business rules' => 'Il n\'y a pas de règles d\'affaires',
+			'Business rules' => 'Règle d\'affaires',
+			'Line item' => 'Terme comptable',
+			'Calculated' => 'Calculé',
+			'Decimals' => 'Décimales',
+			'There is no data to report' => 'Il n\'y a pas de données à signaler',
+			'Columns' => 'Les colonnes',
+			'Wider' => 'Plus large',
+			'Narrower' => 'Plus étroit'
+		),
+		'it' => array(
+			'Axis' => 'Asse',
+			'Component' => 'Componente',
+			'Component: Network plus Table' => 'Componente: Rete più Tabella',
+			'Network' => 'Rete',
+			'Network plus Table' => 'Rete più Tabella',
+			'Period' => 'Periodo',
+			'Period' => 'Periodo [Asse]',
+			'Reporting Entity' => 'Entità segnalante',
+			'Reporting Entity [Axis]' => 'Entità segnalante [Asse]',
+			'Table' => 'Tabella',
+			'Context' => 'Contesto',
+			'Concept' => 'Concetto',
+			'Value' => 'Valore',
+			'Unit' => 'Unità',
+			'Rounding' => 'Arrotondamento',
+			'Fact table for' => 'Tabella dei fatti per',
+			'Label' => 'Etichetta',
+			'Fact set type' => 'Fatto impostato tipo',
+			'Report Element Class' => 'Segnala la classe degli elementi',
+			'Period Type' => 'Tipo di periodo',
+			'Balance' => 'Equilibrio',
+			'Name' => 'Nome',
+			'Report sections' => 'Segnala sezioni',
+			'Structure' => 'Struttura',
+			'Slicers' => 'Slicers',
+			'Report' => 'Rapporto',
+			'Facts' => 'Fatti',
+			'Rules' => 'Regole',
+			'There are no business rules' => 'Non ci sono regole attività commerciale',
+			'Business rules' => 'Regola attività commerciale',
+			'Line item' => 'Termine di contabilità',
+			'Calculated' => 'Calcolato',
+			'Decimals' => 'Decimali',
+			'There is no data to report' => 'Non ci sono dati da segnalare',
+			'Columns' => 'Colonne',
+			'Wider' => 'Più ampia',
+			'Narrower' => 'Più stretto'
+		)
+	);
+
+	/**
 	 * Created by the constructor to hold the list of valid presentation relationships
 	 * @var array
 	 */
@@ -253,6 +455,23 @@ class XBRL_DFR extends XBRL
 	}
 
 	/**
+	 * Translate constant text used in the slicers, components and elsewhere
+	 * Will return the input $text if $lang is null or begins with 'en'
+	 * @param string $lang
+	 * @param string $text
+	 * @return string
+	 */
+	public function getConstantTextTranslation( $lang, $text )
+	{
+		if ( is_null( $lang ) || strpos( $lang, 'en' ) === 0 || ! isset( self::$constantTextTranslations[ $lang ][ $text ] ) )
+		{
+			return $text;
+		}
+
+		return self::$constantTextTranslations[ $lang ][ $text ];
+	}
+
+	/**
 	 * Gets an array containing a list of extra features supported usually by descendent implementation
 	 * @param string $feature (optional) If supplied just the array for the feature is returned or all
 	 * 									 features.  If supplied and not found an empty array is returned
@@ -290,17 +509,18 @@ class XBRL_DFR extends XBRL
 	 * @param XBRL_Instance $instance
 	 * @param XBRL_Formulas $formulas
 	 * @param Observer $observer
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetworks( $networks, $instance, $formulas, $observer, $evaluationResults, $echo = true )
+	public function renderPresentationNetworks( $networks, $instance, $formulas, $observer, $evaluationResults, $lang = null, $echo = true )
 	{
 		$result = array();
 
 		foreach ( $networks as $elr => $network )
 		{
 			$entityHasReport = false;
-			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $entityHasReport, $echo );
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $entityHasReport, $lang, $echo );
 
 			// error_log( $elr );
 			$result[ $elr ] = array(
@@ -322,10 +542,11 @@ class XBRL_DFR extends XBRL
 	 * @param Observer $observer
 	 * @param array $evaluationResults
 	 * @param bool $entityHasReport
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, &$entityHasReport = false, $echo = true )
+	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, &$entityHasReport = false, $lang = null, $echo = true )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -350,7 +571,7 @@ class XBRL_DFR extends XBRL
 			$entityQName = qname( $entity );
 
 			$hasReport = false;
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $hasReport, $echo );
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $hasReport, $lang, $echo );
 			$entityHasReport |= $hasReport;
 		}
 
@@ -1486,20 +1707,20 @@ class XBRL_DFR extends XBRL
 	 * @param string $elr
 	 * @return string
 	 */
-	private function renderComponentTable( $network, $elr )
+	private function renderComponentTable( $network, $elr, $lang = null )
 	{
-		$table = $this->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ) );
+		$table = $this->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ), null, $lang, $elr );
 
 		$componentTable =
 			"	<div class='component-table'>" .
-			"		<div class='ct-header'>Component: Network plus Table</div>" .
+			"		<div class='ct-header'>" . $this->getConstantTextTranslation( $lang, 'Component: Network plus Table' ) . "</div>" .
 			"		<div class='ct-body'>" .
-			"			<div class='ct-body-header network'>Network</div>" .
+			"			<div class='ct-body-header network'>" . $this->getConstantTextTranslation( $lang, 'Network' ) . "</div>" .
 			"			<div class='ct-body-content network'>" .
 			"				<div>{$network['text']}</div>" .
 			"				<div>$elr</div>" .
 			"			</div>" .
-			"			<div class='ct-body-header hypercube'>Table</div>" .
+			"			<div class='ct-body-header hypercube'>" . $this->getConstantTextTranslation( $lang, 'Table' ) . "</div>" .
 			"			<div class='ct-body-content hypercube'>$table</div>" .
 			"		</div>" .
 			"	</div>";
@@ -1514,9 +1735,10 @@ class XBRL_DFR extends XBRL
 	 * @param XBRL_Instance $instance	The instance being reported
 	 * @param QName $entityQName
 	 * @param array $factsLayout		A table produced by the report table method
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @return string
 	 */
-	private function renderFactsTable( $network, $elr, $instance, $entityQName, &$reportsFactsLayout )
+	private function renderFactsTable( $network, $elr, $instance, $entityQName, &$reportsFactsLayout, $lang = null )
 	{
 		$axes = array_reduce( $network['axes'], function( $carry, $axes )
 		{
@@ -1540,38 +1762,38 @@ class XBRL_DFR extends XBRL
 			else
 			{
 				$reportTaxonomy = $this->getTaxonomyForXSD( $reportLabel );
-				$reportTitle = "sub-report '" . $reportTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportLabel ) . "'";
+				$reportTitle = "sub-report '" . $reportTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportLabel, null, $lang, $elr ) . "'";
 			}
 
 			$repeatCount = $columnCount - 1;
 			$factsTable .=
-				"		<div class='fact-section-title'>Fact table for $reportTitle</div>" .
+				"		<div class='fact-section-title'>" . $this->getConstantTextTranslation( $lang, 'Fact table for' ) . "$reportTitle</div>" .
 				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
 				"			<div class='fact-table' style='display: grid; grid-template-columns: minmax(auto,auto) repeat($repeatCount, auto);'>" .
-				"				<div class='fact-table-header'>Context</div>" .
-				"				<div class='fact-table-header'>Period [Axis]</div>";
+				"				<div class='fact-table-header'>" . $this->getConstantTextTranslation( $lang, 'Context' ) . "</div>" .
+				"				<div class='fact-table-header'>" . $this->getConstantTextTranslation( $lang, 'Period [Axis]' ) . "</div>";
 
 			foreach ( $factsLayout['axes'] as $axisLabel )
 			{
 				$axis = $axes[ $axisLabel ];
 
 				$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
-				$text = $dimTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axisLabel );
+				$text = $dimTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axisLabel, null, $lang, $elr );
 				$factsTable .=
 					"			<div class='fact-table-header'>$text</div>";
 			}
 
 			$factsTable .=
-				"				<div class='fact-table-header'>Concept</div>" .
-				"				<div class='fact-table-header'>Value</div>" .
-				"				<div class='fact-table-header'>Unit</div>" .
-				"				<div class='fact-table-header last'>Rounding</div>";
+				"				<div class='fact-table-header'>" . $this->getConstantTextTranslation( $lang, 'Concept' ) . "</div>" .
+				"				<div class='fact-table-header'>" . $this->getConstantTextTranslation( $lang, 'Value' ) . "</div>" .
+				"				<div class='fact-table-header'>" . $this->getConstantTextTranslation( $lang, 'Unit' ) . "</div>" .
+				"				<div class='fact-table-header last'>" . $this->getConstantTextTranslation( $lang, 'Rounding' ) . "</div>";
 
 			foreach ( $factsLayout['data'] as $conceptLabel => $row )
 			{
 				/** @var XBRL $conceptTaxonomy */
 				$conceptTaxonomy = $row['taxonomy'];
-				$conceptText = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( '#' . $row['element']['id'] );
+				$conceptText = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( '#' . $row['element']['id'], null, $lang, $elr );
 
 				foreach ( $row['columns'] as $columnIndex => $fact )
 				{
@@ -1629,7 +1851,7 @@ class XBRL_DFR extends XBRL
 								$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $memberLabel );
 							}
 
-							$memberText = $memTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
+							$memberText = $memTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 						}
 						$factsTable .=
 							"				<div class='fact-table-line'>$memberText</div>";
@@ -1671,7 +1893,7 @@ class XBRL_DFR extends XBRL
 	 * @param ContextsFilter $contextsFilter (def: null) A collection of contexts used to determine the axis members to select
 	 * @return string
 	 */
-	private function renderSlicers( $network, $instance, $entityQName, $axes = null, $class = null, $contextsFilter = null )
+	private function renderSlicers( $network, $instance, $entityQName, $elr, $axes = null, $class = null, $contextsFilter = null, $lang = null )
 	{
 		if ( is_null( $class ) ) $class = 'slicers-table';
 
@@ -1679,7 +1901,7 @@ class XBRL_DFR extends XBRL
 			"	<div class='$class'>" .
 			// "		<div>Slicers</div>" .
 			"		<div class='slicers'>" .
-			"			<div class='slicer-header'>Reporting Entity [Axis]</div>" .
+			"			<div class='slicer-header'>" . $this->getConstantTextTranslation( $lang, 'Reporting Entity [Axis]' ) . "</div>" .
 			"			<div class='slicer-content'>{$entityQName->localName} ({$entityQName->namespaceURI})</div>";
 
 		$hasMultipleMembers = function( &$axes, &$axis)
@@ -1774,7 +1996,7 @@ class XBRL_DFR extends XBRL
 				}
 			}
 
-			$dimensionText = $this->getTaxonomyDescriptionForIdWithDefaults( $axisLabel );
+			$dimensionText = $this->getTaxonomyDescriptionForIdWithDefaults( $axisLabel, null, $lang, $elr );
 			$slicers .= "			<div class='slicer-header'>$dimensionText</div>";
 
 			if ( isset( $axis['typedDomainRef'] ) && $axis['typedDomainRef'] )
@@ -1784,7 +2006,7 @@ class XBRL_DFR extends XBRL
 			}
 			else
 			{
-				$memberText = $this->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
+				$memberText = $this->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 			}
 
 			$slicers .= "			<div class='slicer-content'>$memberText</div>";
@@ -1794,7 +2016,7 @@ class XBRL_DFR extends XBRL
 		{
 			// Add the period dimension
 			$slicers .=
-			"			<div class='slicer-header'>Period [Axis]</div>" .
+			"			<div class='slicer-header'>" . $this->getConstantTextTranslation( $lang, 'Period [Axis]' ) . "</div>" .
 			"			<div class='slicer-content'>{$contextsFilter->getPeriodLabel()}</div>";
 		}
 
@@ -1810,18 +2032,18 @@ class XBRL_DFR extends XBRL
 	 * @param array $network
 	 * @return string
 	 */
-	private function renderModelStructure( $network )
+	private function renderModelStructure( $network, $elr, $lang = null )
 	{
 		$structureTable =
 			"	<div class='structure-table hide-section'>" .
-			"		<div>Label</div>" .
-			"		<div>Fact set type</div>" .
-			"		<div>Report Element Class</div>" .
-			"		<div>Period Type</div>" .
-			"		<div>Balance</div>" .
-			"		<div>Name</div>";
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Label' ) . "</div>" .
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Fact set type' ) . "</div>" .
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Report Element Class' ) . "</div>" .
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Period Type' ) . "</div>" .
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Balance' ) . "</div>" .
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Name' ) . "</div>";
 
-			$renderStructure = function( $nodes ) use( &$renderStructure )
+			$renderStructure = function( $nodes ) use( &$renderStructure, $elr, $lang )
 			{
 				$result = array();
 
@@ -1835,7 +2057,7 @@ class XBRL_DFR extends XBRL
 
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
-					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels );
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang, $elr );
 
 					$name = $nodeTaxonomy->getPrefix() . ":" . $nodeElement['name'];
 					$class = "";
@@ -1884,7 +2106,7 @@ class XBRL_DFR extends XBRL
 							{
 								$reportElement .= " string";
 							}
-							else if ( $this->context->types->resolvesToBaseType( $nodeElement['type'], array( "xbrli:monetaryItemType" ) ) )
+							else if ( $this->context->types->resolvesToBaseType( $nodeElement['type'], array( XBRL_Constants::$xbrliMonetaryItemType ) ) )
 							{
 								$reportElement .= " monetary";
 							}
@@ -1939,9 +2161,11 @@ class XBRL_DFR extends XBRL
 	 * @param XBRL_Formulas $formulas	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param $evaluationResults		The results of validating the formulas
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
+	 * @param string $parentLabel
 	 * @return string
 	 */
-	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, $parentLabel = null )
+	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, $lang = null, $parentLabel = null )
 	{
 		/**
 		 * How does this work?
@@ -2245,13 +2469,15 @@ class XBRL_DFR extends XBRL
 		// where the leaf nodes represent the actual columns and there should be $headerColumnCount of them.
 		// Each node will contain a list of the axis/members and a list of contexts which apply at that node.
 		// Until there is a more complete example
-		$columnHierarchy['Period [Axis]'] = $years;
-		$columnHierarchy['Period [Axis]']['total-children'] = count( $years );
+		$periodAxis = $this->getConstantTextTranslation( $lang, 'Period [Axis]' );
+		$columnHierarchy[ $periodAxis ] = $years;
+		$columnHierarchy[ $periodAxis ]['total-children'] = count( $years );
 
 		// Extend $columnHierarchy to add columns for $multiMemberAxes and their members
 		if ( $multiMemberAxes )
 		{
-			$addToColumnHierarchy = function( &$columnHierarchy, $multiMemberAxes ) use ( &$addToColumnHierarchy, $instance, &$axes, &$getAxisMembers )
+			$addToColumnHierarchy = function( &$columnHierarchy, $multiMemberAxes )
+				use ( &$addToColumnHierarchy, $instance, &$axes, &$getAxisMembers, $lang, $elr )
 			{
 				$totalChildren = 0;
 
@@ -2277,7 +2503,7 @@ class XBRL_DFR extends XBRL
 							$nextAxisLabel = reset( $multiMemberAxes );
 							/** @var XBRL_DFR $axisTaxonomy */
 							$axisTaxonomy = $this->getTaxonomyForXSD( $nextAxisLabel );
-							$axisText = $axisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nextAxisLabel );
+							$axisText = $axisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nextAxisLabel, null, $lang, $elr );
 
 							// Get the members
 							$axis = $axes[ $nextAxisLabel ];
@@ -2314,7 +2540,7 @@ class XBRL_DFR extends XBRL
 								{
 									/** @var XBRL_DFR $memberTaxonomy */
 									$memberTaxonomy = $this->getTaxonomyForXSD( $memberLabel );
-									$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel );
+									$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 
 									$filteredContexts = $axis['default-member'] == $memberLabel
 										? $cf-> NoSegmentContexts()
@@ -2899,15 +3125,15 @@ class XBRL_DFR extends XBRL
 		}
 
 		// Generate a top for the report table
-		$top = function( $reportDateColumn, $headerColumnCount, $columnWidth ) use ( &$top )
+		$top = function( $reportDateColumn, $headerColumnCount, $columnWidth ) use ( &$top, $lang )
 		{
 			return
 				"	<div class='report-section' style='display: grid; grid-template-columns: 1fr; '>" .
 				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
 				"			<div class='report-table-controls'>" .
-				"				<div class='control-header'>Columns:</div>" .
-				"				<div class='control-wider'>&lt;&nbsp;Wider&nbsp;&gt;</div><div>|</div>" .
-				"				<div class='control-narrower'>&gt;&nbsp;Narrower&nbsp;&lt;</div>" .
+				"				<div class='control-header'>" . $this->getConstantTextTranslation( $lang, 'Columns' ) . ":</div>" .
+				"				<div class='control-wider'>&lt;&nbsp;" . $this->getConstantTextTranslation( $lang, 'Wider' ) . "&nbsp;&gt;</div><div>|</div>" .
+				"				<div class='control-narrower'>&gt;&nbsp;" . $this->getConstantTextTranslation( $lang, 'Narrower' ) . "&nbsp;&lt;</div>" .
 				"			</div><div></div>" .
 				"			<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
 		};
@@ -2970,7 +3196,7 @@ class XBRL_DFR extends XBRL
 				 &$contexts, $factsLayout, &$resultFactsLayout, $headerColumnCount, $headerRowCount, $rowCount,
 				 &$factSetTypes, $hasReportDateAxis, &$tail, &$top, &$network,
 				 $entityQName, $formulas, $observer, $evaluationResults, &$nodesToProcess,
-				 $reportDateColumn, &$singleMemberAxes
+				 $reportDateColumn, &$singleMemberAxes, $lang
 			)
 		{
 			$divs = array();
@@ -2984,7 +3210,7 @@ class XBRL_DFR extends XBRL
 				{
 					$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
 					$reportDateAxisElement = $reportDateAxisTaxonomy->getElementById( $hasReportDateAxis );
-					$text = $reportDateAxisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportDateAxisTaxonomy->getTaxonomyXSD() . '#' . $reportDateAxisElement['id'] );
+					$text = $reportDateAxisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportDateAxisTaxonomy->getTaxonomyXSD() . '#' . $reportDateAxisElement['id'], null, $lang, $elr );
 					$divs[] =	"			<div class='report-header axis-label line-item' style='grid-area: 1 / 2 / span $headerRowCount / span 1;'>$text</div>";
 				}
 
@@ -3037,7 +3263,7 @@ class XBRL_DFR extends XBRL
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
-					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels );
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang, $elr );
 					$title =  "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}";
 
 					if ( isset( $nodeElement['balance'] ) || isset( $nodeElement['periodType'] ) )
@@ -3159,7 +3385,7 @@ class XBRL_DFR extends XBRL
 											{
 												if ( $memberElement )
 												{
-													$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberTaxonomy->getTaxonomyXSD() . '#' . $memberElement['id'] );
+													$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberTaxonomy->getTaxonomyXSD() . '#' . $memberElement['id'], null, $lang, $elr );
 												}
 											}
 										}
@@ -3167,7 +3393,7 @@ class XBRL_DFR extends XBRL
 								}
 								else if ( $axis['default-member'] )
 								{
-									$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axis['default-member'] );
+									$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axis['default-member'], null, $lang, $elr );
 									$reportAxisMemberClass = 'default-member';
 								}
 
@@ -3327,7 +3553,7 @@ class XBRL_DFR extends XBRL
 					$nextAccumulatedTables[ $label ] = $network['tables'][ $label ];
 
 					$resultFactsLayout[ $label ] = array();
-					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $text );
+					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $lang, $text );
 
 					if ( ! $render ) continue;
 
@@ -3344,7 +3570,7 @@ class XBRL_DFR extends XBRL
 					}
 
 					// Create slicers and opening <div> elements for the rest of the previous section
-					$divs[] = $this->renderSlicers( $network, $instance, $entityQName, $singleMemberAxes, null, new ContextsFilter( $instance, $contexts ) );
+					$divs[] = $this->renderSlicers( $network, $instance, $entityQName, $elr, $singleMemberAxes, null, new ContextsFilter( $instance, $contexts ), $lang );
 					$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'minmax(100px, max-content)' : '100px';
 					$divs[] = $top( $reportDateColumn, $headerColumnCount, $columnWidth );
 					unset( $nextAccumulatedTables );
@@ -3369,7 +3595,7 @@ class XBRL_DFR extends XBRL
 		$footnotes = array();
 
 		$layout = $createLayout( $accumulatedTables, $footnotes, $nodes, $lineItems );
-		$reportTable = $this->renderSlicers( $network, $instance, $entityQName, $singleMemberAxes, null, new ContextsFilter( $instance, $contexts ) ) .
+		$reportTable = $this->renderSlicers( $network, $instance, $entityQName, $elr, $singleMemberAxes, null, new ContextsFilter( $instance, $contexts ), $lang ) .
 						$top( $reportDateColumn, $headerColumnCount, $columnWidth ) .
 						implode( '', $layout['divs'] );
 
@@ -3395,11 +3621,11 @@ class XBRL_DFR extends XBRL
 	 * @param $echo						If true the HTML will be echoed
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$hasReport = false, $echo = true )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$hasReport = false, $lang = null, $echo = true )
 	{
-		$componentTable = $this->renderComponentTable( $network, $elr );
+		$componentTable = $this->renderComponentTable( $network, $elr, $lang );
 
-		$structureTable = $this->renderModelStructure( $network );
+		$structureTable = $this->renderModelStructure( $network, $elr, $lang );
 
 		$slicers = ""; // $this->renderSlicers( $network, $instance, $entityQName );
 
@@ -3420,7 +3646,7 @@ class XBRL_DFR extends XBRL
 		$reportTable = $this->renderReportTable(
 			$network, $network['hierarchy'], $elr, $instance, $entityQName, $formulas,
 			$observer, $evaluationResults, $factsLayouts, $accumulatedTables, $nodesToProcess,
-			false, $excludeEmptyHeadrers, $row, array() );
+			false, $excludeEmptyHeadrers, $row, array(), $lang );
 
 		$factsLayouts = array_filter( $factsLayouts );
 		$hasReport = ! empty( $reportTable );
@@ -3430,30 +3656,30 @@ class XBRL_DFR extends XBRL
 			$reportTable =
 				"	<div style='display: grid; grid-template-columns: 1fr; '>" .
 				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
-				"			There is no data to report " .
+				$this->getConstantTextTranslation( $lang, "There is no data to report" ) .
 				"		</div>" .
 				"	</div>";
 		}
 
-		$renderFactsTable = $this->renderFactsTable( $network, $elr, $instance, $entityQName, $factsLayouts );
+		$renderFactsTable = $this->renderFactsTable( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
 
-		$businessRules = $this->renderBusinessRules( $network, $elr, $instance, $entityQName, $factsLayouts );
+		$businessRules = $this->renderBusinessRules( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
 
 		echo "$elr\n";
 
 		$report =
 			"<div class='report-selection'>
-				<span class='report-selection-title'>Report sections:</span>
+				<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Report sections' ) . ":</span>
 				<input type='checkbox' name='report-selection' id='report-selection-structure' data-class='structure-table' />
-				<label for='report-selection-structure'>Structure</label>
+				<label for='report-selection-structure'>" . $this->getConstantTextTranslation( $lang, 'Structure' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-slicers' data-class='slicers-table' checked />
-				<label for='report-selection-slicers'>Slicers</label>
+				<label for='report-selection-slicers'>" . $this->getConstantTextTranslation( $lang, 'Slicers' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-report' data-class='report-section' checked />
-				<label for='report-selection-report'>Report</label>
+				<label for='report-selection-report'>" . $this->getConstantTextTranslation( $lang, 'Report' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-facts' data-class='facts-section'  />
-				<label for='report-selection-facts'>Facts</label>
+				<label for='report-selection-facts'>" . $this->getConstantTextTranslation( $lang, 'Facts' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-Rules' data-class='business-rules-section' />
-				<label for='report-selection-rules'>Rules</label>
+				<label for='report-selection-rules'>" . $this->getConstantTextTranslation( $lang, 'Rules' ) . "</label>
 				</div>" .
 			"<div class='model-structure'>" .
 			$componentTable . $structureTable . $slicers . $reportTable . $renderFactsTable . $businessRules .
@@ -3475,23 +3701,24 @@ class XBRL_DFR extends XBRL
 	 * @param XBRL_Instance $instance	The instance being reported
 	 * @param QName $entityQName
 	 * @param array $factsLayout
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @return string
 	 */
-	private function renderBusinessRules( $network, $elr, $instance, $entityQName, $reportFactsLayout )
+	private function renderBusinessRules( $network, $elr, $instance, $entityQName, $reportFactsLayout, $lang = null )
 	{
 		if ( ! isset( $this->calculationNetworks[ $elr]['calculations'] ) )
 		{
-			return "<div class='business-rules-section hide-section'>There are no business rules</div>";
+			return "<div class='business-rules-section hide-section'>" . $this->getConstantTextTranslation( $lang, 'There are no business rules' ) . "</div>";
 		}
 
 		$reportTable =
 			"	<div class='business-rules-section hide-section' style='display: grid; grid-template-columns: auto 1fr; '>" .
-			"		<div>Business Rules</div><div></div>";
+			"		<div>" . $this->getConstantTextTranslation( $lang, 'Business Rules' ) . "</div><div></div>";
 
 		// Report each total
 		foreach ( $this->calculationNetworks[ $elr]['calculations'] as $calcTotalLabel => $calculations )
 		{
-			$calcTotalText = $this->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel );
+			$calcTotalText = $this->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel, null, $lang, $elr );
 			$calcTaxonomy = $this->getTaxonomyForXSD( $calcTotalLabel );
 			$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
 			$header = "$calcTotalText ({$calcTaxonomy->getPrefix()}:{$calcElement['name']})";
@@ -3532,17 +3759,17 @@ class XBRL_DFR extends XBRL
 						continue;
 					}
 
-					$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, null, 'business-rules-slicers-table', $contextsFilter ) . "<div></div>";
+					$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, $elr, null, 'business-rules-slicers-table', $contextsFilter, $lang ) . "<div></div>";
 
 					$reportTable .=
 						"		<div class='business-rules-table' style='display: grid; grid-template-columns: 1fr;'>" .
 						"			<div class='business-rules-roles'>$header</div>" .
 						"			<div class='business-rules-rows' style='display: grid; grid-template-columns: 400px  repeat( 4, auto );' >" .
-						"				<div class='business-rules-header line-item'>Line item</div>" .
-						"				<div class='business-rules-header calculated'>Calculated</div>" .
+						"				<div class='business-rules-header line-item'>" . $this->getConstantTextTranslation( $lang, 'Line item' ) . "</div>" .
+						"				<div class='business-rules-header calculated'>" . $this->getConstantTextTranslation( $lang, 'Calculated' ) . "</div>" .
 						"				<div class='business-rules-header sign'></div>" .
-						"				<div class='business-rules-header balance'>Balance</div>" .
-						"				<div class='business-rules-header decimals last'>Decimals</div>";
+						"				<div class='business-rules-header balance'>" . $this->getConstantTextTranslation( $lang, 'Balance' ) . "</div>" .
+						"				<div class='business-rules-header decimals last'>" . $this->getConstantTextTranslation( $lang, 'Decimals' ) . "</div>";
 
 					foreach ( $calculations as $calcLabel => $calcItem )
 					{
@@ -3550,7 +3777,7 @@ class XBRL_DFR extends XBRL
 						$calcElement = $calcTaxonomy->getElementById( $calcLabel );
 						$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
 
-						$text = $calcTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcLabel );
+						$text = $calcTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcLabel, null, $lang, $elr );
 						$row = isset( $factsLayout[ $calcLabel ] ) ? $factsLayout[ $calcLabel ] : null;
 						$value = $row ? $instance->getNumericPresentation($row['columns'][ $columnIndex ]) : '';
 						$sign = isset( $calcItem['weight'] ) && $calcItem['weight'] < 0 ? '-' : '+';
