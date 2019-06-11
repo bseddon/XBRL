@@ -1769,7 +1769,7 @@ class XBRL {
 					? $formatter->formatCurrency( $value, $instance->getDefaultCurrency() )
 					: $formatter->format( $value );
 
-			case 'xbrli:monetaryItemType':
+			case XBRL_Constants::$xbrliMonetaryItemType:
 				if ( $instance !== null && isset( $element['unitRef'] ) && ($unitRef = $instance->getUnit( $element['unitRef'] ) ) !== null )
 				{
 					try
@@ -1953,7 +1953,7 @@ class XBRL {
 			case 'num:perShareItemType':
 			case 'num:percentItemType':
 			case 'xbrli:decimalItemType':
-			case 'xbrli:monetaryItemType':
+			case XBRL_Constants::$xbrliMonetaryItemType:
 			case 'xbrli:sharesItemType':
 			case 'xbrli:integerItemType':
 			case 'xbrli:pureItemType':
@@ -2249,6 +2249,40 @@ class XBRL {
 	public function getDefaultLanguage()
 	{
 		return 'en-US';
+	}
+
+	/**
+	 * Caches the language labels array once created
+	 */
+	private $languageLabelsCache = null;
+
+	/**
+	 * Returns a list of the languages in the set of labels
+	 */
+	public function getLabelLanguages()
+	{
+		if ( ! is_null( $this->languageLabelsCache ) )
+		{
+			return $this->languageLabelsCache;
+		}
+
+		$languages = array();
+		foreach ( $this->context->labels as $linkRole => $linkLabels )
+		{
+			foreach ( $linkLabels['labels'] as $labelRole => $languageLabels )
+			{
+				$languages = array_unique( array_merge( $languages, array_keys( $languageLabels ) ) );
+			}
+		}
+
+		$this->languageLabelsCache = $languages;
+
+		return $languages;
+	}
+
+	public function hasLanguage( $lang )
+	{
+		return in_array( $lang, $this->getLabelLanguages() );
 	}
 
 	/**
@@ -4314,6 +4348,12 @@ class XBRL {
 			if ( $text !== false) return $text;
 		}
 
+		if ( $extendedLinkRole && $lang )
+		{
+			$text = $this->getTaxonomyDescriptionForId( $href, $roles, $lang, null );
+			if ( $text !== false) return $text;
+		}
+
 		return $this->getTaxonomyDescriptionForId( $href, null, null, $extendedLinkRole );
 	}
 
@@ -4352,6 +4392,11 @@ class XBRL {
 
 		// Step one: find the locator
 		$labelRoleRef = &$this->context->labels[ $extendedLinkRole ];
+		if ( ! $labelRoleRef )
+		{
+			$extendedLinkRole = XBRL_Constants::$defaultLinkRole;
+			$labelRoleRef = &$this->context->labels[ $extendedLinkRole ];
+		}
 
 		$langs = array( $lang );
 		if ( strpos( $lang, '-' ) ) $langs[] = strstr( $lang, '-', true );
@@ -4608,6 +4653,16 @@ class XBRL {
 		}
 
 		$link = $linkRoleType[ $role['roleUri'] ];
+		$roleTaxonomy = $this->getTaxonomyForXSD( $basename );
+		$arcs = $roleTaxonomy->getGenericArc( XBRL_Constants::$genericElementLabel, XBRL_Constants::$defaultLinkRole2008, "$basename#{$link['id']}" );
+		if ( $arcs )
+		{
+			foreach ( $arcs as $arc )
+			{
+				if ( ! ( $label = $roleTaxonomy->getGenericLabel( XBRL_Constants::$genericRoleLabel, $arc['to'], 'da' ) ) ) continue;
+				return $label[ $arc['to'] ]['text'];
+			}
+		}
 		return isset( $link['definition'] ) ? trim( $link['definition'] ) : $role['roleUri'];
 	}
 
@@ -9525,6 +9580,101 @@ class XBRL {
 		$this->log()->warning( "Cannot find an element for linkbase '$linkbase' element '$href'" );
 
 		return null;
+	}
+
+	/**
+	 * Create an alternate set of calculations from presentation networks
+	 * This might be useful if the taxonomy contains no calculation arcs.
+	 */
+	public function createCalculationsFromPresentation()
+	{
+		$getMonetaryNodeLabels = function( $nodes )
+		{
+			$types = $this->context->types;
+
+			$result = array();
+			foreach ( $nodes as $label => $node )
+			{
+				$taxonomy = $this->getTaxonomyForXSD( $label );
+				$element = $taxonomy->getElementById( $label );
+				if ( ! $types->resolvesToBaseType( $element['type'], array( XBRL_Constants::$xbrliMonetaryItemType ) ) ) continue;
+				$result[] = $label;
+			}
+
+			return $result;
+		};
+
+		$makeCalculations = function( $nodes, &$calculations ) use( &$makeCalculations, &$getMonetaryNodeLabels )
+		{
+			$monetaryNodeLabels = $getMonetaryNodeLabels( $nodes );
+
+			$totalLabel = null;
+			if ( $monetaryNodeLabels )
+			{
+				$totalLabel = end( $monetaryNodeLabels );
+				$calculations[ $totalLabel ] = array();
+			}
+
+			$order = 0;
+			foreach ( $nodes as $label => $node )
+			{
+				if ( isset( $node['children'] ) )
+				{
+					$lastLabel = $makeCalculations( $node['children'], $calculations );
+					if ( $totalLabel && $lastLabel )
+					{
+						$calculations[ $totalLabel ][ $lastLabel ] = array(
+							'to' => $lastLabel,
+							'label' => $lastLabel,
+							'priority' => 0,
+							'use' => 'optional',
+							'order' => $order,
+							'weight' => 1,
+							'attributes' => array()
+						);
+						$order++;
+					}
+				}
+
+				if ( ! in_array( $label, $monetaryNodeLabels ) || $label == $totalLabel ) continue;
+
+				$calculations[ $totalLabel ][ $label ] = array(
+					'to' => $label,
+					'label' => $label,
+					'priority' => 0,
+					'use' => 'optional',
+					'order' => $order,
+					'weight' => 1,
+					'attributes' => array()
+				);
+				$order++;
+			}
+
+			if ( isset( $calculations[ $totalLabel ] ) && ! $calculations[ $totalLabel ] )
+			{
+				unset( $calculations[ $totalLabel ] );
+			}
+
+			return $totalLabel;
+		};
+
+		$calculationRoleRefs = array();
+
+		foreach ( $this->getPresentationRoleRefs() as $elr => $presentationRole )
+		{
+			if ( ! in_array( $elr, $this->presentationRoles ) ) continue;
+			$calculationRoleRefs[ $elr ] = array(
+				'href' => '',
+				'roleUri' => $elr,
+				'type' => 'simple',
+				'calculations' => array()
+			);
+			$makeCalculations( $presentationRole['hierarchy'], $calculationRoleRefs[ $elr ]['calculations'] );
+			if ( count( $calculationRoleRefs[ $elr ]['calculations'] ) ) continue;
+			unset( $calculationRoleRefs[ $elr ] );
+		}
+
+		return $calculationRoleRefs;
 	}
 
 	/**
@@ -15392,7 +15542,7 @@ class XBRL {
 						}
 
 						// Check the items with a balance attribute has a type that is or is decended from monetaryItemType
-						if ( ! isset( $element['type'] ) || ! $types->resolvesToBaseType( $element['type'], array( 'xbrli:monetaryItemType' ) ) )
+						if ( ! isset( $element['type'] ) || ! $types->resolvesToBaseType( $element['type'], array( XBRL_Constants::$xbrliMonetaryItemType ) ) )
 						{
 							$this->log()->taxonomy_validation(
 								"5.1.1.2",
