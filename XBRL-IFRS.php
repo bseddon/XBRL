@@ -290,7 +290,7 @@ class XBRL_IFRS extends XBRL
 
 		switch ( $type )
 		{
-			case 'xbrli:monetaryItemType':
+			case XBRL_Constants::$xbrliMonetaryItemType:
 			case 'xbrli:sharesItemType':
 				$element['value'] = str_replace( ',', '', $element['value'] );
 				return parent::formattedValue( $element, $instance, $includeCurrency );

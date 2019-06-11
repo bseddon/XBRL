@@ -253,7 +253,7 @@ class XBRL_UK_AE extends XBRL
 			case 'uk-gaap-ae:CompaniesHouseRegisteredNumberType':
 				return $value;
 
-			case 'xbrli:monetaryItemType':
+			case XBRL_Constants::$xbrliMonetaryItemType:
 				$element['value'] = str_replace( ',', '', $element['value'] );
 				return parent::formattedValue( $element, $instance );
 

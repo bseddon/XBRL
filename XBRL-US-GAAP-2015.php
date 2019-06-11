@@ -927,7 +927,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 
 		switch ( $type )
 		{
-			case 'xbrli:monetaryItemType':
+			case XBRL_Constants::$xbrliMonetaryItemType:
 				$element['value'] = str_replace( ',', '', $element['value'] );
 				return parent::formattedValue( $element, $instance, $includeCurrency );
 
