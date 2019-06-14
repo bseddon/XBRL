@@ -161,6 +161,8 @@ else
 	}
 }
 
+XBRL::constructor();
+
 /**
  * Main XBRL control class
  * @author Bill Seddon
@@ -322,11 +324,6 @@ class XBRL {
 
 	/**
 	 * A list of role refs from the schema
-	 * @var array $presentationRoleRefs
-	 */
-	// private $presentationRoleRefs			= array();
-	/**
-	 * A list of role refs from the schema
 	 * @var array $referenceRoleRefs
 	 */
 	private $referenceRoleRefs					= array();
@@ -453,6 +450,50 @@ class XBRL {
 	 * @var string
 	 */
 	private $loadedFromJSON						= false;
+
+	/**
+	 * A changeable function to allow a third party to control the behavior of beforeDimensionalPruned()
+	 * @var callable
+	 */
+	public static $beforeDimensionalPrunedDelegate = null;
+
+	/**
+	 * A changeable function to allow a third party to control the behavior of getBeginEndPreferredLabelPairs()
+	 * @var callable
+	 */
+	public static $beginEndPreferredLabelPairsDelegate = null;
+
+	/**
+	 * Variable for public functions getBeginEndPreferredLabelPairs
+	 * @var array An array of array pairs wherre each member of the pair is a preferred label role
+	 */
+	public static $beginEndPreferredLabelPairs = array();
+
+	/**
+	 * Static constructor
+	 */
+	public static function constructor()
+	{
+		self::$beginEndPreferredLabelPairs = array(
+			array(
+				XBRL_Constants::$labelRolePeriodStartLabel,
+				XBRL_Constants::$labelRolePeriodEndLabel
+			)
+		);
+
+		// Apply a default delegate
+		self::$beforeDimensionalPrunedDelegate = function( XBRL $taxonomy, array $dimensionalNode, array &$parentNode )
+		{
+			return $taxonomy->beforeDimensionalPruned( $dimensionalNode, $parentNode );
+		};
+
+		// Apply a default delegate
+		self::$beginEndPreferredLabelPairsDelegate = function()
+		{
+			return self::$beginEndPreferredLabelPairs;
+		};
+
+	}
 
 	/**
 	 * Reset the static arrays
@@ -1628,7 +1669,6 @@ class XBRL {
 		}
 
 	}
-
 
 	/**
 	 * Tests whether the node represents a tuple
@@ -3931,12 +3971,18 @@ class XBRL {
 	 */
 	public function getBeginEndPreferredLabelPairs()
 	{
-		return array(
-			array(
-				XBRL_Constants::$labelRolePeriodStartLabel,
-				XBRL_Constants::$labelRolePeriodEndLabel,
-			)
-		);
+		return is_callable( XBRL::$beginEndPreferredLabelPairsDelegate )
+			? call_user_func( XBRL::$beginEndPreferredLabelPairsDelegate )
+			: XBRL::$beginEndPreferredLabelPairs;
+	}
+
+	/**
+	 * Set a preferred label pair
+	 * @param array $pair An array with two items that are both preferredLabel roles
+	 */
+	public function setBeginEndPreferredLabelPair( $pair )
+	{
+		$this->beginEndPreferredLabelPairs[] = $pair;
 	}
 
 	/**
@@ -5527,7 +5573,7 @@ class XBRL {
 	 * @param array $parentNode
 	 * @returns An array of hierarchical nodes that can be used to verify the hierarchy.
 	 */
-	private function pruneNodeHypercubes( &$nodes, $indent = 0, &$parentNode = null )
+	private function pruneNodeHypercubes( &$nodes, $indent = 0, &$parentNode = array() )
 	{
 		$labelName = 'label';
 		$collectionName = 'children';
@@ -5539,9 +5585,12 @@ class XBRL {
 			// $this->log()->info( str_repeat( "\t", $indent ) . "{$node['label']}" );
 			if ( isset( $node['nodeclass'] ) && $node['nodeclass'] === "dimensional" )
 			{
+				// Copy to a local variable as the static variable cannot be used as a funtion directly
+				$callback = self::$beforeDimensionalPrunedDelegate;
+
 				// Calling this function allows a descendent to do something with the information if helpful
 				// The function will normally return true but can return false to prevent removal.
-				if ( ! $this->beforeDimensionalPruned( $node, $parentNode ) ) continue;
+				if ( is_callable( $callback ) && ! $callback( $this, $node, $parentNode ) ) continue;
 				unset( $nodes [ $nodeKey ] );
 				continue;
 			}
@@ -16192,7 +16241,7 @@ class XBRL {
 	 * @param string $roleUri
 	 * @return mixed
 	 */
-	protected function getPrimaryItemDRSForRole( $primaryItem, $roleUri )
+	public function getPrimaryItemDRSForRole( $primaryItem, $roleUri )
 	{
 		if ( ! isset( $primaryItem[ $roleUri ] ) )
 		{
