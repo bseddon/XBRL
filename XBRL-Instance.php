@@ -6437,43 +6437,70 @@ class ContextsFilter
 		);
 	}
 
+	/**
+	 * Generates an array containing an element for each unique period range.
+	 * Each element is an array containing a text description and a list of
+	 * relevant context references.
+	 * The context references in each element are those duration contexts with
+	 * the same start and end date plus those instant contexts that have the
+	 * same end date.  Duration contexts that are contained within the range
+	 * of another context are ignored.  Instant contexts that have a different
+	 * end date but which is within the range of another context are given their
+	 * own element.
+	 */
 	public function getDiscreteDateRanges()
 	{
 		// An array of unique ranges
 		$ranges = array();
 
+		// Start with the contexts with the widest date range.  Then others will fit inside
 		foreach( $this->sortByDuration( true )->getContexts() as $contextRef => $context )
 		{
 			$endDate = $context['period']['endDate'];
 
+			// If the end of the range has already been added, consider adding the context to it
 			if ( isset( $ranges[ $endDate ] ) )
 			{
+				// If the context is an instant then it can be added.
+				// If its a duration the start date must be the same as the start date of the range
 				if ( ! $context['period']['is_instant'] )
 				{
 					$duration = ($ranges[ $endDate ])->getDuration();
+					// If the start date is not the same then do not add it
 					if ( $context['period']['startDate'] != $duration['startDate'] ) continue;
 				}
 				$ranges[ $endDate ]->add( array( $contextRef => $context ) );
 			}
 			else
 			{
+				// If there is no range with the same end date then look to see if this
+				// is a context that fits within an existing range
 				foreach ( $ranges as $date => /** @var ContextsFilter $range */ $range )
 				{
+					// Does the range contain the end date (remember the contexts have
+					// been sorted in duration order so a subsequent context cannot be
+					// wider than an existing range).
 					$contextsForDate = $range->ContextsContainDate( $endDate );
+					// If there is no existing range, drop through and add another
 					if ( $contextsForDate->count() )
 					{
+						// There should only be one context found but its an array
 						foreach ( $contextsForDate->getContexts() as $contextForDate )
 						{
+							// If the context has the same end date as the range then drop through to add it
 							if ( $contextForDate['period']['endDate'] != $endDate )
 							{
 								if ( $context['period']['is_instant'] )
 								{
+									// Drop out of the outer for-loop to add a new range
 									break 2;
 								}
 
+								// Go to the next context as there will no other range with a containing range
 								continue 3;
 							}
 
+							// add the context to an existing range then go to the next context
 							$range->add( array( $contextRef => $context ) );
 							continue 3;
 						}
