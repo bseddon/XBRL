@@ -205,12 +205,6 @@ function processTaxonomyPackage( $observer, $file, $package )
 		return false;
 	}
 
-	// Make sure the XBRL instance is XBRL_DFR or any other that prevents removing dimension nodes from presentation hierarchies
-	\XBRL::add_namespace_to_class_map_entries( array(
-		'http://xbrl.dcca.dk/entryAll',
-		$package->getNamespaceForSchema( $package->getAllEntryPoint() )
-	), 'XBRL_DFR' );
-
 	$version = $matches['version'];
 
 	if ( ( $compiledTaxonomy = \XBRL::isCompiled( $compiledLocation, "$entryAllBasename$version" ) ) == false )
