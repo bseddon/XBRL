@@ -35,7 +35,7 @@ use XBRL\Formulas\Resources\Assertions\ValueAssertion;
 define( 'NEGATIVE_AS_BRACKETS', 'brackets' );
 define( 'NEGATIVE_AS_MINUS', 'minus' );
 
-class XBRL_DFR extends XBRL
+class XBRL_DFR // extends XBRL
 {
 	/**
 	 *
@@ -206,9 +206,9 @@ class XBRL_DFR extends XBRL
 			'Rounding' => 'Afrunding',
 			'Fact table for' => 'Fakta tabel for',
 			'Label' => 'Etiket',
-			'Fact set type' => 'Fakta s&aeligt type',
+			'Fact set type' => 'Fact set type',
 			'Report Element Class' => 'Rapport Element Klasse',
-			'Period Type' => 'Periode Type',
+			'Period Type' => 'Periodetype',
 			'Balance' => 'Balance',
 			'Name' => 'Navn',
 			'Report sections' => 'Rapport sektioner',
@@ -392,10 +392,58 @@ class XBRL_DFR extends XBRL
 	private $allowed = array();
 
 	/**
-	 * Default constructor
+	 * Constructor
+	 * @var XBRL $taxonomy
 	 */
-	function __construct()
+	private $taxonomy = null;
+
+	/**
+	 *
+	 * @var array
+	 */
+	private static $beginEndPreferredLabelPairs = array();
+
+	/**
+	 * A static constructor
+	 * @param string $cacheLocation
+	 */
+	public static function Initialize( $cacheLocation )
 	{
+		$cmArcRoles = XBRL_DFR::getConceptualModelRoles( $cacheLocation );
+
+		self::$beginEndPreferredLabelPairs = array(
+			array(
+				XBRL_DFR::$originallyStatedLabel,
+				XBRL_Constants::$labelRoleRestatedLabel
+			),
+			array(
+				// self::$originallyStatedLabel,
+				XBRL_Constants::$labelRoleVerboseLabel
+			)
+		);
+
+		array_push( XBRL_DFR::$beginEndPreferredLabelPairs, reset( XBRL::$beginEndPreferredLabelPairs ) );
+
+		XBRL::$beforeDimensionalPrunedDelegate = function( XBRL $taxonomy, array $dimensionalNode, array &$parentNode )
+		{
+			return false;
+		};
+
+		XBRL::$beginEndPreferredLabelPairsDelegate = function()
+		{
+			return XBRL_DFR::$beginEndPreferredLabelPairs;
+		};
+
+	}
+
+	/**
+	 * Constructor
+	 * @param XBRL $taxonomy
+	 */
+	function __construct( XBRL $taxonomy )
+	{
+		$this->taxonomy = $taxonomy;
+
 		$this->features = array( "conceptual-model" => array(
 			'PeriodAxis' => 'PeriodAxis',
 			'ReportDateAxis' => XBRL_Constants::$dfrReportDateAxis,
@@ -482,25 +530,6 @@ class XBRL_DFR extends XBRL
 		return $feature
 			? ( isset( $this->features[ $feature ] ) ? $this->features[ $feature ] : array() )
 			: $this->featrues;
-	}
-
-	/**
-	 * Returns an array of preferred label pairs.  In the base XBRL instance is only the PeriodStart/PeriodEnd pair.
-	 * @return string[][]
-	 */
-	public function getBeginEndPreferredLabelPairs()
-	{
-		$result = parent::getBeginEndPreferredLabelPairs();
-		$result[] = array(
-			self::$originallyStatedLabel,
-			XBRL_Constants::$labelRoleRestatedLabel,
-		);
-		$result[] = array(
-			// self::$originallyStatedLabel,
-			XBRL_Constants::$labelRoleVerboseLabel,
-		);
-
-		return $result;
 	}
 
 	/**
@@ -592,13 +621,13 @@ class XBRL_DFR extends XBRL
 		// Makes sure they are reset in case the same taxonomy is validated twice.
 		$this->calculationNetworks = array();
 		$this->presentationNetworks = array();
-		$this->definitionNetworks = $this->getAllDefinitionRoles();
+		$this->definitionNetworks = $this->taxonomy->getAllDefinitionRoles();
 
-		$this->generateAllDRSs();
+		$this->taxonomy->generateAllDRSs();
 
 		foreach ( $this->definitionNetworks as $elr => &$roleRef )
 		{
-			$roleRef = $this->getDefinitionRoleRef( $elr );
+			$roleRef = $this->taxonomy->getDefinitionRoleRef( $elr );
 
 			if ( property_exists( $this, 'definitionRoles' ) && ! in_array( $elr, $this->definitionRoles ) )
 			{
@@ -609,7 +638,7 @@ class XBRL_DFR extends XBRL
 			// Capture primary items
 			$this->definitionPIs[ $elr ] = array_filter( array_keys( $roleRef['primaryitems'] ), function( $label )
 			{
-				$taxonomy = $this->getTaxonomyForXSD( $label );
+				$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 				$element = $taxonomy->getElementById( $label );
 				return ! $element['abstract' ];
 			} );
@@ -619,11 +648,13 @@ class XBRL_DFR extends XBRL
 			// Check members
 			foreach ( $roleRef['members'] as $memberLabel => $member )
 			{
-				$memberTaxonomy = $this->getTaxonomyForXSD( $memberLabel );
+				$memberTaxonomy = $this->taxonomy->getTaxonomyForXSD( $memberLabel );
 				$memberElement = $memberTaxonomy->getElementById( $memberLabel );
 
 				if ( ! $memberElement['abstract' ] )
 				{
+					global $reportModelStructureRuleViolations;
+					if ( $reportModelStructureRuleViolations )
 					$log->business_rules_validation('Model Structure Rules', 'All dimension member elements MUST be abstract',
 						array(
 							'member' => $memberLabel,
@@ -691,7 +722,7 @@ class XBRL_DFR extends XBRL
 
 		unset( $roleRef );
 
-		$this->calculationNetworks = $this->getCalculationRoleRefs();
+		$this->calculationNetworks = $this->taxonomy->getCalculationRoleRefs();
 		$this->calculationNetworks = array_filter( $this->calculationNetworks, function( $roleRef ) { return isset( $roleRef['calculations'] ); } );
 		foreach ( $this->calculationNetworks as $elr => $role )
 		{
@@ -716,7 +747,7 @@ class XBRL_DFR extends XBRL
 			unset( $calculationELRPIs );
 		}
 
-		$this->presentationNetworks = &$this->getPresentationRoleRefs();
+		$this->presentationNetworks = &$this->taxonomy->getPresentationRoleRefs();
 
 		if ( property_exists( $this, 'presentationRoles' ) )
 		foreach ( $this->presentationNetworks as $elr => $role )
@@ -726,6 +757,8 @@ class XBRL_DFR extends XBRL
 		}
 
 		// Check the definition and presentation roles are consistent then make sure the calculation roles are a sub-set
+		global $reportModelStructureRuleViolations;
+		if ( $reportModelStructureRuleViolations )
 		if ( $this->definitionNetworks && array_diff_key( $this->presentationNetworks, $this->definitionNetworks ) || array_diff_key( $this->definitionNetworks, $this->presentationNetworks ) )
 		{
 			$log->business_rules_validation('Model Structure Rules', 'Networks in definition and presentation linkbases MUST be the same',
@@ -757,7 +790,7 @@ class XBRL_DFR extends XBRL
 
 			foreach ( $role['locators'] as $id => $label )
 			{
-				$taxonomy = $this->getTaxonomyForXSD( $label );
+				$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 				$element = $taxonomy->getElementById( $label );
 
 				if ( $element['abstract'] || $element['type'] == 'nonnum:domainItemType' ) continue;
@@ -796,7 +829,7 @@ class XBRL_DFR extends XBRL
 
 			// Access the list of primary items
 			// $primaryItems = $this->getDefinitionPrimaryItems();
-			$primaryItems = $this->getDefinitionRolePrimaryItems( $elr );
+			$primaryItems = $this->taxonomy->getDefinitionRolePrimaryItems( $elr );
 			$currentPrimaryItem = array();
 
 			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR, $primaryItems, $currentPrimaryItem, null, null );
@@ -929,7 +962,7 @@ class XBRL_DFR extends XBRL
 	public function fixupFormulas()
 	{
 		// Find the class-equivalentClass arc role(s)
-		$taxonomies = $this->context->getTaxonomiesWithArcRoleTypeId('class-equivalentClass');
+		$taxonomies = $this->taxonomy->context->getTaxonomiesWithArcRoleTypeId('class-equivalentClass');
 		$arcRoles = array_map( function( /** @var XBRL $taxonomy */ $taxonomy )
 		{
 			$arcRole = $taxonomy->getArcRoleTypeForId( 'class-equivalentClass' );
@@ -939,7 +972,7 @@ class XBRL_DFR extends XBRL
 
 		if ( ! $arcRoles ) return;
 
-		$nonDimensionalRoleRef = $this->getNonDimensionalRoleRefs();
+		$nonDimensionalRoleRef = $this->taxonomy->getNonDimensionalRoleRefs();
 		$classEquivalents = null;
 		foreach ( $arcRoles as $arcRole )
 		{
@@ -950,7 +983,7 @@ class XBRL_DFR extends XBRL
 
 		if ( ! $classEquivalents ) return;
 
-		foreach ( $this->getImportedSchemas() as $label => $taxonomy )
+		foreach ( $this->taxonomy->getImportedSchemas() as $label => $taxonomy )
 		{
 			if ( ! $taxonomy->getHasFormulas() ) continue;
 
@@ -961,7 +994,7 @@ class XBRL_DFR extends XBRL
 
 			foreach ( $classEquivalents['arcs'] as $fac => $gaaps )
 			{
-				$facTaxonomy = $this->getTaxonomyForXSD( $fac );
+				$facTaxonomy = $this->taxonomy->getTaxonomyForXSD( $fac );
 				if ( ! $facTaxonomy ) continue;
 
 				$facElement = $facTaxonomy->getElementById( $fac );
@@ -979,7 +1012,7 @@ class XBRL_DFR extends XBRL
 
 						foreach ( $gaaps as $gaapLabel => $gaap )
 						{
-							$gaapTaxonomy = $this->getTaxonomyForXSD( $gaapLabel );
+							$gaapTaxonomy = $this->taxonomy->getTaxonomyForXSD( $gaapLabel );
 							if ( ! $gaapTaxonomy ) continue;
 
 							$gaapElement = $gaapTaxonomy->getElementById( $gaapLabel );
@@ -1120,7 +1153,7 @@ class XBRL_DFR extends XBRL
 		{
 			return array_filter( array_keys( $nodes ), function( $label )
 			{
-				$taxonomy = $this->getTaxonomyForXSD( $label );
+				$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 				$element = $taxonomy->getElementById( $label );
 				return ! $element['abstract'];
 			} );
@@ -1136,7 +1169,7 @@ class XBRL_DFR extends XBRL
 			$first = $label == $firstNonAbstractLabel;
 			$last = $label == $lastNonAbstractLabel;
 
-			$taxonomy = $this->getTaxonomyForXSD( $label );
+			$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 			$element = $taxonomy->getElementById( $label );
 
 			// Recreate the label because if the arc has a preferred label the label will include the preferred label to make the index unique
@@ -1167,7 +1200,7 @@ class XBRL_DFR extends XBRL
 						if ( $ok )
 						{
 							$currentDimensionLabel = $label;
-							$defaultMember = isset( $this->context->dimensionDefaults[ $label ]['label'] ) ? $this->context->dimensionDefaults[ $label ]['label'] : false;
+							$defaultMember = isset( $this->taxonomy->context->dimensionDefaults[ $label ]['label'] ) ? $this->taxonomy->context->dimensionDefaults[ $label ]['label'] : false;
 
 							if ( ! $defaultMember && in_array( $element['name'], $this->reportDateAxisAliases ) )
 							{
@@ -1204,7 +1237,7 @@ class XBRL_DFR extends XBRL
 						{
 							if ( $currentPrimaryItem )
 							{
-								$drs = $this->getPrimaryItemDRSForRole( array( $elr => $currentPrimaryItem ), $elr );
+								$drs = $this->taxonomy->getPrimaryItemDRSForRole( array( $elr => $currentPrimaryItem ), $elr );
 								$ok = isset( $drs[ $currentHypercubeLabel ][ $elr ]['dimensions'][ $currentDimensionLabel ]['members'][ $label ] );
 							}
 							else
@@ -1282,7 +1315,7 @@ class XBRL_DFR extends XBRL
 						//	break;
 						// }
 
-						if ( ! $element['abstract'] && $element['type'] != 'nonnum:domainItemType' && $this->isPrimaryItem( $element ) )
+						if ( ! $element['abstract'] && $element['type'] != 'nonnum:domainItemType' && $this->taxonomy->isPrimaryItem( $element ) )
 						{
 							$ok = true;
 							$concepts[ $label ] = new QName( $taxonomy->getPrefix(), $taxonomy->getNamespace(), $element['name'] );
@@ -1667,6 +1700,8 @@ class XBRL_DFR extends XBRL
 
 				if ( $error )
 				{
+					global $reportModelStructureRuleViolations;
+					if ( $reportModelStructureRuleViolations )
 					XBRL_Log::getInstance()->business_rules_validation('Model Structure Rules', 'A rollup MUST contain components from only one calculation relationship set',
 						array(
 							'rollup' => $label,
@@ -1679,9 +1714,9 @@ class XBRL_DFR extends XBRL
 				// Filter any non-PI nodes.  This occurs in the pathalogical test case when a dimension member is a rollup.
 				$pis = array_filter( array_keys( $node['children'] ), function( $label )
 				{
-					$taxonomy = $this->getTaxonomyForXSD( $label );
+					$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$element = $taxonomy->getElementById( $label );
-					return ! $element['abstract'] && $this->isPrimaryItem( $element );
+					return ! $element['abstract'] && $this->taxonomy->isPrimaryItem( $element );
 				} );
 
 				// Capture the elements in node['children']
@@ -1709,7 +1744,11 @@ class XBRL_DFR extends XBRL
 	 */
 	private function renderComponentTable( $network, $elr, $lang = null )
 	{
-		$table = $this->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ), null, $lang, $elr );
+		$table = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ), null, $lang, $elr );
+		if ( ! $table )
+		{
+			$table = "(Implied table)";
+		}
 
 		$componentTable =
 			"	<div class='component-table'>" .
@@ -1761,7 +1800,7 @@ class XBRL_DFR extends XBRL
 			}
 			else
 			{
-				$reportTaxonomy = $this->getTaxonomyForXSD( $reportLabel );
+				$reportTaxonomy = $this->taxonomy->getTaxonomyForXSD( $reportLabel );
 				$reportTitle = "sub-report '" . $reportTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $reportLabel, null, $lang, $elr ) . "'";
 			}
 
@@ -1966,7 +2005,7 @@ class XBRL_DFR extends XBRL
 							continue;
 						}
 
-						$memberTaxonomy = $this->getTaxonomyForNamespace( $memberQName->namespaceURI );
+						$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName->namespaceURI );
 						$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
 
 						$memberLabel = $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'];
@@ -1989,14 +2028,14 @@ class XBRL_DFR extends XBRL
 				}
 				else
 				{
-					$memberTaxonomy = $this->getTaxonomyForNamespace( $memberQName->namespaceURI );
+					$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName->namespaceURI );
 					$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
 
 					$memberLabel = $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'];
 				}
 			}
 
-			$dimensionText = $this->getTaxonomyDescriptionForIdWithDefaults( $axisLabel, null, $lang, $elr );
+			$dimensionText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $axisLabel, null, $lang, $elr );
 			$slicers .= "			<div class='slicer-header'>$dimensionText</div>";
 
 			if ( isset( $axis['typedDomainRef'] ) && $axis['typedDomainRef'] )
@@ -2006,13 +2045,13 @@ class XBRL_DFR extends XBRL
 			}
 			else
 			{
-				$memberText = $this->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
+				$memberText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 			}
 
 			$slicers .= "			<div class='slicer-content'>$memberText</div>";
 		}
 
-		if ( $contextsFilter )
+		if ( $class != 'slicers-table' ) // Never include periods in the slicer for a report because it will be in the single member axes list if relevant
 		{
 			// Add the period dimension
 			$slicers .=
@@ -2052,7 +2091,7 @@ class XBRL_DFR extends XBRL
 					if ( ! isset( $node['modelType'] ) ) continue;
 
 					/** @var XBRL $nodeTaxonomy */
-					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
@@ -2080,7 +2119,7 @@ class XBRL_DFR extends XBRL
 							if ( $node['default-member'] )
 							{
 								/** @var XBRL $memberTaxonomy */
-								$memberTaxonomy = $this->getTaxonomyForXSD( $node['default-member'] );
+								$memberTaxonomy = $this->taxonomy->getTaxonomyForXSD( $node['default-member'] );
 								$memberElement = $memberTaxonomy->getElementById( $node['default-member'] );
 								$reportElement .= " ({$memberTaxonomy->getPrefix()}:{$memberElement['name']})";
 							}
@@ -2106,7 +2145,7 @@ class XBRL_DFR extends XBRL
 							{
 								$reportElement .= " string";
 							}
-							else if ( $this->context->types->resolvesToBaseType( $nodeElement['type'], array( XBRL_Constants::$xbrliMonetaryItemType ) ) )
+							else if ( $this->taxonomy->context->types->resolvesToBaseType( $nodeElement['type'], array( XBRL_Constants::$xbrliMonetaryItemType ) ) )
 							{
 								$reportElement .= " monetary";
 							}
@@ -2218,7 +2257,7 @@ class XBRL_DFR extends XBRL
 				if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] )
 				{
 					/** @var XBRL $nodeTaxonomy */
-					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 
 					$label = $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'];
@@ -2276,21 +2315,36 @@ class XBRL_DFR extends XBRL
 
 		// Use the remaining contexts to return a list the applicable years
 		$years = array();
-		foreach ( $contexts as $contextRef => $context )
+		if ( true )
 		{
-			$year = substr( $context['period']['endDate'], 0, 4 );
-			if ( ! isset( $years[ $year ] ) ) $years[ $year ] = array(
-				'text' => $context['period']['is_instant']
-								? $context['period']['endDate']
-								: "{$context['period']['startDate']} - {$context['period']['endDate']}",
-				'contextRefs' => array(),
-				// 'year' => $year
-			);
-			$years[ $year ]['contextRefs'][] = $contextRef;
-		}
+			$cf = new ContextsFilter( $instance, $contexts );
+			$years = $cf->getDiscreteDateRanges();
 
-		// Present years in a consistent order - most recent first
-		krsort( $years );
+			// Present years in a consistent order - most recent first
+			// krsort( $years );
+			// uksort( $years, function( $a, $b ) use( &$years )
+			// {
+			//	return strcmp( $years[ $a ]['text'], $years[ $b ]['text'] );
+			// } );
+		}
+		else
+		{
+			foreach ( $contexts as $contextRef => $context )
+			{
+				$year = substr( $context['period']['endDate'], 0, 4 );
+				if ( ! isset( $years[ $year ] ) ) $years[ $year ] = array(
+					'text' => $context['period']['is_instant']
+									? $context['period']['endDate']
+									: "{$context['period']['startDate']} - {$context['period']['endDate']}",
+					'contextRefs' => array(),
+					// 'year' => $year
+				);
+				$years[ $year ]['contextRefs'][] = $contextRef;
+			}
+
+			// Present years in a consistent order - most recent first
+			krsort( $years );
+		}
 
 		$totalAxesCount = array_reduce( $axes, function( $carry, $axis ) { return $carry + ( isset( $axis['dimension'] ) ? 1 : 0 ) ; } );
 
@@ -2502,7 +2556,7 @@ class XBRL_DFR extends XBRL
 							// Get the axis text
 							$nextAxisLabel = reset( $multiMemberAxes );
 							/** @var XBRL_DFR $axisTaxonomy */
-							$axisTaxonomy = $this->getTaxonomyForXSD( $nextAxisLabel );
+							$axisTaxonomy = $this->taxonomy->getTaxonomyForXSD( $nextAxisLabel );
 							$axisText = $axisTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nextAxisLabel, null, $lang, $elr );
 
 							// Get the members
@@ -2539,7 +2593,7 @@ class XBRL_DFR extends XBRL
 								foreach ( $axisMembers as $memberLabel )
 								{
 									/** @var XBRL_DFR $memberTaxonomy */
-									$memberTaxonomy = $this->getTaxonomyForXSD( $memberLabel );
+									$memberTaxonomy = $this->taxonomy->getTaxonomyForXSD( $memberLabel );
 									$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 
 									$filteredContexts = $axis['default-member'] == $memberLabel
@@ -2786,7 +2840,7 @@ class XBRL_DFR extends XBRL
 					}
 
 					/** @var XBRL_DFR $nodeTaxonomy */
-					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 
 					if ( $thisLineItems )
@@ -2946,7 +3000,7 @@ class XBRL_DFR extends XBRL
 							$calculationTotals = array();
 							foreach ( $calculation as $calcItemLabel => $calcItem )
 							{
-								$calcTaxonomy = $this->getTaxonomyForXSD( $calcItemLabel );
+								$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcItemLabel );
 								$calcElement = $calcTaxonomy->getElementById( $calcItemLabel );
 								$calcFacts = $instance->getElement( $calcElement['name'] );
 								foreach ( $calcFacts as $calcFact )
@@ -3139,7 +3193,7 @@ class XBRL_DFR extends XBRL
 		};
 
 		// Generate a tail for the report table
-		$tail = function( &$footnotes, $hasReportDateAxis, $headerColumnCount ) use( &$tail )
+		$tail = function( &$footnotes, $hasReportDateAxis, $headerColumnCount, $lastLayoutColumns = null ) use( &$tail )
 		{
 			$reportTail =
 				"				<div class='report-line line-item abstract final'></div>";
@@ -3153,7 +3207,8 @@ class XBRL_DFR extends XBRL
 			$firstFact = "first-fact";
 			for ( $i = 0; $i < $headerColumnCount; $i++ )
 			{
-				$reportTail .= "				<div class='report-line abstract-value final $firstFact' ></div>";
+				$domain = $lastLayoutColumns && ( $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] ) ? 'domain' : '';
+				$reportTail .= "				<div class='report-line abstract-value final $firstFact $domain' ></div>";
 				$firstFact = '';
 			}
 
@@ -3202,7 +3257,7 @@ class XBRL_DFR extends XBRL
 			$divs = array();
 			$trailingNodes = true;
 
-			$renderHeader = function( $nodeTaxonomy, $nodeElement, $columnCount, $columnLayout, $headerRowCount, $hasReportDateAxis, $lineItems, $text, &$divs )
+			$renderHeader = function( $nodeTaxonomy, $nodeElement, $columnCount, $columnLayout, $headerRowCount, $hasReportDateAxis, $lineItems, $text, &$divs ) use( $lang, $elr )
 			{
 				// This is the line-item header
 				$divs[] =	"			<div class='report-header line-item' style='grid-area: 1 / 1 / span $headerRowCount / span 1;'>$text</div>";
@@ -3259,7 +3314,7 @@ class XBRL_DFR extends XBRL
 				if ( $lineItems )
 				{
 					/** @var XBRL_DFR $nodeTaxonomy */
-					$nodeTaxonomy = $this->getTaxonomyForXSD( $label );
+					$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
@@ -3318,9 +3373,11 @@ class XBRL_DFR extends XBRL
 						$startDateAxisStyle = $hasReportDateAxis ? 'style="grid-column-start: span 2;"' : '';
 						$divs[] = "		<div class='report-line line-item abstract depth$depth' data-row='$row' $startDateAxisStyle title='$title'>$text</div>";
 						$firstFact = "first-fact";
+						$lastLayoutColumns = end( $columnLayout );
 						for ( $i = 0; $i < $headerColumnCount; $i++ )
 						{
-							$divs[] = "<div class='report-line abstract-value $firstFact' data-row='$row'></div>";
+							$domain = $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] ? 'domain' : '';
+							$divs[] = "<div class='report-line abstract-value $firstFact $domain' data-row='$row'></div>";
 							$firstFact = '';
 						}
 					}
@@ -3440,7 +3497,7 @@ class XBRL_DFR extends XBRL
 								$type = (string) XBRL_Instance::getElementType( $fact );
 								$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
 								$columnTotalClass = ( $currentColumn['default-member'] || $currentColumn['domain-member'] /** || $currentColumn['root-member'] */ ) && $valueClass != 'left'
-									? 'total'
+									? 'domain'
 									: '';
 								if ( $columnIndex === 0 ) $valueClass .= ' first-fact';
 
@@ -3449,7 +3506,7 @@ class XBRL_DFR extends XBRL
 									$fact['value'] *= -1;
 								}
 
-								if ( isset( $fact['decimals'] ) && $fact['decimals'] < 0 ) $fact['decimals'] = 0;
+								// if ( isset( $fact['decimals'] ) && $fact['decimals'] < 0 ) $fact['decimals'] = 0;
 								$value = $nodeTaxonomy->formattedValue( $fact, $instance, false );
 								if ( strlen( $fact['value'] ) && is_numeric( $fact['value'] ) )
 								{
@@ -3517,7 +3574,8 @@ class XBRL_DFR extends XBRL
 							{
 								if ( isset( $columns[ $columnIndex ] ) ) continue;
 								$firstFact = $columnIndex === 0 ? 'first-fact' : '';
-								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $firstFact' data-row='$row'></div>";
+								$domain = $column['default-member'] || $column['domain-member'] ? 'domain' : '';
+								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $firstFact $domain' data-row='$row'></div>";
 							}
 
 							ksort( $columns );
@@ -3525,6 +3583,7 @@ class XBRL_DFR extends XBRL
 
 							if ( $totalClass )
 							{
+								$lastLayoutColumns = end( $columnLayout );
 								for ( $c = 0; $c < $columnCount - count( $columns); $c++ )
 								{
 									$divs[] = "<div class='report-line line-item after-total'></div>";
@@ -3532,7 +3591,8 @@ class XBRL_DFR extends XBRL
 								$firstFact = "first-fact";
 								for ( $c = 0; $c < count( $columns ); $c++ )
 								{
-									$divs[] = "<div class='report-line value after-total $firstFact'></div>";
+									$domain = $lastLayoutColumns[ $c ]['default-member'] || $lastLayoutColumns[ $c ]['domain-member'] ? 'domain' : '';
+									$divs[] = "<div class='report-line value after-total $firstFact $domain'></div>";
 									$firstFact = '';
 								}
 							}
@@ -3558,7 +3618,7 @@ class XBRL_DFR extends XBRL
 					if ( ! $render ) continue;
 
 					// Close out the earlier section
-					$divs[] = $tail( $footnotes, $hasReportDateAxis, $headerColumnCount );
+					$divs[] = $tail( $footnotes, $hasReportDateAxis, $headerColumnCount, end( $columnLayout ) );
 					$divs[] = $render;
 
 					// Only report a sub-table if there is something worth reporting.
@@ -3587,7 +3647,7 @@ class XBRL_DFR extends XBRL
 				}
 			}
 
-			return array( 'divs' => $divs, 'trailingNodes' => $trailingNodes, 'headersDisplayed' => $headersDisplayed );
+			return array( 'divs' => $divs, 'trailingNodes' => $trailingNodes, 'headersDisplayed' => $headersDisplayed, 'lastLayoutColumns' => end( $columnLayout ) );
 		};
 
 		$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'minmax(100px, max-content)' : '100px';
@@ -3602,7 +3662,7 @@ class XBRL_DFR extends XBRL
 		// When there are no trailing nodes, no header will be added so no $tail is required.
 		if ( $layout['trailingNodes'] )
 		{
-			$reportTable .= $tail( $footnotes, $hasReportDateAxis, $headerColumnCount );
+			$reportTable .= $tail( $footnotes, $hasReportDateAxis, $headerColumnCount, $layout['lastLayoutColumns'] );
 		}
 
 		return $reportTable;
@@ -3718,8 +3778,8 @@ class XBRL_DFR extends XBRL
 		// Report each total
 		foreach ( $this->calculationNetworks[ $elr]['calculations'] as $calcTotalLabel => $calculations )
 		{
-			$calcTotalText = $this->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel, null, $lang, $elr );
-			$calcTaxonomy = $this->getTaxonomyForXSD( $calcTotalLabel );
+			$calcTotalText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel, null, $lang, $elr );
+			$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
 			$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
 			$header = "$calcTotalText ({$calcTaxonomy->getPrefix()}:{$calcElement['name']})";
 
@@ -3773,7 +3833,7 @@ class XBRL_DFR extends XBRL
 
 					foreach ( $calculations as $calcLabel => $calcItem )
 					{
-						$calcTaxonomy = $this->getTaxonomyForXSD( $calcLabel );
+						$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcLabel );
 						$calcElement = $calcTaxonomy->getElementById( $calcLabel );
 						$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
 
@@ -3801,7 +3861,7 @@ class XBRL_DFR extends XBRL
 							"				<div class='business-rules-row decimals last'>{$row['columns'][ $columnIndex ]['decimals']}</div>";
 					}
 
-					$calcTaxonomy = $this->getTaxonomyForXSD( $calcTotalLabel );
+					$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
 					$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
 					$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
 
