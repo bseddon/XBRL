@@ -243,7 +243,7 @@ class XBRL_Instance
 	 *
 	 * @param string $instance_document The file containing the instance information
 	 * @param string $taxonomy_file The taxonomy for the instance document
-	 * @param XBRL_Instance &$instance A reference to the instance created by this call
+	 * @param XBRL_Instance $instance A reference to the instance created by this call
 	 * @param bool $allowNested (optional: false) True if the caller wants to allow one or more <xbrl> containers to appear in a larger document
 	 * @param bool $useCache (default: false) If true the instance document will be read from the cache
 	 * @return XBRL_Instance|bool
@@ -317,7 +317,11 @@ class XBRL_Instance
 		$instance->uniqueFactIds = $array['uniqueFactIds'];
 		$instance->units = $array['units'];
 		$instance->usedContexts = $array['usedContexts'];
-		$instance->instance_xml = simplexml_load_file( $instance->document_name );
+		$xml = XBRL::getXml( $instance->document_name, XBRL_Global::getInstance() );
+		if ( $xml )
+		{
+			$instance->instance_xml = $xml;
+		}
 
 		$taxonomy = $xbrl->getTaxonomyForNamespace( $taxonomyNamespace );
 		XBRL_Instance::$instance_taxonomy[ $taxonomy->getSchemaLocation() ] = $taxonomy;
@@ -1278,8 +1282,12 @@ class XBRL_Instance
 						// Now look for a compiled file in the compiled folder
 						$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( basename( $taxonomy_file ) );
 						if ( ! $compiledTaxonomyFilename ) continue;
-						if ( ! file_exists( "{$this->compiledLocation}/" . basename( $compiledTaxonomyFilename ) . ".zip" ) ) continue;
-						$xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
+						$basename = basename( $compiledTaxonomyFilename );
+						if ( ! file_exists( "{$this->compiledLocation}/$basename.zip" ) ) continue;
+						// BMS 2019-06-11 Changed to use load_taxonomy.  Why was loadExtensionXSD in this case?
+						$xbrl = XBRL::load_taxonomy( "{$this->compiledLocation}/$basename.zip" );
+						// $xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
+
 						break;
 					}
 
@@ -6388,6 +6396,109 @@ class ContextsFilter
 	}
 
 	/**
+	 * Adds the contexts from $contexts to the existing lisy
+	 * @param array $contexts MUST be an array
+	 */
+	public function add( $contexts )
+	{
+		if ( ! is_array( $contexts ) )
+		{
+			throw new Exception('The contexts parameter MUST be an array');
+		}
+
+		$this->contexts = array_merge( $this->contexts, $contexts );
+	}
+
+	/**
+	 * Get the duration across all contexts
+	 */
+	public function getDuration()
+	{
+		$minDate = null;
+		$maxDate = null;
+
+		foreach ( $this->contexts as $contextRef => $context )
+		{
+			$maxDate = $maxDate
+				? ( $context['period']['endDate'] > $maxDate ? $context['period']['endDate'] : $maxDate )
+				: $context['period']['endDate'];
+			$minDate = $minDate
+				? ( $context['period']['startDate'] < $minDate ? $context['period']['startDate'] : $minDate )
+				: $context['period']['startDate'];
+		}
+		// $start = $date = DateTime::createFromFormat( "!Y-m-d", $minDate );
+		// $end = $date = DateTime::createFromFormat( "!Y-m-d", $maxDate );
+		// $diff = $start->diff( $end );
+
+		return array(
+			'startDate' => $minDate,
+			'endDate' => $maxDate,
+		//	'duration' => $diff->days
+		);
+	}
+
+	public function getDiscreteDateRanges()
+	{
+		// An array of unique ranges
+		$ranges = array();
+
+		foreach( $this->sortByDuration( true )->getContexts() as $contextRef => $context )
+		{
+			$endDate = $context['period']['endDate'];
+
+			if ( isset( $ranges[ $endDate ] ) )
+			{
+				if ( ! $context['period']['is_instant'] )
+				{
+					$duration = ($ranges[ $endDate ])->getDuration();
+					if ( $context['period']['startDate'] != $duration['startDate'] ) continue;
+				}
+				$ranges[ $endDate ]->add( array( $contextRef => $context ) );
+			}
+			else
+			{
+				foreach ( $ranges as $date => /** @var ContextsFilter $range */ $range )
+				{
+					$contextsForDate = $range->ContextsContainDate( $endDate );
+					if ( $contextsForDate->count() )
+					{
+						foreach ( $contextsForDate->getContexts() as $contextForDate )
+						{
+							if ( $contextForDate['period']['endDate'] != $endDate )
+							{
+								if ( $context['period']['is_instant'] )
+								{
+									break 2;
+								}
+
+								continue 3;
+							}
+
+							$range->add( array( $contextRef => $context ) );
+							continue 3;
+						}
+
+						break;
+					}
+					unset( $contextForDate );
+					unset( $contextsForDate );
+				}
+				unset( $range );
+
+				$ranges[ $endDate ] = new ContextsFilter( $instance, array( $contextRef => $context ) );
+			}
+		}
+
+		return array_map( function( /** @var ContextsFilter $range */ $range )
+		{
+			return array(
+				'contextRefs' => array_keys( $range->getContexts() ),
+				'text' => $range->getPeriodLabel()
+			);
+		}, $ranges );
+	}
+
+	/**
 	 * Return the count of the contexts
 	 * @return int
 	 */
@@ -6874,18 +6985,20 @@ class ContextsFilter
 		$contexts = $this->contexts; // Protect the contexts
 		try
 		{
+			$durationContexts = $this->DurationContexts();
+
 			// If there are only instant context and all the contexts have the same date...
-			if ( ! $this->DurationContexts()->count() && count( $this->AllYears() ) == 1 )
+			if ( ! $durationContexts->count() && count( $this->AllYears() ) == 1 )
 			{
 				$context = reset( $this->contexts );
 				return $context['period']['endDate'];
 			}
 			else
 			{
-				$this->sortByStartDate();
-				$startContext = reset( $this->contexts );
-				$this->sortByEndDate();
-				$endContext = end( $this->contexts );
+				$durationContexts->sortByStartDate();
+				$startContext = reset( $durationContexts->getContexts() );
+				$durationContexts->sortByEndDate();
+				$endContext = end( $durationContexts->getContexts() );
 				return "{$startContext['period']['startDate']} - {$endContext['period']['endDate']}";
 			}
 		}
@@ -6989,6 +7102,27 @@ class ContextsFilter
 		uksort( $this->contexts, function( $a, $b ) use ( &$contexts )
 		{
 			return -1 * strcmp( $this->contexts[ $a] ['period']['endDate'], $this->contexts[ $b]['period']['endDate'] );
+		} );
+
+		return $this;
+	}
+
+	/**
+	 *
+	 */
+	public function sortByDuration( $invert = false )
+	{
+		uksort( $this->contexts, function( $a, $b ) use( $invert )
+		{
+			$date = new DateTime( $this->contexts[ $a ]['period']['startDate'] );
+			$diff = $date->diff( new DateTime($this->contexts[ $a ]['period']['endDate'] ) );
+			$daysA = $diff->days;
+
+			$date = new DateTime( $this->contexts[ $b ]['period']['startDate'] );
+			$diff = $date->diff( new DateTime($this->contexts[ $b ]['period']['endDate'] ) );
+			$daysB = $diff->days;
+
+			return ( $daysA - $daysB ) * ( $invert ? -1 : 1 );
 		} );
 
 		return $this;
