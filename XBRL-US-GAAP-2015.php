@@ -203,6 +203,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 			// "http://xbrl.sec.gov/dei/2014-01-31",
 			// "http://xbrl.sec.gov/dei-all/2014-01-31",
 			// "http://xbrl.sec.gov/dei-std/2014-01-31",
+			"http://xbrl.sec.gov/dei/2018-01-31",
 			"http://xbrl.sec.gov/exch-ent-all/2015-01-31",
 			"http://xbrl.sec.gov/invest/2013-01-31",
 			"http://xbrl.sec.gov/invest-all/2013-01-31",
@@ -1101,6 +1102,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 		switch ( $namespace )
 		{
 			case "http://xbrl.sec.gov/dei/2014-01-31":
+			case "http://xbrl.sec.gov/dei/2018-01-31":
 
 				$prefix = "dei";
 				break;
@@ -1123,6 +1125,8 @@ class XBRL_US_GAAP_2015 extends XBRL
 			case 'dei:centralIndexKeyItemType':
 			case 'dei:yesNoItemType':
 			case 'dei:filerCategoryItemType':
+			case 'dei:nineDigitItemType':
+
 			default:
 				return "left";
 		}
