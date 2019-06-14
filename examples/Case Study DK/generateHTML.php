@@ -87,6 +87,7 @@ $htmlAssetsLocation = '../../assets';
 
 // Use null for the default language
 $languageCode = 'da';
+$languageCode = null;
 
 // Allow formulas to be evaluated
 global $use_xbrl_functions;
@@ -131,6 +132,9 @@ require_once __DIR__ . '/Observer.php';
 $observer = new Observer();
 \XBRL_Log::getInstance()->attach( $observer );
 
+// Initialize the DFR class
+\XBRL_DFR::Initialize( $cacheLocation );
+
 try
 {
 	if ( ! file_exists( "$compiledLocation" ) )
@@ -145,19 +149,7 @@ try
 	\XBRL_Global::reset();
 	\XBRL_Types::reset();
 
-	$cmArcRoles = \XBRL_DFR::getConceptualModelRoles( $cacheLocation );
-
 	new \XBRL_IFRS();
-
-	\XBRL::add_entry_namespace_to_class_map_entries( array(
-		'http://xbrl.dcca.dk/entryAll',
-		'http://xbrl.dcca.dk/ifrs-dk/entryAll-ifrs-dk_2014-12-20'
-	), 'XBRL_DFR' );
-
-	\XBRL::add_namespace_to_class_map_entries(array(
-		'http://xbrl.dcca.dk/entryAll',
-		'http://xbrl.dcca.dk/ifrs-dk/entryAll-ifrs-dk_2014-12-20'
-	), 'XBRL_DFR' );
 
 	$instanceFilename = $instances[0];
 
@@ -187,17 +179,6 @@ try
 		return;
 	}
 
-	$pattern = '/^http:\/\/archprod\.service\.eogs\.dk\/taxonomy\/(?<version>\d{8})\/.*\.xsd$/';
-	if ( ! preg_match( $pattern, $schemaHRef, $matches ) )
-	{
-		$observer->addItem("error", "The schema ref of '$document' is not valid: '$schemaHRef'");
-		return;
-	}
-
-	\XBRL::add_xsd_to_compiled_map_entries( array(
-		$schemaHRef
-	), 'XBRL_DFR' );
-
 	// Look to see if there is an existing cached file from a previous report
 	$instanceBasename = basename( $instanceFilename, '.xml' );
 	if ( file_exists( "$compiledLocation/$instanceBasename.json" ) && file_exists( "$compiledLocation/$instanceBasename.meta" ) )
@@ -206,8 +187,6 @@ try
 		$json = file_get_contents( "$compiledLocation/$instanceBasename.meta" );
 		$meta = json_decode( $json, true );
 		$instance = \XBRL_Instance::FromInstanceCache( $compiledLocation, "{$meta['instance']}.json", $meta['namespace'], "$compiledLocation/{$meta['taxonomy']}" );
-
-		$version = str_replace('entryAll', '', basename( $meta['taxonomy'], '.json' ) );
 	}
 	else
 	{
@@ -238,9 +217,10 @@ try
 	$results = array();
 
 	$instanceTaxonomy = $instance->getInstanceTaxonomy();
-	$presentationNetworks = $instanceTaxonomy->validateDFR( $formulas );
+	$dfr = new \XBRL_DFR( $instanceTaxonomy );
+	$presentationNetworks = $dfr->validateDFR( $formulas );
 	// $presentationNetworks = array_slice( $presentationNetworks, 0, 1 );
-	$renders = $instanceTaxonomy->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $results, $languageCode, false );
+	$renders = $dfr->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $results, $languageCode, false );
 
 	// Delete/create a sub-folder for the HTML
 	if ( is_dir( "$htmlLocation/$instanceBasename" ) )

@@ -171,7 +171,7 @@ function processTaxonomyPackage( $observer, $file, $package )
 	$observer->addItem( "action", 'saving package contents' );
 	if ( ! $package->saveTaxonomy( $cacheLocation ) && ! $package->schemaFile )
 	{
-		$observer->addItem( "errors",$package->errors );
+		$observer->addItem( "errors", $package->errors );
 		return false;
 	}
 
