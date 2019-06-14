@@ -190,4 +190,33 @@ EOT;
 		return true;
 	}
 
+	/**
+	 * Gets the class name for the taxonomy
+	 * {@inheritDoc}
+	 * @see XBRL_Package::getXBRLClassname()
+	 */
+	private $taxonomyPrefixes = array(
+		"http://fasb.org/us-gaap"
+	);
+
+	public function getXBRLClassname()
+	{
+		if ( $this->schemaFile && $this->schemaNamespace )
+		{
+			$xml = $this->getInstanceDocument();
+			$namespaces = $xml->getDocNamespaces();
+			if ( array_filter( $namespaces, function( $namespace )
+				{
+					foreach( $this->taxonomyPrefixes as $prefix )
+					{
+						if ( strpos( $namespace, $prefix ) !== false ) return true;
+					}
+					return false;
+				} ) )
+			{
+				return "XBRL_US_GAAP_2015";
+			}
+		}
+		return parent::getXBRLClassname();
+	}
 }
