@@ -582,7 +582,15 @@ class XBRL {
 	 */
 	public static function class_from_namespace( $namespace )
 	{
-		return isset( XBRL::$namespace_to_class_map[ $namespace ] ) ? XBRL::$namespace_to_class_map[ $namespace ] : "XBRL";
+		return isset( XBRL::$namespace_to_class_map[ $namespace ] )
+			? XBRL::$namespace_to_class_map[ $namespace ]
+			: ( isset( XBRL::$namespace_to_class_map[ rtrim( $namespace, '/' ) ] )
+				? XBRL::$namespace_to_class_map[ rtrim( $namespace, '/' ) ]
+				: ( isset( XBRL::$namespace_to_class_map[ "$namespace/" ] )
+					? XBRL::$namespace_to_class_map[ "$namespace/" ]
+					: "XBRL"
+				  )
+			  );
 	}
 
 	/**
