@@ -1288,6 +1288,11 @@ class XBRL_Instance
 					{
 						foreach ( $taxonomy_files as $taxonomy_file )
 						{
+							if ( filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) && ( $localFile = $context->findCachedFile( $taxonomy_file ) ) )
+							{
+								$taxonomy_file = $localFile;
+							}
+
 							$xsd = simplexml_load_file( $taxonomy_file );
 							foreach ( $xsd->children()->import as /** @var SimpleXMLElement $importElement */ $importElement )
 							{
