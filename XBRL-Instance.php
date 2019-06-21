@@ -6388,11 +6388,20 @@ class ContextsFilter
 	 * Constructor
 	 * @param XBRL_Instance $instance (by reference) The XBRL_Instance containing the contexts to filter
 	 * @param array $contexts The context to add
+	 * @return ContextsFilter
 	 */
 	function __construct( &$instance, $contexts )
 	{
 		$this->contexts = $contexts;
 		$this->instance =& $instance;
+	}
+
+	/**
+	 * Clone the current instance and return a new one
+	 */
+	public function clone()
+	{
+		return new ContextsFilter( $this->instance, $this->contexts );
 	}
 
 	/**
