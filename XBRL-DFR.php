@@ -1953,7 +1953,7 @@ class XBRL_DFR // extends XBRL
 		if ( is_null( $axes ) )
 		{
 			$hypercubeLabel = key( $network['axes'] );
-			$axes = $network['axes'][ $hypercubeLabel ];
+			$axes = $hypercubeLabel ? $network['axes'][ $hypercubeLabel ] : array();
 		}
 
 		foreach ( $axes as $axisLabel => $axis)
@@ -2315,36 +2315,14 @@ class XBRL_DFR // extends XBRL
 
 		// Use the remaining contexts to return a list the applicable years
 		$years = array();
-		if ( true )
-		{
 			$cf = new ContextsFilter( $instance, $contexts );
 			$years = $cf->getDiscreteDateRanges();
 
-			// Present years in a consistent order - most recent first
-			// krsort( $years );
-			// uksort( $years, function( $a, $b ) use( &$years )
-			// {
-			//	return strcmp( $years[ $a ]['text'], $years[ $b ]['text'] );
-			// } );
-		}
-		else
+		// Present years in a consistent order - most recent first
+		uksort( $years, function( $a, $b ) use( &$years )
 		{
-			foreach ( $contexts as $contextRef => $context )
-			{
-				$year = substr( $context['period']['endDate'], 0, 4 );
-				if ( ! isset( $years[ $year ] ) ) $years[ $year ] = array(
-					'text' => $context['period']['is_instant']
-									? $context['period']['endDate']
-									: "{$context['period']['startDate']} - {$context['period']['endDate']}",
-					'contextRefs' => array(),
-					// 'year' => $year
-				);
-				$years[ $year ]['contextRefs'][] = $contextRef;
-			}
-
-			// Present years in a consistent order - most recent first
-			krsort( $years );
-		}
+			return strcmp( $years[ $a ]['text'], $years[ $b ]['text'] ) * -1;
+		} );
 
 		$totalAxesCount = array_reduce( $axes, function( $carry, $axis ) { return $carry + ( isset( $axis['dimension'] ) ? 1 : 0 ) ; } );
 
@@ -2576,6 +2554,8 @@ class XBRL_DFR // extends XBRL
 									$guid = XBRL::GUID();
 									$nextMembers[ $guid ] = array(
 										'text' => $memberText,
+										'dimension-label' => $nextAxisLabel,
+										'member-label' => null,
 										'contextRefs' => array( $contextRef ),
 										'default-member' => false,
 										'domain-member' => false,
@@ -2596,15 +2576,31 @@ class XBRL_DFR // extends XBRL
 									$memberTaxonomy = $this->taxonomy->getTaxonomyForXSD( $memberLabel );
 									$memberText = $memberTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
 
-									$filteredContexts = $axis['default-member'] == $memberLabel
-										? $cf-> NoSegmentContexts()
-										: $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+									// BMS 2019-06-17
+									// When considering multi-member axes other than the last a
+									// when the member being reviewed is a default member, what's needed are
+									// all the contexts that do not have the member's dimension as an explicit
+									// dimension.  So instead of selecting those contexts with no segments
+									// at all, select any contexts that DO have explicit dimensions that do
+									// have the default member's dimension and remove them from the list of
+									// context because these context cannot belong to the default member.
+									if ( $axis['default-member'] == $memberLabel )
+									{
+										$filteredContexts = $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace() );
+										$filteredContexts = $cf->clone()->remove( $filteredContexts );
+									}
+									else
+									{
+										$filteredContexts = $cf->SegmentContexts( strstr( $nextAxisLabel, '#' ), $axisTaxonomy->getNamespace(), strstr( $memberLabel, '#' ), $memberTaxonomy->getNamespace() );
+									}
 
 									if ( $filteredContexts->count() )
 									{
 										$guid = XBRL::GUID();
 										$nextMembers[ $guid ] = array(
 											'text' => $memberText,
+											'dimension-label' => $nextAxisLabel,
+											'member-label' => $memberLabel,
 											'contextRefs' => array_keys( $filteredContexts->getContexts() ),
 											'default-member' => $axis['default-member'] == $memberLabel,
 											'domain-member' => $axis['domain-member'] == $memberLabel,
@@ -2642,7 +2638,7 @@ class XBRL_DFR // extends XBRL
 		// Create an index of contextRef to column.  Should be only one column for each context.
 		// At the same time create a column layout array that can be used to generate the column headers
 		$columnLayout = array();
-		$createContextRefColumns = function( $columnNodes, $depth = 0 ) use( &$createContextRefColumns, &$columnLayout )
+		$createContextRefColumns = function( $columnNodes, $depth = 0, $parentLabels = array(), $inDomain = false ) use( &$createContextRefColumns, &$columnLayout )
 		{
 			$result = array();
 			foreach ( $columnNodes as $axisLabel => $columnMembers )
@@ -2657,22 +2653,30 @@ class XBRL_DFR // extends XBRL
 					$span = isset( $columnNode['children'] )
 						? array_reduce( $columnNode['children'], function( $carry, $axis ) { return $carry + $axis['total-children']; }, 0 )
 						: 1;
+
+					$dimensionLabel = isset( $columnNode['dimension-label'] ) ? $columnNode['dimension-label'] : null;
+					$memberLabel = isset( $columnNode['member-label'] ) ? $columnNode['member-label'] : null;
+					$inDomain |= isset( $columnNode['domain-member'] ) && $columnNode['domain-member'];
+
 					$columnLayout[ $depth + 1 ][] = array(
 						'text' => $columnNode['text'],
 						'span' => $span,
 						'default-member' => isset( $columnNode['default-member'] ) && $columnNode['default-member'],
 						'domain-member' => isset( $columnNode['domain-member'] ) && $columnNode['domain-member'],
-						'root-member' => isset( $columnNode['root-member'] ) && $columnNode['root-member']
+						'root-member' => isset( $columnNode['root-member'] ) && $columnNode['root-member'],
+						'dimension-label' => isset( $columnNode['dimension-label'] ) ? $columnNode['dimension-label'] : null,
+						'member-label' => isset( $columnNode['dimension-label'] ) ? $columnNode['member-label'] : null,
+						'in-domain' => $inDomain,
+						'parent-labels' => $parentLabels
 					);
 
 					if ( isset( $columnNode['children'] ) && $columnNode['children'] )
 					{
-						$result += $createContextRefColumns( $columnNode['children'], $depth + 2 );
+						$result += $createContextRefColumns( $columnNode['children'], $depth + 2, array_merge( $parentLabels, $dimensionLabel ? array( $dimensionLabel => $memberLabel ) : array() ), $inDomain );
 					}
 					else if ( $columnNode['contextRefs'] )
 					{
 						$result = array_merge( $result, array_fill_keys( $columnNode['contextRefs'], $index ) );
-						// $result += $columnNode['contextRefs'] ? array_fill_keys( $columnNode['contextRefs'], $index ) : array( 'place_holder_' . XBRL::GUID() => $index );
 					}
 					else
 					{
@@ -2967,6 +2971,7 @@ class XBRL_DFR // extends XBRL
 
 						$lastRowLayout = end( $columnLayout );
 
+						// This section computes rollup totals if node presents a rollup pattern
 						$rollupTotal = false;
 						if ( $parentPattern == 'rollup' && isset( $this->calculationNetworks[ $elr ]['calculations'][ $node['label'] ] ) )
 						{
@@ -3024,7 +3029,7 @@ class XBRL_DFR // extends XBRL
 							unset( $calcItemLabel );
 						}
 
-
+						$domainTotals = array();
 						foreach ( $facts as $factIndex => $fact )
 						{
 							if ( ! $fact || ! isset( $contextRefColumns[ $fact['contextRef'] ] ) ) continue;
@@ -3032,6 +3037,8 @@ class XBRL_DFR // extends XBRL
 							// Check that the column is still reportable.  It might have been removed as empty
 							if ( ! isset( $lastRowLayout[ $columnIndex ] ) ) continue;
 							$currentColumn = $lastRowLayout[ $columnIndex ];
+
+							$fact['aggregates'] = array();
 
 							$columns[ $columnIndex ] = $fact;
 							$priorRowContextRefsForByColumns[ $columnIndex ] = $fact['contextRef'];
@@ -3048,6 +3055,136 @@ class XBRL_DFR // extends XBRL
 									unset( $calculationTotals[ $fact['contextRef'] ] );
 								}
 							}
+
+							if ( ! $currentColumn['in-domain'] ) continue;
+
+							// OK, look for any details across the facts for this fact
+							// Begin by getting the contexts for these facts but exclude the ntext of the fact of the current column
+							$cf = ( new ContextsFilter( $instance, $contexts ) )->remove( $fact['contextRef'] );
+
+							$year = $instance->getYearForElement( $fact );
+							$cf = $cf->ContextsForYear( $year );
+
+							// Get the segments
+							$segment = $instance->getContextSegment( $contexts[ $fact['contextRef'] ] );
+
+							// Merge any default members for dimensions with the explicit members for the current fact's context
+							$explicitMembers = array();
+							if ( $segment )
+							foreach ( $segment['explicitMember'] as $explicitMember )
+							{
+								$dimQName = qname( $explicitMember['dimension'], $instance->getInstanceNamespaces() );
+								$dimTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $dimQName->namespaceURI );
+								$dimElement = $dimTaxonomy->getElementByName( $dimQName->localName );
+								$dimensionLabel = $dimTaxonomy->getTaxonomyXSD() . '#' . $dimElement['id'];
+
+								$columnMemberQName = qname( $explicitMember['member'], $instance->getInstanceNamespaces() );
+								$columnMemberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $columnMemberQName->namespaceURI );
+								$columnMemberElement = $columnMemberTaxonomy->getElementByName( $columnMemberQName->localName );
+								$columnMemberLabel = $columnMemberTaxonomy->getTaxonomyXSD() . '#' . $columnMemberElement['id'];
+
+								$explicitMembers[ $dimensionLabel ] = array(
+									'member-label' => $columnMemberLabel,
+									'member-qname' => $columnMemberQName
+								);
+
+								unset( $dimQName );
+								unset( $dimTaxonomy );
+								unset( $dimElement );
+								unset( $dimensionLabel );
+								unset( $columnMemberQName );
+								unset( $columnMemberTaxonomy );
+								unset( $columnMemberElement );
+								unset( $columnMemberLabel );
+							}
+
+							unset( $explicitMember );
+
+							foreach ( $axes as $axisLabel => $axis )
+							{
+								// Ignore the members only nodes
+								if ( ! isset( $axis['dimension'] ) ) continue;
+
+								// Filter the $cf contexts by each of the explicit dimensions
+								if ( ! isset( $explicitMembers[ $axisLabel ] ) )
+								{
+									// If the axis is not one of the explicit dimensions then
+									// then there must be a default member that is the root of a hierarchy
+									if ( ! $axis['default-member'] )
+									{
+										// There can be no valid components so continue on to the next fact
+										continue 2;
+									}
+
+									// if ( ! isset( $axis[ $axis['default-member'] ] ) )
+									// {
+									// 	// If the default-member does not have children then there can
+									// 	// be no valid components so continue on to the next fact
+									// 	continue 2;
+									// }
+
+									$explicitMember = array(
+										'member-label' => $axis['default-member'],
+										'member-qname' => $axis['members'][ $axis['default-member'] ]
+									);
+								}
+								else
+								{
+									$explicitMember = $explicitMembers[ $axisLabel ];
+								}
+
+								// Get the members
+								$members = isset( $axes[ $explicitMember['member-label'] ]['members'] ) ? $axes[ $explicitMember['member-label'] ]['members'] : array();
+								$members[ $explicitMember['member-label'] ] = $explicitMember['member-qname'];
+
+								// Now get any contexts with any one of these members
+								$memberContexts = array();
+								foreach ( $members as $memberLabel => $memberQName )
+								{
+									$memTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName->namespaceURI );
+									$memElement = $memTaxonomy->getElementByName( $memberQName->localName );
+
+									if ( $axis['default-member'] == $memberLabel )
+									{
+										$memberFiltered = $cf->SegmentContexts( strstr( $axisLabel, '#' ), $axis['dimension']->namespaceURI );
+										$memberFiltered = $cf->clone()->remove( $memberFiltered );
+									}
+									else
+									{
+										$memberFiltered = $cf->SegmentContexts( strstr( $axisLabel, '#' ), $axis['dimension']->namespaceURI,  "#" . $memElement['id'], $memberQName->namespaceURI );
+									}
+
+									if ( ! $memberFiltered->count() ) continue;
+									$memberContexts = array_merge( $memberContexts, $memberFiltered->getContexts() );
+
+									unset( $memTaxonomy );
+									unset( $memElement );
+									unset( $memberFiltered );
+								}
+
+								unset( $members );
+								unset( $memberQName );
+								unset( $memberLabel );
+								unset( $explicitMember );
+
+								if ( ! $memberContexts ) break;
+
+								$cf = new ContextsFilter( $instance, $memberContexts );
+
+								unset( $memberContexts );
+							}
+
+							// Pull the facts with these contexts
+							if ( ! $cf->count() ) continue;
+
+							$filteredFacts = array_filter( $facts, function( &$fact ) use( $cf ) { return (bool)$cf->getContext( $fact['contextRef'] ); } );
+							$columns[ $columnIndex ]['aggregates'] = $filteredFacts;
+
+							unset( $cf );
+							unset( $segment );
+							unset( $year );
+							unset( $filteredFacts );
+							unset( $explicitMembers );
 						}
 						unset( $fact ); // Gets confusing having old values hanging around
 						unset( $facts );
@@ -3178,6 +3315,38 @@ class XBRL_DFR // extends XBRL
 			$dropEmptyColumns( $factsLayout, $columnHierarchy, $columnCount, $headerColumnCount, $columnRefs, $columnLayout, $contextRefColumns, $factsLayout, $foundDroppableTypes );
 		}
 
+		// Remove single member rows. These will be multi-member axes but for which there is data for only one member
+		$r = count( $columnLayout ) - 1;
+		while ( $r > 1 )
+		{
+			$memberLabels = array_unique( array_map( function( $column ) { return $column['member-label']; }, $columnLayout[ $r ] ) );
+			if ( count( $memberLabels ) == 1 )
+			{
+				$memberLabel = reset( $memberLabels );
+				if ( ! is_null( $memberLabel ) )
+				{
+					$dimensionLabel = $columnLayout[ $r ][0]['dimension-label'];
+					// Add the dimension to the list of single members
+					$singleMemberAxes[ $dimensionLabel ] = $axes[ $dimensionLabel ];
+					// But leave on the member with member label
+					$memTaxonomy = $this->taxonomy->getTaxonomyForXSD( $memberLabel );
+					$memElement = $memTaxonomy->getElementById( $memberLabel );
+					$singleMemberAxes[ $dimensionLabel ]['members'] = array( $memberLabel => new QName( $memTaxonomy->getPrefix(), $memTaxonomy->getNamespace(), $memElement['name'] ) );
+					$pos = array_search( $dimensionLabel, $multiMemberAxes );
+					unset( $multiMemberAxes[ $pos ] );
+					$multiMemberAxesCount = count( $multiMemberAxes );
+
+					unset( $columnLayout[ $r ] );
+					unset( $columnLayout[ $r - 1 ] );
+					$headerRowCount -= 2;
+				}
+			}
+			$r--;
+			$r--;
+		}
+		unset( $r );
+		$columnLayout = array_values( $columnLayout );
+
 		// Generate a top for the report table
 		$top = function( $reportDateColumn, $headerColumnCount, $columnWidth ) use ( &$top, $lang )
 		{
@@ -3207,7 +3376,7 @@ class XBRL_DFR // extends XBRL
 			$firstFact = "first-fact";
 			for ( $i = 0; $i < $headerColumnCount; $i++ )
 			{
-				$domain = $lastLayoutColumns && ( $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] ) ? 'domain' : '';
+				$domain = $lastLayoutColumns && ( $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] || $lastLayoutColumns[ $i ]['in-domain'] ) ? 'domain' : '';
 				$reportTail .= "				<div class='report-line abstract-value final $firstFact $domain' ></div>";
 				$firstFact = '';
 			}
@@ -3376,7 +3545,7 @@ class XBRL_DFR // extends XBRL
 						$lastLayoutColumns = end( $columnLayout );
 						for ( $i = 0; $i < $headerColumnCount; $i++ )
 						{
-							$domain = $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] ? 'domain' : '';
+							$domain = $lastLayoutColumns[ $i ]['default-member'] || $lastLayoutColumns[ $i ]['domain-member'] || $lastLayoutColumns[ $i ]['in-domain'] ? 'domain' : '';
 							$divs[] = "<div class='report-line abstract-value $firstFact $domain' data-row='$row'></div>";
 							$firstFact = '';
 						}
@@ -3496,7 +3665,7 @@ class XBRL_DFR // extends XBRL
 								$currentColumn = $lastRowLayout[ $columnIndex ];
 								$type = (string) XBRL_Instance::getElementType( $fact );
 								$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
-								$columnTotalClass = ( $currentColumn['default-member'] || $currentColumn['domain-member'] /** || $currentColumn['root-member'] */ ) && $valueClass != 'left'
+								$columnTotalClass = ( $currentColumn['default-member'] || $currentColumn['domain-member'] || $currentColumn['in-domain'] /** || $currentColumn['root-member'] */ ) && $valueClass != 'left'
 									? 'domain'
 									: '';
 								if ( $columnIndex === 0 ) $valueClass .= ' first-fact';
@@ -3537,12 +3706,9 @@ class XBRL_DFR // extends XBRL
 								$title  = '';
 								$statusDiv = '<div></div>';
 								$statusClass = '';
-								// if ( isset( $factsLayout[ $label ]['rollupTotals'] ) )
 								if ( isset( $rowDetails['rollupTotals'] ) )
 								{
 									$totalValue = $instance->getNumericPresentation( $fact );
-									// $rollupTotal = isset( $factsLayout[ $label ]['rollupTotals'][ $columnIndex ] ) ? $factsLayout[ $label ]['rollupTotals'][ $columnIndex ] : 0;
-									// if ( isset( $factsLayout[ $label ]['calcTotals'][ $columnIndex ] ) )
 									if ( isset( $rowDetails['calcTotals'][ $columnIndex ] ) )
 									{
 										$calcTotal = $rowDetails['calcTotals'][ $columnIndex ];
@@ -3554,19 +3720,61 @@ class XBRL_DFR // extends XBRL
 										else
 										{
 											$statusClass = "mismatch";
-											// $title = "The rollup total does not match the sum of the report components ($rollupTotal) or the sum of the calculation components ($calcTotal)";
 											$title = "The rollup total does not match the sum of the calculation components ($calcTotal)";
 										}
 
 										$statusDiv = "<div class='$statusClass'></div>";
-										$title = "title='$title'";
 									}
+									unset( $totalValue );
+									unset( $calcTotal );
 								}
 
-								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass $statusClass $footnoteClass' $title data-row='$row'>$footnoteDiv$statusDiv$valueDiv</div>";
+								if ( $factIsNumeric && $currentColumn['in-domain'] && $fact['aggregates'] )
+								{
+									$totalValue = $instance->getNumericPresentation( $fact );
+									// Add up the components
+									$aggregateValues = array();
+									foreach ( $fact['aggregates'] as $componentFact )
+									{
+										if ( ! is_numeric( $componentFact['value'] ) ) continue;
+										$aggregateValues[] = $instance->getNumericPresentation( $componentFact );
+									}
+									$aggregateValue = array_sum( $aggregateValues );
+									$aggregateValuesList = join( ', ', $aggregateValues );
+
+									if ( $aggregateValue == $totalValue )
+									{
+										if ( $statusClass != 'mismatch' ) // If the rollup reported a mismatch continue to do so but update the title
+										{
+											$statusClass = 'match';
+										}
+										if ( $title ) $title .= ".  ";
+										$title = "The aggregate total matches the sum of the component member values ($aggregateValuesList)";
+									}
+									else
+									{
+										$statusClass = "mismatch";
+										if ( $title ) $title .= ".  ";
+										$title = "The aggregate total does not match the sum of the component member values ($aggregateValue: $aggregateValuesList)";
+									}
+
+									$statusDiv = "<div class='$statusClass'></div>";
+
+									unset( $aggregateValue );
+									unset( $aggregateValues );
+									unset( $aggregateValuesList );
+									unset( $totalValue );
+									unset( $componentFact );
+								}
+
+								if ( $title )
+								{
+									$title = "title='$title'";
+								}
+
+								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass $statusClass $footnoteClass' $title data-row='$row'>$statusDiv$footnoteDiv$valueDiv</div>";
 							}
 							unset( $fact ); // Gets confusing having old values hanging around
-							// unset( $facts );
 							unset( $columnFacts );
 
 							// Fill in
@@ -3574,8 +3782,8 @@ class XBRL_DFR // extends XBRL
 							{
 								if ( isset( $columns[ $columnIndex ] ) ) continue;
 								$firstFact = $columnIndex === 0 ? 'first-fact' : '';
-								$domain = $column['default-member'] || $column['domain-member'] ? 'domain' : '';
-								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $firstFact $domain' data-row='$row'></div>";
+								$domain = $column['default-member'] || $column['domain-member'] || $column['in-domain'] ? 'domain' : '';
+								$columns[ $columnIndex ] = "<div class='report-line no value $totalClass $firstFact $domain' data-row='$row'></div>";
 							}
 
 							ksort( $columns );
@@ -3591,7 +3799,7 @@ class XBRL_DFR // extends XBRL
 								$firstFact = "first-fact";
 								for ( $c = 0; $c < count( $columns ); $c++ )
 								{
-									$domain = $lastLayoutColumns[ $c ]['default-member'] || $lastLayoutColumns[ $c ]['domain-member'] ? 'domain' : '';
+									$domain = $lastLayoutColumns[ $c ]['default-member'] || $lastLayoutColumns[ $c ]['domain-member'] || $lastLayoutColumns[ $c ]['in-domain'] ? 'domain' : '';
 									$divs[] = "<div class='report-line value after-total $firstFact $domain'></div>";
 									$firstFact = '';
 								}
