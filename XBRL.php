@@ -1545,9 +1545,9 @@ class XBRL {
 			$xbrl = new $classname();
 			$xbrl->context =& $context;
 			$xbrl->fromStore( $data );
-			$xbrl->context->importedSchemas[ $namespace ] = $xbrl;
-			$xbrl->context->schemaFileToNamespace[ $xbrl->getSchemaLocation() ] = $namespace;
-			$xbrl->context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $namespace;
+			// $xbrl->context->importedSchemas[ $namespace ] = $xbrl;
+			// $xbrl->context->schemaFileToNamespace[ $xbrl->getSchemaLocation() ] = $namespace;
+			// $xbrl->context->schemaFileToNamespace[ $xbrl->getTaxonomyXSD() ] = $namespace;
 
 			if ( $namespace === $store['mainNamespace'] ) $instance = $xbrl;
 		}
@@ -3561,6 +3561,11 @@ class XBRL {
 		$this->elementDimensions	=& $data['elementDimensions'];
 		$this->schemaLocation		=& $data['schemaLocation'];
 		$this->namespace			=& $data['namespace'];
+
+		$this->context->importedSchemas[ $this->getNamespace() ] = $this;
+		$this->context->schemaFileToNamespace[ $this->getSchemaLocation() ] = $this->getNamespace();
+		$this->context->schemaFileToNamespace[ $this->getTaxonomyXSD() ] = $this->getNamespace();
+
 		$this->roleTypes			=& $data['roleTypes'];
 		if ( isset( $data['roleTypeIds'] ) )
 		{
