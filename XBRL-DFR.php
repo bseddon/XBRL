@@ -1602,10 +1602,10 @@ class XBRL_DFR // extends XBRL
 				// If not a variance then maybe a grid?
 				if ( $hypercubeLabel && ! $node['variance'] )
 				{
-					$otherAxes = array_filter( $axes[ $hypercubeLabel ], function( $axis )
+					$otherAxes = isset( $axes[ $hypercubeLabel ] ) ? array_filter( $axes[ $hypercubeLabel ], function( $axis )
 					{
 						return isset( $axis['dimension'] ) && ( ! in_array( $axis['dimension']->localName, $this->axesToExclude ) );
-					} );
+					} ) : array();
 
 					if ( $otherAxes )
 					{
@@ -2858,6 +2858,9 @@ class XBRL_DFR // extends XBRL
 					}
 					else
 					{
+						// Can only total numeric values
+						$isNumeric = $this->taxonomy->context->types->resolvesToBaseType( $nodeElement['type'], array( 'xs:decimal' ) );
+
 						// Add the data.  There is likely to be only a partial facts set
 						$facts = $instance->getElement( $nodeElement['name'] );
 						// Filter facts by contexts
@@ -2985,7 +2988,7 @@ class XBRL_DFR // extends XBRL
 								$row =& $rows[ $rollupLabel ];
 								foreach ( $row['columns'] as $columnIndex => $column )
 								{
-									$rollupItemValue = $instance->getNumericPresentation( $column ) * ( $nodeElement['balance'] == $row['element']['balance'] ? 1 : -1 );
+									$rollupItemValue = $instance->getNumericPresentation( $column ) * ( ! isset( $nodeElement['balance'] ) || ! isset( $row['element']['balance'] ) || $nodeElement['balance'] == $row['element']['balance'] ? 1 : -1 );
 									$rollupTotals[ $columnIndex] = (
 										isset( $rollupTotals[ $columnIndex] )
 											? $rollupTotals[ $columnIndex]
@@ -3005,12 +3008,19 @@ class XBRL_DFR // extends XBRL
 							$calculationTotals = array();
 							foreach ( $calculation as $calcItemLabel => $calcItem )
 							{
+								$weight = isset( $calcItem['weight'] ) && is_numeric( $calcItem['weight'] ) ? $calcItem['weight'] : 1;
+								// $weight = 1;
+								$sign = ( ! isset( $nodeElement['balance'] ) ||
+										  ! isset( $calcElement['balance'] ) ||
+										  $nodeElement['balance'] == $calcElement['balance'] ? 1 : -1
+										);
+								$sign = 1;
 								$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcItemLabel );
 								$calcElement = $calcTaxonomy->getElementById( $calcItemLabel );
 								$calcFacts = $instance->getElement( $calcElement['name'] );
 								foreach ( $calcFacts as $calcFact )
 								{
-									$rollupItemValue = $instance->getNumericPresentation( $calcFact ) * ( $nodeElement['balance'] == $calcElement['balance'] ? 1 : -1 );
+									$rollupItemValue = $instance->getNumericPresentation( $calcFact ) * $weight * $sign;
 									$calculationTotals[ $calcFact['contextRef'] ] = (
 										isset( $calculationTotals[ $calcFact['contextRef'] ] )
 											? $calculationTotals[ $calcFact['contextRef'] ]
@@ -3056,7 +3066,8 @@ class XBRL_DFR // extends XBRL
 								}
 							}
 
-							if ( ! $currentColumn['in-domain'] ) continue;
+							// If not 'in-domain' its not a total
+							if ( ! $isNumeric || ! $currentColumn['in-domain'] ) continue;
 
 							// OK, look for any details across the facts for this fact
 							// Begin by getting the contexts for these facts but exclude the ntext of the fact of the current column
@@ -3105,6 +3116,9 @@ class XBRL_DFR // extends XBRL
 								// Ignore the members only nodes
 								if ( ! isset( $axis['dimension'] ) ) continue;
 
+								$memberIsDomain = false;
+								$memberIsDefault = false;
+
 								// Filter the $cf contexts by each of the explicit dimensions
 								if ( ! isset( $explicitMembers[ $axisLabel ] ) )
 								{
@@ -3116,17 +3130,12 @@ class XBRL_DFR // extends XBRL
 										continue 2;
 									}
 
-									// if ( ! isset( $axis[ $axis['default-member'] ] ) )
-									// {
-									// 	// If the default-member does not have children then there can
-									// 	// be no valid components so continue on to the next fact
-									// 	continue 2;
-									// }
-
 									$explicitMember = array(
 										'member-label' => $axis['default-member'],
 										'member-qname' => $axis['members'][ $axis['default-member'] ]
 									);
+
+									$memberIsDefault = true;
 								}
 								else
 								{
@@ -3134,8 +3143,22 @@ class XBRL_DFR // extends XBRL
 								}
 
 								// Get the members
-								$members = isset( $axes[ $explicitMember['member-label'] ]['members'] ) ? $axes[ $explicitMember['member-label'] ]['members'] : array();
-								$members[ $explicitMember['member-label'] ] = $explicitMember['member-qname'];
+								if ( isset( $axes[ $explicitMember['member-label'] ]['members'] ) )
+								{
+								 	$members = $axes[ $explicitMember['member-label'] ]['members'];
+								}
+								else
+								{
+								 	$members = $axis['members'];
+								}
+
+								$memberIsDomain = $axis['domain-member'] == $explicitMember['member-label'];
+
+								// BMS 2019-06-23 Only add 'self' back when the member is NOT the default member
+								if ( ! $memberIsDefault )
+								{
+									$members[ $explicitMember['member-label'] ] = $explicitMember['member-qname'];
+								}
 
 								// Now get any contexts with any one of these members
 								$memberContexts = array();
@@ -3167,18 +3190,21 @@ class XBRL_DFR // extends XBRL
 								unset( $memberLabel );
 								unset( $explicitMember );
 
-								if ( ! $memberContexts ) break;
+								if ( ! $currentColumn['in-domain'] && ! $memberContexts ) break;
 
 								$cf = new ContextsFilter( $instance, $memberContexts );
 
 								unset( $memberContexts );
+
+								if ( ! $cf->count() ) break;
 							}
 
 							// Pull the facts with these contexts
 							if ( ! $cf->count() ) continue;
 
-							$filteredFacts = array_filter( $facts, function( &$fact ) use( $cf ) { return (bool)$cf->getContext( $fact['contextRef'] ); } );
-							$columns[ $columnIndex ]['aggregates'] = $filteredFacts;
+							// $filteredFacts = array_filter( $facts, function( &$fact ) use( $cf ) { return (bool)$cf->getContext( $fact['contextRef'] ); } );
+							// $columns[ $columnIndex ]['aggregates'] = $filteredFacts;
+							$columns[ $columnIndex ]['potentialContextRefs'] = array_keys( $cf->getContexts() );
 
 							unset( $cf );
 							unset( $segment );
@@ -3186,8 +3212,52 @@ class XBRL_DFR // extends XBRL
 							unset( $filteredFacts );
 							unset( $explicitMembers );
 						}
+
 						unset( $fact ); // Gets confusing having old values hanging around
-						unset( $facts );
+
+						if ( $isNumeric )
+						{
+							$contextRefs = array();
+							// TODO Looping in this order works while the columns are sorted such that the details appear before the totals
+							//		This will need to change if the presentation ever allows totals to appear first
+							foreach ( $contextRefColumns as $contextRef => $columnId )
+							{
+								if ( ! isset( $columnRefs[ $columnId ] ) ) continue;
+								$columnIndex = $columnRefs[ $columnId ];
+								$column = $lastRowLayout[ $columnIndex ];
+
+								if ( isset( $column['in-domain'] ) && $column['in-domain'] )
+								{
+									if ( $contextRefs && isset( $columns[ $columnIndex ]['potentialContextRefs'] ) )
+									{
+										$matchedContextRefs = array_intersect( $columns[ $columnIndex ]['potentialContextRefs'], $contextRefs );
+
+										$filteredFacts = $contextRefs
+											? array_filter( $facts, function( &$fact ) use( &$matchedContextRefs )
+												{
+													return in_array( $fact['contextRef'], $matchedContextRefs );
+												} )
+											: array();
+										$columns[ $columnIndex ]['aggregates'] = $filteredFacts;
+										$contextRefs = array_diff( $contextRefs, $matchedContextRefs );
+									}
+
+									unset( $columns[ $columnIndex ]['potentialContextRefs'] );
+								}
+								else
+								{
+									$contextRefs[] = $contextRef;
+								}
+
+								unset( $column );
+								unset( $columnIndex );
+							}
+
+							unset( $contextRef );
+							unset( $columnId );
+							unset( $contextRefs );
+							unset( $facts );
+						}
 
 						ksort( $columns );
 						$rows[ $label ] = array( 'columns' => $columns, 'taxonomy' => $nodeTaxonomy, 'element' => $nodeElement, 'node' => $node );
@@ -3670,24 +3740,26 @@ class XBRL_DFR // extends XBRL
 									: '';
 								if ( $columnIndex === 0 ) $valueClass .= ' first-fact';
 
+								$copyFact = $fact;
 								if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRoleNegatedLabel && $factIsNumeric )
 								{
-									$fact['value'] *= -1;
+									$copyFact['value'] *= -1;
 								}
 
 								// if ( isset( $fact['decimals'] ) && $fact['decimals'] < 0 ) $fact['decimals'] = 0;
-								$value = $nodeTaxonomy->formattedValue( $fact, $instance, false );
-								if ( strlen( $fact['value'] ) && is_numeric( $fact['value'] ) )
+								$value = $nodeTaxonomy->formattedValue( $copyFact, $instance, false );
+								if ( strlen( $copyFact['value'] ) && is_numeric( $copyFact['value'] ) )
 								{
 									if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
 									{
-										if ( $fact['value'] < 0 )
+										if ( $copyFact['value'] < 0 )
 										{
 											$valueClass .= ' neg';
 											// $value = "(" . abs( $fact['value'] ) . ")";
-											$fact['value'] = abs( $fact['value'] );
-											$value = "(" . $nodeTaxonomy->formattedValue( $fact, $instance, false ) . ")";
-											$fact['value'] *= -1;
+											$copyFact['value'] = abs( $fact['value'] );
+
+											$value = "(" . $nodeTaxonomy->formattedValue( $copyFact, $instance, false ) . ")";
+											// $fact['value'] *= -1;
 										}
 										else $valueClass .= ' pos';
 									}
@@ -3749,13 +3821,13 @@ class XBRL_DFR // extends XBRL
 											$statusClass = 'match';
 										}
 										if ( $title ) $title .= ".  ";
-										$title = "The aggregate total matches the sum of the component member values ($aggregateValuesList)";
+										$title .= "The aggregate total matches the sum of the component member values ($aggregateValuesList)";
 									}
 									else
 									{
 										$statusClass = "mismatch";
 										if ( $title ) $title .= ".  ";
-										$title = "The aggregate total does not match the sum of the component member values ($aggregateValue: $aggregateValuesList)";
+										$title .= "The aggregate total does not match the sum of the component member values ($aggregateValue: $aggregateValuesList)";
 									}
 
 									$statusDiv = "<div class='$statusClass'></div>";
@@ -4041,13 +4113,15 @@ class XBRL_DFR // extends XBRL
 
 					foreach ( $calculations as $calcLabel => $calcItem )
 					{
+						$row = isset( $factsLayout[ $calcLabel ] ) ? $factsLayout[ $calcLabel ] : null;
+						if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
+
 						$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcLabel );
 						$calcElement = $calcTaxonomy->getElementById( $calcLabel );
 						$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
 
 						$text = $calcTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcLabel, null, $lang, $elr );
-						$row = isset( $factsLayout[ $calcLabel ] ) ? $factsLayout[ $calcLabel ] : null;
-						$value = $row ? $instance->getNumericPresentation($row['columns'][ $columnIndex ]) : '';
+						$value = $row ? $instance->getNumericPresentation( $row['columns'][ $columnIndex ] ) : '';
 						$sign = isset( $calcItem['weight'] ) && $calcItem['weight'] < 0 ? '-' : '+';
 
 						$valueClass = "";
@@ -4061,12 +4135,14 @@ class XBRL_DFR // extends XBRL
 							else $valueClass = ' pos';
 						}
 
+						$balance = isset( $calcElement['balance'] ) ? $calcElement['balance'] : '';
+						$decimals = isset( $row['columns'][ $columnIndex ]['decimals'] ) ? $row['columns'][ $columnIndex ]['decimals'] : 'INF';
 						$reportTable .=
 							"				<div class='business-rules-row line-item' title='$calcQName'>$text</div>" .
 							"				<div class='business-rules-row calculated $valueClass'>$value</div>" .
 							"				<div class='business-rules-row sign'>$sign</div>" .
-							"				<div class='business-rules-row balance'>{$calcElement['balance']}</div>" .
-							"				<div class='business-rules-row decimals last'>{$row['columns'][ $columnIndex ]['decimals']}</div>";
+							"				<div class='business-rules-row balance'>$balance</div>" .
+							"				<div class='business-rules-row decimals last'>$decimals</div>";
 					}
 
 					$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
@@ -4087,12 +4163,14 @@ class XBRL_DFR // extends XBRL
 						else $valueClass .= ' pos';
 					}
 
+					$balance = isset( $calcElement['balance'] ) ? $calcElement['balance'] : '';
+					$decimals = isset( $totalRow['columns'][ $columnIndex ]['decimals'] ) ? $totalRow['columns'][ $columnIndex ]['decimals'] : 'INF';
 					$reportTable .=
 						"				<div class='business-rules-row line-item' title='$calcQName'>$calcTotalText</div>" .
 						"				<div class='business-rules-row calculated total $valueClass $matchClass'>$totalValue</div>" .
 						"				<div class='business-rules-row sign'></div>" .
-						"				<div class='business-rules-row balance'>{$calcElement['balance']}</div>" .
-						"				<div class='business-rules-row decimals last'>{$totalRow['columns'][ $columnIndex ]['decimals']}</div>";
+						"				<div class='business-rules-row balance'>$balance</div>" .
+						"				<div class='business-rules-row decimals last'>$decimals</div>";
 
 					$reportTable .=
 						"				<div class='business-rules-row line-item final'></div>" .
