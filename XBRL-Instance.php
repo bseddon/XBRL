@@ -3115,6 +3115,9 @@ class XBRL_Instance
 			return NAN;
 		}
 
+		// BMS 2019-06-21
+		if ( empty( $entry['value'] ) ) $entry['value'] = 0;
+
 		// Using PHP_ROUND_HALF_EVEN see XBRL 2.1 section 4.6.7.2
 		$decimals = $this->getDecimals( $entry );
 		return $decimals == INF
