@@ -2929,6 +2929,7 @@ class XBRL_DFR // extends XBRL
 										if ( $fact['contextRef'] != $contextRef ) continue;
 										if ( ! $hasReportDateAxis )
 										{
+											$fact['priorContextRef'] = $fact['contextRef'];
 											$fact['contextRef'] = $cbFact['contextRef'];
 										}
 										$facts[ $factIndex ] = $fact;
@@ -2980,47 +2981,58 @@ class XBRL_DFR // extends XBRL
 						{
 							$rollupTotal = true;
 
-							// Add up the fact values taking into account the weight and balance
-							$rollupTotals = array();
-							foreach ( $nodes as $rollupLabel => $rollupNode )
-							{
-								if ( $rollupLabel == $label || ! isset( $rows[ $rollupLabel ] ) ) continue;
-								$row =& $rows[ $rollupLabel ];
-								foreach ( $row['columns'] as $columnIndex => $column )
-								{
-									$rollupItemValue = $instance->getNumericPresentation( $column ) * ( ! isset( $nodeElement['balance'] ) || ! isset( $row['element']['balance'] ) || $nodeElement['balance'] == $row['element']['balance'] ? 1 : -1 );
-									$rollupTotals[ $columnIndex] = (
-										isset( $rollupTotals[ $columnIndex] )
-											? $rollupTotals[ $columnIndex]
-											: 0
-										) + $rollupItemValue;
-
-									unset( $rollupItemValue );
-								}
-								unset( $columnIndex );
-								unset( $column );
-								unset( $row );
-							}
-							unset( $rollupNode );
-							unset( $rollupLabel );
+							// // Add up the fact values taking into account the weight and balance
+							// $rollupTotals = array();  // Rollup totals are no longer used
+							// foreach ( $nodes as $rollupLabel => $rollupNode )
+							// {
+							// 	if ( $rollupLabel == $label || ! isset( $rows[ $rollupLabel ] ) ) continue;
+							// 	$row =& $rows[ $rollupLabel ];
+							// 	foreach ( $row['columns'] as $columnIndex => $column )
+							// 	{
+							// 		$rollupItemValue = $instance->getNumericPresentation( $column ) *
+							// 			(
+							// 			  ! isset( $nodeElement['balance'] ) ||
+							// 			  ! isset( $row['element']['balance'] ) ||
+							// 				$nodeElement['balance'] == $row['element']['balance'] ? 1 : -1
+							// 			);
+							// 		$rollupTotals[ $columnIndex] = (
+							// 			isset( $rollupTotals[ $columnIndex] )
+							// 				? $rollupTotals[ $columnIndex]
+							// 				: 0
+							// 			) + $rollupItemValue;
+                            //
+							// 		unset( $rollupItemValue );
+							// 	}
+							// 	unset( $columnIndex );
+							// 	unset( $column );
+							// 	unset( $row );
+							// }
+							// unset( $rollupNode );
+							// unset( $rollupLabel );
 
 							$calculation =& $this->calculationNetworks[ $elr ]['calculations'][ $node['label'] ];
 							$calculationTotals = array();
+							$calculationDetails = array();
 							foreach ( $calculation as $calcItemLabel => $calcItem )
 							{
 								$weight = isset( $calcItem['weight'] ) && is_numeric( $calcItem['weight'] ) ? $calcItem['weight'] : 1;
-								// $weight = 1;
-								$sign = ( ! isset( $nodeElement['balance'] ) ||
-										  ! isset( $calcElement['balance'] ) ||
-										  $nodeElement['balance'] == $calcElement['balance'] ? 1 : -1
-										);
-								$sign = 1;
 								$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcItemLabel );
 								$calcElement = $calcTaxonomy->getElementById( $calcItemLabel );
+								// $sign = ( ! isset( $nodeElement['balance'] ) ||
+								// 		  ! isset( $calcElement['balance'] ) ||
+								// 		  $nodeElement['balance'] == $calcElement['balance'] ? 1 : -1
+								// 		);
+								// $sign = 1;
 								$calcFacts = $instance->getElement( $calcElement['name'] );
 								foreach ( $calcFacts as $calcFact )
 								{
-									$rollupItemValue = $instance->getNumericPresentation( $calcFact ) * $weight * $sign;
+									$rollupItemValue = $instance->getNumericPresentation( $calcFact );
+									$calculationDetails[ $calcFact['contextRef'] ][ $calcItemLabel ] = $rollupItemValue . ( $weight != 1 ? " * $weight " : "" );
+
+									// // KLUDGE: It seems users sometimes enter a negative value when the balances are opposite
+									// $negated = $nodes[$calcItemLabel]['preferredLabel'] == XBRL_Constants::$labelRoleNegatedLabel;
+									// if ( ! $negated && $sign == -1 && $rollupItemValue < 0 ) $weight = 1;
+									$rollupItemValue *= $weight; // * $sign;
 									$calculationTotals[ $calcFact['contextRef'] ] = (
 										isset( $calculationTotals[ $calcFact['contextRef'] ] )
 											? $calculationTotals[ $calcFact['contextRef'] ]
@@ -3055,14 +3067,19 @@ class XBRL_DFR // extends XBRL
 
 							if ( $rollupTotal )
 							{
-								$sum = isset( $rollupTotals[ $columnIndex ] ) ? $rollupTotals[ $columnIndex ] : 0;
-								$inferredDecimals = $instance->getDecimals( $fact );
-								$rollupTotals[ $columnIndex ] = is_infinite( $inferredDecimals ) ? $sum : round( $sum, $instance->getDecimals( $fact ), PHP_ROUND_HALF_EVEN );
+								// $sum = isset( $rollupTotals[ $columnIndex ] ) ? $rollupTotals[ $columnIndex ] : 0;
+								// $inferredDecimals = $instance->getDecimals( $fact );
+								// $rollupTotals[ $columnIndex ] = is_infinite( $inferredDecimals ) ? $sum : round( $sum, $instance->getDecimals( $fact ), PHP_ROUND_HALF_EVEN );
 
 								if ( isset( $calculationTotals[ $fact['contextRef'] ] ) )
 								{
 									$calculationTotals[ $columnIndex ] = $calculationTotals[ $fact['contextRef'] ];
 									unset( $calculationTotals[ $fact['contextRef'] ] );
+								}
+								if ( isset( $calculationDetails[ $fact['contextRef'] ] ) )
+								{
+									$calculationDetails[ $columnIndex ] = $calculationDetails[ $fact['contextRef'] ];
+									unset( $calculationDetails[ $fact['contextRef'] ] );
 								}
 							}
 
@@ -3263,14 +3280,14 @@ class XBRL_DFR // extends XBRL
 						$rows[ $label ] = array( 'columns' => $columns, 'taxonomy' => $nodeTaxonomy, 'element' => $nodeElement, 'node' => $node );
 						if ( $rollupTotal )
 						{
-							$rows[ $label ]['rollupTotals'] = $rollupTotals;
+							$rows[ $label ]['calcDetails'] = $calculationDetails;
 							$rows[ $label ]['calcTotals'] = $calculationTotals;
 							if ( $parentLabel )
 							{
 								$rows[ $parentLabel ] = $rows[ $label ];
 							}
 							unset( $calculationTotals );
-							unset( $rollupTotals );
+							unset( $calcItemLabel );
 						}
 						unset( $columns );
 					}
@@ -3538,6 +3555,7 @@ class XBRL_DFR // extends XBRL
 			$firstRow = reset( $nodes );
 			$lastRow = end( $nodes );
 			if ( $patternType == 'rollup' ) $depth++;
+			$formulaSummaries = $this->getFormulaSummariesForRole( $formulas, $elr );
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -3631,6 +3649,20 @@ class XBRL_DFR // extends XBRL
 						if ( $rowDetails )
 						{
 							$columnFacts = isset( $rowDetails['columns'] ) ? $rowDetails['columns'] : array();
+							ksort( $columnFacts );
+
+							// This is used to hold a map of contexts for formulas. Normally the map will be contextRef -> contextRef
+							// But when there is a roll forward fact set then it will allow the contextRef of a fact of a formula to
+							// be remapped to the correct one for the fact set
+							$periodStart = isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel;
+							$contextRefMap = $periodStart
+								? array_reduce( $columnFacts, function( $carry, $fact ) { $carry[ $fact['contextRef'] ] = isset( $fact['priorContextRef'] ) ? $fact['priorContextRef'] : $fact['contextRef']; return $carry; }, array() )
+								: array();
+
+							$rowClarkName = "{{$rowDetails['taxonomy']->getNamespace()}}{$rowDetails['element']['name']}";
+							$conceptResults = isset( $formulaSummaries[ "{{$rowDetails['taxonomy']->getNamespace()}}{$rowDetails['element']['name']}" ] )
+								? $formulaSummaries[ $rowClarkName ]
+								: array();
 
 							// This line MUST appear after preferred labels have been processed
 							$divs[] = "		<div class='report-line line-item $totalClass depth$depth' data-row='$row' title='$title'>$text</div>";
@@ -3658,7 +3690,7 @@ class XBRL_DFR // extends XBRL
 											: ( isset( $contexts[ $fact['contextRef'] ]['scenario'] )
 												? $contexts[ $fact['contextRef'] ]['scenario']
 												: null ) ) );
-
+								$occ = $instance->getContextSegment( $contexts[ $fact['contextRef'] ] );
 								if ( $occ && isset( $occ['explicitMember'] ) )
 								{
 									$reportDateAxisTaxonomy = $nodeTaxonomy->getTaxonomyForXSD( $hasReportDateAxis );
@@ -3702,6 +3734,7 @@ class XBRL_DFR // extends XBRL
 
 							// The last row of the column layout is a list of columns and ids
 							$lastRowLayout = end( $columnLayout );
+							$formulaTestToReport = false;
 
 							foreach ( $columnFacts as $columnIndex => $fact )
 							{
@@ -3755,11 +3788,8 @@ class XBRL_DFR // extends XBRL
 										if ( $copyFact['value'] < 0 )
 										{
 											$valueClass .= ' neg';
-											// $value = "(" . abs( $fact['value'] ) . ")";
 											$copyFact['value'] = abs( $fact['value'] );
-
 											$value = "(" . $nodeTaxonomy->formattedValue( $copyFact, $instance, false ) . ")";
-											// $fact['value'] *= -1;
 										}
 										else $valueClass .= ' pos';
 									}
@@ -3778,65 +3808,103 @@ class XBRL_DFR // extends XBRL
 								$title  = '';
 								$statusDiv = '<div></div>';
 								$statusClass = '';
-								if ( isset( $rowDetails['rollupTotals'] ) )
-								{
-									$totalValue = $instance->getNumericPresentation( $fact );
-									if ( isset( $rowDetails['calcTotals'][ $columnIndex ] ) )
-									{
-										$calcTotal = $rowDetails['calcTotals'][ $columnIndex ];
-										if ( /* $rollupTotal == $totalValue && */ $calcTotal == $totalValue )
-										{
-											$statusClass = 'match';
-											$title = 'The rollup total matches the sum of the report component values';
-										}
-										else
-										{
-											$statusClass = "mismatch";
-											$title = "The rollup total does not match the sum of the calculation components ($calcTotal)";
-										}
 
-										$statusDiv = "<div class='$statusClass'></div>";
-									}
-									unset( $totalValue );
-									unset( $calcTotal );
+								// Begin checking for formula test results
+								// The context of the formula may not be the correct reporting formula in an open/close (roll forward) fact set
+								// So use the context ref map if one is available
+								$contextRef = $periodStart && $contextRefMap && isset( $contextRefMap[ $fact['contextRef'] ] ) ? $contextRefMap[ $fact['contextRef'] ] : $fact['contextRef'];
+								$isTotalRow = strpos( $totalClass, 'total' ) !== false;
+								if ( isset( $conceptResults[ $contextRef ] ) && ( $isTotalRow || $currentColumn['dimension-label'] ) )
+								{
+									$formulaTestToReport = $conceptResults[ $contextRef ];
 								}
 
-								if ( $factIsNumeric && $currentColumn['in-domain'] && $fact['aggregates'] )
+								// Allow a formula to take precedence over a calculation network
+								if ( $formulaTestToReport && ( $isTotalRow || $currentColumn['in-domain'] || ! $currentColumn['dimension-label'] ) )
 								{
-									$totalValue = $instance->getNumericPresentation( $fact );
-									// Add up the components
-									$aggregateValues = array();
-									foreach ( $fact['aggregates'] as $componentFact )
+									if ( $formulaTestToReport['satisfied'])
 									{
-										if ( ! is_numeric( $componentFact['value'] ) ) continue;
-										$aggregateValues[] = $instance->getNumericPresentation( $componentFact );
-									}
-									$aggregateValue = array_sum( $aggregateValues );
-									$aggregateValuesList = join( ', ', $aggregateValues );
-
-									if ( $aggregateValue == $totalValue )
-									{
-										if ( $statusClass != 'mismatch' ) // If the rollup reported a mismatch continue to do so but update the title
-										{
-											$statusClass = 'match';
-										}
-										if ( $title ) $title .= ".  ";
-										$title .= "The aggregate total matches the sum of the component member values ($aggregateValuesList)";
+										$statusClass = 'match';
+										$title = "The formula calculation value matches the reported value ({$formulaTestToReport['message']})";
 									}
 									else
 									{
 										$statusClass = "mismatch";
-										if ( $title ) $title .= ".  ";
-										$title .= "The aggregate total does not match the sum of the component member values ($aggregateValue: $aggregateValuesList)";
+										$difference = $formulaTestToReport['value'] - $fact['value'];
+										$title = "The formula calculation does not match the reported value. The difference is $difference ({$formulaTestToReport['message']})";
+										unset( $difference );
 									}
 
 									$statusDiv = "<div class='$statusClass'></div>";
 
-									unset( $aggregateValue );
-									unset( $aggregateValues );
-									unset( $aggregateValuesList );
-									unset( $totalValue );
-									unset( $componentFact );
+									// The test has been reported
+									$formulaTestToReport = false;
+								}
+								else
+								{
+									if ( isset( $rowDetails['calcTotals'] ) )
+									{
+										$totalValue = $instance->getNumericPresentation( $fact );
+										if ( isset( $rowDetails['calcTotals'][ $columnIndex ] ) )
+										{
+											$calcTotal = $rowDetails['calcTotals'][ $columnIndex ];
+											if ( $calcTotal == $totalValue )
+											{
+												$statusClass = 'match';
+												$title = 'The rollup total matches the sum of the report component values';
+											}
+											else
+											{
+												$statusClass = "mismatch";
+												$calcDetails = join( ' + ', array_values( $rowDetails['calcDetails'][ $columnIndex ] ) );
+												$difference = $calcTotal - $totalValue;
+												$title = "The rollup total does not match the sum of the calculation components. The difference is $difference ($calcTotal = $calcDetails)";
+												unset( $calcDetails );
+												unset( $difference );
+											}
+
+											$statusDiv = "<div class='$statusClass'></div>";
+										}
+										unset( $totalValue );
+										unset( $calcTotal );
+									}
+									else if ( $factIsNumeric && $currentColumn['in-domain'] && $fact['aggregates'] )
+									{
+										$totalValue = $instance->getNumericPresentation( $fact );
+										// Add up the components
+										$aggregateValues = array();
+										foreach ( $fact['aggregates'] as $componentFact )
+										{
+											if ( ! is_numeric( $componentFact['value'] ) ) continue;
+											$aggregateValues[] = $instance->getNumericPresentation( $componentFact );
+										}
+										$aggregateValue = array_sum( $aggregateValues );
+										$aggregateValuesList = join( ', ', $aggregateValues );
+
+										if ( $aggregateValue == $totalValue )
+										{
+											if ( $statusClass != 'mismatch' ) // If the rollup reported a mismatch continue to do so but update the title
+											{
+												$statusClass = 'match';
+											}
+											if ( $title ) $title .= ".  ";
+											$title .= "The aggregate total matches the sum of the component member values ($aggregateValuesList)";
+										}
+										else
+										{
+											$statusClass = "mismatch";
+											if ( $title ) $title .= ".  ";
+											$title .= "The aggregate total does not match the sum of the component member values ($aggregateValue: $aggregateValuesList)";
+										}
+
+										$statusDiv = "<div class='$statusClass'></div>";
+
+										unset( $aggregateValue );
+										unset( $aggregateValues );
+										unset( $aggregateValuesList );
+										unset( $totalValue );
+										unset( $componentFact );
+									}
 								}
 
 								if ( $title )
@@ -3846,6 +3914,7 @@ class XBRL_DFR // extends XBRL
 
 								$columns[ $columnIndex ] = "<div class='report-line value $totalClass $columnTotalClass $valueClass $statusClass $footnoteClass' $title data-row='$row'>$statusDiv$footnoteDiv$valueDiv</div>";
 							}
+
 							unset( $fact ); // Gets confusing having old values hanging around
 							unset( $columnFacts );
 
@@ -4194,4 +4263,40 @@ class XBRL_DFR // extends XBRL
 		return $reportTable;
 	}
 
+	/**
+	 * Caches the formulas summaries
+	 * @var array
+	 */
+	private $formulaSummeriesCache = array();
+
+	/**
+	 * An empty array to return by reference
+	 * @var array
+	 */
+	private $emptyArray = array();
+	/**
+	 * Returns an array of summaries
+	 * @param XBRL_Formulas $formulas
+	 * @return array
+	 */
+	private function &getFormulaSummaries( $formulas )
+	{
+		if ( ! $formulas ) return $this->emptyArray;
+		if ( ! $this->formulaSummeriesCache ) $this->formulaSummeriesCache = $formulas->getValueAssertionFormulaSummaries();
+
+		return $this->formulaSummeriesCache;
+	}
+
+	/**
+	 * Returns an array of summaries
+	 * @param XBRL_Formulas $formulas
+	 * @param string $roleUri
+	 * @return array
+	 */
+	public function &getFormulaSummariesForRole( $formulas, $roleUri )
+	{
+		$summaries =& $this->getFormulaSummaries( $formulas );
+		if ( ! isset( $summaries[ $roleUri ] ) ) return $this->emptyArray;
+		return $summaries[ $roleUri ];
+	}
 }
