@@ -713,7 +713,7 @@ class VariableSet extends Resource
 
 	/**
 	 * Returns a set of details for a fact
-	 * @param DOMXPathNavigator|XPathItem $fact
+	 * @param DOMXPathNavigator|XPathItem $variable Variable representing a fact
 	 * @param bool $includePrefix (default: true) When true a prefix indicating the type of value will be included
 	 * @return array
 	 */
@@ -736,7 +736,7 @@ class VariableSet extends Resource
 	 * @param array $vars
 	 * @return mixed[]
 	 */
-	public function createDefaultMessage( $test, $vars )
+	public function createDefaultMessage( $test, $vars, $includeVeriableName = true )
 	{
 		$substitutions = array();
 
@@ -750,8 +750,15 @@ class VariableSet extends Resource
 
 		foreach ( $substitutions as $name => $substitution )
 		{
-			$test = preg_replace('/\b' . $name . '\b/', "$name $substitution", $test);
-			// $test = str_replace( $name, $name . " " . $substitution, $test );
+			if ( $includeVeriableName )
+			{
+				$test = preg_replace('/\b' . $name . '\b/', "$name $substitution", $test );
+			}
+			else
+			{
+				$substitution = ltrim( rtrim( $substitution, ')' ), '(' );
+				$test = preg_replace('/\b' . $name . '\b/', "$substitution", $test );
+			}
 		}
 
 		return $test;
