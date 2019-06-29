@@ -2009,6 +2009,7 @@ class XBRL {
 				return "right";
 
 			case 'nonnum:textBlockItemType':
+			case 'nonnum:escapedItemType':
 			case 'xbrli:dateItemType':
 			case 'xbrli:stringItemType':
 			case 'xbrli:booleanItemType':
