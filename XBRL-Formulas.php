@@ -49,6 +49,8 @@ use XBRL\Formulas\ScopeVariableBinding;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use XBRL\Formulas\Resources\Variables\Instance;
 use lyquidity\xml\QName;
+use XBRL\Formulas\Resources\Assertions\ValueAssertion;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
  * Main class for formula evaluation
@@ -187,12 +189,88 @@ class XBRL_Formulas extends Resource
 	}
 
 	/**
+	 * Returns an array of assertion information indexed by role and concept
+	 * @return array
+	 */
+	public function getValueAssertionFormulaSummaries()
+	{
+		$conceptsTested = array();
+
+		foreach ( $this->getVariableSets() as $roleUri => $roleFormulas )
+		{
+			$roleUri = strpos( $roleUri, '#' ) === false ? $roleUri : strstr( $roleUri, '#', true );
+
+			foreach ( $roleFormulas as $formulaIndex => $formula )
+			{
+				if ( ! $formula instanceof ValueAssertion ) continue;
+
+				/** @var ValueAssertion $valueAssertion  */
+				$valueAssertion = $formula;
+
+				// Get all the variable references
+				$variableNames = array_keys( $valueAssertion->variablesByQName );
+
+				// Look for the equality operator and split the test
+				$testAssigmentVariables = array();
+				foreach ( array( '=', 'eq', 'gt', 'lt', 'ge', 'le' ) as $equality )
+				{
+					$left = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( strstr( $valueAssertion->test, $equality, true ) ) ) ), $variableNames );
+					$right = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( ltrim( strstr( $valueAssertion->test, $equality ), $equality ) ) ) ), $variableNames );
+
+					$testAssigmentVariables += count( $left ) ==1 && count( $right ) >= 1
+						? $left
+						: (
+							count( $right ) == 1 && count( $left ) >= 1
+								? $right
+								: array()
+						  );
+					if ( count( $left ) || count( $right ) ) break;
+				}
+
+				$addTestResult = function( &$result, $success ) use( &$testAssigmentVariables, &$conceptsTested, $valueAssertion, $roleUri, &$variableNames )
+				{
+					foreach ( $testAssigmentVariables as $testAssigmentVariable )
+					{
+						/** @var DOMXPathNavigator $navigator */
+						$navigator = $result['vars'][ $testAssigmentVariable ];
+						if ( ! $navigator instanceof DOMXPathNavigator ) continue;
+
+						$variableDetails = $valueAssertion->getVariableDetails( $navigator, false );
+						$message = $valueAssertion->createDefaultMessage( $valueAssertion->test, $result['vars'], false );
+						$variableDetails['message'] = $message;
+						$variableDetails['satisfied'] = $success;
+
+						/** @var QName $qname */
+						$qName = qname( $variableDetails['concept'], array( $navigator->getPrefix() => $navigator->getNamespaceURI() ) );
+						$conceptsTested[ $roleUri ][ $qName->clarkNotation() ][ $variableDetails['context'] ] = $variableDetails;
+					}
+
+				};
+
+				foreach ( $valueAssertion->satisfied as $index => $satisfied )
+				{
+					$addTestResult( $satisfied, true );
+				}
+
+				foreach ( $valueAssertion->unsatisfied as $index => $unsatisfied )
+				{
+					$addTestResult( $unsatisfied, false );
+				}
+			}
+
+		}
+
+		return $conceptsTested;
+	}
+
+	/**
 	 * Process any formulas in $taxonomy against the array of instances in $instances
 	 *
 	 * @param array|XBRL_Instance $instances	A single or an array of XBRL_Instance instances
 	 * @param array $additionalNamespaces		(optional) An array of namespaces indexed by prefix
 	 * 											These could be from a test cases or other document
 	 * @param array $contextParameters			A list of parameters to be added to the context
+	 * @param string|null $roleFilterPart (optional) Retrict the evaluation of formulas to those with $roleFilterPart in the roleUri
 	 *
 	 *	For each formula
 	 *		Determine any parameters then evaluate them and add them to the variable set
@@ -232,7 +310,7 @@ class XBRL_Formulas extends Resource
 	 *
 	 * @return void
 	 */
-	public function processFormulasAgainstInstances( $instances, $additionalNamespaces = null, $contextParameters = null )
+	public function processFormulasAgainstInstances( $instances, $additionalNamespaces = null, $contextParameters = null, $roleFilterPart = null )
 	{
 		$this->canEvaluate = true;
 		$result = true;
@@ -328,7 +406,7 @@ class XBRL_Formulas extends Resource
 				// }
 				// exit();
 
-				if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
+				if ( ! $this->validateCommon( $taxonomy, $contextParameters, $roleFilterPart ) )
 				{
 					$result = false;
 					// return false;
@@ -448,9 +526,10 @@ class XBRL_Formulas extends Resource
 	 * Process the validations common to all variable sets
 	 * @param XBRL $taxonomy
 	 * @param array $contextParameters A list of the parameter values to be used as sources for formula parameters
+	 * @param string|null $roleFilterPart (optional) Retrict the evaluation of formulas to those with $roleFilterPart in the roleUri
 	 * @return bool
 	 */
-	private function validateCommon( $taxonomy, $contextParameters )
+	private function validateCommon( $taxonomy, $contextParameters, $roleFilterPart = null )
 	{
 		// if ( ! $this->validateParameters( $taxonomy, $contextParameters ) )
 		// {
@@ -462,7 +541,7 @@ class XBRL_Formulas extends Resource
 			return false;
 		}
 
-		if ( ! $this->validateVariableSets( $taxonomy, $contextParameters ) )
+		if ( ! $this->validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart ) )
 		{
 			return false;
 		}
@@ -729,9 +808,11 @@ class XBRL_Formulas extends Resource
 	/**
 	 * Process and validate the variables in the current taxonomy
 	 * @param XBRL $taxonomy
+	 * @param array $contextParameters
+	 * @param string|null $roleFilterPart (optional) Retrict the evaluation of formulas to those with $roleFilterPart in the roleUri
 	 * @return bool
 	 */
-	private function validateVariableSets( $taxonomy, $contextParameters )
+	private function validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart = null )
 	{
 		// Variable sets are headed by a formula or assertion
 		$variableSets = $taxonomy->getGenericResource( 'variableset', null );
@@ -739,6 +820,10 @@ class XBRL_Formulas extends Resource
 		if ( $variableSets )
 		foreach ( $variableSets as $index => $variableSet )
 		{
+			if ( $roleFilterPart )
+			{
+				if ( strpos( $variableSet['roleUri'], $roleFilterPart ) === false ) continue;
+			}
 			$variableSetResource = $variableSet['variableset'];
 
 			// Workout the class for this variable set resource
