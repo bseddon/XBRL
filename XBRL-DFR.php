@@ -489,18 +489,18 @@ class XBRL_DFR // extends XBRL
 
 	}
 
-	/**
-	 * This function allows a descendent to do something with the information before it is deleted if helpful
-	 * This function can be overridden by a descendent class
-	 *
-	 * @param array $dimensionalNode A node which has element 'nodeclass' === 'dimensional'
-	 * @param array $parentNode
-	 * @return bool True if the dimensional information should be deleted
-	 */
-	protected function beforeDimensionalPruned( $dimensionalNode, &$parentNode )
-	{
-		return false;
-	}
+	// /**
+	//  * This function allows a descendent to do something with the information before it is deleted if helpful
+	//  * This function can be overridden by a descendent class
+	//  *
+	//  * @param array $dimensionalNode A node which has element 'nodeclass' === 'dimensional'
+	//  * @param array $parentNode
+	//  * @return bool True if the dimensional information should be deleted
+	//  */
+	// protected function beforeDimensionalPruned( $dimensionalNode, &$parentNode )
+	// {
+	// 	return false;
+	// }
 
 	/**
 	 * Translate constant text used in the slicers, components and elsewhere
@@ -1309,11 +1309,6 @@ class XBRL_DFR // extends XBRL
 						break;
 
 					case 'cm.xsd#cm_Concept':
-						// if ( $patternType == 'rollup' )
-						// {
-						//	$ok = true;
-						//	break;
-						// }
 
 						if ( ! $element['abstract'] && $element['type'] != 'nonnum:domainItemType' && $this->taxonomy->isPrimaryItem( $element ) )
 						{
@@ -2191,6 +2186,49 @@ class XBRL_DFR // extends XBRL
 	}
 
 	/**
+	 * Create a set of links to the fact sets at the top of the page
+	 * @param array $network
+	 * @param string $elr
+	 */
+	private function renderFactSetLinks( $network, $elr, $lang = null )
+	{
+		// class='factset-links'
+		$nodes = $network['hierarchy'];
+
+		$getAbstracts = function( $nodes ) use( &$getAbstracts, $lang )
+		{
+			$results = array();
+
+			foreach( $nodes as $label => $node )
+			{
+				if ( isset( $node['patterntype'] ) && $node['patterntype'] && isset( $node['modelType'] ) && $node['modelType'] == 'cm.xsd#cm_Abstract' )
+				{
+					$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
+					$element = $taxonomy->getElementById( $label );
+
+					$text = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $label, null, $lang );
+
+					$results[] = "<div class='factset-link' data-name='{$element['name']}'>$text</div>";
+				}
+
+				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
+
+				$results = array_merge( $results, $getAbstracts( $node['children'] ) );
+			}
+
+			return $results;
+		};
+
+		$abstracts = $getAbstracts( $nodes );
+
+		return	$abstracts
+			? "<div class='report-table-links'>" .
+				implode('', $abstracts ) .
+			  "</div>"
+			: '';
+	}
+
+	/**
 	 * Render a report with columns for any years and dimensions
 	 * @param array $network
 	 * @param array $nodes The node hierarchy to report.  At the top level this will be $network['hierarchy']
@@ -2615,9 +2653,13 @@ class XBRL_DFR // extends XBRL
 
 							// if ( count( $multiMemberAxes ) == 1 ) continue;
 
-							$totalChildren += $addToColumnHierarchy( $member['children'], array_slice( $multiMemberAxes, 1 ) );
-							// $nextMembers['total-children'] = $totalChildren;
-							// unset( $nextMembers );
+							$immediateChildren = $addToColumnHierarchy( $member['children'], array_slice( $multiMemberAxes, 1 ) );
+							// Remove any immediate children that have no descendents
+							if ( ! $immediateChildren )
+							{
+								unset( $members[ $index ] );
+							}
+							$totalChildren += $immediateChildren;
 						}
 					}
 					unset( $member );
@@ -2643,6 +2685,8 @@ class XBRL_DFR // extends XBRL
 			$result = array();
 			foreach ( $columnNodes as $axisLabel => $columnMembers )
 			{
+				if ( ! $columnMembers['total-children'] ) continue;
+
 				$details = array( 'text' => $axisLabel, 'span' => $columnMembers['total-children'] );
 				$columnLayout[ $depth ][] = $details;
 
@@ -2749,7 +2793,11 @@ class XBRL_DFR // extends XBRL
 						if ( $result )
 						{
 							$columns['total-children']--;
-							if ( ! count( $column['children'] ) )
+							if ( ! $axis[ $axisId ]['total-children'] )
+							{
+								unset( $axis[ $axisId ] );
+							}
+							else if ( ! count( $column['children'] ) )
 							{
 								unset( $columns[ $id ] );
 							}
@@ -2819,11 +2867,13 @@ class XBRL_DFR // extends XBRL
 				 $columnLayout, $columnRefs, $contextRefColumns,
 				 $elr, $hasReportDateAxis, $nodesToProcess, &$accumulatedTables )
 		{
+			global $allowAggregations;
 			$rows = array();
 			$priorRowContextRefsForByColumns = array();
 
 			$firstRow = reset( $nodes );
 			$lastRow = end( $nodes );
+			$hasOpenBalance = false;
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -2868,7 +2918,7 @@ class XBRL_DFR // extends XBRL
 
 						// echo count( $facts ) . " $label\n";
 
-						if ( $first && isset( $node['preferredLabel'] ) )
+						if ( /* $first */ ! $hasOpenBalance && isset( $node['preferredLabel'] ) )
 						{
 							$openingBalance = $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel;
 							$cf = new ContextsFilter( $instance, $contexts );
@@ -2877,6 +2927,8 @@ class XBRL_DFR // extends XBRL
 
 							if ( $hasReportDateAxis ) // && $node['preferredLabel'] == self::$originallyStatedLabel )
 							{
+								$hasOpenBalance = true;
+
 								// If there is domain or default member of ReportDateAxis then one approach
 								// is taken to find an opening balance.  If not the another approach is required.
 								$axis = $axes[ $hasReportDateAxis ];
@@ -2903,6 +2955,8 @@ class XBRL_DFR // extends XBRL
 
 							if ( $openingBalance )
 							{
+								$hasOpenBalance = true;
+
 								$cbFacts = $facts;
 								$facts = array();
 								foreach ( $cbFacts as $cbFactIndex => $cbFact )
@@ -2981,35 +3035,6 @@ class XBRL_DFR // extends XBRL
 						{
 							$rollupTotal = true;
 
-							// // Add up the fact values taking into account the weight and balance
-							// $rollupTotals = array();  // Rollup totals are no longer used
-							// foreach ( $nodes as $rollupLabel => $rollupNode )
-							// {
-							// 	if ( $rollupLabel == $label || ! isset( $rows[ $rollupLabel ] ) ) continue;
-							// 	$row =& $rows[ $rollupLabel ];
-							// 	foreach ( $row['columns'] as $columnIndex => $column )
-							// 	{
-							// 		$rollupItemValue = $instance->getNumericPresentation( $column ) *
-							// 			(
-							// 			  ! isset( $nodeElement['balance'] ) ||
-							// 			  ! isset( $row['element']['balance'] ) ||
-							// 				$nodeElement['balance'] == $row['element']['balance'] ? 1 : -1
-							// 			);
-							// 		$rollupTotals[ $columnIndex] = (
-							// 			isset( $rollupTotals[ $columnIndex] )
-							// 				? $rollupTotals[ $columnIndex]
-							// 				: 0
-							// 			) + $rollupItemValue;
-                            //
-							// 		unset( $rollupItemValue );
-							// 	}
-							// 	unset( $columnIndex );
-							// 	unset( $column );
-							// 	unset( $row );
-							// }
-							// unset( $rollupNode );
-							// unset( $rollupLabel );
-
 							$calculation =& $this->calculationNetworks[ $elr ]['calculations'][ $node['label'] ];
 							$calculationTotals = array();
 							$calculationDetails = array();
@@ -3027,7 +3052,7 @@ class XBRL_DFR // extends XBRL
 								foreach ( $calcFacts as $calcFact )
 								{
 									$rollupItemValue = $instance->getNumericPresentation( $calcFact );
-									$calculationDetails[ $calcFact['contextRef'] ][ $calcItemLabel ] = $rollupItemValue . ( $weight != 1 ? " * $weight " : "" );
+									$calculationDetails[ $calcFact['contextRef'] ][ "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}" ] = $rollupItemValue . ( $weight != 1 ? " * $weight " : "" );
 
 									// // KLUDGE: It seems users sometimes enter a negative value when the balances are opposite
 									// $negated = $nodes[$calcItemLabel]['preferredLabel'] == XBRL_Constants::$labelRoleNegatedLabel;
@@ -3067,10 +3092,6 @@ class XBRL_DFR // extends XBRL
 
 							if ( $rollupTotal )
 							{
-								// $sum = isset( $rollupTotals[ $columnIndex ] ) ? $rollupTotals[ $columnIndex ] : 0;
-								// $inferredDecimals = $instance->getDecimals( $fact );
-								// $rollupTotals[ $columnIndex ] = is_infinite( $inferredDecimals ) ? $sum : round( $sum, $instance->getDecimals( $fact ), PHP_ROUND_HALF_EVEN );
-
 								if ( isset( $calculationTotals[ $fact['contextRef'] ] ) )
 								{
 									$calculationTotals[ $columnIndex ] = $calculationTotals[ $fact['contextRef'] ];
@@ -3083,8 +3104,11 @@ class XBRL_DFR // extends XBRL
 								}
 							}
 
-							// If not 'in-domain' its not a total
-							if ( ! $isNumeric || ! $currentColumn['in-domain'] ) continue;
+							// If not 'in-domain' its not an aggregate total
+							// Aggregations tend not to work except in simple examples because it hard to determine where the
+							// boundaries of an aggregation occur.  Also the structure of axis members is often 'wrong' and
+							// should contain multiple levels.
+							if ( ! $isNumeric || ! $currentColumn['in-domain'] || ! $allowAggregations ) continue;
 
 							// OK, look for any details across the facts for this fact
 							// Begin by getting the contexts for these facts but exclude the ntext of the fact of the current column
@@ -3232,7 +3256,7 @@ class XBRL_DFR // extends XBRL
 
 						unset( $fact ); // Gets confusing having old values hanging around
 
-						if ( $isNumeric )
+						if ( $isNumeric && $allowAggregations ) // Aggregations tend not to work except in simple examples
 						{
 							$contextRefs = array();
 							// TODO Looping in this order works while the columns are sorted such that the details appear before the totals
@@ -3290,13 +3314,21 @@ class XBRL_DFR // extends XBRL
 							unset( $calcItemLabel );
 						}
 						unset( $columns );
+
+						if ( $hasOpenBalance )
+						{
+							if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel )
+							{
+								$hasOpenBalance = false;
+							}
+						}
 					}
-				}
+				} //if $lineItems
 
 				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
 
 				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems ) );
-			}
+			} // foreach $nodes
 
 			return $rows;
 		};
@@ -3341,11 +3373,13 @@ class XBRL_DFR // extends XBRL
 			for ( $columnIndex = 0; $columnIndex<$headerColumnCount; $columnIndex++ )
 			{
 				$empty = true;
+				$zerosOnly = true;
 				$firstRow = reset( $rows );
 				$lastRow = end( $rows );
 
 				foreach ( $rows as $label => $row )
 				{
+					if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
 					if ( $row['element']['periodType'] == 'instant' && isset( $row['node']['preferredLabel'] ) )
 					{
 						$preferredLabel = $row['node']['preferredLabel'];
@@ -3356,7 +3390,8 @@ class XBRL_DFR // extends XBRL
 										$hasReportDateAxis && ( $row == $firstRow || $row == $lastRow ) ;
 						if ( $balanceItem ) continue;  // Ignore closing balance
 					}
-					if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
+
+					if ( ! $row['columns'][ $columnIndex ]['value'] ) continue;
 
 					$empty = false;
 					break;
@@ -3381,7 +3416,7 @@ class XBRL_DFR // extends XBRL
 			// Correct the facts layout rows
 			foreach ( $factsLayout as $rowIndex => $row )
 			{
-				// Make sure the facts are sorted in column order so they are shuffled into their new places without cause a clash
+				// Make sure the facts are sorted in column order so they are shuffled into their new places without causing a clash
 				ksort( $row['columns'] );
 
 				// Create a new column index for each fact, effectively shuffling them up
@@ -3395,7 +3430,7 @@ class XBRL_DFR // extends XBRL
 			}
 		};
 
-		$droppableTypesList = array( 'adjustment', 'rollforward', 'rollforwardinfo', 'set' );
+		$droppableTypesList = array( 'adjustment', 'rollup', 'rollforward', 'rollforwardinfo', 'set' );
 		$foundDroppableTypes = array_filter( $factSetTypes, function( $type ) use ( $droppableTypesList ) { return in_array( $type, $droppableTypesList ); } );
 		if ( $lineItems || $foundDroppableTypes )
 		{
@@ -3628,7 +3663,7 @@ class XBRL_DFR // extends XBRL
 						}
 						// Abstract rows laid out here
 						$startDateAxisStyle = $hasReportDateAxis ? 'style="grid-column-start: span 2;"' : '';
-						$divs[] = "		<div class='report-line line-item abstract depth$depth' data-row='$row' $startDateAxisStyle title='$title'>$text</div>";
+						$divs[] = "		<div class='report-line line-item abstract depth$depth' data-row='$row' $startDateAxisStyle title='$title' name='{$nodeElement['name']}'>$text</div>";
 						$firstFact = "first-fact";
 						$lastLayoutColumns = end( $columnLayout );
 						for ( $i = 0; $i < $headerColumnCount; $i++ )
@@ -3768,9 +3803,16 @@ class XBRL_DFR // extends XBRL
 								$currentColumn = $lastRowLayout[ $columnIndex ];
 								$type = (string) XBRL_Instance::getElementType( $fact );
 								$valueClass = empty( $type ) ? '' : $nodeTaxonomy->valueAlignment( $type, $instance );
-								$columnTotalClass = ( $currentColumn['default-member'] || $currentColumn['domain-member'] || $currentColumn['in-domain'] /** || $currentColumn['root-member'] */ ) && $valueClass != 'left'
-									? 'domain'
-									: '';
+								$columnTotalClass = '';
+								if ( ( $currentColumn['default-member'] || $currentColumn['domain-member'] || $currentColumn['in-domain'] /** || $currentColumn['root-member'] */ ) )
+								{
+									if ( $valueClass != 'left' )
+									{
+										$columnTotalClass = ' domain';
+									}
+									$valueClass = ' domain';
+								}
+
 								if ( $columnIndex === 0 ) $valueClass .= ' first-fact';
 
 								$copyFact = $fact;
@@ -3848,20 +3890,30 @@ class XBRL_DFR // extends XBRL
 										if ( isset( $rowDetails['calcTotals'][ $columnIndex ] ) )
 										{
 											$calcTotal = $rowDetails['calcTotals'][ $columnIndex ];
+											if ( ( $decimals = $instance->getDecimals( $fact ) ) && is_integer( $decimals ) )
+											{
+												$calcTotal = round( $calcTotal, $decimals );
+												unset( $decimals );
+											}
+											// $calcDetails = join( ' + ', array_values( $rowDetails['calcDetails'][ $columnIndex ] ) );
+											$calcDetails = join( ' + ', XBRL::array_reduce_key( $rowDetails['calcDetails'][ $columnIndex ], function( $carry, $detail, $key )
+											{
+												$carry[] = "($key) $detail";
+												return $carry;
+											}, array() ) );
 											if ( $calcTotal == $totalValue )
 											{
 												$statusClass = 'match';
-												$title = 'The rollup total matches the sum of the report component values';
+												$title = "The rollup total matches the sum of the report component values ($calcTotal = $calcDetails)";
 											}
 											else
 											{
 												$statusClass = "mismatch";
-												$calcDetails = join( ' + ', array_values( $rowDetails['calcDetails'][ $columnIndex ] ) );
 												$difference = $calcTotal - $totalValue;
 												$title = "The rollup total does not match the sum of the calculation components. The difference is $difference ($calcTotal = $calcDetails)";
-												unset( $calcDetails );
 												unset( $difference );
 											}
+											unset( $calcDetails );
 
 											$statusDiv = "<div class='$statusClass'></div>";
 										}
@@ -4078,18 +4130,21 @@ class XBRL_DFR // extends XBRL
 
 		$report =
 			"<div class='report-selection'>
-				<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Report sections' ) . ":</span>
+				<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Rendering sections' ) . ":</span>
 				<input type='checkbox' name='report-selection' id='report-selection-structure' data-class='structure-table' />
 				<label for='report-selection-structure'>" . $this->getConstantTextTranslation( $lang, 'Structure' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-slicers' data-class='slicers-table' checked />
 				<label for='report-selection-slicers'>" . $this->getConstantTextTranslation( $lang, 'Slicers' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-report' data-class='report-section' checked />
-				<label for='report-selection-report'>" . $this->getConstantTextTranslation( $lang, 'Report' ) . "</label>
+				<label for='report-selection-report'>" . $this->getConstantTextTranslation( $lang, 'Rendering' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-facts' data-class='facts-section'  />
 				<label for='report-selection-facts'>" . $this->getConstantTextTranslation( $lang, 'Facts' ) . "</label>
 				<input type='checkbox' name='report-selection' id='report-selection-Rules' data-class='business-rules-section' />
 				<label for='report-selection-rules'>" . $this->getConstantTextTranslation( $lang, 'Rules' ) . "</label>
-				</div>" .
+			</div>" .
+
+			$this->renderFactSetLinks( $network, $elr ) .
+
 			"<div class='model-structure'>" .
 			$componentTable . $structureTable . $slicers . $reportTable . $renderFactsTable . $businessRules .
 			"</div>";
