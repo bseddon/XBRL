@@ -1120,6 +1120,8 @@ class XBRL_US_GAAP_2015 extends XBRL
 		switch ( $type )
 		{
 			case 'us-types:dateStringItemType':
+			case 'us-types:gYearListItemType':
+			case 'us-types:gYearListItemType':
 			case 'dei:fiscalPeriodItemType':
 			case 'dei:submissionTypeItemType':
 			case 'dei:centralIndexKeyItemType':
