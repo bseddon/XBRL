@@ -4787,14 +4787,17 @@ class XBRL_Instance
 					$flattenedValues = array_map( function( $item ) {
 						return "[" . join( ',', $item ) . "]";
 					}, $itemValues );
-
+					// Doing this because if the value is INF then if the message is written to JSON it causes an error
+					$precision = $this->getPrecision( $fromFactEntry );
+					if ( is_infinite( $precision ) ) $precision = 'INF';
+					else if ( is_nan( $precision ) ) $precision = 'NAN';
 					$this->log()->instance_validation( "5.2.5.2" , "The calculation source and corresponding items are not equivalent",
 						array(
 							'role' => $roleKey,
 							'from' => $from,
 							'from value' => $fromValue,
 							'contextRef' => $fromFactEntry['contextRef'],
-							'precision' => $this->getPrecision( $fromFactEntry ) ,
+							'precision' => $precision ,
 							'item total' => $sum,
 							'comparison total' => $comparisonTotal,
 							'item values' => $this->log()->arrayToDescription( $flattenedValues ),
