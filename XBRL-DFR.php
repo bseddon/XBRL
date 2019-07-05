@@ -27,10 +27,8 @@
  */
 require_once('XBRL.php');
 
-use XBRL\Formulas\Resources\Variables\FactVariable;
 use XBRL\Formulas\Resources\Filters\ConceptName;
 use lyquidity\xml\QName;
-use XBRL\Formulas\Resources\Assertions\ValueAssertion;
 
 define( 'NEGATIVE_AS_BRACKETS', 'brackets' );
 define( 'NEGATIVE_AS_MINUS', 'minus' );
@@ -536,20 +534,20 @@ class XBRL_DFR // extends XBRL
 	 * Renders an evidence package for a set of networks
 	 * @param array $networks
 	 * @param XBRL_Instance $instance
-	 * @param XBRL_Formulas $formulas
+	 * @param array $formulaSummaries
 	 * @param Observer $observer
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetworks( $networks, $instance, $formulas, $observer, $evaluationResults, $lang = null, $echo = true )
+	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $evaluationResults, $lang = null, $echo = true )
 	{
 		$result = array();
 
 		foreach ( $networks as $elr => $network )
 		{
 			$entityHasReport = false;
-			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, $entityHasReport, $lang, $echo );
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $evaluationResults, $entityHasReport, $lang, $echo );
 
 			// error_log( $elr );
 			$result[ $elr ] = array(
@@ -567,7 +565,7 @@ class XBRL_DFR // extends XBRL
 	 * @param array $network
 	 * @param string $elr
 	 * @param XBRL_Instance $instance
-	 * @param XBRL_Formulas $formulas
+	 * @param array $formulaSummaries
 	 * @param Observer $observer
 	 * @param array $evaluationResults
 	 * @param bool $entityHasReport
@@ -575,7 +573,7 @@ class XBRL_DFR // extends XBRL
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, $formulas, $observer, $evaluationResults, &$entityHasReport = false, $lang = null, $echo = true )
+	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, $evaluationResults, &$entityHasReport = false, $lang = null, $echo = true )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -600,7 +598,7 @@ class XBRL_DFR // extends XBRL
 			$entityQName = qname( $entity );
 
 			$hasReport = false;
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $hasReport, $lang, $echo );
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, $hasReport, $lang, $echo );
 			$entityHasReport |= $hasReport;
 		}
 
@@ -609,10 +607,10 @@ class XBRL_DFR // extends XBRL
 
 	/**
 	 * Validate the the taxonomy against the model structure rules
-	 * @param XBRL_Formulas $formula An evaluated formulas instance
+	 * @param array $formulaSummaries An evaluated formulas instance
 	 * @return array|null
 	 */
-	public function validateDFR( $formulas )
+	public function validateDFR( &$formulaSummaries )
 	{
 		global $reportModelStructureRuleViolations;
 
@@ -805,20 +803,20 @@ class XBRL_DFR // extends XBRL
 			$this->presentationPIs[ $elr ] = array_unique( $this->presentationPIs[ $elr ] );
 
 			// This set of closures will become methods in a class
-			$formulasForELR = array();
-			if ( $formulas )
-			{
-				$variableSets = $formulas->getVariableSets();
-				foreach ( $variableSets as $variableSetQName => $variableSetForQName )
-				{
-					foreach ( $variableSetForQName as /** @var ValueAssertion $variableSet */ $variableSet )
-					{
-						if ( $variableSet->extendedLinkRoleUri != $elr ) continue;
-						if ( ! $variableSet instanceof ValueAssertion ) continue;
-						$formulasForELR[] = $variableSet;
-					}
-				}
-			}
+			// $formulasForELR = array();
+			// if ( $formulas )
+			// {
+			// 	$variableSets = $formulas->getVariableSets();
+			// 	foreach ( $variableSets as $variableSetQName => $variableSetForQName )
+			// 	{
+			// 		foreach ( $variableSetForQName as /** @var ValueAssertion $variableSet */ $variableSet )
+			// 		{
+			// 			if ( $variableSet->extendedLinkRoleUri != $elr ) continue;
+			// 			if ( ! $variableSet instanceof ValueAssertion ) continue;
+			// 			$formulasForELR[] = $variableSet;
+			// 		}
+			// 	}
+			// }
 
 			$calculationELRPIs = isset( $this->calculationPIs[ $elr ] ) ? $this->calculationPIs[ $elr ] : array();
 
@@ -832,7 +830,7 @@ class XBRL_DFR // extends XBRL
 			$primaryItems = $this->taxonomy->getDefinitionRolePrimaryItems( $elr );
 			$currentPrimaryItem = array();
 
-			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR, $primaryItems, $currentPrimaryItem, null, null );
+			$this->processNodes( $role['hierarchy'], null, false, $this->allowed['cm.xsd#cm_Network'], false, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulaSummaries, $primaryItems, $currentPrimaryItem, null, null );
 
 			if ( isset( $this->definitionNetworks[ $elr ] ) )
 			{
@@ -926,34 +924,34 @@ class XBRL_DFR // extends XBRL
 
 	/**
 	 * Look for a concept in each formula's filter
-	 * @param array $formulasForELR (ref) Array of formulas defined for the ELR
+	 * @param array $formulaSummariesForELR (ref) Array of formulas defined for the ELR
 	 * @param XBRL_DFR $taxonomy
 	 * @param array $element
 	 * @return boolean
 	 */
-	private function findConceptInFormula( &$formulasForELR, $taxonomy, $element )
+	private function findConceptInFormula( &$formulaSummariesForELR, $taxonomy, $element )
 	{
-		if ( ! $formulasForELR ) return false;
+		if ( ! $formulaSummariesForELR ) return false;
 
 		$conceptClark = "{" . $taxonomy->getNamespace() . "}" . $element['name'];
-
-		foreach ( $formulasForELR as $variableSet )
-		{
-			foreach ( $variableSet->variablesByQName as $qname => $variable )
-			{
-				if ( ! $variable instanceof FactVariable ) continue;
-				foreach ( $variable->filters as $x => $filter )
-				{
-					if ( ! $filter instanceof ConceptName ) continue;
-					foreach ( $filter->qnames as $clark )
-					{
-						if ( $clark == $conceptClark ) return true;;
-					}
-				}
-			}
-		}
-
-		return false;
+		return isset( $formulaSummariesForELR[ $conceptClark ] );
+		// foreach ( $formulasForELR as $variableSet )
+		// {
+		// 	foreach ( $variableSet->variablesByQName as $qname => $variable )
+		// 	{
+		// 		if ( ! $variable instanceof FactVariable ) continue;
+		// 		foreach ( $variable->filters as $x => $filter )
+		// 		{
+		// 			if ( ! $filter instanceof ConceptName ) continue;
+		// 			foreach ( $filter->qnames as $clark )
+		// 			{
+		// 				if ( $clark == $conceptClark ) return true;
+		// 			}
+		// 		}
+		// 	}
+		// }
+        //
+		// return false;
 	}
 
 	/**
@@ -1137,10 +1135,10 @@ class XBRL_DFR // extends XBRL
 	 * @param array		$lineItems (ref)
 	 * @param array		$axes (ref)
 	 * @param array		$concepts (ref)
-	 * @param array		$formulasForELR (ref)
+	 * @param array		$formulaSummaries (ref)
 	 * @return string
 	 */
-	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes, &$concepts, &$formulasForELR, &$primaryItems, &$currentPrimaryItem, $currentHypercubeLabel, $currentDimensionLabel )
+	private function processNodes( &$nodes, $parentLabel, $parentIsAbstract, $validNodeTypes, $underLineItems, &$calculationELRPIs, $elr, &$presentationRollupPIs, &$tables, &$lineItems, &$axes, &$concepts, &$formulaSummaries, &$primaryItems, &$currentPrimaryItem, $currentHypercubeLabel, $currentDimensionLabel )
 	{
 		$possiblePatternTypes = array();
 		$patternType = ''; // Default pattern
@@ -1380,7 +1378,7 @@ class XBRL_DFR // extends XBRL
 									{
 										if ( $element['periodType'] == 'instant' )
 										{
-											if ( in_array( 'rollforward', $possiblePatternTypes ) && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) ) )
+											if ( in_array( 'rollforward', $possiblePatternTypes ) && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) ) )
 											{
 												$patternType = "rollforward";
 												$possiblePatternTypes = array();
@@ -1410,7 +1408,7 @@ class XBRL_DFR // extends XBRL
 										}
 									}
 
-									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
+									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
 									{
 										$patternType = "complex";
 										$possiblePatternTypes = array();
@@ -1425,7 +1423,7 @@ class XBRL_DFR // extends XBRL
 									}
 								}
 
-								if ( ! in_array( 'complex', $possiblePatternTypes ) && $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
+								if ( ! in_array( 'complex', $possiblePatternTypes ) && $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
 								{
 									$possiblePatternTypes[] = 'complex';
 								}
@@ -1440,7 +1438,7 @@ class XBRL_DFR // extends XBRL
 									if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel )
 									{
 										$possiblePatternTypes[] = 'rollforwardinfo';
-										if ( $element['periodType'] == 'instant' && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) ) )
+										if ( $element['periodType'] == 'instant' && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) ) )
 										{
 											$possiblePatternTypes[] = 'rollforward';
 										}
@@ -1459,13 +1457,19 @@ class XBRL_DFR // extends XBRL
 									// Text
 									if ( $element['type'] == 'nonnum:textBlockItemType' )
 									{
-										// $patternType = 'text';
-										$possiblePatternTypes[] = 'text';
+										if ( $last ) // Could be the first and last (that is, the only) element
+										{
+											$patternType = 'text';
+										}
+										else
+										{
+											$possiblePatternTypes[] = 'text';
+										}
 									}
 								}
 
 								// Complex
-								if ( $this->findConceptInFormula( $formulasForELR, $taxonomy, $element ) )
+								if ( $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
 								{
 									if ( $last )
 									{
@@ -1550,7 +1554,7 @@ class XBRL_DFR // extends XBRL
 			$isLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
 			$isAbstract = $node['modelType'] == 'cm.xsd#cm_Abstract';
 			$underLineItems |= $isLineItems;
-			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulasForELR, $primaryItems, $currentPrimaryItem, $currentHypercubeLabel, $currentDimensionLabel );
+			$result = $this->processNodes( $node['children'], $label, $isAbstract, $this->allowed[ $child ], $underLineItems, $calculationELRPIs, $elr, $presentationRollupPIs, $tables, $lineItems, $axes, $concepts, $formulaSummaries, $primaryItems, $currentPrimaryItem, $currentHypercubeLabel, $currentDimensionLabel );
 			$node['patterntype'] = $result;
 
 			if ( $underLineItems && ( $isAbstract || $isLineItems ) && ! $result )
@@ -2235,14 +2239,15 @@ class XBRL_DFR // extends XBRL
 	 * @param string $elr
 	 * @param XBRL_Instance $instance
 	 * @param QName $entityQName
-	 * @param XBRL_Formulas $formulas	The evaluated formulas
+	 * @param array $formulaSummaries	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param $evaluationResults		The results of validating the formulas
+	 * @param string $allowConstrained  Set to false if the view is only one column of text
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param string $parentLabel
 	 * @return string
 	 */
-	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, $lang = null, $parentLabel = null )
+	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, &$formulaSummaries, $observer, $evaluationResults, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, &$allowConstrained, $lang = null, $parentLabel = null )
 	{
 		/**
 		 * How does this work?
@@ -3541,8 +3546,8 @@ class XBRL_DFR // extends XBRL
 				 $columnCount, &$columnLayout, &$columnRefs, &$contextRefColumns, $elr,
 				 &$contexts, $factsLayout, &$resultFactsLayout, $headerColumnCount, $headerRowCount, $rowCount,
 				 &$factSetTypes, $hasReportDateAxis, &$tail, &$top, &$network,
-				 $entityQName, $formulas, $observer, $evaluationResults, &$nodesToProcess,
-				 $reportDateColumn, &$singleMemberAxes, $lang
+				 $entityQName, &$formulaSummaries, $observer, $evaluationResults, &$nodesToProcess,
+				 $reportDateColumn, &$singleMemberAxes, $lang, &$allowConstrained
 			)
 		{
 			$divs = array();
@@ -3590,7 +3595,7 @@ class XBRL_DFR // extends XBRL
 			$firstRow = reset( $nodes );
 			$lastRow = end( $nodes );
 			if ( $patternType == 'rollup' ) $depth++;
-			$formulaSummaries = $this->getFormulaSummariesForRole( $formulas, $elr );
+			// $formulaSummaries = $this->getFormulaSummariesForRole( $formulas, $elr );
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -3659,7 +3664,7 @@ class XBRL_DFR // extends XBRL
 							{
 								$main = $patternType != $node['patterntype'];
 							}
-							$patternType = $node['patterntype'];
+							// $patternType = $node['patterntype'];
 						}
 						// Abstract rows laid out here
 						$startDateAxisStyle = $hasReportDateAxis ? 'style="grid-column-start: span 2;"' : '';
@@ -3676,6 +3681,18 @@ class XBRL_DFR // extends XBRL
 					else
 					{
 						// All other (concept) rows laid out here
+						if ( ! $allowConstrained )
+						{
+							if ( $headerColumnCount > 1 )
+							{
+								$allowConstrained = true;
+							}
+							else if ( $patternType != 'text' )
+							{
+								$allowConstrained = ! $this->taxonomy->context->types->resolvesToBaseType($nodeElement['type'], array( 'nonnum:escapedItemType' ) );
+							}
+						}
+
 						$row++;
 						$totalClass = isset( $node['total'] ) && $node['total'] ? 'total' : '';
 						$totalClass .= $main && $totalClass ? ' main' : '';
@@ -3695,8 +3712,8 @@ class XBRL_DFR // extends XBRL
 								: array();
 
 							$rowClarkName = "{{$rowDetails['taxonomy']->getNamespace()}}{$rowDetails['element']['name']}";
-							$conceptResults = isset( $formulaSummaries[ "{{$rowDetails['taxonomy']->getNamespace()}}{$rowDetails['element']['name']}" ] )
-								? $formulaSummaries[ $rowClarkName ]
+							$conceptResults = isset( $formulaSummaries[ $elr ][ $rowClarkName ] )
+								? $formulaSummaries[ $elr ][ $rowClarkName ]
 								: array();
 
 							// This line MUST appear after preferred labels have been processed
@@ -3713,18 +3730,9 @@ class XBRL_DFR // extends XBRL
 									$totalClass = 'total';
 								}
 
-								$reportAxisMemberClass = '';
+								$reportAxisMemberClass = 'report-axis';
 								$fact = reset( $columnFacts );
 								$text = ''; // By default there is no text for the column
-								$occ = isset( $contexts[ $fact['contextRef'] ]['entity']['segment'] )
-									? $contexts[ $fact['contextRef'] ]['entity']['segment']
-									: ( isset( $contexts[ $fact['contextRef'] ]['entity']['scenario'] )
-										? $contexts[ $fact['contextRef'] ]['entity']['scenario']
-										: ( isset( $contexts[ $fact['contextRef'] ]['segment'] )
-											? $contexts[ $fact['contextRef'] ]['segment']
-											: ( isset( $contexts[ $fact['contextRef'] ]['scenario'] )
-												? $contexts[ $fact['contextRef'] ]['scenario']
-												: null ) ) );
 								$occ = $instance->getContextSegment( $contexts[ $fact['contextRef'] ] );
 								if ( $occ && isset( $occ['explicitMember'] ) )
 								{
@@ -3757,7 +3765,7 @@ class XBRL_DFR // extends XBRL
 								else if ( $axis['default-member'] )
 								{
 									$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axis['default-member'], null, $lang, $elr );
-									$reportAxisMemberClass = 'default-member';
+									$reportAxisMemberClass .= ' default-member';
 								}
 
 								$divs[] = "<div class='report-line member-label value $reportAxisMemberClass' title='$title'>$text</div>";
@@ -3810,7 +3818,7 @@ class XBRL_DFR // extends XBRL
 									{
 										$columnTotalClass = ' domain';
 									}
-									$valueClass = ' domain';
+									$valueClass .= ' domain';
 								}
 
 								if ( $columnIndex === 0 ) $valueClass .= ' first-fact';
@@ -4014,7 +4022,7 @@ class XBRL_DFR // extends XBRL
 					$nextAccumulatedTables[ $label ] = $network['tables'][ $label ];
 
 					$resultFactsLayout[ $label ] = array();
-					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $lang, $text );
+					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $allowConstrained, $lang, $text );
 
 					if ( ! $render ) continue;
 
@@ -4032,7 +4040,7 @@ class XBRL_DFR // extends XBRL
 
 					// Create slicers and opening <div> elements for the rest of the previous section
 					$divs[] = $this->renderSlicers( $network, $instance, $entityQName, $elr, $singleMemberAxes, null, new ContextsFilter( $instance, $contexts ), $lang );
-					$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'minmax(100px, max-content)' : '100px';
+					$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'minmax(300px, max-content)' : '100px';
 					$divs[] = $top( $reportDateColumn, $headerColumnCount, $columnWidth );
 					unset( $nextAccumulatedTables );
 
@@ -4041,7 +4049,7 @@ class XBRL_DFR // extends XBRL
 				}
 				else
 				{
-					$result = $createLayout( $accumulatedTables, $footnotes, $node['children'], $lineItems, $patternType, $main, $row, $headersDisplayed, $depth, $excludeEmptyHeadrers, array_merge( $lasts, array( $last ) ) );
+					$result = $createLayout( $accumulatedTables, $footnotes, $node['children'], $lineItems, isset( $node['patterntype'] ) ? $node['patterntype'] : 'set', $main, $row, $headersDisplayed, $depth, $excludeEmptyHeadrers, array_merge( $lasts, array( $last ) ) );
 					$divs = array_merge( $divs, $result['divs'] );
 					$headersDisplayed = $result['headersDisplayed'];
 					$trailingNodes = $result['trailingNodes'];
@@ -4051,7 +4059,7 @@ class XBRL_DFR // extends XBRL
 			return array( 'divs' => $divs, 'trailingNodes' => $trailingNodes, 'headersDisplayed' => $headersDisplayed, 'lastLayoutColumns' => end( $columnLayout ) );
 		};
 
-		$columnWidth = $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ? 'minmax(100px, max-content)' : '100px';
+		$columnWidth = ! $hasReportDateAxis && ( $headerColumnCount == 1 || array_search( 'text', $factSetTypes ) ) ? 'minmax(300px, max-content)' : '100px';
 
 		$footnotes = array();
 
@@ -4075,14 +4083,14 @@ class XBRL_DFR // extends XBRL
 	 * @param string $elr				The extended link role URI
 	 * @param XBRL_Instance $instance	The instance being reported
 	 * @param QName $entityQName
-	 * @param XBRL_Formulas $formulas	The evaluated formulas
+	 * @param array						$formulaSummaries	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param array $evaluationResults	The results of validating the formulas
 	 * @param bool $hasReport
 	 * @param $echo						If true the HTML will be echoed
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulas, $observer, $evaluationResults, &$hasReport = false, $lang = null, $echo = true )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, &$hasReport = false, $lang = null, $echo = true )
 	{
 		$componentTable = $this->renderComponentTable( $network, $elr, $lang );
 
@@ -4103,11 +4111,12 @@ class XBRL_DFR // extends XBRL
 
 		$factsLayouts[] = array();
 		$excludeEmptyHeadrers = false;
+		$allowConstrained = false;
 		$row = 0;
 		$reportTable = $this->renderReportTable(
-			$network, $network['hierarchy'], $elr, $instance, $entityQName, $formulas,
+			$network, $network['hierarchy'], $elr, $instance, $entityQName, $formulaSummaries,
 			$observer, $evaluationResults, $factsLayouts, $accumulatedTables, $nodesToProcess,
-			false, $excludeEmptyHeadrers, $row, array(), $lang );
+			false, $excludeEmptyHeadrers, $row, array(), $allowConstrained, $lang );
 
 		$factsLayouts = array_filter( $factsLayouts );
 		$hasReport = ! empty( $reportTable );
@@ -4143,10 +4152,14 @@ class XBRL_DFR // extends XBRL
 				<label for='report-selection-rules'>" . $this->getConstantTextTranslation( $lang, 'Rules' ) . "</label>
 			</div>" .
 
-			$this->renderFactSetLinks( $network, $elr ) .
+			// This is just an idea
+			// $this->renderFactSetLinks( $network, $elr ) .
 
-			"<div class='model-structure'>" .
-			$componentTable . $structureTable . $slicers . $reportTable . $renderFactsTable . $businessRules .
+			"<div class='report-outer " . ( $allowConstrained ? "allow-constrained" : "" ) . "'>" .
+			"	<div class='model-structure constrained'>" .
+				$componentTable . $structureTable . $slicers . $reportTable . $renderFactsTable . $businessRules .
+			"	</div>" .
+			"	<div></div>" .
 			"</div>";
 
 		if ( $echo )
@@ -4334,7 +4347,7 @@ class XBRL_DFR // extends XBRL
 	 * @param XBRL_Formulas $formulas
 	 * @return array
 	 */
-	private function &getFormulaSummaries( $formulas )
+	public function &getFormulaSummaries( $formulas )
 	{
 		if ( ! $formulas ) return $this->emptyArray;
 		if ( ! $this->formulaSummeriesCache ) $this->formulaSummeriesCache = $formulas->getValueAssertionFormulaSummaries();
