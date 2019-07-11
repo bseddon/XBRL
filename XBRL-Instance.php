@@ -280,14 +280,18 @@ class XBRL_Instance
 	 * @param string $compiledTaxonomyFile
 	 * @return XBRL_Instance
 	 */
-	public static function FromInstanceCache( $cache_path, $cache_basename, $taxonomyNamespace, $compiledTaxonomyFile )
+	public static function FromInstanceCache( $cache_path, $cache_basename, $taxonomyNamespace, $compiledTaxonomyFile, $originalXml = null )
 	{
 		$xbrl = XBRL::load_taxonomy( $compiledTaxonomyFile );
 		if ( ! $xbrl ) return false;
 
 		$json = null;
 
-		if ( XBRL::endsWith( $cache_basename, '.zip' ) )
+		if ( file_exists( $cache_basename ) )
+		{
+			$json = file_get_contents( $cache_basename );
+		}
+		else if ( XBRL::endsWith( $cache_basename, '.zip' ) )
 		{
 			$zip = new \ZipArchive();
 			$zip->open( "$cache_path/$cache_basename" );
@@ -317,7 +321,15 @@ class XBRL_Instance
 		$instance->uniqueFactIds = $array['uniqueFactIds'];
 		$instance->units = $array['units'];
 		$instance->usedContexts = $array['usedContexts'];
-		$xml = XBRL::getXml( $instance->document_name, XBRL_Global::getInstance() );
+		// Look for it in the same folder to begin with
+		if ( $originalXml )
+		{
+			$xml = $originalXml;
+		}
+		else
+		{
+			$xml = XBRL::getXml( $instance->document_name, XBRL_Global::getInstance() );
+		}
 		if ( $xml )
 		{
 			$instance->instance_xml = $xml;
@@ -333,14 +345,12 @@ class XBRL_Instance
 	}
 
 	/**
-	 * Perist an instance to a file containing a JSON representation
-	 * @param string $output_path
-	 * @param string $output_basename
-	 * @return bool
+	 * Convert the instance to a JSON string
+	 * @return string
 	 */
-	public function toInstanceCache( $output_path, $output_basename )
+	public function toJSON()
 	{
-		$json = json_encode( array(
+		return json_encode( array(
 			// 'instance_taxonomy' => $this->instance_taxonomy,
 			'allowNested' => $this->allowNested,
 			// 'cacheContextElements' => $this->cacheContextElements,
@@ -365,8 +375,17 @@ class XBRL_Instance
 			'units' => $this->units,
 			'usedContexts' => $this->usedContexts,
 		) );
+	}
 
-		file_put_contents( "$output_path/$output_basename.json", $json );
+	/**
+	 * Perist an instance to a file containing a JSON representation
+	 * @param string $output_path
+	 * @param string $output_basename
+	 * @return bool
+	 */
+	public function toInstanceCache( $output_path, $output_basename )
+	{
+		file_put_contents( "$output_path/$output_basename.json", $this->toJSON() );
 		$zip = new ZipArchive();
 		$zip->open( "$output_path/$output_basename.zip", ZipArchive::CREATE | ZipArchive::OVERWRITE );
 		$zip->addFile( "$output_path/$output_basename.json", "$output_basename.json" );
@@ -1283,9 +1302,13 @@ class XBRL_Instance
 						$compiledTaxonomyFilename = XBRL::compiled_taxonomy_for_xsd( basename( $taxonomy_file ) );
 						if ( ! $compiledTaxonomyFilename ) continue;
 						$basename = basename( $compiledTaxonomyFilename );
-						if ( ! file_exists( "{$this->compiledLocation}/$basename.zip" ) ) continue;
+						if ( ! file_exists( "{$this->compiledLocation}/$basename" ) )
+						{
+							$basename = pathinfo( $compiledTaxonomyFilename, PATHINFO_FILENAME ) . ".zip";
+							if ( ! file_exists( "{$this->compiledLocation}/$basename" ) ) continue;
+						}
 						// BMS 2019-06-11 Changed to use load_taxonomy.  Why was loadExtensionXSD in this case?
-						$xbrl = XBRL::load_taxonomy( "{$this->compiledLocation}/$basename.zip" );
+						$xbrl = XBRL::load_taxonomy( "{$this->compiledLocation}/$basename" );
 						// $xbrl = XBRL::loadExtensionXSD( $taxonomy_file, $this->className, null, $this->compiledLocation );
 
 						break;
@@ -4789,8 +4812,11 @@ class XBRL_Instance
 					}, $itemValues );
 					// Doing this because if the value is INF then if the message is written to JSON it causes an error
 					$precision = $this->getPrecision( $fromFactEntry );
-					if ( is_infinite( $precision ) ) $precision = 'INF';
-					else if ( is_nan( $precision ) ) $precision = 'NAN';
+					if ( is_numeric( $precision ) )
+					{	if ( is_infinite( $precision ) ) $precision = 'INF';
+						else if ( is_nan( $precision ) ) $precision = 'NAN';
+					}
+
 					$this->log()->instance_validation( "5.2.5.2" , "The calculation source and corresponding items are not equivalent",
 						array(
 							'role' => $roleKey,
