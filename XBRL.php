@@ -3843,7 +3843,8 @@ class XBRL {
 			// BMS 2018-04-20
 			// $this->prefix = '';
 			$this->prefix = substr( str_shuffle( "abcdefghijklmnopqrstuvwxyz" ), 0, 8 );
-
+			// BMS 2019-07-06 Adding the prefix/namespace pair is needed for when a compiled taxonomy is used and this information is used in fromStore()
+			$this->documentPrefixes[ $this->prefix ] = $this->namespace;
 		}
 
 		$this->importSchemas( $depth );
