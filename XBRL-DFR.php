@@ -29,6 +29,11 @@ require_once('XBRL.php');
 
 use XBRL\Formulas\Resources\Filters\ConceptName;
 use lyquidity\xml\QName;
+use XBRL\Formulas\Resources\Assertions\ExistenceAssertion;
+use XBRL\Formulas\Resources\Assertions\ValueAssertion;
+use XBRL\Formulas\Resources\Assertions\VariableSetAssertion;
+use XBRL\Formulas\Resources\Assertions\ConsistencyAssertion;
+use XBRL\Formulas\Resources\Variables\Parameter;
 
 define( 'NEGATIVE_AS_BRACKETS', 'brackets' );
 define( 'NEGATIVE_AS_MINUS', 'minus' );
@@ -487,19 +492,6 @@ class XBRL_DFR // extends XBRL
 
 	}
 
-	// /**
-	//  * This function allows a descendent to do something with the information before it is deleted if helpful
-	//  * This function can be overridden by a descendent class
-	//  *
-	//  * @param array $dimensionalNode A node which has element 'nodeclass' === 'dimensional'
-	//  * @param array $parentNode
-	//  * @return bool True if the dimensional information should be deleted
-	//  */
-	// protected function beforeDimensionalPruned( $dimensionalNode, &$parentNode )
-	// {
-	// 	return false;
-	// }
-
 	/**
 	 * Translate constant text used in the slicers, components and elsewhere
 	 * Will return the input $text if $lang is null or begins with 'en'
@@ -540,14 +532,14 @@ class XBRL_DFR // extends XBRL
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $evaluationResults, $lang = null, $echo = true )
+	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $lang = null, $echo = true )
 	{
 		$result = array();
 
 		foreach ( $networks as $elr => $network )
 		{
 			$entityHasReport = false;
-			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $evaluationResults, $entityHasReport, $lang, $echo );
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $entityHasReport, $lang, $echo );
 
 			// error_log( $elr );
 			$result[ $elr ] = array(
@@ -567,13 +559,12 @@ class XBRL_DFR // extends XBRL
 	 * @param XBRL_Instance $instance
 	 * @param array $formulaSummaries
 	 * @param Observer $observer
-	 * @param array $evaluationResults
 	 * @param bool $entityHasReport
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, $evaluationResults, &$entityHasReport = false, $lang = null, $echo = true )
+	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, &$entityHasReport = false, $lang = null, $echo = true )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -598,7 +589,7 @@ class XBRL_DFR // extends XBRL
 			$entityQName = qname( $entity );
 
 			$hasReport = false;
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, $hasReport, $lang, $echo );
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $hasReport, $lang, $echo );
 			$entityHasReport |= $hasReport;
 		}
 
@@ -747,11 +738,97 @@ class XBRL_DFR // extends XBRL
 
 		$this->presentationNetworks = &$this->taxonomy->getPresentationRoleRefs();
 
-		if ( property_exists( $this, 'presentationRoles' ) )
-		foreach ( $this->presentationNetworks as $elr => $role )
+		// If there are no defined networks create one and add all the elements as nodes
+		if ( $this->presentationNetworks )
 		{
-			if ( in_array( $elr, $this->presentationRoles ) ) continue;
-			unset( $this->presentationNetworks[ $elr ] );
+			if ( property_exists( $this, 'presentationRoles' ) )
+			foreach ( $this->presentationNetworks as $elr => $role )
+			{
+				if ( in_array( $elr, $this->presentationRoles ) ) continue;
+				unset( $this->presentationNetworks[ $elr ] );
+			}
+		}
+		else
+		{
+			$xsd = $this->taxonomy->getTaxonomyXSD();
+			$hierarchy = array();
+			$locators = array();
+			$paths = array();
+			$roleUri = 'http://allConceptsAbstract';
+			$order = 0;
+
+			// Add presentation and defintion networks and also a line item abstract element
+			$elements =& $this->taxonomy->getElements();
+			$name = 'AllConceptsAbstract';
+			$id = $this->taxonomy->getPrefix() . "_$name";
+			$root = "{$xsd}#{$id}";
+			$hierarchy[ $root ] = array(
+				'label' => $root,
+				'order' => 0,
+				'use' => 'optional',
+				'priority' => "0",
+				'nodeclass' => 'primaryItem',
+				'dt' => 'p',
+				'hypercubes' => array(),
+				'hypercubespruned' => true,
+			);
+			$locators[ $id ] = $root;
+			foreach ( $elements as $label => $element )
+			{
+				$order++;
+				$hierarchy[ $root ]['children']["{$xsd}#{$label}"] = array(
+					'label' => "{$xsd}#{$label}",
+					'order' => $order,
+					'use' => 'optional',
+					'priority' => "0",
+					'nodeclass' => 'primaryItem',
+					'dt' => 'p',
+					'hypercubes' => array(),
+					'hypercubespruned' => true,
+				);
+				$locators[ $label ] = "{$xsd}#{$label}";
+				$paths[ $label ] = array( "$root/{$xsd}#{$label}" );
+			}
+			$elements[ $id ] = array(
+				'id' => $id,
+				'name' => $name,
+				'type' => 'xbrli:stringItemType',
+				'substitutionGroup' => 'xbrli:item',
+				'abstract' => 1,
+				'nilable' => 1,
+				'periodType' => 'duration',
+				'prefix' => $this->taxonomy->getPrefix(),
+			);
+
+			$this->presentationNetworks[ $roleUri ] = array(
+				'type' => 'simple',
+				'href' => "{$this->taxonomy->getSchemaLocation()}#all",
+				'roleUri' => $roleUri,
+				'used' => true,
+				'hierarchy' => $hierarchy,
+				'locators' => $locators,
+				'paths' => $paths,
+				'hypercubes' => array(),
+				'text' => 'All members network',
+			);
+
+			$this->definitionNetworks[ $roleUri ] = array(
+				'members' => array(),
+				'primaryitems' => array_reduce( $elements, function( $carry, $element ) use( $xsd )
+				{
+					$carry[ "$xsd#{$element['id']}" ] = array(
+						'hypercubes' => array(),
+						'localhypercubes' => array(),
+					);
+					return $carry;
+				}, array() ),
+				'dimensions' => array(),
+				'hypercubes' => array(),
+				'type' => 'simple',
+				'href' => $this->taxonomy->getSchemaLocation(),
+				'roleUri' => $roleUri,
+
+			);
 		}
 
 		// Check the definition and presentation roles are consistent then make sure the calculation roles are a sub-set
@@ -2004,8 +2081,8 @@ class XBRL_DFR // extends XBRL
 							continue;
 						}
 
-						$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName->namespaceURI );
-						$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
+						$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName instanceof QName ? $memberQName->namespaceURI : $memberQName['namespaceURI'] );
+						$memberElement = $memberTaxonomy->getElementByName( $memberQName instanceof QName ? $memberQName->localName : $memberQName['localName'] );
 
 						$memberLabel = $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'];
 					}
@@ -2027,8 +2104,8 @@ class XBRL_DFR // extends XBRL
 				}
 				else
 				{
-					$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName->namespaceURI );
-					$memberElement = $memberTaxonomy->getElementByName( $memberQName->localName );
+					$memberTaxonomy = $this->taxonomy->getTaxonomyForNamespace( $memberQName instanceof QName ? $memberQName->namespaceURI : $memberQName['namespaceURI'] );
+					$memberElement = $memberTaxonomy->getElementByName( $memberQName instanceof QName ? $memberQName->localName : $memberQName['localName'] );
 
 					$memberLabel = $memberTaxonomy->getTaxonomyXSD() . "#" . $memberElement['id'];
 				}
@@ -2241,13 +2318,12 @@ class XBRL_DFR // extends XBRL
 	 * @param QName $entityQName
 	 * @param array $formulaSummaries	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
-	 * @param $evaluationResults		The results of validating the formulas
 	 * @param string $allowConstrained  Set to false if the view is only one column of text
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param string $parentLabel
 	 * @return string
 	 */
-	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, &$formulaSummaries, $observer, $evaluationResults, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, &$allowConstrained, $lang = null, $parentLabel = null )
+	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, &$formulaSummaries, $observer, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, &$allowConstrained, $lang = null, $parentLabel = null )
 	{
 		/**
 		 * How does this work?
@@ -2313,7 +2389,10 @@ class XBRL_DFR // extends XBRL
 
 				if ( isset( $network['concepts'][ $label ] ) )
 				{
-					$result[ $label ] = $network['concepts'][ $label ];
+					// If the network has been loaded from an array the qname values will be an array
+					$result[ $label ] = $network['concepts'][ $label ] instanceof QName
+						? $network['concepts'][ $label ]
+						: new QName( $network['concepts'][ $label ]['prefix'], $network['concepts'][ $label ]['namespaceURI'], $network['concepts'][ $label ]['localName'] );
 				}
 				if ( ! isset( $node['children'] ) ) continue;
 				$result = array_merge( $result, $getDimensionalNodes( $node['children'] ) );
@@ -3546,7 +3625,7 @@ class XBRL_DFR // extends XBRL
 				 $columnCount, &$columnLayout, &$columnRefs, &$contextRefColumns, $elr,
 				 &$contexts, $factsLayout, &$resultFactsLayout, $headerColumnCount, $headerRowCount, $rowCount,
 				 &$factSetTypes, $hasReportDateAxis, &$tail, &$top, &$network,
-				 $entityQName, &$formulaSummaries, $observer, $evaluationResults, &$nodesToProcess,
+				 $entityQName, &$formulaSummaries, $observer, &$nodesToProcess,
 				 $reportDateColumn, &$singleMemberAxes, $lang, &$allowConstrained
 			)
 		{
@@ -3615,8 +3694,12 @@ class XBRL_DFR // extends XBRL
 					$nodeElement = $nodeTaxonomy->getElementById( $label );
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
-					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang, $elr );
 					$title =  "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}";
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang, $elr );
+					if ( ! $text )
+					{
+						$text = $nodeElement['name'];
+					}
 
 					if ( isset( $nodeElement['balance'] ) || isset( $nodeElement['periodType'] ) )
 					{
@@ -4022,7 +4105,7 @@ class XBRL_DFR // extends XBRL
 					$nextAccumulatedTables[ $label ] = $network['tables'][ $label ];
 
 					$resultFactsLayout[ $label ] = array();
-					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $allowConstrained, $lang, $text );
+					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulaSummaries, $observer, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $allowConstrained, $lang, $text );
 
 					if ( ! $render ) continue;
 
@@ -4085,12 +4168,11 @@ class XBRL_DFR // extends XBRL
 	 * @param QName $entityQName
 	 * @param array						$formulaSummaries	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
-	 * @param array $evaluationResults	The results of validating the formulas
 	 * @param bool $hasReport
 	 * @param $echo						If true the HTML will be echoed
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $evaluationResults, &$hasReport = false, $lang = null, $echo = true )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, &$hasReport = false, $lang = null, $echo = true )
 	{
 		$componentTable = $this->renderComponentTable( $network, $elr, $lang );
 
@@ -4115,7 +4197,7 @@ class XBRL_DFR // extends XBRL
 		$row = 0;
 		$reportTable = $this->renderReportTable(
 			$network, $network['hierarchy'], $elr, $instance, $entityQName, $formulaSummaries,
-			$observer, $evaluationResults, $factsLayouts, $accumulatedTables, $nodesToProcess,
+			$observer, $factsLayouts, $accumulatedTables, $nodesToProcess,
 			false, $excludeEmptyHeadrers, $row, array(), $allowConstrained, $lang );
 
 		$factsLayouts = array_filter( $factsLayouts );
@@ -4329,6 +4411,305 @@ class XBRL_DFR // extends XBRL
 			"";
 
 		return $reportTable;
+	}
+
+	/**
+	 * Validate the the taxonomy formulas against the instance
+	 * @param $results array
+	 * @param XBRL_Instance $instance
+	 * @return XBRL_Formulas
+	 */
+	function validateFormulas( &$results, $instance, $indent, $roleFilterPart = null )
+	{
+		$log = XBRL_Log::getInstance();
+
+		$results['formulas'] = array();
+		$results['consistency'] = array();
+
+		$this->taxonomy = $instance->getInstanceTaxonomy();
+		if ( ! $this->taxonomy->getHasFormulas( true ) )
+		{
+			// $results['formulas'] = 'There are no formulas';
+			$log->warning( "$indent  There are no formulas" );
+			return null;
+		}
+
+		$formulas = new XBRL_Formulas();
+		if ( ! $formulas->processFormulasAgainstInstances( $instance, null, null, $roleFilterPart ) )
+		{
+			// Report the failure
+			$log->formula_validation( "Test failed", "The test failed to complete",
+				array(
+					'test id' => 1,
+					'instance' => $test
+				)
+			);
+		}
+
+		/**
+		 * @var ConsistencyAssertion $consistencyAssertion
+		 */
+		foreach ( $formulas->getConsistencyAssertions() as $assertionName => $consistencyAssertion )
+		{
+			/*
+				This block can be tested using these conformance examples
+				30000 Assertions\31210-ConsistencyAssertion-Processing\31210-abs-low-ok-instance.xml
+				30000 Assertions\31210-ConsistencyAssertion-Processing\31210-abs-low-not-ok-instance.xml
+			 */
+			$consistency = array(
+				'id' => $consistencyAssertion->id,
+				'label' => $consistencyAssertion->label,
+				'description' => trim( $consistencyAssertion->description ),
+				'type' => 'consistency',
+				'absolute radius' => $consistencyAssertion->absoluteAcceptanceRadius,
+				'proportional radius' => $consistencyAssertion->proportionalAcceptanceRadius,
+				'radius-value' => $consistencyAssertion->getRadiusValue(),
+				'strict' => $consistencyAssertion->strict,
+				'satisfied' => $consistencyAssertion->getSatisfied(),
+				'unsatisfied' => $consistencyAssertion->getUnsatisfied(),
+				'formulas' => array(),
+			);
+
+			foreach ( $consistencyAssertion->formulas as $formulaName => $consistencyFormulas )
+			{
+				/** @var Formula $formula */
+				foreach ( $consistencyFormulas as $formula )
+				{
+					$consistencyFormula = array(
+						'id' => $formula->id,
+						'label' => $formula->label,
+						'value' => $formula->value,
+						'linkbase' => $variableSet->linkbase,
+						'parameters' => array(),
+						'evaluations' => array(),
+					);
+
+					$consistencyFormula['parameters'] = array_map( function( $parameter )
+					{
+						return array(
+							'label' => $parameter->label,
+							'select' => $parameter->select
+						);
+					}, $variableSet->parameters );
+
+					foreach ( $formula->factsContainer->facts[ $formula->label ] as $key => $derivedFact )
+					{
+						$evaluationResult = $formula->evaluationResults[ $key ];
+
+						// Convert the vars indexed by clarkname to one indexed by prefix:localname
+						$vars = array_reduce( array_keys( $evaluationResult['vars'] ), function( $carry, $clarkname ) use( $formula, &$evaluationResult )
+						{
+							/** @var QName $qname */
+							$qname = qnameClarkName( $clarkname );
+							$prefix = $formula->nsMgr->lookupPrefix( $qname->namespaceURI );
+							$carry[ $prefix ? "$prefix:{$qname->localName}" : $clarkname ] = $evaluationResult['vars'][ $clarkname ];
+							return $carry;
+
+						}, array() );
+
+						$derivedResult = $formula->factsContainer->facts[ $formula->label ][ $key ];
+						$derivedResult['concept'] = $derivedResult['concept']->prefix . ';' . $derivedResult['concept']->localName;
+
+						$evaluation = array(
+							'derived result' => $derivedResult,
+							'matched facts' => array_map( function( $matchedFact ) use ( $formula )
+								{
+									return $formula->getVariableDetails( $matchedFact, false );
+								}, $consistencyAssertion->aspectMatchedInputFacts[ $key ] ),
+							'substituted' => $formula->createDefaultMessage( $formula->value, $vars ),
+						);
+
+						foreach ( $vars as $name => $variable )
+						{
+							$evaluation['variables'][ $name ] = $formula->getVariableDetails( $variable, false );
+						}
+
+						$consistencyFormula['evaluations'][] = $evaluation;
+					}
+
+					$consistency['formulas'][ $formulaName ][] = $consistencyFormula;
+				}
+			}
+
+			$results['consistency'][] = $consistency;
+		}
+
+		/** @var array(\XBRL\Formulas\Resources\Variables\VariableSet) $variableSetsForQName */
+		foreach ( $formulas->getVariableSets() as $variableSetQName => $variableSetsForQName )
+		{
+			foreach ( $variableSetsForQName as /** @var VariableSetAssertion $variableSet */ $variableSet )
+			{
+				if ( $variableSet instanceof Formula ) continue;
+
+				$formula = array(
+					'id' => $variableSet->id,
+					'label' => $variableSet->label,
+					'description' => trim( $variableSet->description ),
+					'linkbase' => $variableSet->linkbase,
+					'test' => $variableSet->test,
+					// 'severity' => $variableSet->severity
+				);
+
+				/*
+				 	These tests use parameters
+
+				 	BUC42-ReissueReport
+					BUC43-Reclassification
+					Templates\us-gaap\290000-004
+					Templates\us-gaap\290000-004
+					Templates\us-gaap\333000-001
+					Templates\us-gaap\780000-001
+					Templates\us-gaap\800000-001
+					Templates\us-gaap\800000-002
+					Templates\us-gaap\995400-002
+
+				 */
+				$parameters = array();
+
+				foreach ( $variableSet->parameters as $name => /** @var Parameter $parameter */ $parameter )
+				{
+					$parameters[ $name ] = array(
+						'label' => $parameter->label,
+						'select' => $parameter->select
+					);
+				}
+
+				$formula['parameters'] = array_map( function( $parameter )
+				{
+					return array(
+						'label' => $parameter->label,
+						'select' => $parameter->select
+					);
+				}, $variableSet->parameters );
+
+				if ( $variableSet instanceof ExistenceAssertion )
+				{
+					/**
+					 * @var ExistenceAssertion $existenceAssertion
+					 */
+					$existenceAssertion = $variableSet;
+					$formula['type'] = 'existence';
+					$formula['error'] = ! $existenceAssertion->success;
+					$formula['satisfied'] = array();
+					$formula['unsatisfied'] = array();
+
+					// if ( $existenceAssertion->test )
+					// {
+					//	$formula['substituted'] = $existenceAssertion->createDefaultMessage( $variableSet->test, $satisfied['vars']);
+					// }
+
+					// For each fact in each satisfied put the node name, context ref and unit
+					foreach ( $existenceAssertion->satisfied as $index => $satisfied )
+					{
+						$item = array();
+
+						// This can used by messages but is not needed here
+						unset( $satisfied['vars'][ "{{$variableSet->namespace}}test-expression" ] );
+
+						if ( $existenceAssertion->test )
+						{
+							$item['substituted'] = $existenceAssertion->createDefaultMessage( $variableSet->test, $satisfied['vars'] );
+						}
+
+						foreach ( $satisfied['vars'] as $name => $variable )
+						{
+							$item['variables'][ $name ] = $existenceAssertion->getVariableDetails( $variable, false );
+						}
+
+						$formula['satisfied'][] = $item;
+					}
+
+					// For each fact in each unsatisfied put the node name, context ref and unit
+					foreach ( $existenceAssertion->notSatisfied as $index => $unsatisfied )
+					{
+						$item = array();
+
+						// This can used by messages but is not needed here
+						unset( $unsatisfied['vars'][ "{{$variableSet->namespace}}test-expression" ] );
+
+						if ( $existenceAssertion->test )
+						{
+							$item['substituted'] = $existenceAssertion->createDefaultMessage( $variableSet->test, $unsatisfied['vars'] );
+						}
+
+						foreach ( $unsatisfied['vars'] as $name => $variable )
+						{
+							$item['variables'][ $name ] = $existenceAssertion->getVariableDetails( $variable, false );
+						}
+
+						$formula['unsatisfied'][] = $item;
+					}
+				}
+				else if ( $variableSet instanceof ValueAssertion )
+				{
+					/**
+					 * @var ValueAssertion $valueAssertion
+					 */
+					$valueAssertion = $variableSet;
+					$formula['type'] = 'value';
+					$formula['error'] = count( $valueAssertion->unsatisfied ) > 0;
+					$formula['satisfied'] = array();
+					$formula['unsatisfied'] = array();
+
+					// For each fact in each satisfied put the node name, context ref and unit
+					foreach ( $valueAssertion->satisfied as $index => $satisfied )
+					{
+						$item = array();
+
+						// This can used by messages but is not needed here
+						unset( $satisfied['vars'][ "{{$variableSet->namespace}}test-expression" ] );
+
+						$item['substituted'] = $valueAssertion->createDefaultMessage( $variableSet->test, $satisfied['vars'] );
+						foreach ( $satisfied['vars'] as $name => $variable )
+						{
+							$item['variables'][ $name ] = $valueAssertion->getVariableDetails( $variable, false );
+						}
+
+						$formula['satisfied'][] = $item;
+					}
+
+					// For each fact in each unsatisfied put the node name, context ref and unit
+					foreach ( $valueAssertion->unsatisfied as $index => $unsatisfied )
+					{
+						$item = array();
+
+						// This can used by messages but is not needed here
+						unset( $unsatisfied['vars'][ "{{$variableSet->namespace}}test-expression" ] );
+
+						$item['substituted'] = $valueAssertion->createDefaultMessage( $variableSet->test, $unsatisfied['vars'] );
+						foreach ( $unsatisfied['vars'] as $name => $variable )
+						{
+							$item['variables'][ $name ] = $valueAssertion->getVariableDetails( $variable );
+						}
+
+						$formula['unsatisfied'][] = $item;
+					}
+				}
+
+				if ( $variableSet->generatedSatisifiedMessages || $variableSet->generatedSatisifiedMessages )
+				{
+					foreach ( $variableSet->generatedSatisifiedMessages as $message )
+					{
+						$formula['messages']['satisfied'][] = $message;
+						$log->info( "$indent    " . trim( $message ) );
+					}
+					foreach ( $variableSet->generatedUnsatisifiedMessages as $message )
+					{
+						$formula['messages']['unsatisfied'][] = $message;
+						$log->info( "$indent    " . trim( $message ) );
+					}
+				}
+				else
+				{
+					$formula['messages'] = "There are no messages defined";
+					$log->info( "$indent    There are no messages defined" );
+				}
+
+				$results['formulas'][] = $formula;
+			}
+		}
+
+		return $this->getFormulaSummaries( $formulas );
 	}
 
 	/**
