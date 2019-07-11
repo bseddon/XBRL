@@ -217,13 +217,15 @@ class XBRL_Formulas extends Resource
 					$left = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( strstr( $valueAssertion->test, $equality, true ) ) ) ), $variableNames );
 					$right = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( ltrim( strstr( $valueAssertion->test, $equality ), $equality ) ) ) ), $variableNames );
 
-					$testAssigmentVariables += count( $left ) ==1 && count( $right ) >= 1
-						? $left
-						: (
-							count( $right ) == 1 && count( $left ) >= 1
-								? $right
-								: array()
-						  );
+					$testAssigmentVariables += count( $left ) ==1 && count( $right ) == 1
+						? array_merge( $left, $right )
+						: ( count( $left ) ==1 && count( $right ) >= 1
+								? $left
+								: (
+									count( $right ) == 1 && count( $left ) >= 1
+										? $right
+										: array()
+								  ) );
 					if ( count( $left ) || count( $right ) ) break;
 				}
 
