@@ -18233,7 +18233,7 @@ class XBRL {
 		// 		http://resources.companieshouse.gov.uk/ef/xbrl/gaap/gcd/2004-12-01/uk-gcd-2004-12-01.xsd
 		// This allows an application using this class to remap the address of a taxonomy.
 		// $mapUrl is a function that accepts one url parammeter and returns a url.  If the function does
-		// not handle mapping for the url passed as an argument then it shoul return the passed url.
+		// not handle mapping for the url passed as an argument then it should return the passed url.
 		global $mapUrl;
 		if ( $mapUrl ) $url = $mapUrl( $url );
 
