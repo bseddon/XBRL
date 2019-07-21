@@ -118,6 +118,60 @@ class XBRL_DFR // extends XBRL
 	}
 
 	/**
+	 * Include a rendering of the components grid
+	 * @var string
+	 */
+	public $includeComponent = true;
+
+	/**
+	 * Include a rendering of the structure grid
+	 * @var string
+	 */
+	public $includeStructure = true;
+
+	/**
+	 * Include a rendering of the slicers grid
+	 * @var string
+	 */
+	public $includeSlicers = true;
+
+	/**
+	 * Include a rendering of the report grid
+	 * @var string
+	 */
+	public $includeReport = true;
+
+	/**
+	 * Include a rendering of the facts table grid
+	 * @var string
+	 */
+	public $includeFactsTable = true;
+
+	/**
+	 * Include the checkbox controls
+	 * @var string
+	 */
+	public $includeCheckboxControls = true;
+
+	/**
+	 * Include wider/narrower controls with the table grid
+	 * @var string
+	 */
+	public $includeWidthcontrols = true;
+
+	/**
+	 * Include a rendering of the business rules grid
+	 * @var string
+	 */
+	public $includeBusinessRules = true;
+
+	/**
+	 * When true all grids will be shown (visible).  When false only the rendered table will be visible by default.
+	 * @var string
+	 */
+	public $showAllGrids = false;
+
+	/**
 	 * Holds a list of features
 	 * @var array
 	 */
@@ -534,6 +588,9 @@ class XBRL_DFR // extends XBRL
 	 */
 	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $lang = null, $echo = true )
 	{
+		// If the checkboxes are not displayed then make sure all selected tables are shown
+		if ( ! $this->includeCheckboxControls ) $this->showAllGrids = true;
+
 		$result = array();
 
 		foreach ( $networks as $elr => $network )
@@ -1820,14 +1877,18 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderComponentTable( $network, $elr, $lang = null )
 	{
+		if ( ! $this->includeComponent ) return '';
+
 		$table = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( reset( $network['tables'] ), null, $lang, $elr );
 		if ( ! $table )
 		{
 			$table = "(Implied table)";
 		}
 
+		$hideSection = $this->showAllGrids ? '' : 'hide-section';
+
 		$componentTable =
-			"	<div class='component-table'>" .
+			"	<div class='component-table '>" .
 			"		<div class='ct-header'>" . $this->getConstantTextTranslation( $lang, 'Component: Network plus Table' ) . "</div>" .
 			"		<div class='ct-body'>" .
 			"			<div class='ct-body-header network'>" . $this->getConstantTextTranslation( $lang, 'Network' ) . "</div>" .
@@ -1855,6 +1916,8 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderFactsTable( $network, $elr, $instance, $entityQName, &$reportsFactsLayout, $lang = null )
 	{
+		if ( ! $this->includeFactsTable ) return '';
+
 		$axes = array_reduce( $network['axes'], function( $carry, $axes )
 		{
 			$carry = array_merge( $carry, $axes );
@@ -1863,8 +1926,10 @@ class XBRL_DFR // extends XBRL
 
 		$axes = array_filter( $axes, function( $axis ) { return isset( $axis['dimension'] ); } );
 
+		$hideSection = $this->showAllGrids ? '' : 'hide-section';
+
 		$factsTable =
-			"	<div class='facts-section hide-section'>";
+			"	<div class='facts-section $hideSection'>";
 
 		foreach ( $reportsFactsLayout as $reportLabel => $factsLayout )
 		{
@@ -2010,11 +2075,12 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderSlicers( $network, $instance, $entityQName, $elr, $axes = null, $class = null, $contextsFilter = null, $lang = null )
 	{
+		if ( ! $this->includeSlicers ) return '';
+
 		if ( is_null( $class ) ) $class = 'slicers-table';
 
 		$slicers =
 			"	<div class='$class'>" .
-			// "		<div>Slicers</div>" .
 			"		<div class='slicers'>" .
 			"			<div class='slicer-header'>" . $this->getConstantTextTranslation( $lang, 'Reporting Entity [Axis]' ) . "</div>" .
 			"			<div class='slicer-content'>{$entityQName->localName} ({$entityQName->namespaceURI})</div>";
@@ -2077,7 +2143,7 @@ class XBRL_DFR // extends XBRL
 
 						if ( ! $memberQName )
 						{
-							echo "Unable to craete QName for member '$member'\n";
+							error_log( "Unable to craete QName for member '$member'" );
 							continue;
 						}
 
@@ -2149,8 +2215,12 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderModelStructure( $network, $elr, $lang = null )
 	{
+		if ( ! $this->includeStructure ) return '';
+
+		$hideSection = $this->showAllGrids ? '' : 'hide-section';
+
 		$structureTable =
-			"	<div class='structure-table hide-section'>" .
+			"	<div class='structure-table $hideSection'>" .
 			"		<div>" . $this->getConstantTextTranslation( $lang, 'Label' ) . "</div>" .
 			"		<div>" . $this->getConstantTextTranslation( $lang, 'Fact set type' ) . "</div>" .
 			"		<div>" . $this->getConstantTextTranslation( $lang, 'Report Element Class' ) . "</div>" .
@@ -2273,6 +2343,8 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderFactSetLinks( $network, $elr, $lang = null )
 	{
+		if ( ! $this->includeFactsTable ) return '';
+
 		// class='factset-links'
 		$nodes = $network['hierarchy'];
 
@@ -2357,6 +2429,8 @@ class XBRL_DFR // extends XBRL
 		 * Even so, sometime there will be columns that are empty - usually when typed domain dimensions are being used. To
 		 * eliminate empty columns $dropEmptyColumns is used.
 		 */
+//		if ( ! $this->includeReport ) return '';
+
 		$axes = XBRL::array_reduce_key( $network['axes'], function( $carry, $axes, $hypercube ) use ( &$accumulatedTables )
 		{
 			if ( ! in_array( $hypercube, $accumulatedTables ) ) return $carry;
@@ -2946,7 +3020,7 @@ class XBRL_DFR // extends XBRL
 		// Now workout the facts layout.
 		// Note to me.  This is probably the way to go as it separates the generation of the facts from the rendering layout
 		// Right now it is used to drop columns
-		$getFactsLayout = function( $nodes, $contexts, $parentLabel = null, $parentPattern = 'set', $lineItems = false )
+		$getFactsLayout = function( $nodes, $contexts, $parentLabel = null, $parentPattern = 'set', $lineItems = false, $parentModelType = null )
 			use( &$getFactsLayout, &$getStatedFacts, $instance, &$axes, &$network,
 				 $columnLayout, $columnRefs, $contextRefColumns,
 				 $elr, $hasReportDateAxis, $nodesToProcess, &$accumulatedTables )
@@ -3115,7 +3189,7 @@ class XBRL_DFR // extends XBRL
 
 						// This section computes rollup totals if node presents a rollup pattern
 						$rollupTotal = false;
-						if ( $parentPattern == 'rollup' && isset( $this->calculationNetworks[ $elr ]['calculations'][ $node['label'] ] ) )
+						if ( ( $parentPattern == 'rollup' || $parentModelType == 'cm.xsd#cm_LineItems' ) && isset( $this->calculationNetworks[ $elr ]['calculations'][ $node['label'] ] ) )
 						{
 							$rollupTotal = true;
 
@@ -3411,7 +3485,7 @@ class XBRL_DFR // extends XBRL
 
 				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
 
-				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems ) );
+				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems, isset( $node['modelType'] ) ? $node['modelType'] : $parentModelType ) );
 			} // foreach $nodes
 
 			return $rows;
@@ -3433,7 +3507,7 @@ class XBRL_DFR // extends XBRL
 			return $result;
 		};
 
-		$factsLayout = array_filter( $getFactsLayout( $nodes, $contexts, null, 'set', $lineItems ), function( $node )
+		$factsLayout = array_filter( $getFactsLayout( $nodes, $contexts, null, 'set', $lineItems, null ), function( $node )
 		{
 			return count( $node['columns'] );
 		} );
@@ -3449,6 +3523,8 @@ class XBRL_DFR // extends XBRL
 			'axes' => array_keys( array_filter( $axes, function( $axis ) { return isset( $axis['dimension'] ); } ) ),
 			'data' => $factsLayout
 		);
+
+		if ( ! $this->includeReport ) return '';
 
 		$dropEmptyColumns = function( $rows, &$columnHierarchy, &$columnCount, &$headerColumnCount, &$columnRefs, &$columnLayout, &$contextRefColumns, &$factsLayout, $foundDroppableTypes ) use( &$createContextRefColumns, $hasReportDateAxis, &$removeColumn )
 		{
@@ -3559,11 +3635,14 @@ class XBRL_DFR // extends XBRL
 			return
 				"	<div class='report-section' style='display: grid; grid-template-columns: 1fr; '>" .
 				"		<div style='display: grid; grid-template-columns: auto 1fr;'>" .
+				( $this->includeWidthcontrols ?
 				"			<div class='report-table-controls'>" .
 				"				<div class='control-header'>" . $this->getConstantTextTranslation( $lang, 'Columns' ) . ":</div>" .
 				"				<div class='control-wider'>&lt;&nbsp;" . $this->getConstantTextTranslation( $lang, 'Wider' ) . "&nbsp;&gt;</div><div>|</div>" .
 				"				<div class='control-narrower'>&gt;&nbsp;" . $this->getConstantTextTranslation( $lang, 'Narrower' ) . "&nbsp;&lt;</div>" .
-				"			</div><div></div>" .
+				"			</div><div></div>"
+					: ''
+				) .
 				"			<div class='report-table' style='display: grid; grid-template-columns: 400px $reportDateColumn repeat( $headerColumnCount, $columnWidth ); grid-template-rows: repeat(10, auto);' >";
 		};
 
@@ -4178,8 +4257,6 @@ class XBRL_DFR // extends XBRL
 
 		$structureTable = $this->renderModelStructure( $network, $elr, $lang );
 
-		$slicers = ""; // $this->renderSlicers( $network, $instance, $entityQName );
-
 		// Filter the contexts by axes
 		// All the contexts without
 		$accumulatedTables = isset( $network['tables'][null]) ? array( $network['tables'][null] ) : array();
@@ -4203,7 +4280,7 @@ class XBRL_DFR // extends XBRL
 		$factsLayouts = array_filter( $factsLayouts );
 		$hasReport = ! empty( $reportTable );
 
-		if ( ! $reportTable )
+		if ( $this->includeReport && ! $reportTable )
 		{
 			$reportTable =
 				"	<div style='display: grid; grid-template-columns: 1fr; '>" .
@@ -4217,29 +4294,73 @@ class XBRL_DFR // extends XBRL
 
 		$businessRules = $this->renderBusinessRules( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
 
-		echo "$elr\n";
+		XBRL_Log::getInstance()->info( $elr );
 
-		$report =
-			"<div class='report-selection'>
-				<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Rendering sections' ) . ":</span>
-				<input type='checkbox' name='report-selection' id='report-selection-structure' data-class='structure-table' />
-				<label for='report-selection-structure'>" . $this->getConstantTextTranslation( $lang, 'Structure' ) . "</label>
-				<input type='checkbox' name='report-selection' id='report-selection-slicers' data-class='slicers-table' checked />
-				<label for='report-selection-slicers'>" . $this->getConstantTextTranslation( $lang, 'Slicers' ) . "</label>
-				<input type='checkbox' name='report-selection' id='report-selection-report' data-class='report-section' checked />
-				<label for='report-selection-report'>" . $this->getConstantTextTranslation( $lang, 'Rendering' ) . "</label>
-				<input type='checkbox' name='report-selection' id='report-selection-facts' data-class='facts-section'  />
-				<label for='report-selection-facts'>" . $this->getConstantTextTranslation( $lang, 'Facts' ) . "</label>
-				<input type='checkbox' name='report-selection' id='report-selection-Rules' data-class='business-rules-section' />
-				<label for='report-selection-rules'>" . $this->getConstantTextTranslation( $lang, 'Rules' ) . "</label>
-			</div>" .
+		$checkboxes = array();
+		$count = 0;
+
+		if ( $this->includeComponent )
+		{
+			$count++;
+			$checked = 'checked';
+			$checkboxes['includeComponent'] =	"<input type='checkbox' name='report-selection' id='report-selection-component' data-class='component-table' $checked />" .
+												"<label for='report-selection-component'>" . $this->getConstantTextTranslation( $lang, 'Component' ) . "</label>";
+		}
+
+		if ( $this->includeStructure )
+		{
+			$count++;
+			$checked = $this->showAllGrids ? 'checked' : '';
+			$checkboxes['includeStructure'] =	"<input type='checkbox' name='report-selection' id='report-selection-structure' data-class='structure-table' $checked />" .
+												"<label for='report-selection-structure'>" . $this->getConstantTextTranslation( $lang, 'Structure' ) . "</label>";
+		}
+
+		if ( $this->includeSlicers )
+		{
+			$count++;
+			$checked = 'checked';
+			$checkboxes['includeSlicers'] =		"<input type='checkbox' name='report-selection' id='report-selection-slicers' data-class='slicers-table' $checked />" .
+												"<label for='report-selection-slicers'>" . $this->getConstantTextTranslation( $lang, 'Slicers' ) . "</label>";
+		}
+
+		if ( $this->includeReport )
+		{
+			$count++;
+			$checked = 'checked';
+			$checkboxes['includeReport'] =		"<input type='checkbox' name='report-selection' id='report-selection-report' data-class='report-section' $checked />" .
+												"<label for='report-selection-report'>" . $this->getConstantTextTranslation( $lang, 'Rendering' ) . "</label>";
+		}
+
+		if ( $this->includeFactsTable )
+		{
+			$count++;
+			$checked = $this->showAllGrids ? 'checked' : '';
+			$checkboxes['includeFactsTable'] =	"<input type='checkbox' name='report-selection' id='report-selection-facts' data-class='facts-section' $checked />" .
+												"<label for='report-selection-facts'>" . $this->getConstantTextTranslation( $lang, 'Facts' ) . "</label>";
+		}
+
+		if ( $this->includeBusinessRules )
+		{
+			$count++;
+			$checked = $this->showAllGrids ? 'checked' : '';
+			$checkboxes['includeBusinessRules'] =	"<input type='checkbox' name='report-selection' id='report-selection-Rules' data-class='business-rules-section' $checked />" .
+													"<label for='report-selection-rules'>" . $this->getConstantTextTranslation( $lang, 'Rules' ) . "</label>";
+		}
+
+		$allowConstrained = $allowConstrained && $count < 2 || ( ! $this->showAllGrids && $this->includeCheckboxControls );
+
+		$report = ( $this->includeCheckboxControls ?
+			"<div class='report-selection'>" .
+			"	<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Rendering sections' ) . ":</span>" .
+				join( '', $checkboxes ) .
+			"</div>" : '' ) .
 
 			// This is just an idea
 			// $this->renderFactSetLinks( $network, $elr ) .
 
 			"<div class='report-outer " . ( $allowConstrained ? "allow-constrained" : "" ) . "'>" .
 			"	<div class='model-structure constrained'>" .
-				$componentTable . $structureTable . $slicers . $reportTable . $renderFactsTable . $businessRules .
+				$componentTable . $structureTable . $reportTable . $renderFactsTable . $businessRules .
 			"	</div>" .
 			"	<div></div>" .
 			"</div>";
@@ -4265,13 +4386,17 @@ class XBRL_DFR // extends XBRL
 	 */
 	private function renderBusinessRules( $network, $elr, $instance, $entityQName, $reportFactsLayout, $lang = null )
 	{
+		if ( ! $this->includeBusinessRules ) return '';
+
+		$hideSection = $this->showAllGrids ? '' : 'hide-section';
+
 		if ( ! isset( $this->calculationNetworks[ $elr]['calculations'] ) )
 		{
-			return "<div class='business-rules-section hide-section'>" . $this->getConstantTextTranslation( $lang, 'There are no business rules' ) . "</div>";
+			return "<div class='business-rules-section $hideSection'>" . $this->getConstantTextTranslation( $lang, 'There are no business rules' ) . "</div>";
 		}
 
 		$reportTable =
-			"	<div class='business-rules-section hide-section' style='display: grid; grid-template-columns: auto 1fr; '>" .
+			"	<div class='business-rules-section $hideSection' style='display: grid; grid-template-columns: auto 1fr; '>" .
 			"		<div>" . $this->getConstantTextTranslation( $lang, 'Business Rules' ) . "</div><div></div>";
 
 		// Report each total
@@ -4314,11 +4439,14 @@ class XBRL_DFR // extends XBRL
 					if ( ! $contextsFilter->count() )
 					{
 						// This should never happen
-						echo "Oops.  No valid contexts found for context refs: " . implode( ",", $contextRefs ) . "\n";
+						error_log( "Oops.  No valid contexts found for context refs: " . implode( ",", $contextRefs ) );
 						continue;
 					}
 
-					$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, $elr, null, 'business-rules-slicers-table', $contextsFilter, $lang ) . "<div></div>";
+					if ( $this->includeSlicers )
+					{
+						$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, $elr, null, 'business-rules-slicers-table', $contextsFilter, $lang ) . "<div></div>";
+					}
 
 					$reportTable .=
 						"		<div class='business-rules-table' style='display: grid; grid-template-columns: 1fr;'>" .

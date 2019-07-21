@@ -28,6 +28,22 @@
 			
 		};
 
+		var checkConstraint = function( checkboxes )
+		{
+			var y = ['structure-table','facts-section','business-rules-section'];
+			if ( checkboxes.filter( (i,c) => $(c).prop('checked') ).map( (i,c) => $(c).data('class') ).filter( (i,x) => y.includes( x ) ).length )
+			{
+				// Remove .constrained clsss
+				$('div#primary .model-structure').removeClass('constrained');
+			}
+			else
+			{
+				// Add constrained from model-structure
+				$('div#primary .model-structure').addClass('constrained');				
+			}
+			
+		};
+
 		window.initializeCheckboxes = function()
 		{
 			// Find all the checkboxes
@@ -37,9 +53,12 @@
 				processCheckbox(this);
 			} );
 
+			checkConstraint( checkboxes );
+
 			checkboxes.on('click', function(e)
 			{
 				processCheckbox(this);
+				checkConstraint( checkboxes );				
 			} );
 		};
 
@@ -56,6 +75,21 @@
 			} );
 		};
 		
+		window.initializeLinks = function( e )
+		{
+			$('div#primary .report-table-links > .factset-link').on( 'click', function( e )
+			{
+				var name = $(this).data('name');
+				var offset = $('div#primary div[name=' + name + ']' ).get(0).offsetTop;
+				var page = $('#render-dialog');
+				if ( page.length == 0 ) page = $('html');
+				page.get(0).scrollTop = offset;
+				return false;
+			} );
+			
+		};
+
 		window.initializeChangeColunWidth();
 		window.initializeCheckboxes();
+		window.initializeLinks();
 	} );

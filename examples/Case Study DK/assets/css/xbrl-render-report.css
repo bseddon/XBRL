@@ -59,6 +59,12 @@ div#primary .model-structure
 	grid-template-rows: auto auto auto auto auto 1fr; /* Let the component table, slicers table, structure table, report table and facts table have what they need but give the rest to the business table */
 	grid-row-gap: 20px;
 	padding: 2px;
+	word-break: break-all;
+}
+
+div#primary div.allow-constrained .model-structure.constrained
+{
+	max-width: 400px;
 }
  
 /**
@@ -124,6 +130,7 @@ div#primary .slicers div:not(:nth-last-child(1)):not(:nth-last-child(2))
 div#primary .slicer-content
 {
 	padding: 4px;	
+	word-break: break-word;
 }
 
 /**
@@ -247,18 +254,30 @@ div#primary .report-table-controls
 	padding: 4px;
 }
 
+div#primary .report-outer
+{
+	display: grid;
+	grid-template-columns: auto 1fr;
+}
+
 div#primary .report-table-controls .control-header
 {
 	font-weight: bold;
 	padding-right: 4px;
 }
 
+div#primary .report-table-links .factset-link,
 div#primary .report-table-controls .control-narrower,
 div#primary .report-table-controls .control-wider
 {
 	padding-right: 4px;
 	color: blue;
 	cursor: pointer;
+}
+
+div#primary div.report-table-links {
+    margin-left: 20px;
+    margin-bottom: 10px;
 }
 
 div#primary .report-table-controls .control-wider + div
@@ -296,11 +315,22 @@ div#primary .report-header.member-label
 	border-bottom: 1px solid black;
 	text-align: center;
 	padding: 2px;
+	word-break: break-word;
 }
 
 div#primary .report-header.member-label.last
 {
 	border-bottom: 2px solid black;	
+}
+
+div#primary .report-header.axis-label
+{
+	word-break: break-word;	
+}
+
+div#primary .report-line.member-label
+{
+	white-space: nowrap;	
 }
 
 div#primary .report-line 
@@ -333,10 +363,35 @@ div#primary .report-line.abstract
 	color: #404040;
 }
 
-div#primary .report-line.abstract-value 
+div#primary .report-line.abstract-value:not(.final)
 {
 	background-color: #F0F0F0;
 	border-left: 1px solid #ddd;
+}
+
+div#primary .report-line.value.domain + .report-line.value:not(.domain),
+div#primary .report-line.abstract-value.domain + .report-line.abstract-value:not(.domain),
+div#primary .report-line.abstract-value.domain.final + .report-line.abstract-value.final:not(.domain)
+{
+    border-left: 1px solid #a0a0a0 !important;
+}
+
+div#primary .report-line.value:not(.domain) + .report-line.value.domain, 
+div#primary .report-line.after-total:not(.domain) + .report-line.after-total.domain, 
+div#primary .report-line.abstract-value.domain.final:not(.domain) + .report-line.abstract-value.final
+{
+	/* background-color: #e8e8e8; */
+	border-left: 2px solid #a0a0a0 !important;
+}
+
+div#primary .report-line.abstract-value:not(.domain) + .report-line.abstract-value.domain
+{
+	border-left: 2px solid #a8a8a8;
+}
+
+div#primary .report-line.value.match.domain
+{
+	border-left: 1px solid #63b15c;
 }
 
 div#primary .report-line.line-item.total 
@@ -355,7 +410,6 @@ div#primary .report-line.value.right
 div#primary .business-rules-row.calculated.total,
 div#primary .report-line.value.total 
 {
-	/* background-color: #c5ffc2; */
 	border-bottom: 3px double black !important;
     border-top: 1px solid #000;
 	margin-top: -1px;
@@ -370,7 +424,7 @@ div#primary .report-line.value.first-fact
 
 div#primary .report-line.value.total.main
 {
-	background-color: #c5ffc2;
+	/* background-color: #c5ffc2; */
 	border-bottom: 3px double black;
 }
 
@@ -401,6 +455,7 @@ div#primary div.xbrl-footnotes div.footnote-list
 	grid-template-columns: auto 1fr;
 }
 
+div#primary .report-line.value.domain,
 div#primary .report-line.value.total
 {
 	display: grid;
@@ -559,11 +614,17 @@ div#primary  div.report-selection label
 }
 
 div#primary .business-rules-row.calculated.match,
-div#primary .report-line.value.total.match
+div#primary .report-line.value.match
 {
 	background-color: #c5ffc2;
 }
 
+div#primary .report-line.value.match.domain
+{
+	border-bottom-color: #95db96;
+}
+
+div#primary .report-line.value.domain .match:before ,
 div#primary .report-line.value.total .match:before 
 {
     content: '\f00c';
@@ -573,11 +634,18 @@ div#primary .report-line.value.total .match:before
 }
 
 div#primary .business-rules-row.calculated.mismatch,
-div#primary .report-line.value.total.mismatch
+div#primary .report-line.value.mismatch.main,
+div#primary .report-line.value.mismatch
 {
 	background-color: pink;	
 }
 
+div#primary .report-line.value.mismatch.domain
+{
+	border-bottom-color: #e18d9b;	
+}
+
+div#primary .report-line.value.domain .mismatch:before ,
 div#primary .report-line.value.total .mismatch:before 
 {
     content: '\f00d';
