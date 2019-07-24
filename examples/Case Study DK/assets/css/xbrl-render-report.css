@@ -57,7 +57,7 @@ div#primary .model-structure
 {
 	display: grid;
 	grid-template-rows: auto auto auto auto auto 1fr; /* Let the component table, slicers table, structure table, report table and facts table have what they need but give the rest to the business table */
-	grid-row-gap: 20px;
+	grid-row-gap: 0px;
 	padding: 2px;
 	word-break: break-all;
 }
@@ -76,6 +76,7 @@ div#primary .component-table
 	display: grid;
 	grid-template-rows: auto auto; /* The component table has a header and body */	 
 	border: 1px solid black;
+	margin-bottom: 20px;
 }
  
 div#primary .component-table .ct-header
@@ -115,6 +116,11 @@ div#primary .component-table .ct-body .network
 /**
 	Slicers table CSS
  */
+div#primary .slicers-table
+{
+	margin-bottom: 20px;	
+}
+
 div#primary .slicers 
 {
 	display: grid;
@@ -141,6 +147,7 @@ div#primary .structure-table
 	display: grid;
 	grid-template-columns: 400px auto auto auto auto 1fr; /* The structure-table table body has five columns */
 	border: 2px solid black;
+	margin-bottom: 20px;
 }
 
 div#primary .structure-table div:nth-child(-n+6) /* Header row */
@@ -184,6 +191,11 @@ div#primary .report-line.line-item.depth1,
 div#primary span.depth1 
 {
 	padding-left: 10px;
+}
+
+div#primary .report-section
+{
+	margin-bottom: 20px;
 }
 
 div#primary .report-line.line-item.depth2,
@@ -508,6 +520,7 @@ div#primary .report-table div:nth-child(6n+4):not(:nth-child(-n+3))
 div#primary .fact-table
 {
 	border: 2px solid black;
+	margin-bottom: 20px;
 }
 
 div#primary .fact-table .fact-table-header /* Header row */
