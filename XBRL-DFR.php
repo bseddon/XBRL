@@ -658,7 +658,7 @@ class XBRL_DFR // extends XBRL
 	 * @param array $formulaSummaries An evaluated formulas instance
 	 * @return array|null
 	 */
-	public function validateDFR( &$formulaSummaries )
+	public function validateDFR( &$formulaSummaries, $rebuildDefinitionsCache = false )
 	{
 		global $reportModelStructureRuleViolations;
 
@@ -667,7 +667,7 @@ class XBRL_DFR // extends XBRL
 		// Makes sure they are reset in case the same taxonomy is validated twice.
 		$this->calculationNetworks = array();
 		$this->presentationNetworks = array();
-		$this->definitionNetworks = $this->taxonomy->getAllDefinitionRoles();
+		$this->definitionNetworks = $this->taxonomy->getAllDefinitionRoles( $rebuildDefinitionsCache );
 
 		$this->taxonomy->generateAllDRSs();
 
