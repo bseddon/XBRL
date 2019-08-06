@@ -1,18 +1,5 @@
 # XBRL for PHP
 
-**If you update after May 23rd**
-
-If you compile taxonomies and are also using presentation linkbase information (for example to create reports) 
-then you should regenerate compiled taxonomies. An error handling some cases of the use of preferred labels 
-meant that some nodes might not be represented.  
-
-This occurs in two scenarios when the target of the preferred label also has child nodes (that may or may not 
-also use preferred labels).  One is when, for example, the period start label is defined in one instance of an 
-extended link and the end label is defined in another.  Another is when a concept block (that is, the concept 
-has children) is defined referenced by another concept but the block is also referenced by another arc 
-using one or more preferred labels.  These patterns exist in the IFRS taxonomy but not the US GAAP taxonomy. 
-
-
 ## Table of contents
 * [Status](#status)
 * [About the project](#about-the-project)
