@@ -4,6 +4,7 @@
 * [Status](#status)
 * [About the project](#about-the-project)
 * [Purpose](#purpose)
+* [Reporting](#reporting)
 * [Why PHP?](#why-php)
 * [License](#license)
 * [Contributing](#contributing)
@@ -152,6 +153,19 @@ The project allows an application to validate taxonomy and instance documents an
 each element in a taxonomy or instance document that fails identifying the offending element and it will include a reference to the specification.  
 In the case of the dimensions and formula validation, the message will include the approrpriate error constant as defined in the XDT (dimensions) 
 specification.
+
+## Reporting
+
+The processor supports instance document rendering based on the information provided by the taxonomy author that is available in the presentation linkbase.
+There are many examples in the [[Digital Financial Reporting examples]] page.  You can also visit www.xbrlquery.org to see live examples or even create a 
+rendering of your own instance documents.
+
+This example shows that the XBRL formulas and calculation linkbase rules compute correctly based on the data available (rules that do not compute will be
+highlighted in red.
+
+Rendering can also include details of the structure of the report and a breakdown of calculation and formula results.
+
+![rollforward](https://user-images.githubusercontent.com/1221824/62862465-c5a23300-bcfd-11e9-8c6a-0cbfa7d7d043.png)
 
 ## Why PHP?
 
