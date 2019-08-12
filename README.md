@@ -157,11 +157,11 @@ specification.
 ## Reporting
 
 The processor supports instance document rendering based on the information provided by the taxonomy author that is available in the presentation linkbase.
-There are many examples in the [[Digital Financial Reporting examples]] page.  You can also visit www.xbrlquery.org to see live examples or even create a 
+There are many examples in the [Digital Financial Reporting examples](https://github.com/bseddon/XBRL/wiki/Digital-Financial-Reporting-examples) page.  You can also visit www.xbrlquery.org to see live examples or even create a 
 rendering of your own instance documents.
 
 This example shows that the XBRL formulas and calculation linkbase rules compute correctly based on the data available (rules that do not compute will be
-highlighted in red.
+highlighted in red).
 
 Rendering can also include details of the structure of the report and a breakdown of calculation and formula results.
 
