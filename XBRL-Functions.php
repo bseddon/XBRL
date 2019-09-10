@@ -419,6 +419,11 @@ $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFI
 	require_once "XPathFunctions/getFactHasExplicitDimensionValue.php";
 	return getFactHasExplicitDimensionValue( $context, $provider, $args );
 });
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "fact-explicit-scenario-dimension-value", 2, XPath2ResultType::Boolean, function( $context, $provider, $args )
+{
+	require_once "XPathFunctions/getFactExplicitScenarioDimensionValue.php";
+	return getFactExplicitScenarioDimensionValue( $context, $provider, $args );
+});
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "fact-explicit-dimension-value", 2, XPath2ResultType::QName, function( $context, $provider, $args )
 {
 	require_once "XPathFunctions/getFactExplicitDimensionValue.php";
