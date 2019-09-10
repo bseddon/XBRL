@@ -188,6 +188,12 @@ class XBRL {
 	 */
 	private static $xsd_to_compiled_map			= array();
 
+	/**
+	 * When set this value will be returned by getDefaultLanguage
+	 * @var string
+	 */
+	public static $specificLanguage				= null;
+
 	// Instance variables
 	/**
 	 * Reference to a global shared class that holds indexed references all taxonomy documents
@@ -2297,6 +2303,7 @@ class XBRL {
 	 */
 	public function getDefaultLanguage()
 	{
+		if ( self::$specificLanguage ) return self::$specificLanguage;
 		return 'en-US';
 	}
 
