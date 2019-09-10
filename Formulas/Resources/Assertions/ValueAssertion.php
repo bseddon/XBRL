@@ -243,7 +243,9 @@ class ValueAssertion extends VariableSetAssertion
 			else if ( $result instanceof CoreFuncs::$False )
 			{
 				$this->unsatisfied[] = $evaluationResult;
-				$this->generatedUnsatisifiedMessages = array_merge( $this->generatedSatisifiedMessages, $this->processMessages( $this->unsatisfiedMessages, $vars ) );
+				// BMS 2019-09-09 Suggested by Tim Vandecasteele as the wrong messages array was being merged
+				//				  see https://github.com/tim-vandecasteele/xbrl-experiment/commit/4de606377d7b0115322b9624612d0d666fa7439f
+				$this->generatedUnsatisifiedMessages = array_merge( $this->generatedUnsatisifiedMessages, $this->processMessages( $this->unsatisfiedMessages, $vars ) );
 			}
 			else
 			{
