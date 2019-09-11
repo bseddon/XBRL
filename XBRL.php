@@ -208,6 +208,14 @@ class XBRL {
 	protected $xbrlDocument						= null;
 
 	/**
+	 * Seggested by tim-vandecasteele to allow the same information in
+	 * linkbases shared by more than one taxonomy to be loaded into all taxonomies
+	 * @var array
+	 * @see https://github.com/tim-vandecasteele/xbrl-experiment/commit/3610466123ffe936fd45b5a0299fa97baa4699ac
+	 */
+	private $processedLinkbases					= array();
+
+	/**
 	 * The elements in the taxonomy
 	 * @var array $elementIndex
 	 */
@@ -6016,9 +6024,21 @@ class XBRL {
 		$xml_basename = pathinfo( $parts[0], PATHINFO_BASENAME );
 		$fragment = isset( $parts[1] ) ? $parts[1] : "";
 
-		if ( isset( $this->context->processedLinkbases[ 'gen:arc:' . $xml_basename ] ) )
+		// BMS 2019-09-11 Suggested by tim-vandecasteele
+		//				  see https://github.com/tim-vandecasteele/xbrl-experiment/commit/3610466123ffe936fd45b5a0299fa97baa4699ac
+		// only skip when this linkbase was processed already for this taxonomy
+		// although it's possible it's already processed for another taxonomy, if you
+		// wouldn't process it, it would mean that resources etc. would not be correctly
+		// assigned. To make sure that formulas are unique, an explicit check is done
+		// when the formula is assigned.
+		// if ( isset( $this->context->processedLinkbases[ 'gen:arc:' . $xml_basename ] ) )
+		if ( isset( $this->processedLinkbases[ $xml_basename ] ) )
 		{
 			return;
+		}
+		else
+		{
+			$this->processedLinkbases[ $xml_basename ] = true;
 		}
 
 		// TODO Change this to use SchemaTypes::resolve_path
@@ -6258,7 +6278,7 @@ class XBRL {
 				}
 
 				// $href = XBRL::resolve_path( $linkbaseRef['href'], $parts['path'] );
-				$href = XBRL::resolve_path( pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ), $parts[0] );
+				$href = XBRL::resolve_path( str_replace( "//", "/", pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ) . "/" ), $parts[0] );
 				XBRL::withTaxonomy( $href, true ); // BMS 2017-04-03 Should probably use XBRL::WithTaxonomy
 				$taxonomy = $this->getTaxonomyForXSD( basename( $parts[0] ) );
 
@@ -6878,8 +6898,12 @@ class XBRL {
 								$resource['base'] = $base . ( isset( $resource['base'] ) ? $resource['base'] : "" );
 							}
 
-							// If the resource has a name make sure the name is unique
-							if ( isset( $resource['name'] ) )
+							// BMS 2019-09-11 Suggested by tim-vandecasteele
+							//				  see https://github.com/tim-vandecasteele/xbrl-experiment/commit/3610466123ffe936fd45b5a0299fa97baa4699ac
+							// // If the resource has a name make sure the name is unique
+							// if ( isset( $resource['name'] ) )
+							// If the resource has a name make sure the name is unique unless this linkbase was already processed
+							if ( ! isset( $this->context->processedLinkbases[ 'gen:arc:' . $xml_basename ] ) && isset( $resource['name'] ) )
 							{
 								$name = is_array( $resource['name'] )
 									? ( new QName($resource['name']['originalPrefix'], $resource['name']['namespace'], $resource['name']['name'] ) )->clarkNotation()
@@ -7114,7 +7138,7 @@ class XBRL {
 					$arcroleRefs, $arcQName, $arcroleType,
 					&$preferredLabelEquivalenceHashes, $href,
 					$isGeneric, $linkbaseDescription,
-					$linkbaseIds, $linkQName, $locators,
+					&$linkbaseIds, $linkQName, $locators,
 					&$preferredLabelArcs, $roleListName, $roleRefs,
 					$roleUri, $usedOn /* , &$fromToPairs */, $linkPath, $xml_basename
 				)
@@ -7633,6 +7657,7 @@ class XBRL {
 											? array( array( 'type'=> 'schema', 'schema' => $fromParts['path'], 'fragment' => $fromParts['fragment'] ) )
 											: null
 									  );
+
 								$toResources	= isset( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
 									? (
 											is_array( $this->{$roleListName}['roles'][ $toRoleUri ][ $resourceType ][ $toLinkbase ][ $to ] )
@@ -18125,7 +18150,7 @@ class XBRL {
 
 		// Using the extension to determine if the source is a file or directory reference is problematic unless it is always terminated with a /
 		// This is because the source directory path may include a period such as x:/myroot/some.dir-in-a-path/
-		$source = pathinfo( $source, PATHINFO_EXTENSION ) === "" //  || is_dir( $source )
+		$source = XBRL::endsWith( $source, '/' ) || pathinfo( $source, PATHINFO_EXTENSION ) === "" //  || is_dir( $source )
 			? $source
 			: pathinfo( $source, PATHINFO_DIRNAME );
 
