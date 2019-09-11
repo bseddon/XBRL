@@ -194,7 +194,7 @@ class Evaluation
 						{
 							return false;
 						}
-						// $evaluated = true;
+						$evaluated = true;
 					}
 
 					if ( ! $binding->next() )
@@ -234,7 +234,7 @@ class Evaluation
 					{
 						return false;
 					}
-					$evaluated = ! $this->variableSet instanceof Formula;
+					$evaluated = ! $this->variableSet instanceof Formula; // Is an assertion
 				}
 			}
 
