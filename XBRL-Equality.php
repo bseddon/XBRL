@@ -393,6 +393,8 @@ class XBRL_Equality {
 				case "typedMember":
 
 					$validNames[] = 'dimension';
+					$validNames[] = 'member';
+					// BMS 2019-09-14 Having a go at fixing this
 					// BMS 2018-02-18 TODO
 					// Should check 'member' but the xequal check doesn't support it yet
 					break;
@@ -688,20 +690,26 @@ class XBRL_Equality {
 		{
 			if ( ! isset( $value2[ $key ] ) ) return false;
 
-			if ( $key == 'id' )
+			if ( $key === 'id' )
 			{
 				$pattern = "/^" . SchemaTypes::$ncName . "$/u";
 				if ( ! preg_match( $pattern, $value, $matches ) )
 				{
-					$this->log()->taxonomy_validation( "context", "id attribute is not a valid NCName", array( 'id' => $value ) );
+					XBRL_Log::getInstance()->taxonomy_validation( "context", "id attribute is not a valid NCName", array( 'id' => $value ) );
 				}
 				if ( ! preg_match( $pattern, $value2[ $key ], $matches ) )
 				{
-					$this->log()->taxonomy_validation( "context", "id attribute is not a valid NCName", array( 'id' => $value[ $key ] ) );
+					XBRL_Log::getInstance()->taxonomy_validation( "context", "id attribute is not a valid NCName", array( 'id' => $value[ $key ] ) );
 				}
 			}
-
-			if ( is_array( $value ) )
+			else if ( is_numeric( $key ) && is_string( $value ) )
+			{
+				if ( ! is_string( $value2[ $key ] ) || $value != $value2[ $key ] )
+				{
+					return false;
+				}
+			}
+			else if ( is_array( $value ) )
 			{
 				if ( ! is_array( $value2[ $key ] ) ) return false;
 
@@ -713,7 +721,7 @@ class XBRL_Equality {
 
 				continue;
 			}
-			else if ( in_array( $key, array( 'id', 'name', 'prefix', 'type' ) ) )
+			else if ( is_string( $key ) && in_array( $key, array( 'id', 'name', 'prefix', 'type' ) ) )
 			{
 				if ( $value != $value2[ $key ] )
 				{
@@ -724,11 +732,11 @@ class XBRL_Equality {
 			}
 
 			// These can be attribute comparisons so if not the element value look for an attribute and get the type
-			$aType = $key == 'value'
+			$aType = $key === 'value'
 				? XBRL_Equality::xequalElementType( $types, $value1['name'], isset( $value1['prefix'] ) ? $value1['prefix'] : null )
 				: XBRL_Equality::xequalAttributeType( $types, $key, isset( $value1['prefix'] ) ? $value1['prefix'] : null );
 
-			$bType = $key == 'value'
+			$bType = $key === 'value'
 				? XBRL_Equality::xequalElementType( $types, $value2['name'], isset( $value2['prefix'] ) ? $value2['prefix'] : null )
 				: XBRL_Equality::xequalAttributeType( $types, $key, isset( $value2['prefix'] ) ? $value2['prefix'] : null );
 
