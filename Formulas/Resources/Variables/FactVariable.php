@@ -378,7 +378,7 @@ class FactVariable extends Variable
 
 		// Apply each filter in $this->filters.
 		// BMS 2018-02-13 Modify this to create a pair of filter lists.
-		// One that apply to all aspects types and another that is for filters that do not apply to tuples
+		// One that applies to all aspects types and another that is for filters that do not apply to tuples
 		if ( ! $this->nonTupleFilters && ! $this->tupleFilters )
 		{
 			foreach ( $this->filters as $filter )
