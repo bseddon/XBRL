@@ -66,8 +66,6 @@ function getCEqual( $context, $provider, $args )
 	try
 	{
 		// There should be two arguments and each argument should be a node iterator
-		// There shold be the same count in each node.
-
 		if ( $args[0] instanceof DOMXPathNavigator )
 			$args[0] = XPath2NodeIterator::Create( $args[0] );
 
@@ -79,6 +77,7 @@ function getCEqual( $context, $provider, $args )
 			throw new \InvalidArgumentException();
 		}
 
+		// There should be the same count in each node.
 		if ( $args[0]->getCount() != $args[1]->getCount() )
 		{
 			return CoreFuncs::$False;

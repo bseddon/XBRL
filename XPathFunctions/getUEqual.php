@@ -39,7 +39,6 @@ use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Iterator\EmptyIterator;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
-use lyquidity\XPath2\XPath2NodeIterator\SingleIterator;
 use lyquidity\XPath2\XPath2Exception;
 
 // Make sure any required functions are imported
@@ -71,26 +70,18 @@ function getUEqual( $context, $provider, $args )
 	try
 	{
 		// There should be two arguments and each argument should be a node iterator
-		// There shold be the same count in each node.
-
 		if ( $args[0] instanceof DOMXPathNavigator )
-		{
-			$args[0] = SingleIterator::Create( $args[0] );
-		}
-		else if ( ! $args[0] instanceof XPath2NodeIterator )
-		{
-			throw new \InvalidArgumentException();
-		}
+			$args[0] = XPath2NodeIterator::Create( $args[0] );
 
 		if ( $args[1] instanceof DOMXPathNavigator )
-		{
-			$args[1] = SingleIterator::Create( $args[1] );
-		}
-		else if ( ! $args[1] instanceof XPath2NodeIterator )
+			$args[1] = XPath2NodeIterator::Create( $args[1] );
+
+		if ( ! $args[0] instanceof XPath2NodeIterator || ! $args[1] instanceof XPath2NodeIterator )
 		{
 			throw new \InvalidArgumentException();
 		}
 
+		// There should be the same count in each node.
 		if ( $args[0]->getCount() != $args[1]->getCount() )
 		{
 			return CoreFuncs::$False;

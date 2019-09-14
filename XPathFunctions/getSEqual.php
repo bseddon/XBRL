@@ -37,6 +37,7 @@ use lyquidity\XPath2\TreeComparer;
 use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
  * Returns true if two node sequences are s-equal.
@@ -57,13 +58,18 @@ function getSEqual( $context, $provider, $args )
 	try
 	{
 		// There should be two arguments and each argument should be a node iterator
-		// There shold be the same count in each node.
+		if ( $args[0] instanceof DOMXPathNavigator )
+			$args[0] = XPath2NodeIterator::Create( $args[0] );
+
+		if ( $args[1] instanceof DOMXPathNavigator )
+			$args[1] = XPath2NodeIterator::Create( $args[1] );
 
 		if ( ! $args[0] instanceof XPath2NodeIterator || ! $args[1] instanceof XPath2NodeIterator )
 		{
 			throw new \InvalidArgumentException();
 		}
 
+		// There should be the same count in each node.
 		if ( $args[0]->getCount() != $args[1]->getCount() )
 		{
 			return CoreFuncs::$False;
