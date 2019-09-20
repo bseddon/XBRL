@@ -11342,7 +11342,7 @@ class XBRL {
 						case XBRL_Constants::$arcRoleAll:
 						case XBRL_Constants::$arcRoleNotAll:
 
-							if ( ! isset( $hypercubes[ $nodeKey ] ) ) continue;
+							if ( ! isset( $hypercubes[ $nodeKey ] ) ) break;
 							$hypercubes[ $nodeKey ]['parents'][ $parentKey ] = $parent;
 
 							foreach ( $primaryItems as $primaryItemId => $primaryItem )
@@ -11422,7 +11422,7 @@ class XBRL {
 							{
 								if ( ! isset( $nodes[ $parentKey ]['parents'] ) )
 								{
-									continue;
+									break;
 								}
 
 								// Look up the hierarhcy to see if a parent is a primary item
@@ -11458,7 +11458,7 @@ class XBRL {
 									return false;
 								};
 
-								if ( ( $parentNodeKey = $parentsArePrimary( $nodes[$parentKey]['parents'] ) ) === false ) continue;
+								if ( ( $parentNodeKey = $parentsArePrimary( $nodes[$parentKey]['parents'] ) ) === false ) continue 2;
 
 								$updateReferences( $parentKey, $parentNodeKey, $nodes[ $parentNodeKey ] );
 							}
@@ -11473,10 +11473,10 @@ class XBRL {
 
 						case XBRL_Constants::$arcRoleHypercubeDimension:
 
-							if ( $parent['arcrole'] !== XBRL_Constants::$arcRoleHypercubeDimension ) continue;
+							if ( $parent['arcrole'] !== XBRL_Constants::$arcRoleHypercubeDimension ) break;
 							// if ( $parent['arcrole_old'] !== 'hypercube-dimension' ) continue;
 
-							if ( ! isset( $hypercubes[ $parentKey ] ) ) continue;
+							if ( ! isset( $hypercubes[ $parentKey ] ) ) break;
 
 							if ( ! isset( $hypercubes[ $parentKey ]['dimensions'] ) )
 								$hypercubes[ $parentKey ]['dimensions'] = array();
@@ -17041,7 +17041,7 @@ class XBRL {
 										case 'role':
 										case 'href':
 										case 'nodeclass':
-											continue;
+											break;
 
 										default:
 											if ( ! isset( $newRole['hypercubes'][ $hypercubeKey ][ $key ] ) )
