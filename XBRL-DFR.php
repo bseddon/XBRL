@@ -38,7 +38,7 @@ use XBRL\Formulas\Resources\Variables\Parameter;
 define( 'NEGATIVE_AS_BRACKETS', 'brackets' );
 define( 'NEGATIVE_AS_MINUS', 'minus' );
 
-class XBRL_DFR // extends XBRL
+class XBRL_DFR
 {
 	/**
 	 *
@@ -282,7 +282,9 @@ class XBRL_DFR // extends XBRL
 			'There is no data to report' => 'Der er ingen data at rapportere',
 			'Columns' => 'Kolonner',
 			'Wider' => 'Bredere',
-			'Narrower' => 'Smallere'
+			'Narrower' => 'Smallere',
+			'Order' => 'Order',
+			'Parent concept' => 'Parent concept'
 		),
 		'de' => array(
 			'Axis' => 'Achse',
@@ -321,7 +323,9 @@ class XBRL_DFR // extends XBRL
 			'There is no data to report' => 'Es sind keine Daten zu melden',
 			'Columns' => 'Säulen',
 			'Wider' => 'Breiter',
-			'Narrower' => 'Schmaler'
+			'Narrower' => 'Schmaler',
+			'Order' => 'Order',
+			'Parent concept' => 'Parent concept'
 		),
 		'es' => array(
 			'Axis' => 'Eje',
@@ -360,7 +364,9 @@ class XBRL_DFR // extends XBRL
 			'There is no data to report' => 'No hay datos para reportar',
 			'Columns' => 'Columnas',
 			'Wider' => 'Más amplio',
-			'Narrower' => 'Más estrecho'
+			'Narrower' => 'Más estrecho',
+			'Order' => 'Order',
+			'Parent concept' => 'Parent concept'
 		),
 		'fr' => array(
 			'Axis' => 'Axe',
@@ -399,7 +405,9 @@ class XBRL_DFR // extends XBRL
 			'There is no data to report' => 'Il n\'y a pas de données à signaler',
 			'Columns' => 'Les colonnes',
 			'Wider' => 'Plus large',
-			'Narrower' => 'Plus étroit'
+			'Narrower' => 'Plus étroit',
+			'Order' => 'Order',
+			'Parent concept' => 'Parent concept'
 		),
 		'it' => array(
 			'Axis' => 'Asse',
@@ -438,7 +446,9 @@ class XBRL_DFR // extends XBRL
 			'There is no data to report' => 'Non ci sono dati da segnalare',
 			'Columns' => 'Colonne',
 			'Wider' => 'Più ampia',
-			'Narrower' => 'Più stretto'
+			'Narrower' => 'Più stretto',
+			'Order' => 'Order',
+			'Parent concept' => 'Parent concept'
 		)
 	);
 
@@ -584,9 +594,10 @@ class XBRL_DFR // extends XBRL
 	 * @param Observer $observer
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
+	 * @param array $factsData			@reference If not null an array
 	 * @return array
 	 */
-	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $lang = null, $echo = true )
+	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $lang = null, $echo = true, &$factsData = null )
 	{
 		// If the checkboxes are not displayed then make sure all selected tables are shown
 		if ( ! $this->includeCheckboxControls ) $this->showAllGrids = true;
@@ -596,7 +607,9 @@ class XBRL_DFR // extends XBRL
 		foreach ( $networks as $elr => $network )
 		{
 			$entityHasReport = false;
-			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $entityHasReport, $lang, $echo );
+			$data = is_array( $factsData ) ? array() : null;
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $entityHasReport, $lang, $echo, $data );
+			if ( is_array( $factsData ) ) $factsData[ $elr ] = $data;
 
 			// error_log( $elr );
 			$result[ $elr ] = array(
@@ -619,9 +632,10 @@ class XBRL_DFR // extends XBRL
 	 * @param bool $entityHasReport
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
+	 * @param array $factsData			@reference If not null an array
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, &$entityHasReport = false, $lang = null, $echo = true )
+	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, &$entityHasReport = false, $lang = null, $echo = true, &$factsData = null )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -646,7 +660,9 @@ class XBRL_DFR // extends XBRL
 			$entityQName = qname( $entity );
 
 			$hasReport = false;
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $hasReport, $lang, $echo );
+			$data = is_array( $factsData ) ? array() : null;
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $hasReport, $lang, $echo, $data );
+			if ( is_array( $factsData ) ) $factsData[ $entity ] = $data;
 			$entityHasReport |= $hasReport;
 		}
 
@@ -927,10 +943,16 @@ class XBRL_DFR // extends XBRL
 
 				if ( $element['abstract'] || $element['type'] == 'nonnum:domainItemType' ) continue;
 
+							// BMS 2019-03-23 TODO Check the concept is not a tuple
+				if ( $element['substitutionGroup'] == "xbrli:tuple" )
+				{
+					$x = 1;
+					continue;
+				}
+
 				// One or more of the labels may include the preferred label role so convert all PIs back to their id
 				$this->presentationPIs[$elr][] = $taxonomy->getTaxonomyXSD() . "#{$element['id']}";
 
-				// BMS 2019-03-23 TODO Check the concept is not a tuple
 			}
 
 			// If there were preferred label roles in any of the PIs then there will be duplicates.  This also sorts the list.
@@ -1888,6 +1910,208 @@ class XBRL_DFR // extends XBRL
 	}
 
 	/**
+	 * Create an array of the fact data with columns for any years and dimensions
+	 * @param array $network			An array generated by the validsateDLR process
+	 * @param string $elr				The extended link role URI
+	 * @param XBRL_Instance $instance	The instance being reported
+	 * @param QName $entityQName
+	 * @param array $factsLayout		A table produced by the report table method
+	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
+	 * @return string
+	 */
+	private function createFactsData( $network, $elr, $instance, $entityQName, &$reportsFactsLayout, $lang = null )
+	{
+		$result = array();
+
+		if ( ! $reportsFactsLayout ) return $result;
+
+		$axes = array_reduce( $network['axes'], function( $carry, $axes )
+		{
+			$carry = array_merge( $carry, $axes );
+			return $carry;
+		}, array() );
+
+		$axes = array_filter( $axes, function( $axis ) { return isset( $axis['dimension'] ); } );
+
+		foreach ( $reportsFactsLayout as $reportLabel => $factsLayout )
+		{
+			$result[ $reportLabel ] = array();
+			$result[ $reportLabel ]['title'] = $network['text'];
+
+			$columns['context'] = $this->getConstantTextTranslation( $lang, 'Context' );
+
+			foreach ( $factsLayout['axes'] as $axisLabel )
+			{
+				$axis = $axes[ $axisLabel ];
+
+				$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+				$dimElement = $dimTaxonomy->getElementById( $axisLabel );
+				$dimPrefix = $instance->getPrefixForNamespace( $dimTaxonomy->getNamespace() );
+				$dimQName = "$dimPrefix:{$dimElement['name']}";
+
+				$text = $dimTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $axisLabel, null, $lang, $elr );
+				$columns[ $dimQName ] = $text;
+			}
+
+			$columns['period'] = $this->getConstantTextTranslation( $lang, 'Period [Axis]' );
+			$columns['concept'] = $this->getConstantTextTranslation( $lang, 'Concept' );
+			$columns['unit'] = $this->getConstantTextTranslation( $lang, 'Unit' );
+			$columns['rounding'] = $this->getConstantTextTranslation( $lang, 'Rounding' );
+			$columns['value'] = $this->getConstantTextTranslation( $lang, 'Value' );
+			$columns['parent'] = $this->getConstantTextTranslation( $lang, 'Parent concept' );
+			$columns['pattern'] = $this->getConstantTextTranslation( $lang, 'Fact Set Type' );
+			$columns['order'] = $this->getConstantTextTranslation( $lang, 'Order' );
+
+			$columnIndices = array_flip( array_keys( $columns ) );
+
+			$data = array();
+			$concepts = array();
+			// $conceptTexts = array();
+			$contexts = array();
+			$periods = array();
+			$units = array();
+			$patterns = array();
+			$parents = array();
+			$members = array();
+			$memberTexts = array();
+			$conceptsInfo = array();
+
+			foreach ( $factsLayout['data'] as $conceptLabel => $row )
+			{
+				/** @var XBRL $conceptTaxonomy */
+				$conceptTaxonomy = $row['taxonomy'];
+				$preferredLabel = isset( $row['node']['preferredLabel'] ) ? $row['node']['preferredLabel'] : null;
+				$conceptText = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( '#' . $row['element']['id'], $preferredLabel, $lang, $elr );
+				$conceptQName = "{$conceptTaxonomy->getPrefix()}:{$row['element']['name']}";
+				// if ( ! isset( $concepts[ $conceptQName ] ) )
+				if ( ! isset( $concepts[ $conceptLabel ] ) )
+				{
+					// $conceptTexts[] = $conceptText;
+					// $concepts[ $conceptQName ] = count( $conceptTexts ) - 1;
+					$conceptsInfo[ $conceptLabel ] = array( 'qn' => $conceptQName, 't' => $conceptText );
+					$concepts[ $conceptLabel ] = count( $conceptsInfo ) - 1;
+					if ( $preferredLabel ) $conceptsInfo[ $conceptLabel ]['pl'] = $preferredLabel;
+				}
+
+				foreach ( $row['columns'] as $columnIndex => $fact )
+				{
+					$data[ $columnIndices['concept'] ] = $concepts[ $conceptLabel ];
+					$data[ $columnIndices['order'] ] = $row['order'];
+
+					if ( ! in_array( $row['parentQName'], $parents ) )
+					{
+						$parents[] = $row['parentQName'];
+					}
+					$data[ $columnIndices['parent'] ] = array_search( $row['parentQName'], $parents );
+
+					if ( ! in_array( $row['pattern'], $patterns ) )
+					{
+						$patterns[] = $row['pattern'];
+					}
+					$data[ $columnIndices['pattern'] ] = array_search( $row['pattern'], $patterns );
+
+					$context = $instance->getContext( $fact['contextRef'] );
+					if ( ! in_array( $fact['contextRef'], $contexts ) )
+					{
+						$contexts[] = $fact['contextRef'];
+					}
+					$data[ $columnIndices['context'] ] = array_search( $fact['contextRef'], $contexts );
+
+					$period = $context['period']['is_instant']
+						? $context['period']['endDate']
+						: "{$context['period']['startDate']} - {$context['period']['endDate']}";
+					if ( ! in_array( $period, $periods ) )
+					{
+						$periods[] = $period;
+					}
+					$data[ $columnIndices['period'] ] = array_search( $period, $periods );
+
+					$dimensions = $instance->getContextDimensions( $context );
+
+					foreach ( $factsLayout['axes'] as $axisLabel )
+					{
+						$axis = $axes[ $axisLabel ];
+
+						$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
+						$dimElement = $dimTaxonomy->getElementById( $axisLabel );
+						$dimPrefix = $instance->getPrefixForNamespace( $dimTaxonomy->getNamespace() );
+						$dimQName = "$dimPrefix:{$dimElement['name']}";
+
+						if ( isset( $axis['typedDomainRef'] ) && $axis['typedDomainRef'] && isset( $dimensions[ $dimQName ] ) )
+						{
+							$label = $axis['typedDomainRef'];
+							$memTaxonomy = $dimTaxonomy;
+							if ( $label[0] != '#' )
+							{
+								$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $label );
+							}
+
+							$memElement = $memTaxonomy->getElementById( $label );
+							$memPrefix = $instance->getPrefixForNamespace( $memTaxonomy->getNamespace() );
+							$memQName = "$memPrefix:{$memElement['name']}";
+							$memberText = preg_replace( array( "!<$memQName>!", "!</$memQName>!" ), "", reset( $dimensions[ $dimQName ][ $memQName ] ) );
+						}
+						else
+						{
+							if ( isset( $dimensions[ $dimQName ] ) )
+							{
+								$memberQName = qname( $dimensions[ $dimQName ], $instance->getInstanceNamespaces() );
+								$memTaxonomy = $dimTaxonomy->getTaxonomyForQName( $dimensions[ $dimQName ] );
+								$memElement = $memTaxonomy->getElementByName( $memberQName->localName );
+								$memberLabel = $memTaxonomy->getTaxonomyXSD() . "#" . $memElement['id'];
+								$memQName = "{$memTaxonomy->getPrefix()}:{$memElement['name']}";
+							}
+							else
+							{
+								$memberLabel = $axis['default-member'];
+								$memTaxonomy = $dimTaxonomy->getTaxonomyForXSD( $memberLabel );
+								$memElement = $memTaxonomy->getElementById( $memberLabel );
+								$memPrefix = $instance->getPrefixForNamespace( $memTaxonomy->getNamespace() );
+								$memQName = "$memPrefix:{$memElement['name']}";
+							}
+
+							$memberText = $memTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $memberLabel, null, $lang, $elr );
+						}
+
+						if ( ! isset( $members[ $memQName ] ) )
+						{
+							$memberTexts[] = $memberText;
+							$members[ $memQName ] = count( $memberTexts ) - 1;
+						}
+
+						$data[ $columnIndices[ $dimQName ] ] = $members[ $memQName ];
+					}
+
+					if ( ! in_array( $fact['unitRef'], $units ) )
+					{
+						$units[] = $fact['unitRef'];
+					}
+
+					$data[ $columnIndices['unit'] ] = array_search( $fact['unitRef'], $units );
+					$data[ $columnIndices['value'] ] = $fact['value'];
+					$data[ $columnIndices['rounding'] ] = isset( $fact['decimals'] ) ? $fact['decimals'] : "";
+
+					$result[ $reportLabel ]['data'][] = $data;
+				}
+			}
+
+			$result[ $reportLabel ]['columns'] = $columns;
+			$result[ $reportLabel ]['concepts'] = $concepts;
+			// $result[ $reportLabel ]['conceptTexts'] = $conceptTexts;
+			$result[ $reportLabel ]['conceptsInfo'] = $conceptsInfo;
+			$result[ $reportLabel ]['contexts'] = $contexts;
+			$result[ $reportLabel ]['members'] = $members;
+			$result[ $reportLabel ]['memberTexts'] = $memberTexts;
+			$result[ $reportLabel ]['periods'] = $periods;
+			$result[ $reportLabel ]['units'] = $units;
+			$result[ $reportLabel ]['patterns'] = $patterns;
+			$result[ $reportLabel ]['parents'] = $parents;
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Render a report with columns for any years and dimensions
 	 * @param array $network			An array generated by the validsateDLR process
 	 * @param string $elr				The extended link role URI
@@ -2286,7 +2510,7 @@ class XBRL_DFR // extends XBRL
 							{
 								$reportElement .= " " . $nodeElement['type'];
 							}
-							$periodType = $nodeElement['periodType'];
+							$periodType = isset( $nodeElement['periodType'] ) ?  $nodeElement['periodType'] : 'n/a';
 							$balance = isset( $nodeElement['balance'] ) ? $nodeElement['balance'] : 'n/a';
 							$factSetType = isset( $node['patterntype'] ) ? $node['patterntype'] : '';
 							break;
@@ -3003,7 +3227,7 @@ class XBRL_DFR // extends XBRL
 		// Now workout the facts layout.
 		// Note to me.  This is probably the way to go as it separates the generation of the facts from the rendering layout
 		// Right now it is used to drop columns
-		$getFactsLayout = function( $nodes, $contexts, $parentLabel = null, $parentPattern = 'set', $lineItems = false, $parentModelType = null )
+		$getFactsLayout = function( $nodes, $contexts, $parentLabel = null, $parentPattern = 'set', $lineItems = false, $parentModelType = null, $parentConceptQName = null )
 			use( &$getFactsLayout, &$getStatedFacts, $instance, &$axes, &$network,
 				 $columnLayout, $columnRefs, $contextRefColumns,
 				 $elr, $hasReportDateAxis, $nodesToProcess, &$accumulatedTables )
@@ -3015,6 +3239,7 @@ class XBRL_DFR // extends XBRL
 			$firstRow = reset( $nodes );
 			$lastRow = end( $nodes );
 			$hasOpenBalance = false;
+			$order = 0; // Order within parent
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -3022,6 +3247,10 @@ class XBRL_DFR // extends XBRL
 
 				$first = $node == $firstRow;
 				$last = $node == $lastRow;
+
+				/** @var XBRL_DFR $nodeTaxonomy */
+				$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
+				$nodeElement = $nodeTaxonomy->getElementById( $label );
 
 				$abstractLineItems = $node['modelType'] == 'cm.xsd#cm_Abstract';
 				$thisLineItems = $node['modelType'] == 'cm.xsd#cm_LineItems';
@@ -3033,10 +3262,6 @@ class XBRL_DFR // extends XBRL
 					{
 						continue;
 					}
-
-					/** @var XBRL_DFR $nodeTaxonomy */
-					$nodeTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
-					$nodeElement = $nodeTaxonomy->getElementById( $label );
 
 					if ( $thisLineItems )
 					{
@@ -3442,7 +3667,16 @@ class XBRL_DFR // extends XBRL
 						}
 
 						ksort( $columns );
-						$rows[ $label ] = array( 'columns' => $columns, 'taxonomy' => $nodeTaxonomy, 'element' => $nodeElement, 'node' => $node );
+						$rows[ $label ] = array(
+							'columns' => $columns,
+							'taxonomy' => $nodeTaxonomy,
+							'element' => $nodeElement,
+							'node' => $node,
+							'parentQName' => $parentConceptQName,
+							'pattern' => isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern,
+							'order' => $order++  // Order within parent
+						);
+
 						if ( $rollupTotal )
 						{
 							$rows[ $label ]['calcDetails'] = $calculationDetails;
@@ -3468,7 +3702,14 @@ class XBRL_DFR // extends XBRL
 
 				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
 
-				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems, isset( $node['modelType'] ) ? $node['modelType'] : $parentModelType ) );
+				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems, isset( $node['modelType'] ) ? $node['modelType'] : $parentModelType, "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}" ) );
+				if ( isset( $rows[ $label ] ) )
+				{
+					$rows[ $label ]['taxonomy'] = $nodeTaxonomy ;
+					$rows[ $label ]['element'] = $nodeElement;
+					$rows[ $label ]['node'] = $node;
+				}
+
 			} // foreach $nodes
 
 			return $rows;
@@ -3490,7 +3731,7 @@ class XBRL_DFR // extends XBRL
 			return $result;
 		};
 
-		$factsLayout = array_filter( $getFactsLayout( $nodes, $contexts, null, 'set', $lineItems, null ), function( $node )
+		$factsLayout = array_filter( $getFactsLayout( $nodes, $contexts, null, 'set', $lineItems, null, null ), function( $node )
 		{
 			return count( $node['columns'] );
 		} );
@@ -3528,8 +3769,6 @@ class XBRL_DFR // extends XBRL
 						$preferredLabel = $row['node']['preferredLabel'];
 						$balanceItem =	$preferredLabel == XBRL_Constants::$labelRolePeriodEndLabel ||
 										$preferredLabel == XBRL_Constants::$labelRolePeriodStartLabel ||
-										// $preferredLabel == XBRL_Constants::$labelRoleRestatedLabel ||
-										// $preferredLabel == self::$originallyStatedLabel ||
 										$hasReportDateAxis && ( $row == $firstRow || $row == $lastRow ) ;
 						if ( $balanceItem ) continue;  // Ignore closing balance
 					}
@@ -4232,9 +4471,10 @@ class XBRL_DFR // extends XBRL
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param bool $hasReport
 	 * @param $echo						If true the HTML will be echoed
+	 * @param array $factsData			@reference If not null an array
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, &$hasReport = false, $lang = null, $echo = true )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, &$hasReport = false, $lang = null, $echo = true, &$factsData = null )
 	{
 		$componentTable = $this->renderComponentTable( $network, $elr, $lang );
 
@@ -4271,6 +4511,11 @@ class XBRL_DFR // extends XBRL
 				$this->getConstantTextTranslation( $lang, "There is no data to report" ) .
 				"		</div>" .
 				"	</div>";
+		}
+
+		if ( is_array( $factsData ) )
+		{
+			$factsData = $this->createFactsData( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
 		}
 
 		$renderFactsTable = $this->renderFactsTable( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
@@ -4876,6 +5121,7 @@ class XBRL_DFR // extends XBRL
 	 * @var array
 	 */
 	private $emptyArray = array();
+
 	/**
 	 * Returns an array of summaries
 	 * @param XBRL_Formulas $formulas
