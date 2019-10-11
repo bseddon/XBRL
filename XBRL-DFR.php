@@ -606,6 +606,8 @@ class XBRL_DFR
 
 		foreach ( $networks as $elr => $network )
 		{
+			// if ( ! \XBRL::endsWith( $elr, "http://www.microsoft.com/20180630/taxonomy/role/DisclosureDeferredIncomeTaxAssetsAndLiabilitiesDetail" ) ) continue;
+
 			$entityHasReport = false;
 			$data = is_array( $factsData ) ? array() : null;
 			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $entityHasReport, $lang, $echo, $data );
@@ -1933,6 +1935,106 @@ class XBRL_DFR
 
 		$axes = array_filter( $axes, function( $axis ) { return isset( $axis['dimension'] ); } );
 
+		$taxonomy = $instance->getInstanceTaxonomy();
+		$conceptLevels = array();
+		$conceptParents = array();
+		$conceptOrders = array();
+
+		foreach( $network['lineitems'] as $lineItemLabel )
+		{
+			$conceptLevels[ $lineItemLabel ] = 0;
+			$lineItemId = ltrim( strstr( $lineItemLabel, "#" ), "#" );
+
+			foreach( $network['paths'][ $lineItemId ] as $lineItemPath )
+			{
+				$lineItemParent = preg_replace( "!" . $lineItemLabel . "$!", "", $lineItemPath );
+
+				foreach( $network['concepts'] as $conceptLabel => $conceptQName )
+				{
+					$conceptId = ltrim( strstr( $conceptLabel, "#" ), "#" );
+					foreach( $network['paths'][ $conceptId ] as $conceptPath )
+					{
+						if ( strpos( $conceptPath, $lineItemParent ) === false ) continue;
+
+						$label = $conceptLabel;
+						$node = $taxonomy->processNode( $network['hierarchy'], $conceptPath, function( $node ) use( &$conceptOrders, &$label )
+						{
+							if ( ! $node || ! isset( $node['order'] ) ) return;
+							$conceptOrders[ $node['label'] ] = $node['order'];
+							if ( ! isset( $node['preferredLabel'] ) ) return;
+							$basename = basename($node['preferredLabel']);
+							// If the concept label already ends with the basename there is nothing to do
+							if ( \XBRL::endsWith( $label, $basename ) ) return;
+							$label = $label . $basename;
+						} );
+
+						$conceptPath = trim( preg_replace( "!" . $label . "$!", "", str_replace( $lineItemParent, "", $conceptPath ) ), "/" );
+
+						$parentLabels = explode( '/', $conceptPath );
+						$conceptParents[ $label ] = $parentLabels;
+						if ( $label != $conceptLabel )
+						{
+							$conceptParents[ $conceptLabel ] = $parentLabels;
+						}
+
+						$path = rtrim( $lineItemParent, "/" );
+						foreach( $parentLabels as $parentIndex => $parentLabel )
+						{
+							$path .= "/$parentLabel";
+							if ( ! isset( $conceptOrders[ $parentLabel ] ) )
+							{
+								$node = $taxonomy->processNode( $network['hierarchy'], $path, function( $node ) use( &$conceptOrders )
+								{
+									if ( ! $node || ! isset( $node['order'] ) ) return;
+									$conceptOrders[ $node['label'] ] = $node['order'];
+								} );
+							}
+
+							if ( ! isset( $conceptLevels[ $parentLabel ] ) )
+							{
+								$conceptLevels[ $parentLabel ] = $parentIndex;
+							}
+						}
+
+						$conceptLevels[ $label ] = 100;
+						if ( $label != $conceptLabel )
+						{
+							$conceptLevels[ $conceptLabel ] = 100;
+						}
+
+						unset( $label );
+					}
+				}
+			}
+		}
+
+		foreach( $conceptParents as $conceptLabel => $parentLabels )
+		{
+			$x = array();
+
+			foreach ( $parentLabels as $parentLevel => $parentLabel )
+			{
+				if ( ! isset( $conceptParents[ $parentLabel ] ) )
+				{
+					$conceptParents[ $parentLabel ] = $x;
+				}
+				$x[] = $parentLabel;
+			}
+		}
+
+		unset( $conceptId );
+		unset( $conceptLabel );
+		unset( $parentIndex );
+		unset( $conceptPath );
+		unset( $conceptQName );
+		unset( $lineItemLabel );
+		unset( $lineItemParent );
+		unset( $lineItemPath );
+		unset( $lineItemId );
+		unset( $parentLabel );
+		unset( $parentLabels );
+		unset( $parentLevel );
+
 		foreach ( $reportsFactsLayout as $reportLabel => $factsLayout )
 		{
 			$result[ $reportLabel ] = array();
@@ -2097,7 +2199,8 @@ class XBRL_DFR
 
 			$result[ $reportLabel ]['columns'] = $columns;
 			$result[ $reportLabel ]['concepts'] = $concepts;
-			// $result[ $reportLabel ]['conceptTexts'] = $conceptTexts;
+			$result[ $reportLabel ]['conceptLevels'] = $conceptLevels;
+			$result[ $reportLabel ]['conceptParents'] = $conceptParents;
 			$result[ $reportLabel ]['conceptsInfo'] = $conceptsInfo;
 			$result[ $reportLabel ]['contexts'] = $contexts;
 			$result[ $reportLabel ]['members'] = $members;
@@ -2106,6 +2209,7 @@ class XBRL_DFR
 			$result[ $reportLabel ]['units'] = $units;
 			$result[ $reportLabel ]['patterns'] = $patterns;
 			$result[ $reportLabel ]['parents'] = $parents;
+			$result[ $reportLabel ]['order'] = $conceptOrders;
 		}
 
 		return $result;
