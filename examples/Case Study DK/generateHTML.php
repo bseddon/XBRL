@@ -87,7 +87,7 @@ $htmlAssetsLocation = '../../assets';
 
 // Use null for the default language
 $languageCode = 'da';
-$languageCode = null;
+// $languageCode = null;
 
 // Allow formulas to be evaluated
 global $use_xbrl_functions;
@@ -124,6 +124,9 @@ require_once __DIR__ . '/Observer.php';
 
 // Make it a validating processor
 \XBRL::setValidationState();
+
+// Set the language to be returned from XBRL->getDefaultLanguage();
+\XBRL::$specificLanguage = $languageCode;
 
 // Use the debug log for more ready display of issues to the console
 \XBRL_Log::getInstance()->debugLog();
@@ -218,9 +221,9 @@ try
 
 	$instanceTaxonomy = $instance->getInstanceTaxonomy();
 	$dfr = new \XBRL_DFR( $instanceTaxonomy );
-	$presentationNetworks = $dfr->validateDFR( $formulas );
+	$presentationNetworks = $dfr->validateDFR( $formulas, false, $languageCode );
 	// $presentationNetworks = array_slice( $presentationNetworks, 0, 1 );
-	$renders = $dfr->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $results, $languageCode, false );
+	$renders = $dfr->renderPresentationNetworks( $presentationNetworks, $instance, $formulas, $observer, $languageCode, false, $results );
 
 	// Delete/create a sub-folder for the HTML
 	if ( is_dir( "$htmlLocation/$instanceBasename" ) )

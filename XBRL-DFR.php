@@ -674,9 +674,10 @@ class XBRL_DFR
 	/**
 	 * Validate the the taxonomy against the model structure rules
 	 * @param array $formulaSummaries An evaluated formulas instance
+	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
 	 * @return array|null
 	 */
-	public function validateDFR( &$formulaSummaries, $rebuildDefinitionsCache = false )
+	public function validateDFR( &$formulaSummaries, $rebuildDefinitionsCache = false, $lang = null )
 	{
 		global $reportModelStructureRuleViolations;
 
@@ -811,7 +812,7 @@ class XBRL_DFR
 			unset( $calculationELRPIs );
 		}
 
-		$this->presentationNetworks = &$this->taxonomy->getPresentationRoleRefs();
+		$this->presentationNetworks = &$this->taxonomy->getPresentationRoleRefs( null, null, $lang );
 
 		// If there are no defined networks create one and add all the elements as nodes
 		if ( $this->presentationNetworks )
@@ -945,10 +946,9 @@ class XBRL_DFR
 
 				if ( $element['abstract'] || $element['type'] == 'nonnum:domainItemType' ) continue;
 
-							// BMS 2019-03-23 TODO Check the concept is not a tuple
+				// BMS 2019-03-23 TODO Check the concept is not a tuple
 				if ( $element['substitutionGroup'] == "xbrli:tuple" )
 				{
-					$x = 1;
 					continue;
 				}
 
@@ -1880,6 +1880,7 @@ class XBRL_DFR
 	 * Renders the component table
 	 * @param array $network
 	 * @param string $elr
+	 * @param string $lang (optional)
 	 * @return string
 	 */
 	private function renderComponentTable( $network, $elr, $lang = null )
@@ -1954,7 +1955,9 @@ class XBRL_DFR
 					$conceptId = ltrim( strstr( $conceptLabel, "#" ), "#" );
 					foreach( $network['paths'][ $conceptId ] as $conceptPath )
 					{
-						if ( strpos( $conceptPath, $lineItemParent ) === false ) continue;
+						// BMS 2019-12-16  Not sure if its the right thing to do to ignore an empty $lineItemParent
+						// 				   This happens in preg_replace above when $lineItemLabel and $lineItemPath are the same
+						if ( ! $lineItemParent || strpos( $conceptPath, $lineItemParent ) === false ) continue;
 
 						$label = $conceptLabel;
 						$node = $taxonomy->processNode( $network['hierarchy'], $conceptPath, function( $node ) use( &$conceptOrders, &$label )

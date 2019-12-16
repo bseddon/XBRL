@@ -2344,9 +2344,84 @@ class XBRL {
 		return $languages;
 	}
 
+	/**
+	 * Return an array of the preferred labels used.
+	 * @param string $extendedLinkRole
+	 * @return string[]
+	 */
+	public function getPreferredLabelRoles( $extendedLinkRole = null )
+	{
+		if ( $extendedLinkRole )
+		{
+			if ( ! isset( $this->context->labels[ $extendedLinkRole ] ) ) return array();
+			return array_keys( $this->context->labels[ $extendedLinkRole ]['labels'] );
+		}
+
+		$roles = array();
+
+		foreach ( $this->context->labels as $linkRole => $linkLabels )
+		{
+			$roles = array_merge( $roles, array_keys( $linkLabels['labels'] ) );
+		}
+
+		return array_unique( $roles );
+	}
+
 	public function hasLanguage( $lang )
 	{
 		return in_array( $lang, $this->getLabelLanguages() );
+	}
+
+	public function array_any( &$array, $callback )
+	{
+		foreach ( $array as $key => $item )
+		{
+			if ( $callback( $key, $item ) ) return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Return true if there exists a label for the language, preferred role and extended link role.
+	 * @param string $href
+	 * @param string $lang
+	 * @param string $role (optional) Defaults to XBRL_Constants::$labelRoleLabel
+	 * @param string $extendedLinkRole (optional) Defaults to XBRL_Constants::$defaultLinkRole
+	 * @return bool
+	 */
+	public function conceptHasLanguageRole( $href, $lang, $role, $extendedLinkRole = null )
+	{
+		if ( is_null( $extendedLinkRole ) ) $extendedLinkRole = XBRL_Constants::$defaultLinkRole;
+		if ( is_null( $role ) ) $role = XBRL_Constants::$labelRoleLabel;
+
+		if ( ! isset( $this->context->labels[ $extendedLinkRole ]['arcs'][ $href ] ) ) return false;
+		return $this->array_any( $this->context->labels[ $extendedLinkRole ]['arcs'][ $href ], function( $label, $labels ) use ( $role )
+		{
+			return $this->array_any( $labels, function( $key, $details ) use( $role ) { return $details['role'] == $role; } );
+		} );
+	}
+
+	/**
+	 *
+	 * @param string $href
+	 * @param string $extendedLinkRole (optional) Defaults to XBRL_Constants::$defaultLinkRole
+	 * @return string[]
+	 */
+	public function getConceptLabelRoles( $href, $extendedLinkRole = null )
+	{
+		if ( is_null( $extendedLinkRole ) ) $extendedLinkRole = XBRL_Constants::$defaultLinkRole;
+		if ( ! isset( $this->context->labels[ $extendedLinkRole ]['arcs'][ $href ] ) ) return false;
+
+		return array_reduce( $this->context->labels[ $extendedLinkRole ]['arcs'][ $href ], function( $carry, $labels )
+		{
+			$roles = array_merge( $carry, array_reduce( $labels, function( $carry, $details )
+			{
+				$carry[] = $details['role'];
+				return $carry;
+			}, array() ) );
+			return $roles;
+		}, array() );
 	}
 
 	/**
@@ -2422,9 +2497,10 @@ class XBRL {
 	 * Provide access to the private presentationRoleRefs array
 	 * @param array[string]|null $filter
 	 * @param boolean $sort
+	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
 	 * @return void
 	 */
-	public function &getPresentationRoleRefs( $filter = array(), $sort = true )
+	public function &getPresentationRoleRefs( $filter = array(), $sort = true, $lang = null )
 	{
 		// Make sure the filter is initialized and contains lowercase values
 		if ( ! is_array( $filter ) ) $filter = array();
@@ -2454,7 +2530,7 @@ class XBRL {
 				$result[ $refKey ] = $this->context->presentationRoleRefs[ $refKey ];
 			}
 
-			$result[ $refKey ]['text'] = $this->getPresentationLinkRoleDescription( $ref );
+			$result[ $refKey ]['text'] = $this->getPresentationLinkRoleDescription( $ref, $lang );
 		}
 
 		if ( $sort )
@@ -4688,11 +4764,12 @@ class XBRL {
 	 * Return the description or title for a specific role
 	 *
 	 * @param array $role The role for which the description should be returned
+	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
 	 * @return string
 	 */
-	public function getPresentationLinkRoleDescription( $role )
+	public function getPresentationLinkRoleDescription( $role, $lang = null )
 	{
-		return $this->getLinkRoleDescription( $role, 'link:presentationLink', 'presentation link' );
+		return $this->getLinkRoleDescription( $role, 'link:presentationLink', 'presentation link', $lang );
 	}
 
 	/**
@@ -4701,9 +4778,10 @@ class XBRL {
 	 * @param string $role
 	 * @param string $roleType
 	 * @param string $roleTitle
+	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
 	 * @return boolean|string
 	 */
-	private function getLinkRoleDescription( $role, $roleType, $roleTitle )
+	private function getLinkRoleDescription( $role, $roleType, $roleTitle, $lang = null )
 	{
 		$href = parse_url( $role['href'] );
 		$basename = basename( $href['path'] );
@@ -4735,7 +4813,7 @@ class XBRL {
 		{
 			foreach ( $arcs as $arc )
 			{
-				if ( ! ( $label = $roleTaxonomy->getGenericLabel( XBRL_Constants::$genericRoleLabel, $arc['to'], 'da' ) ) ) continue;
+				if ( ! ( $label = $roleTaxonomy->getGenericLabel( XBRL_Constants::$genericRoleLabel, $arc['to'], $lang ? $lang : $this->getDefaultLanguage() ) ) ) continue;
 				return $label[ $arc['to'] ]['text'];
 			}
 		}
