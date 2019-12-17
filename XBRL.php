@@ -4781,7 +4781,7 @@ class XBRL {
 	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
 	 * @return boolean|string
 	 */
-	private function getLinkRoleDescription( $role, $roleType, $roleTitle, $lang = null )
+	public function getLinkRoleDescription( $role, $roleType, $roleTitle, $lang = null )
 	{
 		$href = parse_url( $role['href'] );
 		$basename = basename( $href['path'] );
