@@ -17476,7 +17476,7 @@ class XBRL {
 									$this->log()->taxonomy_validation( "Role Type", "id attribute is not a valid NCName", array( 'id' => $id ) );
 								}
 							}
-							if ( ! $roleUri )
+							if ( ! $roleUri && ! isset( \XBRL_Global::$taxonomiesToIgnore[ $this->getSchemaLocation() ] ) )
 							{
 								$this->log()->taxonomy_validation( "Role Type", "roleURI attribute does not exist or is empty", array() );
 							}
@@ -18663,6 +18663,122 @@ class XBRL {
 			$carry[ $key ] = $value;
 			return $carry;
 		}, array() );
+	}
+
+	/**
+	 * Get the link role registry information.
+	 * Create the file lrr.json if it does not exist
+	 */
+	public static function getLRR()
+	{
+		$filename =  __DIR__ . '/lrr.json';
+
+		if ( ! file_exists( $filename ) )
+		{
+			$lrr = array();
+
+			$linkTypes = [];
+			$linkTypes = array(
+				\XBRL_Constants::$linkFootnote,
+				\XBRL_Constants::$linkLabel,
+				\XBRL_Constants::$linkReference
+			);
+
+			$builtInRoles = array(
+				\XBRL_Constants::$labelRoleLabel => "Standard label for a concept.",
+				\XBRL_Constants::$labelRoleTerseLabel => "Short label for a concept, often omitting text that should be inferable when the concept is reported in the context of other related concepts.",
+				\XBRL_Constants::$labelRoleVerboseLabel => "Extended label for a concept, making sure not to omit text that is required to enable the label to be understood on a stand alone basis.",
+				\XBRL_Constants::$labelRolePositiveLabel => "Standard label for a concept when the value of the concept is positive.",
+				\XBRL_Constants::$labelRolePositiveTerseLabel => "Terse label for a concept when the value of the concept is positive.",
+				\XBRL_Constants::$labelRolePositiveVerboseLabel => "Verbose label for a concept when the value of the concept is positive.",
+				\XBRL_Constants::$labelRoleZeroLabel => "Standard label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleZeroTerseLabel => "Terse label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleZeroVerboseLabel => "Verbose label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleNegativeLabel => "Standard label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleNegativeTerseLabel => "Terse label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleNegativeVerboseLabel => "Verbose label of a concept when the value of the concept is negative.",
+				\XBRL_Constants::$labelRoleTotalLabel => "The label for a concept for use in presenting values associated with the concept when it is being reported as the total of a set of other values.",
+				\XBRL_Constants::$labelRolePeriodStartLabel => "The label for a concept with instantaneous=\"true\" for use in presenting values associated with the concept when it is being report as a beginning of period value.",
+				\XBRL_Constants::$labelRolePeriodEndLabel => "The label for a concept with instantaneous=\"true\" for use in presenting values associated with the concept when it is being reported as an end of period value.",
+				\XBRL_Constants::$labelRoleDocumentation => "Documentation of a concept, providing an explanation of its meaning and its appropriate usage and any other documentation deemed necessary.",
+				\XBRL_Constants::$labelRoleDefinitionGuidance => "A precise definition of a concept, providing an explanation of its meaning and its appropriate usage.",
+				\XBRL_Constants::$labelRoleDisclosureGuidance => "An explanation of the disclosure requirements relating to the concept. Indicates whether the disclosure is mandatory (i.e. prescribed by authoritative literature), recommended (i.e. encouraged by authoritative literature), common practice (i.e. not prescribed by authoritative literature, but disclosure is common place), or structural completeness (i.e. merely included to complete the structure of the taxonomy).",
+				\XBRL_Constants::$labelRolePresentationGuidance => "An explanation of the rules guiding presentation (placement and/or labeling) of this concept in the context of other concepts in one or more specific types of business reports. For example, \"Net Surplus should be disclosed on the face of the Profit and Loss statement\".",
+				\XBRL_Constants::$labelRolePlacementGuidance => "An explanation of the rules guiding placement of this concept in the context of other concepts in one or more specific types of business reporting.",
+				\XBRL_Constants::$labelRoleMeasurementGuidance => "An explanation of the method(s) required to be used when measuring values associated with this concept in business reports.",
+				\XBRL_Constants::$labelRoleCommentaryGuidance => "Any other general commentary on the concept that assists in determining definition, disclosure, measurement, presentation or usage.",
+				\XBRL_Constants::$labelRoleExampleGuidance => "An example of the type of information intended to be captured by the concept.",
+				\XBRL_DFR::$originallyStatedLabel => "Label indicating a concept representing the value that was originally stated."
+			);
+
+			$labelToText = function( $label )
+			{
+				$text = preg_match("/^([a-z]+)/", $label, $matches ) ? ucfirst( $matches[1] ) : '';
+				if( preg_match_all("/([A-Z][a-z]*)/", $label, $matches ) )
+				{
+					if ( $text ) $text .= ' ';
+					$text .= implode( ' ', array_filter( array_map( function( $item ) { return lcfirst( $item ); }, $matches[1] ), function($label) { return $label != 'label'; } ) );
+				}
+
+				if ( $text == 'Label' ) $text = 'Standard';
+
+				return $text;
+			};
+
+			foreach ( $builtInRoles as $roleURI => $definition )
+			{
+				$label = basename( $roleURI );
+				$lrr[ $roleURI ] = array(
+					'text' => $labelToText( $label ),
+					'definition' => $definition,
+					'href' => "http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd#$label",
+					'label' => $label
+				);
+			}
+
+			$doc = simplexml_load_file("http://www.xbrl.org/lrr/lrr.xml");
+			foreach( $doc->children('lrr', true)->roles as $lrrRoles )
+			{
+				foreach ( $lrrRoles as $lrrRole )
+				{
+					$href = trim( $lrrRole->authoritativeHref );
+					$uri = strstr( $href, '#', true );
+					if ( ! isset( $linkTypes[ $uri ] ) )
+					{
+						$taxonomy = \XBRL::load_taxonomy( $uri );
+						$roleTypes[ $uri ] = $taxonomy->getRoleTypes( $taxonomy->getTaxonomyXSD() );
+					}
+
+					$roleURI = trim( $lrrRole->roleURI->__toString() );
+
+					$role = null;
+					foreach ( $linkTypes as $linkType )
+					{
+						if ( ! isset( $roleTypes[ $uri ]['link:label'][ $roleURI ] ) ) continue;
+						$role = $roleTypes[ $uri ]['link:label'][ $roleURI ];
+						break;
+					}
+					if ( ! $role ) continue;
+
+					$label = basename($roleURI);
+
+					$lrr[ $roleURI ] = array(
+						'text' => $labelToText( $label ),
+						'definition' => $role['definition'],
+						'href' => $href,
+						'label' => $label
+					);
+				}
+			}
+
+			file_put_contents( $filename, json_encode( $lrr ) );
+		}
+		else
+		{
+			$lrr = json_decode( file_get_contents( $filename ), true );
+		}
+
+		return $lrr;
 	}
 
 	/**
