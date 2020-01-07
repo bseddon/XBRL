@@ -1518,28 +1518,40 @@ class XBRL_Constants
 	public static $labelRoleDocumentation			= "http://www.xbrl.org/2003/role/documentation";
 	/**
 	 * http://www.xbrl.org/2003/role/definitionGuidance
-	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
+	 * Documentation of a concept, providing an explanation of its meaning and its appropriate usage and any other documentation deemed necessary.
 	 * @var string
 	 */
 	public static $labelRoleDefinitionGuidance		= "http://www.xbrl.org/2003/role/definitionGuidance";
 	/**
 	 * http://www.xbrl.org/2003/role/disclosureGuidance
-	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
+	 * A precise definition of a concept, providing an explanation of its meaning and its appropriate usage.",
 	 * @var string
 	 */
 	public static $labelRoleDisclosureGuidance		= "http://www.xbrl.org/2003/role/disclosureGuidance";
 	/**
 	 * http://www.xbrl.org/2003/role/presentationGuidance
-	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
+	 * An explanation of the disclosure requirements relating to the concept. Indicates whether the disclosure is
+	 * mandatory (i.e. prescribed by authoritative literature),
+	 * recommended (i.e. encouraged by authoritative literature),
+	 * common practice (i.e. not prescribed by authoritative literature, but disclosure is common place), or
+	 * structural completeness (i.e. merely included to complete the structure of the taxonomy).
 	 * @var string
 	 */
 	public static $labelRolePresentationGuidance	= "http://www.xbrl.org/2003/role/presentationGuidance";
 	/**
 	 * http://www.xbrl.org/2003/role/measurementGuidance
-	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
+	 * An explanation of the rules guiding presentation (placement and/or labeling) of this concept in the context of other concepts in one or more specific types of business reports.
+	 * For example, "Net Surplus should be disclosed on the face of the Profit and Loss statement".
 	 * @var string
 	 */
 	public static $labelRoleMeasurementGuidance		= "http://www.xbrl.org/2003/role/measurementGuidance";
+	/**
+	 * http://www.xbrl.org/2003/role/placementGuidance
+	 * An explanation of the method(s) required to be used when measuring values associated with this concept in business reports.
+	 * @var string
+	 */
+	public static $labelRolePlacementGuidance		= "http://www.xbrl.org/2003/role/placementGuidance";
+
 	/**
 	 * http://www.xbrl.org/2003/role/commentaryGuidance
 	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
@@ -1548,7 +1560,7 @@ class XBRL_Constants
 	public static $labelRoleCommentaryGuidance		= "http://www.xbrl.org/2003/role/commentaryGuidance";
 	/**
 	 * http://www.xbrl.org/2003/role/exampleGuidance
-	 * For labels that give an explanation on an aspect of the concept such as it's definition, the way it should be measured or an example.
+	 * Any other general commentary on the concept that assists in determining definition, disclosure, measurement, presentation or usage.
 	 * @var string
 	 */
 	public static $labelRoleExampleGuidance		= "http://www.xbrl.org/2003/role/exampleGuidance";
