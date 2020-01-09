@@ -281,11 +281,7 @@ Assuming you have installed the library using composer then this PHP application
 // This MUST be set before the autoload because the XBRL class autoloaded uses it
 global $use_xbrl_functions; $use_xbrl_functions = true;
 require_once __DIR__ . '/vendor/autoload.php';
-<<<<<<< HEAD
-include __DIR__ . "/vendor/lyquidity/XBRL/examples/examples.php";
-=======
 include __DIR__ . "/vendor/lyquidity/xbrl/examples/examples.php";
->>>>>>> branch 'develop' of https://github.com/bseddon/XBRL.git
 ```
 
 Read the getting started section in the [Wiki](../../wiki) where you will find more examples showing how the source can be used to query taxonomies 
