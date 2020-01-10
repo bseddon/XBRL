@@ -18665,6 +18665,20 @@ class XBRL {
 		}, array() );
 	}
 
+	public static function preferredLabelToDescription( $preferredLabelBasename )
+	{
+		$text = preg_match("/^([a-z]+)/", $preferredLabelBasename, $matches ) ? ucfirst( $matches[1] ) : '';
+		if( preg_match_all("/([0-9]+|[A-Z][a-z]*)/", $preferredLabelBasename, $matches ) )
+		{
+			if ( $text ) $text .= ' ';
+			$text .= implode( ' ', array_filter( array_map( function( $item ) { return lcfirst( $item ); }, $matches[1] ), function( $preferredLabelBasename ) { return $preferredLabelBasename != 'label'; } ) );
+		}
+
+		if ( $text == 'Label' ) $text = 'Standard';
+
+		return $text;
+	}
+
 	/**
 	 * Get the link role registry information.
 	 * Create the file lrr.json if it does not exist
@@ -18711,25 +18725,11 @@ class XBRL {
 				\XBRL_DFR::$originallyStatedLabel => "Label indicating a concept representing the value that was originally stated."
 			);
 
-			$labelToText = function( $label )
-			{
-				$text = preg_match("/^([a-z]+)/", $label, $matches ) ? ucfirst( $matches[1] ) : '';
-				if( preg_match_all("/([A-Z][a-z]*)/", $label, $matches ) )
-				{
-					if ( $text ) $text .= ' ';
-					$text .= implode( ' ', array_filter( array_map( function( $item ) { return lcfirst( $item ); }, $matches[1] ), function($label) { return $label != 'label'; } ) );
-				}
-
-				if ( $text == 'Label' ) $text = 'Standard';
-
-				return $text;
-			};
-
 			foreach ( $builtInRoles as $roleURI => $definition )
 			{
 				$label = basename( $roleURI );
 				$lrr[ $roleURI ] = array(
-					'text' => $labelToText( $label ),
+					'text' => self::preferredLabelToDescription( $label ),
 					'definition' => $definition,
 					'href' => "http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd#$label",
 					'label' => $label
@@ -18754,8 +18754,8 @@ class XBRL {
 					$role = null;
 					foreach ( $linkTypes as $linkType )
 					{
-						if ( ! isset( $roleTypes[ $uri ]['link:label'][ $roleURI ] ) ) continue;
-						$role = $roleTypes[ $uri ]['link:label'][ $roleURI ];
+						if ( ! isset( $roleTypes[ $uri ][ $linkType ][ $roleURI ] ) ) continue;
+						$role = $roleTypes[ $uri ][ $linkType ][ $roleURI ];
 						break;
 					}
 					if ( ! $role ) continue;
@@ -18763,7 +18763,7 @@ class XBRL {
 					$label = basename($roleURI);
 
 					$lrr[ $roleURI ] = array(
-						'text' => $labelToText( $label ),
+						'text' => self::preferredLabelToDescription( $label ),
 						'definition' => $role['definition'],
 						'href' => $href,
 						'label' => $label
