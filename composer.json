@@ -16,7 +16,7 @@
 		"pear/log": ">1.13",
 		"lyquidity/utilities" : "dev-master",
 		"lyquidity/xml" : "dev-master",
-		"lyquidity/XPath2" : "dev-master",
+		"lyquidity/xpath2" : "dev-master",
 		"ext-hash" : "*",
 		"ext-json" : "*",
 		"ext-libxml" : "*",
