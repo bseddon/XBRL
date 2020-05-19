@@ -1235,8 +1235,13 @@ class XBRL {
 		// Get the basename from the taxonomy if one is not supplied but if one is, make sure only the basename is used even if a full path has been specified.
 		$output_basename = $output_basename === null ? $pathinfo['filename'] : basename( $output_basename );
 
+		$labelTaxonomies = array_filter( $taxonomy->context->importedSchemas, function( $tax )
+		{
+			return isset( $tax->labels[ XBRL_Constants::$defaultLinkRole ] );
+		} );
+
 		// Now remove the existng labels, arcs and locators so the saved file only contains the extension components
-		if ( ! isset( $taxonomy->labels[ XBRL_Constants::$defaultLinkRole ] ) )
+		if ( count( $labelTaxonomies ) == 0 )
 		{
 			XBRL_Log::getInstance()->err( "There are no labels in the extension taxonomy" );
 			return false;
@@ -1246,15 +1251,43 @@ class XBRL {
 		// Normally the labels are held within the context but when an extension
 		// taxonomy is being processed, a copy of the extension taxonomy labels
 		// is held in the XBRL instance prepresenting the extension taxonomy.
-		// See the end of the processLabelLinkbase() function in class XBRL.
-		$labels =& $taxonomy->labels[ XBRL_Constants::$defaultLinkRole ];
+		// See the end of the processLabelLinkbaseXml() function in class XBRL.
+		$taxonomy->context->labels = array();
 
-		// Put them into the context
-		$taxonomy->context->labels[ XBRL_Constants::$defaultLinkRole ] = $labels;
+		// Put them into the context.  This is so just the labels unique to the extension
+		// taxonomy will be saved.  The full set of labels will be reconstructed when the
+		// the extension taxonomy is load *on top of* the relevant base taxonomy
+		foreach ( $labelTaxonomies as $namespace => $tax )
+		{
+			foreach ( $tax->labels as $roleRefsKey => $labelDetail )
+			{
+				if ( count( $taxonomy->context->labels ) )
+				{
+					// Now there is a set of locators, arcs, labels and $labelsByHref to store in the context
+					$this->context->addLabels( $labelDetail['locators'], $labelDetail['arcs'], $labelDetail['labels'], $labelDetail['labelsByHref'], $roleRefsKey );
+
+				}
+				else
+				{
+					$taxonomy->context->labels[ $roleRefsKey ] =& $labelDetail;
+				}
+			}
+		}
+
+		unset( $tax );
 
 		// Delete the other schemas
 		// $taxonomy->context->importedSchemas = array( $namespace => $taxonomy );
 		$taxonomy->context->importedSchemas = array_diff_key( $taxonomy->context->importedSchemas, $taxonomy->previouslyImportedSchemas );
+
+		// Remove types belonging to previouslyImportedSchemas
+		$types = $taxonomy->context->types;
+
+		foreach( $taxonomy->previouslyImportedSchemas as $namespace => $tax )
+		{
+			$count = $types->removeElementsTaxonomy( $tax );
+			// echo "$count elements removed for {$tax->getPrefix()}\n";
+		}
 
 		// Create and save the JSON
 		$json = $taxonomy->toJSON( $taxonomy->baseTaxonomy );
@@ -2864,40 +2897,6 @@ class XBRL {
 
 		return $result;
 
-		/*
-		if ( ! isset( $this->definitionRoleRefs[ $roleRefsKey ] ) ) return array();
-		$role = $this->definitionRoleRefs[ $roleRefsKey ];
-
-		// If there are no dimensions in this role, maybe the role exists in another taxonomy
-		if ( ! isset( $role['dimensions'] ) )
-		{
-			if ( strpos( $role['href'], $this->getTaxonomyXSD() ) === false )
-			{
-				return $this->getTaxonomyForXSD( $role['href'] )->getDefinitionRoleDimensions( $roleRefsKey );
-			}
-		}
-		else
-		{
-			$result = array();
-
-			foreach ( $role['dimensions'] as $dimensionKey => $href )
-			{
-				if ( ! isset( $result[ $dimensionKey ] ) )
-				{
-					$result[ $dimensionKey ] = array( 'href' => $href, 'roles' => array( $roleRefsKey ) );
-					continue;
-				}
-
-				// Add unique roleRefsKey
-				if ( in_array( $roleRefsKey, $result[ $dimensionKey ]['roles'] ) ) continue;
-				$result[ $dimensionKey ]['roles'][] = $roleRefsKey;
-			}
-
-			return $result;
-		}
-
-		return array();
-		*/
 	}
 
 	/**

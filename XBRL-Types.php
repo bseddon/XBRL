@@ -150,6 +150,60 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 	}
 
 	/**
+	 * Removes all elements with the given prefix
+	 * @param string $prefix
+	 * @return int
+	 */
+	public function removeElementsForPrefix( $prefix )
+	{
+		$result = 0;
+
+		foreach ( $this->elements as $qname => $element )
+		{
+			if ( strcasecmp( $element['prefix'], $prefix ) !== 0 ) continue;
+			$result++;
+			unset( $this->elements[ $qname ] );
+		}
+
+		foreach ( $this->types as $qname => $type )
+		{
+			if ( strcasecmp( $type['prefix'], $prefix ) !== 0 ) continue;
+			$result++;
+			unset( $this->types[ $qname ] );
+		}
+
+		if ( isset( $this->processedSchemas[ $prefix ] ) )
+		{
+			unset( $this->processedSchemas[ $prefix ] );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Removes all elements with the given prefix
+	 * @param XBRL $taxonomy
+	 * @return int
+	 */
+	public function removeElementsTaxonomy( $taxonomy )
+	{
+		$result = 0;
+
+		$prefix = $taxonomy->getPrefix();
+		$result = $this->removeElementsForPrefix( $prefix );
+
+		foreach ( $taxonomy->getElements() as $id => $taxElement )
+		{
+			if ( isset( $this->typeIds[ $id ] ) )
+			{
+				unset( $this->typeIds[ $id ] );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * A cache of the types array to prevent it being reconstructed every call
 	 * @var array $xbrlItemTypesCache
 	 */
