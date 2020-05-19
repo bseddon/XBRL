@@ -241,20 +241,38 @@ EOT;
 	 * Compile a taxonmy
 	 * @param string $output_basename Name of the compiled taxonomy to create
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @param string $schemaFile
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function compile( $output_basename = null, $compiledPath = null )
+	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null  )
 	{
-		if ( $this->isExtensionTaxonomy() )
+		$schemaNamespace = $this->schemaNamespace;
+
+		if ( $schemaFile )
 		{
-			return XBRL::compileExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $output_basename, $compiledPath );
+			$schemaNamespace = $this->getNamespaceForSchema( $schemaFile );
+		}
+		else
+		{
+			$schemaFile = $this->schemaFile;
+		}
+
+		if ( $this->isExtensionTaxonomy( $schemaFile ) )
+		{
+			return XBRL::compileExtensionXSD(
+				$schemaFile,
+				$this->getXBRLClassname(),
+				$schemaNamespace,
+				$output_basename,
+				$compiledPath
+			);
 		}
 		else
 		{
 			return XBRL::compile(
-				$this->schemaFile,
-				$this->schemaNamespace,
+				$schemaFile,
+				$schemaNamespace,
 				$compiledPath . ( is_null( $output_basename ) ? $this->getSchemaFileBasename() : $output_basename )
 			);
 		}
@@ -272,7 +290,7 @@ EOT;
 	 * @param string $basename Specifies an explicit basename.  Otherwise the basename of the schema name is used.
 	 * @return bool
 	 */
-	public function isCompiled( $compiledDir, $basename = null )
+	public function isCompiled( $compiledDir, $basename = null  )
 	{
 		if ( is_null( $basename ) )
 		{
@@ -290,14 +308,15 @@ EOT;
 
 	/**
 	 * Returns true if the package contains an extension taxonomy
+	 * @param string $schemaFile
 	 * @return bool
 	 * @final
 	 */
-	public function isExtensionTaxonomy()
+	public function isExtensionTaxonomy( $schemaFile = null )
 	{
 		if ( is_null( $this->isExtensionTaxonomy ) )
 		{
-			$this->isExtensionTaxonomy = $this->getIsExtensionTaxonomy();
+			$this->isExtensionTaxonomy = $this->getIsExtensionTaxonomy( $schemaFile );
 		}
 		return $this->isExtensionTaxonomy;
 	}
@@ -316,22 +335,25 @@ EOT;
 	 * Can be implemented by concrete classes to return true if the taxonomy is an extension taxonomy
 	 * This default implementation looks at the XBRL class name advertised by the class to determine
 	 * if the schema file contains one of the entry points of the XBRL class.
+	 * @param string $schemaFile
 	 * @return bool
 	 * @abstract
 	 */
-	protected function getIsExtensionTaxonomy()
+	protected function getIsExtensionTaxonomy( $schemaFile = null )
 	{
 		$this->determineSchemaFile();
 
+		if ( ! $schemaFile ) $schemaFile = $this->schemaFile;
+
 		// If the schema in the package imports one of the schemas with an entry point namespace then an extension compilation should be used
-		$xml = $this->getFileAsXML( $this->getActualUri( $this->schemaFile ) );
+		$xml = $this->getFileAsXML( $this->getActualUri( $schemaFile ) );
 		$xml->registerXPathNamespace( SCHEMA_PREFIX, SCHEMA_NAMESPACE );
 		foreach ( $xml->xpath("/xs:schema/xs:import") as $tag => /** @var SimpleXMLElement $element */ $element )
 		{
 			$attributes = $element->attributes();
 			if ( ! isset( $attributes['namespace'] ) ) continue;
 			// echo "{$attributes['namespace']}\n";
-			$nameOfXBRLClass = $this->getXBRLClassname();
+			// $nameOfXBRLClass = $this->getXBRLClassname();
 			if ( ( $className = $nameOfXBRLClass::class_from_namespace( (string)$attributes['namespace'] ) ) == "XBRL" ) continue;
 
 			return true;
@@ -490,6 +512,11 @@ EOT;
 		$parts = explode( '/', $path );
 
 		$current = &$this->contents;
+
+		if ( empty( $path ) )
+		{
+			return $current;
+		}
 
 		foreach ( $parts as $part )
 		{
@@ -751,33 +778,46 @@ EOT;
 	 * @param string $replacementExtension
 	 * @return string
 	 */
-	public function getSchemaFileBasename( $replacementExtension = "")
+	public function getSchemaFileBasename( $replacementExtension = "", $schemaFile = null )
 	{
-		return basename( $this->schemaFile, '.xsd' ) . $replacementExtension;
+		if ( ! $schemaFile ) $schemaFile = $this->schemaFile;
+
+		return basename( $schemaFile, '.xsd' ) . $replacementExtension;
 	}
 
 	/**
 	 * Load the taxonomy associated with this package
-	 * @param string $compiledPath
+	 * @param string $compiledPath (optional)
+	 * @param string $schemaFile (optional: default uses $this->schemaFile)
 	 * @return boolean|XBRL
 	 */
-	public function loadTaxonomy( $compiledPath = null )
+	public function loadTaxonomy( $compiledPath = null, $schemaFile = null )
 	{
-		if ( $this->isExtensionTaxonomy() )
+		$schemaNamespace = $this->schemaNamespace;
+
+		if ( $schemaFile )
 		{
-			return XBRL::loadExtensionXSD( $this->schemaFile, $this->getXBRLClassname(), $this->schemaNamespace, $compiledPath );
+			$schemaNamespace = $this->getNamespaceForSchema( $schemaFile );
 		}
 		else
 		{
-			if ( $this->isCompiled( $compiledPath, $this->getSchemaFileBasename() ) )
-			{
-				return XBRL::load_taxonomy(
-					"$compiledPath/" . $this->getSchemaFileBasename(".json"),
-					false
-				);
-			}
-
-			return XBRL::withTaxonomy( $this->schemaFile );
+			$schemaFile = $this->schemaFile;
 		}
+
+		$basename = $this->getSchemaFileBasename( null, $schemaFile );
+
+		if ( $this->isCompiled(
+				$compiledPath,
+				$basename
+			)
+		)
+		{
+			return XBRL::load_taxonomy(
+				"$compiledPath/$basename.json",
+				false
+			);
+		}
+
+		return XBRL::withTaxonomy( $schemaFile );
 	}
 }

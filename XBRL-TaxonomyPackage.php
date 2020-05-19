@@ -184,12 +184,13 @@ EOT;
 	 * Compile a taxonmy
 	 * @param string $output_basename Name of the compiled taxonomy to create
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @param string $schemaFile
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function compile( $output_basename = null, $compiledPath = null )
+	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null  )
 	{
-		return parent::compile( $output_basename, $compiledPath );
+		return parent::compile( $output_basename, $compiledPath, $schemaFile );
 	}
 
 	/**
@@ -607,7 +608,7 @@ EOT;
 	 * @return void
 	 * @throws "tpe:schemaFileNotFound"
 	 */
-	protected function determineSchemaFile()
+	protected function determineSchemaFile( )
 	{
 		if ( ! is_null( $this->schemaFile ) ) return;
 
@@ -743,7 +744,7 @@ EOT;
 
 								// Handle any directories
 								$newUri = "$uri/$index";
-								$newPath = "$path/$index";
+								$newPath = $path ? "$path/$index" : $index;
 								$copy( $item, $newPath, $newUri );
 							}
 						}

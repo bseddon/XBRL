@@ -106,16 +106,21 @@ class XBRL_ESMA_ESEF_Package extends XBRL_TaxonomyPackage
 	}
 
 	/**
-	 * Implemented to return true if an imported schema is the ESMA one.
+	 * Can be implemented by concrete classes to return true if the taxonomy is an extension taxonomy
+	 * This default implementation looks at the XBRL class name advertised by the class to determine
+	 * if the schema file contains one of the entry points of the XBRL class.
+	 * @param string $schemaFile
 	 * @return bool
 	 * @abstract
 	 */
-	protected function getIsExtensionTaxonomy()
+	protected function getIsExtensionTaxonomy( $schemaFile = null )
 	{
 		$this->determineSchemaFile();
 
+		if ( ! $schemaFile ) $schemaFile = $this->schemaFile;
+
 		// If the schema in the package imports one of the schemas with an entry point namespace then an extension compilation should be used
-		$xml = $this->getFileAsXML( $this->getActualUri( $this->schemaFile ) );
+		$xml = $this->getFileAsXML( $this->getActualUri( $schemaFile ) );
 		$xml->registerXPathNamespace( SCHEMA_PREFIX, SCHEMA_NAMESPACE );
 		foreach ( $xml->xpath("/xs:schema/xs:import") as $tag => /** @var SimpleXMLElement $element */ $element )
 		{
