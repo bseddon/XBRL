@@ -37,7 +37,9 @@ class XBRL_US_TaxonomyPackage extends XBRL_SimplePackage
 	private static $defaultEntryPoints = array(
 		'2016-01-31' => 'http://xbrl.fasb.org/us-gaap/2016/entire/us-gaap-entryPoint-all-2016-01-31.xsd',
 		'2017-01-31' => 'http://xbrl.fasb.org/us-gaap/2017/entire/us-gaap-entryPoint-all-2017-01-31.xsd',
-		'2018-01-31' => 'http://xbrl.fasb.org/us-gaap/2018/entire/us-gaap-entryPoint-all-2018-01-31.xsd'
+		'2018-01-31' => 'http://xbrl.fasb.org/us-gaap/2018/entire/us-gaap-entryPoint-all-2018-01-31.xsd',
+		'2019-01-31' => 'http://xbrl.fasb.org/us-gaap/2019/entire/us-gaap-entryPoint-all-2019-01-31.xsd',
+		'2020-01-31' => 'http://xbrl.fasb.org/us-gaap/2020/entire/us-gaap-entryPoint-all-2020-01-31.xsd'
 	);
 
 

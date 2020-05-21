@@ -79,11 +79,29 @@ class XBRL_US_GAAP_2015 extends XBRL
 			// XBRL_US_GAAP_2015::$us_GAAP_2018_ROLES_NS,
 		);
 
+		$entrypoint_namespaces_2019 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2019_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2019_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2019_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2019_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2019_ROLES_NS,
+		);
+
+		$entrypoint_namespaces_2020 = array(
+			XBRL_US_GAAP_2015::$us_GAAP_2020_ENTRY_POINT_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2020_ENTRY_POINT_STD_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2020_ALL_NS,
+			XBRL_US_GAAP_2015::$us_GAAP_2020_NS,
+			// XBRL_US_GAAP_2015::$us_GAAP_2020_ROLES_NS,
+		);
+
 		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2014, "XBRL_US_GAAP_2015" );
 		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2015, "XBRL_US_GAAP_2015" );
 		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
 		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
 		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2019, "XBRL_US_GAAP_2015" );
+		XBRL::add_namespace_to_class_map_entries( $entrypoint_namespaces_2020, "XBRL_US_GAAP_2015" );
 
 		/**
 		 * Register xsd to class map entries
@@ -352,10 +370,26 @@ class XBRL_US_GAAP_2015 extends XBRL
 		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2016, "XBRL_US_GAAP_2015" );
 		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2017, "XBRL_US_GAAP_2015" );
 		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2018, "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2019, "XBRL_US_GAAP_2015" );
+		XBRL::add_entry_namespace_to_class_map_entries( $entrypoint_namespaces_2020, "XBRL_US_GAAP_2015" );
 
 		/**
 		 * Register XSD to compiled taxonomy entries
 		 */
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2020-01-31.xsd" ), "us-gaap-entire-2020-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2020-01-31.xsd", "us-gaap-2020-01-31.xsd" ), "us-gaap-all-2020-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2020-01-31.xsd"), "us-gaap-2020-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2020-01-31.xsd"), "us-gaap-std-2020-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2020-01-31.xsd"), "us-gaap-ent-std-2020-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2020-01-31.xsd"), "us-gaap-ent-all-2020-01-31" );
+
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2019-01-31.xsd" ), "us-gaap-entire-2019-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2019-01-31.xsd", "us-gaap-2019-01-31.xsd" ), "us-gaap-all-2019-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2019-01-31.xsd"), "us-gaap-2019-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-std-2019-01-31.xsd"), "us-gaap-std-2019-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-std-2019-01-31.xsd"), "us-gaap-ent-std-2019-01-31" );
+		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-ent-all-2019-01-31.xsd"), "us-gaap-ent-all-2019-01-31" );
+
 		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-entryPoint-all-2018-01-31.xsd" ), "us-gaap-entire-2018-01-31" );
 		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-all-2018-01-31.xsd", "us-gaap-2018-01-31.xsd" ), "us-gaap-all-2018-01-31" );
 		XBRL::add_xsd_to_compiled_map_entries( array( "us-gaap-2018-01-31.xsd"), "us-gaap-2018-01-31" );
@@ -544,6 +578,60 @@ class XBRL_US_GAAP_2015 extends XBRL
 	 * @var string
 	 */
 	public static $us_GAAP_2018_ROLES_NS			= "http://fasb.org/us-roles/2018-01-31";
+
+
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2019-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2019_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2019-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2019-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2019_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2019-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2019-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2019_ALL_NS				= "http://fasb.org/us-gaap-all/2019-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2019-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2019_NS					= "http://fasb.org/us-gaap/2019-01-31";
+	/**
+	 * http://fasb.org/us-roles/2019-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2019_ROLES_NS			= "http://fasb.org/us-roles/2019-01-31";
+
+
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-all/2020-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2020_ENTRY_POINT_ALL_NS	= "http://fasb.org/us-gaap-entryPoint-all/2020-01-31";
+	/**
+	 * http://fasb.org/us-gaap-entryPoint-std/2020-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2020_ENTRY_POINT_STD_NS	= "http://fasb.org/us-gaap-entryPoint-std/2020-01-31";
+	/**
+	 * http://fasb.org/us-gaap-all/2020-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2020_ALL_NS				= "http://fasb.org/us-gaap-all/2020-01-31";
+	/**
+	 * http://fasb.org/us-gaap/2020-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2020_NS					= "http://fasb.org/us-gaap/2020-01-31";
+	/**
+	 * http://fasb.org/us-roles/2020-01-31
+	 * @var string
+	 */
+	public static $us_GAAP_2020_ROLES_NS			= "http://fasb.org/us-roles/2020-01-31";
 
 
 	/**
