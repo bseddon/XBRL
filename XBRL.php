@@ -1168,6 +1168,10 @@ class XBRL {
 
 		$taxonomy->setBaseTaxonomy( $baseTaxonomy );
 
+		// BMS 2020-05-20 The previously imported namespaces are captured so actions
+		//                that should affect extension schemas, such as getting all
+		//                all elements, can skip skip operating on base taxonomy schemas
+		$context->previouslyImportedSchemaNamespaces = array_keys( $context->importedSchemas );
 		$context->importedSchemas[ $namespace ] =& $taxonomy;
 		$context->schemaFileToNamespace[ $taxonomy->getSchemaLocation() ] = $namespace;
 		$context->schemaFileToNamespace[ $taxonomy->getTaxonomyXSD() ] = $namespace;
@@ -4047,22 +4051,43 @@ class XBRL {
 	}
 
 	/**
-	 * Returns an array of elements across all taxonomies
+	 * Returns an array of elements across all base taxonomy taxonomies
 	 * @return array
 	 */
-	public function getAllElements()
+	public function getAllBaseTaxonomyElements()
 	{
-		if ( $this->context->isExtensionTaxonomy() )
-		{
-			$prefix = $this->getPrefix();
-			return array_map( function( $item ) use ( $prefix ) { $item['prefix'] = $prefix; return $item; }, $this->elementIndex );
-		}
+		return $this->getAllElements( true, false );
+	}
+
+	/**
+	 * Returns an array of elements across all taxonomies.  The arguments are only relevant
+	 * when the main taxonomy is an extension taxonomy.
+	 * @param boolean $includeBaseTaxonomyElements (default: false)
+	 * @param boolean $includeExtensionTaxonomyElements (default: true)
+	 * @return array
+	 */
+	public function getAllElements( $includeBaseTaxonomyElements = false, $includeExtensionTaxonomyElements = true )
+	{
+		$filterUsingArgs =	$this->context->isExtensionTaxonomy() &&
+							property_exists( $this->context, 'previouslyImportedSchemaNamespaces' ) &&
+							is_array( $this->context->previouslyImportedSchemaNamespaces );
 
 		$result = array();
+		if ( $filterUsingArgs && ! $includeBaseTaxonomyElements && ! $includeExtensionTaxonomyElements ) return $result;
+
 		foreach ( $this->context->importedSchemas as $namespace => $taxonomy )
 		{
+			if ( $filterUsingArgs )
+			{
+				// If excluding base taxonomy elements and the previouslyImportedSchemaNamespaces array contains the namespace then ignore
+				if ( ! $includeBaseTaxonomyElements && array_search( $namespace, $this->context->previouslyImportedSchemaNamespaces ) !== false ) continue;
+				// If excluding extension taxonomy elements and the previouslyImportedSchemaNamespaces array does not contain the namespace then ignore
+				if ( ! $includeExtensionTaxonomyElements && array_search( $namespace, $this->context->previouslyImportedSchemaNamespaces ) === false ) continue;
+			}
+
 			$elements = $taxonomy->getElements();
-			if ( ! $elements ) continue; // Don't attempt to merge if there are no element and it take time
+			if ( ! $elements ) continue; // Don't attempt to merge if there are no element as it take time
+			// Add the taxonomy prefix to each element
 			$prefix = $taxonomy->getPrefix();
 			$elements = array_map( function( $item ) use ( $prefix ) { $item['prefix'] = $prefix; return $item; }, $elements );
 			$result = array_merge( $result, $elements );
