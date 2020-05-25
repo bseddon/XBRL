@@ -1329,25 +1329,35 @@ class XBRL {
 
 		// Check the taxonomy location
 		$context = XBRL_Global::getInstance();
-		if ( $context->useCache )
+		// BMS 2020-05-22 Don't remember why this section of code did not use XBRL::getXml()
+		//                Changing the $taxonomy_file to point to a cached file causes other
+		//                that do not occur when using getXml.  Anyway, it uses getXml now.
+		// if ( $context->useCache )
+		// {
+		// 	if ( ( $path = $context->findCachedFile( $taxonomy_file ) ) !== false )
+		// 	{
+		// 		$taxonomy_file = $path;
+		// 	}
+		// }
+        //
+		// if ( filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) === false )
+		// {
+		// 	// If the taxonomy file is not a url make sure the file exists
+		// 	if ( ! file_exists( $taxonomy_file ) )
+		// 	{
+		// 		XBRL_Log::getInstance()->err( "The supplied extension taxonomy file does not exist." );
+		// 		return false;
+		// 	}
+		// }
+        //
+		// $xbrlDocument = simplexml_load_file( $taxonomy_file );
+		$xbrlDocument = XBRL::getXml( $taxonomy_file, $context );
+		if ( ! $xbrlDocument )
 		{
-			if ( ( $path = $context->findCachedFile( $taxonomy_file ) ) !== false )
-			{
-				$taxonomy_file = $path;
-			}
+			XBRL_Log::getInstance()->err( "The supplied extension taxonomy file does not exist." );
+			return false;
 		}
 
-		if ( filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) === false )
-		{
-			// If the taxonomy file is not a url make sure the file exists
-			if ( ! file_exists( $taxonomy_file ) )
-			{
-				XBRL_Log::getInstance()->err( "The supplied extension taxonomy file does not exist." );
-				return false;
-			}
-		}
-
-		$xbrlDocument = simplexml_load_file( $taxonomy_file );
 		if ( $namespace === null )
 		{
 			if ( ! isset( $xbrlDocument['targetNamespace'] ) )
@@ -18834,6 +18844,43 @@ class XBRL {
 		if ( ! is_numeric( $weight ) ) $weight = null;
 
 		return hash( "sha256", "$elementName-$linkName-$linkRole-$fromHref-$toHref-$order-$weight-$preferredLabel" );
+	}
+
+	/**
+	 * Process a schema recursively so the xml and xsds referenced are added to the cache implied by $context
+	 * @param string $xml
+	 * @param SimpleXMLElement $schema
+	 * @param XBRL_Global $context
+	 * @param XBRL_Log $log
+	 */
+	public static function processSchema( $xsd, $schema, $context, $log, &$loaded )
+	{
+		if ( ! $schema ) return;
+
+		// Process the linkbases
+		foreach( $schema->annotation->appinfo->children('link', true)->linkbaseRef as $x => /** @var SimpleXMLElement $element */ $element )
+		{
+			$location = (string)$element->attributes('xlink', true)->href;
+			$href = XBRL::resolve_path( $xsd, $location );
+			if ( array_search( $href, $loaded ) !== false ) continue;
+			$loaded[] = $href;
+			$mapping = \XBRL::getXml( $href, $context );
+		}
+
+		// Process the imports
+		foreach( $schema->import as $x => /** @var SimpleXMLElement $element */ $element )
+		{
+			$location = (string)$element->attributes()->schemaLocation;
+			$href = XBRL::resolve_path( $xsd, $location );
+			if ( array_search( $href, $loaded ) !== false ) continue;
+			if ( XBRL::startsWith( $href, 'http://www.xbrl.org' ) ) continue;
+			if ( isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) ) continue;
+
+			$import = \XBRL::getXml( $href, $context );
+			$loaded[] = $href;
+			XBRL::processSchema( $href, $import, $context, $log, $loaded );
+		}
+
 	}
 }
 
