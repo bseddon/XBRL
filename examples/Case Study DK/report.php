@@ -98,6 +98,9 @@ $instanceGroupss = array( // !!! Change this
 		'and co 2015.xml',
 		'and co 2016.xml',
 		'and co 2017.xml'
+	),
+	'pandora' => array(
+		'pandora.xml'
 	)
 );
 
@@ -207,14 +210,31 @@ try
 		{
 			$schemaHRef = getInstanceTaxonomyHRef( "$instancesLocation/$instanceFilename" );
 
+			// BMS 2020-06-03 Kasper Oldby has observed that sometimes the instance documents reference schemas that
+			//				  do not exist - r pandora.xml is an exaple.  the instance documents are probably supposed
+			//				  to be part of a package that contains a rewrite rule to let a processor know where the
+			//				  the real schema can be found.
+			//				  So Kasper has provided two additional functions that allow him to process all the
+			//				  Danish examples he is able to find (over 5000.
+
+			//http://archprod.service.eogs.dk/taxonomy/20171001/entryDanishGAAPBalanceSheetAccountFormIncomeStatementByNatureIncludingManagementsReviewStatisticsAndTax20171001.xsd
 			$pattern = '/^http:\/\/archprod\.service\.eogs\.dk\/taxonomy\/(?<version>\d{8})\/.*\.xsd$/';
 			if ( ! preg_match( $pattern, $schemaHRef, $matches ) )
 			{
 				$observer->addItem("error", "The schema ref of '$instanceBasename.xml' is not valid: '$schemaHRef'");
-				continue;
+				//http://archprod.service.eogs.dk/taxonomy/extension/xxxx_yyyymmdd/xxxx_entry_yyyymmdd.xsd
+				//http://archprod.service.eogs.dk/taxonomy/extension/PAND_20190321/PAND_entry_20190321.xsd
+				$pattern = '/^http:\/\/archprod\.service\.eogs\.dk\/taxonomy\/extension\/(?<file>\S{4}_\d{8})\/(?<entry>.+\d{8})\.xsd$/';
+				if ( preg_match($pattern, $schemaHRef, $matches ) )
+					$version = getInstanceTaxonomyHRefIfrsDkDate( "$instancesLocation/$instanceFilename" );
+			}
+			else
+			{
+				$version = $matches['version']; // "20171001"
 			}
 
-			$version = $matches['version'];
+			if(empty($version))
+				continue;
 
 			// Use the version year to choose the correct compiled taxonomy
 			$compiledTaxonomyFilename = "$compiledLocation/entryAll$version.json";
@@ -307,7 +327,7 @@ try
 			$descriptionEN = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $conceptId );
 			$descriptionDA = $conceptTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $conceptId, null, 'da' );
 
-			// If the conceot has not been used yet, add namespace, name and id
+			// If the concept has not been used yet, add namespace, name and id
 			if ( ! isset( $data[ $conceptName ] ) )
 			{
 				$data[ $conceptName ] = array(
@@ -394,3 +414,42 @@ function getInstanceTaxonomyHRef( $filename )
 
 }
 
+/**
+ * Return the 'date' value of ifrs-full
+ * @param string $filename
+ * @return string
+ */
+function getInstanceTaxonomyHRefIfrsFullDate($filename)
+{
+	$dom = new \DOMDocument();
+	$dom->load($filename);
+	$xpath = new \DOMXPath($dom);
+	$pattern = '/^http:\/\/xbrl\.ifrs\.org\/taxonomy\/(?<date>\d{4}-\d{2}-\d{2})\/ifrs-full$/';
+	$date = "";
+	foreach ($xpath->query('namespace::*') as $node) {
+		$txt = $node->nodeValue;
+		if (preg_match($pattern, $txt, $matches))
+			$date = $matches["date"];
+	}
+	return preg_replace("/[^0-9]/", "", $date);
+}
+
+/**
+ * Return the 'date' value of ifrs-dk-cor
+ * @param string $filename
+ * @return string
+ */
+function getInstanceTaxonomyHRefIfrsDkDate($filename)
+{
+	$dom = new \DOMDocument();
+	$dom->load($filename);
+	$xpath = new \DOMXPath($dom);
+	$pattern = '/^http:\/\/xbrl\.dcca\.dk\/ifrs-dk-cor_(?<date>\d{4}-\d{2}-\d{2})$/';
+	$date = "";
+	foreach ($xpath->query('namespace::*') as $node) {
+		$txt = $node->nodeValue;
+		if (preg_match($pattern, $txt, $matches))
+			$date = $matches["date"];
+	}
+	return preg_replace("/[^0-9]/", "", $date);
+}

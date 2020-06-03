@@ -1,0 +1,705 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Version: 1.1.853.0 --><!-- Document created: 13-03-2020 10:14:41 --><!-- Created by:  XBRL Wizard, EasyX --><xbrli:xbrl xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:entry01-ifrs-dk_2019-12-20="http://xbrl.dcca.dk/ifrs-dk/entry01-ifrs-dk_2019-12-20" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:ifrs-full="http://xbrl.ifrs.org/taxonomy/2014-03-05/ifrs-full" xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" xmlns:num="http://www.xbrl.org/dtr/type/numeric" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:info="http://xbrl.iasb.org/info" xmlns:ifrs-mc="http://xbrl.ifrs.org/taxonomy/2014-03-05/ifrs-mc" xmlns:rol_ifrs-dk_105.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_105.00_2019-12-20" xmlns:tch="http://xbrl.dcca.dk/tch" xmlns:gen="http://xbrl.org/2008/generic" xmlns:ref="http://www.xbrl.org/2006/ref" xmlns:entry="http://entry" xmlns:net="http://www.xbrl.org/2009/role/net" xmlns:reference="http://xbrl.org/2008/reference" xmlns:negated="http://www.xbrl.org/2009/role/negated" xmlns:cmn="http://xbrl.dcca.dk/cmn" xmlns:label="http://xbrl.org/2008/label" xmlns:rol_ifrs-dk_110.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_110.00_2019-12-20" xmlns:rol_ifrs-dk_210.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_210.00_2019-12-20" xmlns:rol_ifrs-dk_320.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_320.00_2019-12-20" xmlns:rol_ifrs-dk_330.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_330.00_2019-12-20" xmlns:rol_ifrs-dk_420.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_420.00_2019-12-20" xmlns:rol_ifrs-dk_520.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_520.00_2019-12-20" xmlns:rol_ifrs-dk_610.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_610.00_2019-12-20" xmlns:rol_ifrs-dk_710.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_710.00_2019-12-20" xmlns:rol_ifrs-dk_8NN.NN_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_8NN.NN_2019-12-20" xmlns:rol_dim="http://xbrl.ifrs.org/role/ifrs/dimensions" xmlns:ifrs-dk="http://xbrl.dcca.dk/ifrs-dk-cor_2019-12-20" xmlns:entry-sob="http://xbrl.dcca.dk/entry-sob" xmlns:sob="http://xbrl.dcca.dk/sob" xmlns:rol_sob_300.00_2019-12-20="http://xbrl.dcca.dk/role/sob/rol_sob_300.00_2019-12-20" xmlns:cmn_rol="http://archprod.service.eogs.dk/taxonomy/20191220/cmn_rol.xsd" xmlns:rol_mrv_2019-12-20="http://xbrl.dcca.dk/role/mrv/rol_mrv_2019-12-20" xmlns:tax="http://xbrl.dcca.dk/tax" xmlns:gsd="http://xbrl.dcca.dk/gsd" xmlns:dst="http://xbrl.dcca.dk/dst" xmlns:ifrs-temp-entry="http://ifrs-temp-entry" xmlns:fsa="http://xbrl.dcca.dk/fsa" xmlns:rol_ps_mc_2014-03-05="http://xbrl.ifrs.org/role/ifrs/rol_ps_mc_2014-03-05" xmlns:mrv="http://xbrl.dcca.dk/mrv" xmlns:entry-mrv="http://xbrl.dcca.dk/entry-mrv" xmlns:mrvcsr="http://xbrl.dcca.dk/mrvcsr" xmlns:entry-gsd="http://xbrl.dcca.dk/entry-gsd" xmlns:ca="http://xbrl.org/2008/assertion/consistency" xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:variable="http://xbrl.org/2008/variable" xmlns:xfi="http://www.xbrl.org/2008/function/instance" xmlns:cf="http://xbrl.org/2008/filter/concept" xmlns:valm="http://xbrl.org/2010/message/validation" xmlns:ea="http://xbrl.org/2008/assertion/existence" xmlns:rol_gsd_000.00_2019-12-20="http://xbrl.dcca.dk/role/gsd/rol_gsd_000.00_2019-12-20" xmlns:validation="http://xbrl.org/2008/validation" xmlns:formula="http://xbrl.org/2008/formula" xmlns:msg="http://xbrl.org/2010/message" xmlns:va="http://xbrl.org/2008/assertion/value" xmlns:entry-arr="http://xbrl.dcca.dk/entry-arr" xmlns:arr="http://xbrl.dcca.dk/arr" xmlns:rol_arr_1NN.NN_2019-12-20="http://xbrl.dcca.dk/role/arr/rol_arr_1NN.NN_2019-12-20" xmlns:rol_ifrs-dk_510.00_2019-12-20="http://xbrl.dcca.dk/role/ifrs-dk/rol_ifrs-dk_510.00_2019-12-20" xmlns:easy="http://www.easyx.dk/XBRL" xsi:schemaLocation="http://xbrl.org/2006/xbrldi http://www.xbrl.org/2006/xbrldi-2006.xsd">
+  <link:schemaRef xlink:type="simple" xlink:href="http://archprod.service.eogs.dk/taxonomy/extension/Pand_20200313/Pand_entry_20200313.xsd"/>
+  <xbrli:context id="ctx1">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx2">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfExecutiveBoardAxis">
+        <cmn:memberOfBoardIdentifier>0</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx3">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfExecutiveBoardAxis">
+        <cmn:memberOfBoardIdentifier>1</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx4">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>0</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx5">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>1</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx6">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>2</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx7">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>3</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx8">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>4</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx9">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>5</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx10">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>6</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx11">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfMemberOfSupervisoryBoardAxis">
+        <cmn:memberOfBoardIdentifier>7</cmn:memberOfBoardIdentifier>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx12">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2018-01-01</xbrli:startDate>
+      <xbrli:endDate>2018-12-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx13">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2019-12-31</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx14">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2018-12-31</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx15">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2019-01-01</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx16">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2018-01-01</xbrli:instant>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="ctx17">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx18">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2018-01-01</xbrli:startDate>
+      <xbrli:endDate>2018-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx19">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2019-12-31</xbrli:instant>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx20">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2018-12-31</xbrli:instant>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx21">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2019-01-01</xbrli:instant>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx22">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2018-01-01</xbrli:instant>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:explicitMember dimension="ifrs-full:ConsolidatedAndSeparateFinancialStatementsAxis">ifrs-full:SeparateMember</xbrldi:explicitMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx23">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfAuditorDimension">
+        <cmn:auditorIdentificer>0</cmn:auditorIdentificer>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:context id="ctx24">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.dcca.dk/cvr">28505116</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:startDate>2019-01-01</xbrli:startDate>
+      <xbrli:endDate>2019-12-31</xbrli:endDate>
+    </xbrli:period>
+    <xbrli:scenario>
+      <xbrldi:typedMember dimension="cmn:IdentificationOfAuditorDimension">
+        <cmn:auditorIdentificer>1</cmn:auditorIdentificer>
+      </xbrldi:typedMember>
+    </xbrli:scenario>
+  </xbrli:context>
+  <xbrli:unit id="vDKK">
+    <xbrli:measure>iso4217:DKK</xbrli:measure>
+  </xbrli:unit>
+  <xbrli:unit id="share">
+    <xbrli:measure>xbrli:shares</xbrli:measure>
+  </xbrli:unit>
+  <gsd:ReportingPeriodStartDate contextRef="ctx1">2019-01-01</gsd:ReportingPeriodStartDate>
+  <gsd:ReportingPeriodEndDate contextRef="ctx1">2019-12-31</gsd:ReportingPeriodEndDate>
+  <gsd:NameOfReportingEntity contextRef="ctx1" xml:lang="da">Pandora A/S</gsd:NameOfReportingEntity>
+  <gsd:AddressOfReportingEntityStreetName contextRef="ctx1" xml:lang="da">Havneholmen</gsd:AddressOfReportingEntityStreetName>
+  <gsd:AddressOfReportingEntityStreetBuildingIdentifier contextRef="ctx1" xml:lang="da">17 – 19</gsd:AddressOfReportingEntityStreetBuildingIdentifier>
+  <gsd:AddressOfReportingEntityPostCodeIdentifier contextRef="ctx1" xml:lang="da">1561</gsd:AddressOfReportingEntityPostCodeIdentifier>
+  <gsd:AddressOfReportingEntityDistrictName contextRef="ctx1" xml:lang="da">København V</gsd:AddressOfReportingEntityDistrictName>
+  <gsd:IdentificationNumberCvrOfReportingEntity contextRef="ctx1">28505116</gsd:IdentificationNumberCvrOfReportingEntity>
+  <gsd:DateOfGeneralMeeting contextRef="ctx1">2020-03-11</gsd:DateOfGeneralMeeting>
+  <gsd:NameAndSurnameOfChairmanOfGeneralMeeting contextRef="ctx1" xml:lang="da">Pernille Høstrup Dalhoff</gsd:NameAndSurnameOfChairmanOfGeneralMeeting>
+  <mrv:ManagementsReview contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management review&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</mrv:ManagementsReview>
+  <mrv:CorporateGovernanceReport contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Corporate governance&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management structure&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Corporate authority is divided between&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Board of Directors (the Board) and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Executive Management, existing independently of each other. The Board is&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;elected by the General Meeting. The&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board supervises Executive Manage-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ment’s work and is responsible for&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Pandora’s general and strategic direction. The Board’s primary tasks are to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ensure that Pandora has a strong management team, optimal organisational&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and capital structures, efficient business&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;processes, transparent bookkeeping and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;practices, and responsible asset management. Additionally, the Board over-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;sees Pandora’s financial development,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;related planning and reporting systems&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;as well as internal controls and risk management.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Board has established an Audit, a Re-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;muneration and a Nomination Commit-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;tee and appoints members and chairs to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;these committees from within the Board.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The committees’ terms of reference are&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;disclosed on the company’s website –&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;www.pandoragroup.com.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Members of Executive Management are&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;appointed by the Board. Executive Management is responsible for the day-to-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;day management and the execution of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the company’s strategy.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Members of the Executive Leadership&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Team are responsible for the day-to-day&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;operations of their respective business&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;areas while at the same time being part&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the overall management of Pandora.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board of Directors&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Composition&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The composition of the Board must be&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;such that, at any time, the consolidated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;competencies of the Board enable it to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;supervise Pandora’s development and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;diligently address the specific opportunities and challenges Pandora faces.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Board must consist of three to ten&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;members and consisted of eight members as of 31 December 2019. All Board&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;members are up for election every year.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board self-assessment&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Board conducts an annual self-assessment to monitor its performance&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and its cooperation with Executive Management. The chair of the Nomination&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Committee directs the assessment pro-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;cess, and in 2019 the assessment was&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;carried out by each Board member completing an anonymous questionnaire.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The assessment covered topics such as&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board composition, nomination process,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;competencies and overboarding. The&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;assessment also included topics such&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;as the Board’s involvement in risk and fi-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;nancial management, control and strategy, and committee work and personal&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;contributions.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Ratings and comments are consolidated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and shared with the Board and Executive Management, followed by a Board&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;discussion where improvements are dis-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;cussed. The chair also holds one-on-one&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;conversations with each Board member.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The self-assessment conducted in 2019&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;identified that the Board continues to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;demonstrate wide experience, broad industry knowledge and backgrounds well&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;suited to Pandora’s business and strategy. The Board structure and committee&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;work are effective and well-functioning,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;including interactions with Executive&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management. The assessment indicated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;that further competencies within retail&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;would be beneficial in order to continually respond to the rapidly-changing&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;consumer landscape and dive deeper&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;into brand execution and trendspotting.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Audit Committee&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In 2019, the members of the Audit Committee were Birgitta Stymne Göransson&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Chair), Andrea Dawn Alvey and Isabelle&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Parize. The Audit Committee reviews and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;assesses Pandora’s financial reporting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and audit processes and internal control&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;systems, and evaluates the adequacy of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;control procedures. More specifically,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Audit Committee supervises the following areas&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  the financial reporting process&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  internal controls and risk management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;systems&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  the independent audit&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In 2019, the Audit Committee met seven&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;times. Its main activities were&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• meetings with Executive Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and independent auditors to review&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the audited Annual Report&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• meetings with Executive Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;to review interim financial reports&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• reviewing key accounting principles,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significant accounting estimates, key&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial risks and compliance with tax&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;regulations&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• monitoring the adequacy and effectiveness of Pandora’s internal controls&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and risk management systems&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• reviewing the company’s whistleblowing reporting system and whistleblowing cases&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;recommendations for the appointment&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of independent auditors, including evaluation of independence, competencies&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and compensation&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• reviewing updates to the financial re-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;porting structure&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Remuneration Committee&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In 2019, the members of the Remuneration Committee were Peder Tuborgh&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Chair), Christian Frigast, Ronica Wang and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Andrea Dawn Alvey. The main duties of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Remuneration Committee are&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• preparing recommendations to the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board on the pay and remuneration&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;policy applicable to the Board and Executive Management with respect to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;fixed and variable pay components&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  submitting proposals to the Board for&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the remuneration packages of individual Board members and Executive&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• verifying that the information on remuneration in the Annual Report and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Remuneration Report is true, accurate&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and adequate&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Remuneration Committee met five&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;times in 2019. Its main activities were&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• proposal for new remuneration policy&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• directions for future remuneration re-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ports&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• approval of incentive payments for&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;2018&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  design and approval of Pandora’s Long&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and Short-Term Incentive Programmes&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;for 2019 and 2020&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• benchmarking Board fees and executive pay.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Remuneration Report 2019 is available at our Investor website&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;pandoragroup.com/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;investor/corporate-governance/&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;remuneration-reports&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Nomination Committee&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In 2019, the members of the Nomination Committee were Christian Frigast&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Chair), John Peace, Peder Tuborgh and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Per Bank. The Nomination Committee&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;assists the Board in fulfilling its responsibilities with regards to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• continuous evaluation of the qualifications and competencies required of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;members of the Board and Executive&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  nomination of candidates for the Board&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and Executive Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  self-assessment of the Board&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  assessment of the performance of Executive Management and the cooperation between the Board and Executive&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• succession planning for top executive&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Positions&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In 2019, the Nomination Committee met&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;three times and had multiple ad-hoc exchanges relating to the search for and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;recruitment of Alexander Lacik as new&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;CEO and search for and recruitment of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Peter A. Ruzicka as new Chair. Furthermore, its main activities focused on the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;annual self-assessment, including an assessment of the cooperation between&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Board and Executive Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and assessment of the performance of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;each member of the Board and potential&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;overboarding.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</mrv:CorporateGovernanceReport>
+  <mrv:StatementOfTargetFiguresAndPoliciesForTheUnderrepresentedGender contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Gender diversity in management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We believe that our company benefits&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;from a diverse management team. We&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;have a number of gender diversity objectives and we review progress once a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;year. Our goals in this area are the following&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  No gender should make up more than&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;60% of Board members. At the end of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;2019, women made up 50% of Board&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;members (4 out of 8), compared with&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;43% in 2018 (3 out of 7), which is above&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;average for large publicly-listed Danish&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;companies.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;•  No gender should make up more than&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;60% of senior management (members&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the Executive Leadership Team, general managers and vice presidents). At&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the end of 2019, 26% of senior management were women. This is a decline&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;compared with 30% in 2018, but in line&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;with Danish gender statistics for middle and senior managerial positions.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Pandora will continue to strive for a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;better gender balance in senior management.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</mrv:StatementOfTargetFiguresAndPoliciesForTheUnderrepresentedGender>
+  <sob:StatementByExecutiveAndSupervisoryBoards contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Statement by the Executive Management and the Board of Directors&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:StatementByExecutiveAndSupervisoryBoards>
+  <sob:IdentificationOfApprovedAnnualReport contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Board of Directors and the Executive Management have today discussed and approved&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Annual Report of Pandora A/S for 2019.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:IdentificationOfApprovedAnnualReport>
+  <sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Annual Report has been prepared in accordance with International Financial Reporting Standards as adopted by the EU and additional requirements of the Danish Financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Statements Act.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:ConfirmationThatAnnualReportIsPresentedInAccordanceWithRequirementsProvidedForByLegislationAnyStandardsAndRequirementsProvidedByArticlesOfAssociationOrByAgreement>
+  <sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;It is our opinion that the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements and the Parent Company financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements give a true and fair view of the financial position of the Group and the Parent&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Company at 31 December 2019 and of the results of the Group's and the Parent Company's&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;operations and cash flows for the financial year&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;1 January – 31 December 2019.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:ConfirmationThatFinancialStatementGivesTrueAndFairViewOfAssetsLiabilitiesEquityFinancialPositionAndResults>
+  <sob:ManagementsStatementAboutManagementsReview contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Further, in our opinion, the Management's review gives a fair review of the development in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Group's and the Parent Company's activities and financial matters, results of operations, cash flows and financial position as well&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;as a description of material risks and uncertainties that the Group and the Parent Company face.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:ManagementsStatementAboutManagementsReview>
+  <sob:RecommendationForApprovalOfAnnualReportByGeneralMeeting contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We recommend that the Annual Report be ap-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;proved at the Annual General Meeting.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</sob:RecommendationForApprovalOfAnnualReportByGeneralMeeting>
+  <sob:PlaceOfSignatureOfStatement contextRef="ctx1" xml:lang="da">Copenhagen</sob:PlaceOfSignatureOfStatement>
+  <sob:DateOfApprovalOfAnnualReport contextRef="ctx1">2020-02-04</sob:DateOfApprovalOfAnnualReport>
+  <arr:IndependentAuditorsReportsAudit contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Independent auditors' report&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:IndependentAuditorsReportsAudit>
+  <arr:AddresseeOfAuditorsReportOnAuditedFinancialStatements contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;To the shareholders of Pandora A/S&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:AddresseeOfAuditorsReportOnAuditedFinancialStatements>
+  <arr:OpinionOnAuditedFinancialStatements contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our opinion&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We have audited the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements and the parent company financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements of Pandora A/S for the financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;year 1 January – 31 December 2019, which&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;comprise statement of comprehensive in-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;come, balance sheet, statement of changes&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in equity, statement of cash flows and notes,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;including accounting policies, for the Group&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and the Parent Company. The consolidated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial statements and the parent company&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial statements are prepared in accordance with International Financial Reporting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Standards as adopted by the EU and addition-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;al requirements of the Danish Financial Statements Act.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In our opinion, the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements and the parent company financial statements give a true and fair view of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the financial position of the Group and the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Parent Company at 31 December 2019 and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the results of the Group’s and the Parent&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Company’s operations and cash flows for the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial year 1 January – 31 December 2019&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in accordance with International Financial Re-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;porting Standards as adopted by the EU and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;additional requirements of the Danish Financial Statements Act.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our opinion is consistent with our long-form&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;audit report to the Audit Committee and the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board of Directors.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:OpinionOnAuditedFinancialStatements>
+  <arr:DescriptionOfQualificationsOfAuditedFinancialStatements contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Basis for opinion&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We conducted our audit in accordance with&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;International Standards on Auditing (ISAs) and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;additional requirements applicable in Den-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;mark. Our responsibilities under those standards and requirements are further described&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in the “Auditor’s responsibilities for the audit&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the financial statements” section of our re-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;port. We believe that the audit evidence we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;have obtained is sufficient and appropriate to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;provide a basis for our opinion.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:DescriptionOfQualificationsOfAuditedFinancialStatements>
+  <arr:StatementOnOtherInformationAuditorsReportOnAuditedFinancialStatements contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Independence&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We are independent of the Group in accordance with the International Ethics Standards&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Board for Accountants’ Code of Ethics for Professional Accountants (IESBA Code) and additional requirements applicable in Denmark,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and we have fulfilled our other ethical responsibilities in accordance with these rules and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;requirements.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;To the best of our knowledge, we have not&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;provided any prohibited non-audit services as&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;described in article 5(1) of Regulation (EU) no.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;537/2014.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Appointment of auditor&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Subsequent to Pandora A/S being listed on&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Nasdaq OMX Copenhagen, EY was appoint-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ed auditors of Pandora  A/S on 8 April 2011.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We were re-appointed annually at the general&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;meeting for a total period of nine years up to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and including the financial year 2019.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:StatementOnOtherInformationAuditorsReportOnAuditedFinancialStatements>
+  <arr:SupplementaryInformationOnMattersPertainingToAuditedFinancialStatement contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Key audit matters&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Key audit matters are those matters that, in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;our professional judgement, were of most&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significance in our audit of the financial statements for the financial year 2019. These matters were addressed during our audit of the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial statements as a whole and in forming our opinion thereon. We do not provide a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;separate opinion on these matters. For each&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;matter below, our description of how our audit addressed the matter is provided in that&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;context.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;DESCRIPTION OF MATTER&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Revenue and sales return&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Revenue is recognised when control of the goods&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;has been transferred to the buyer and it is&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;measured at fair value of the expected consideration to be received, less rebates, discounts, sales&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;taxes, duties and expected sales returns. Revenue&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;recognition and measurement of the related&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;expected sales returns was a matter of most&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significance in our audit due to the inherent risk in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the estimates and judgements which Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;makes in the normal course of business as to timing&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of revenue and measurement of expected sales&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;returns.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Details on revenue recognition and expected sales&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;returns are provided in sections 2.1 and 3.8 of the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;consolidated financial statements and in section&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;3.7 of the parent company financial statements, to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;which we refer.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We have fulfilled our responsibilities de-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;scribed in the “Auditor’s responsibilities for&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the audit of the financial statements” section,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;including in relation to the key audit matters&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;below. Our audit included the design and performance of procedures to respond to our&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;assessment of the risks of material misstatement of the financial statements. The results&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of our audit procedures, including the procedures performed to address the matters be-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;low, provide the basis for our audit opinion on&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the financial statements.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;CONSIDERATION OF THE MATTER IN THE AUDIT&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our procedures in relation to revenue recognition&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and measurement of expected sales returns&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;included considering the Group’s accounting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;policies for revenue recognition, including those&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;related to expected sales returns, and assessing&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;compliance of policies with applicable accounting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;standards. We identified and assessed internal&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;controls related to the timing of revenue recognition and measurement of expected sales returns.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We tested the effectiveness of the Group’s internal&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;controls in relation to calculation of expected sales&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;returns and timing of revenue recognition. On a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;sample basis, we tested sales transactions taking&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;place at either side of the balance sheet date as&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;well as credit notes issued after the balance sheet&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;date to assess whether those transactions were&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;recognised in the correct period. We assessed the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;key assumptions applied by Management regarding&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;expected sales returns based on our knowledge of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the business and by reviewing the supporting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;documentation prepared by Management.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Furthermore, we evaluated the disclosures provided&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;by Management in the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements and the parent company financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements to applicable accounting standards.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;DESCRIPTION OF MATTER&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Taxation&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Group has extensive international operations&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and in the normal course of business, Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;makes judgements and estimates in determining&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the recognition of income taxes, deferred taxes and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;provisions for uncertain tax positions. In Thailand,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the Group is subject to Board of Investment (BOI)&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;agreements, where many, but not all, types of net&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;income are tax-exempt, and therefore, changes in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;profit allocation could significantly impact the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Group’s consolidated tax expense. On this basis,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;taxation was a matter of most significance in our&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;audit. Additional details on income taxes are&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;provided in section 2.6 of the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements, to which we refer.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Inventory&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;The Group carries inventory in the balance sheet at&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the lower of cost and net realisable value.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Significant management judgements are required&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;with regards to valuation of inventories due to the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;uncertainty associated with the estimate of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;slow-moving items and expected value of the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;reusable raw materials, as well as calculations of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;elimination of internal gain. Given the level of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significant management judgements and estimates,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;inventory valuation was a matter of most significance in our audit. Additional details on the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;valuation of inventories are provided in section 3.5&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the consolidated financial statements and in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;section 3.5 of the parent company financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements, to which we refer.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;CONSIDERATION OF THE MATTER IN THE AUDIT&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our procedures in relation to recognition of income&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;taxes, deferred taxes and provisions for uncertain&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;tax positions included assessing the Group’s&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;processes for recording and continual re-assessment of provisions for uncertain tax positions. Our&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;procedures also covered evaluating the assumptions applied by Management in determining the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;recognition and measurement of income taxes and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;deferred taxes while taking into account relevant&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;correspondence with relevant tax authorities. Our&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;own tax specialists performed an assessment of the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Group’s recognition of income taxes and deferred&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;taxes, including correspondence with relevant tax&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;authorities to consider the completeness of the tax&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;provisions. In addition, we assessed the assumptions used, taking into consideration our own tax&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;specialists’ knowledge and experience. Further, we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;evaluated the disclosures provided by Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in the consolidated financial statements and the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;parent company financial statements to applicable&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;accounting standards.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our procedures in relation to inventory valuation&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;included assessing the Group’s processes related to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;inventory valuation including on a sample basis&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;testing of direct costs related to raw materials, labour&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;costs and attributable overhead costs incurred in the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;manufacturing process, recording of write-downs and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;understanding of the process for internal gain&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;elimination. We challenged the basis for write-downs&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and performed analytical procedures to assess&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;slow-moving items. We assessed the key assumptions&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;applied by Management regarding items life-cycle&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;status and expected value of the reusable raw&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;materials based on our knowledge of the business,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;including initiatives under Programme NOW and on a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;sample basis tested the supporting documentation.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Further, on a sample basis we tested the calculation&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of elimination of internal gain at group level.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Furthermore, we evaluated the disclosures provided&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;by Management in the consolidated financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements and the parent company financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements to applicable accounting standards.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:SupplementaryInformationOnMattersPertainingToAuditedFinancialStatement>
+  <arr:StatementOnManagementsReviewAuditorsReportOnAuditedFinancialStatements contextRef="ctx1" xml:lang="da">&lt;table xmlns="http://www.w3.org/1999/xhtml" style="border-right: 0px; border-top: 0px; border-left: 0px; width: 650px; border-bottom: 0px; border-collapse: collapse"  width="100%"&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Statement on the Management’s review&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management is responsible for the Management’s review.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our opinion on the financial statements does&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;not cover the Management’s review, and we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;do not express any form of assurance conclusion thereon.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In connection with our audit of the financial&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;statements, our responsibility is to read the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management’s review and, in doing so, con-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;sider whether the Management’s review is materially inconsistent with the financial statements or our knowledge obtained during the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;audit, or otherwise appears to be materially&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;misstated.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Moreover, it is our responsibility to consider&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;whether the Management’s review provides&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the information required under the Danish Financial Statements Act.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Based on the work we have performed, we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;conclude that the Management’s review is in&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;accordance with the financial statements and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;has been prepared in accordance with the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;requirements of the Danish Financial Statements Act. We did not identify any material&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;misstatement of the Management’s review.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management’s responsibilities for the financial statements&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management is responsible for the preparation of consolidated financial statements and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;parent company financial statements that&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;give a true and fair view in accordance with&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;International Financial Reporting Standards&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;as adopted by the EU and additional requirements of the Danish Financial Statements Act&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and for such internal control as Management&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;determines is necessary to enable the preparation of financial statements that are free&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;from material misstatement, whether due to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;fraud or error.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;In preparing the financial statements, Management is responsible for assessing the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Group’s and the Parent Company’s ability to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;continue as a going concern, disclosing, as applicable, matters related to going concern and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;using the going concern basis of accounting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in preparing the financial statements unless&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Management either intends to liquidate the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Group or the Parent Company or to cease operations, or has no realistic alternative but to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;do so.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Auditor’s responsibilities for the audit of the financial statements&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Our objectives are to obtain reasonable assurance as to whether the financial statements as&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;a whole are free from material misstatement,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;whether due to fraud or error, and to issue&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;an auditor’s report that includes our opinion.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Reasonable assurance is a high level of assurance, but is not a guarantee that an audit con-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ducted in accordance with ISAs and additional&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;requirements applicable in Denmark will al-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;ways detect a material misstatement when it&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;exists. Misstatements can arise from fraud or&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;error and are considered material if, individually or in the aggregate, they could reasonably&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;be expected to influence the economic decisions of users taken on the basis of the financial statements.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;As part of an audit conducted in accordance&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;with ISAs and additional requirements applicable in Denmark, we exercise professional&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;judgement and maintain professional scepticism throughout the audit. We also&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;Identify and assess the risks of material&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;misstatement of the financial statements,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;whether due to fraud or error, design and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;perform audit procedures responsive to&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;those risks and obtain audit evidence that is&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;sufficient and appropriate to provide a basis&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;for our opinion. The risk of not detecting a&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;material misstatement resulting from fraud&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;is higher than for one resulting from error, as&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;fraud may involve collusion, forgery, intentional omissions, misrepresentations or the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;override of internal control.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• Obtain an understanding of internal control&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;relevant to the audit in order to design audit procedures that are appropriate in the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;circumstances, but not for the purpose of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;expressing an opinion on the effectiveness&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the Group’s and the Parent Company’s internal control.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• Evaluate the appropriateness of accounting&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;policies used and the reasonableness of ac-&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;counting estimates and related disclosures&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;made by Management.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• Conclude on the appropriateness of Management’s use of the going concern basis of&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;accounting in preparing the financial statements and, based on the audit evidence obtained, whether a material uncertainty exists&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;related to events or conditions that may cast&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significant doubt on the Group’s and the Parent Company’s ability to continue as a going&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;concern. If we conclude that a material uncertainty exists, we are required to draw attention in our auditor’s report to the related&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;disclosures in the financial statements or, if&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;such disclosures are inadequate, to modify our opinion. Our conclusions are based on the audit evidence obtained up to the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;date of our auditor’s report. However, future&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;events or conditions may cause the Group&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and the Parent Company to cease to continue as a going concern.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• Evaluate the overall presentation, structure&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and contents of the financial statements,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;including the note disclosures, and whether&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the financial statements represent the underlying transactions and events in a manner&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;that gives a true and fair view.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;• Obtain sufficient appropriate audit evidence&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;regarding the financial information of the entities or business activities within the Group&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;to express an opinion on the consolidated&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;financial statements. We are responsible for&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the direction, supervision and performance&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the group audit. We remain solely responsible for our audit opinion.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We communicate with those charged with&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;governance regarding, among other matters,&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;the planned scope and timing of the audit and&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;significant audit findings, including any significant deficiencies in internal control that we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;identify during our audit.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;We also provide those charged with governance with a statement that we have complied with relevant ethical requirements regarding independence, and to communicate&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;with them all relationships and other matters&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;that may reasonably be thought to bear on our&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;independence, and where applicable, related&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;safeguards.&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;From the matters communicated with those&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;charged with governance, we determine those&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;matters that were of most significance in the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;audit of the consolidated financial statements&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;and the parent company financial statements&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;of the current period and are therefore the&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;key audit matters. We describe these matters&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;in our auditor’s report unless law or regulation&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;precludes public disclosure about the matter&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;or when, in extremely rare circumstances, we&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;determine that a matter should not be communicated in our report because the adverse&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;consequences of doing so would reasonably&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;be expected to outweigh the public interest&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="1"&gt;benefits of such communication.&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</arr:StatementOnManagementsReviewAuditorsReportOnAuditedFinancialStatements>
+  <arr:SignatureOfAuditorsPlace contextRef="ctx1" xml:lang="da">Copenhagen</arr:SignatureOfAuditorsPlace>
+  <arr:SignatureOfAuditorsDate contextRef="ctx1">2020-02-04</arr:SignatureOfAuditorsDate>
+  <ifrs-full:Revenue contextRef="ctx1" unitRef="vDKK" decimals="-6">21868000000</ifrs-full:Revenue>
+  <ifrs-full:CostOfSales contextRef="ctx1" unitRef="vDKK" decimals="-6">5966000000</ifrs-full:CostOfSales>
+  <ifrs-full:GrossProfit contextRef="ctx1" unitRef="vDKK" decimals="-6">15903000000</ifrs-full:GrossProfit>
+  <easy:EasyX_1854766949 contextRef="ctx1" unitRef="vDKK" decimals="-6">9305000000</easy:EasyX_1854766949>
+  <easy:EasyX_1702842989 contextRef="ctx1" unitRef="vDKK" decimals="-6">2770000000</easy:EasyX_1702842989>
+  <ifrs-full:ProfitLossFromOperatingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">3829000000</ifrs-full:ProfitLossFromOperatingActivities>
+  <ifrs-full:FinanceIncome contextRef="ctx1" unitRef="vDKK" decimals="-6">351000000</ifrs-full:FinanceIncome>
+  <ifrs-full:FinanceCosts contextRef="ctx1" unitRef="vDKK" decimals="-6">351000000</ifrs-full:FinanceCosts>
+  <ifrs-full:ProfitLossBeforeTax contextRef="ctx1" unitRef="vDKK" decimals="-6">3829000000</ifrs-full:ProfitLossBeforeTax>
+  <ifrs-full:IncomeTaxExpenseContinuingOperations contextRef="ctx1" unitRef="vDKK" decimals="-6">884000000</ifrs-full:IncomeTaxExpenseContinuingOperations>
+  <ifrs-full:ProfitLoss contextRef="ctx1" unitRef="vDKK" decimals="-6">2945000000</ifrs-full:ProfitLoss>
+  <ifrs-full:BasicEarningsLossPerShareFromContinuingOperations contextRef="ctx1" unitRef="share" decimals="4">30.3000</ifrs-full:BasicEarningsLossPerShareFromContinuingOperations>
+  <ifrs-full:DilutedEarningsLossPerShareFromContinuingOperations contextRef="ctx1" unitRef="share" decimals="4">30.1000</ifrs-full:DilutedEarningsLossPerShareFromContinuingOperations>
+  <easy:EasyX_1059149615 contextRef="ctx1" unitRef="vDKK" decimals="-6">226000000</easy:EasyX_1059149615>
+  <easy:RealisedInNetCostOfSales_797272215 contextRef="ctx1" unitRef="vDKK" decimals="-6">-51000000</easy:RealisedInNetCostOfSales_797272215>
+  <ifrs-dk:TransferToCostOfSalesBeforeTax contextRef="ctx1" unitRef="vDKK" decimals="-6">-55000000</ifrs-dk:TransferToCostOfSalesBeforeTax>
+  <ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax contextRef="ctx1" unitRef="vDKK" decimals="-6">107000000</ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax>
+  <ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome contextRef="ctx1" unitRef="vDKK" decimals="-6">27000000</ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome>
+  <easy:EasyX_88980597 contextRef="ctx1" unitRef="vDKK" decimals="-6">0</easy:EasyX_88980597>
+  <ifrs-full:OtherComprehensiveIncome contextRef="ctx1" unitRef="vDKK" decimals="-6">200000000</ifrs-full:OtherComprehensiveIncome>
+  <ifrs-full:ComprehensiveIncome contextRef="ctx1" unitRef="vDKK" decimals="-6">3145000000</ifrs-full:ComprehensiveIncome>
+  <ifrs-full:AdjustmentsForFinanceIncome contextRef="ctx1" unitRef="vDKK" decimals="-6">351000000</ifrs-full:AdjustmentsForFinanceIncome>
+  <ifrs-full:AdjustmentsForFinanceCosts contextRef="ctx1" unitRef="vDKK" decimals="-6">351000000</ifrs-full:AdjustmentsForFinanceCosts>
+  <ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss contextRef="ctx1" unitRef="vDKK" decimals="-6">2319000000</ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss>
+  <ifrs-full:AdjustmentsForSharebasedPayments contextRef="ctx1" unitRef="vDKK" decimals="-6">20000000</ifrs-full:AdjustmentsForSharebasedPayments>
+  <ifrs-dk:DecreaseIncreaseInInventories contextRef="ctx1" unitRef="vDKK" decimals="-6">-1284000000</ifrs-dk:DecreaseIncreaseInInventories>
+  <ifrs-dk:DecreaseIncreaseInReceivables contextRef="ctx1" unitRef="vDKK" decimals="-6">-65000000</ifrs-dk:DecreaseIncreaseInReceivables>
+  <ifrs-dk:DecreaseIncreaseInTradePayables contextRef="ctx1" unitRef="vDKK" decimals="-6">-808000000</ifrs-dk:DecreaseIncreaseInTradePayables>
+  <ifrs-full:OtherAdjustmentsToReconcileProfitLoss contextRef="ctx1" unitRef="vDKK" decimals="-6">-20000000</ifrs-full:OtherAdjustmentsToReconcileProfitLoss>
+  <ifrs-full:InterestReceivedClassifiedAsOperatingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">13000000</ifrs-full:InterestReceivedClassifiedAsOperatingActivities>
+  <ifrs-full:InterestPaidClassifiedAsOperatingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">178000000</ifrs-full:InterestPaidClassifiedAsOperatingActivities>
+  <ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">1233000000</ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities>
+  <ifrs-full:CashFlowsFromUsedInOperatingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">6775000000</ifrs-full:CashFlowsFromUsedInOperatingActivities>
+  <easy:EasyX_1011634158 contextRef="ctx1" unitRef="vDKK" decimals="-6">148000000</easy:EasyX_1011634158>
+  <ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">272000000</ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">540000000</ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfOtherLongtermAssetsClassifiedAsInvestingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">-66000000</ifrs-full:PurchaseOfOtherLongtermAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">18000000</ifrs-full:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:CashFlowsFromUsedInInvestingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">-877000000</ifrs-full:CashFlowsFromUsedInInvestingActivities>
+  <easy:AcquisitionOfNoncontrollingInterests_1624810439 contextRef="ctx1" unitRef="vDKK" decimals="-6">311000000</easy:AcquisitionOfNoncontrollingInterests_1624810439>
+  <ifrs-full:DividendsPaidClassifiedAsFinancingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">1756000000</ifrs-full:DividendsPaidClassifiedAsFinancingActivities>
+  <easy:EasyX_1614596508 contextRef="ctx1" unitRef="vDKK" decimals="-6">2583000000</easy:EasyX_1614596508>
+  <ifrs-dk:CashReceiptsFromNoncurrentBorrowings contextRef="ctx1" unitRef="vDKK" decimals="-6">5626000000</ifrs-dk:CashReceiptsFromNoncurrentBorrowings>
+  <ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">6088000000</ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities>
+  <easy:RepaymentOfLeaseCommitments_144365145 contextRef="ctx1" unitRef="vDKK" decimals="-6">1138000000</easy:RepaymentOfLeaseCommitments_144365145>
+  <ifrs-full:CashFlowsFromUsedInFinancingActivities contextRef="ctx1" unitRef="vDKK" decimals="-6">-6250000000</ifrs-full:CashFlowsFromUsedInFinancingActivities>
+  <ifrs-full:IncreaseDecreaseInCashAndCashEquivalents contextRef="ctx1" unitRef="vDKK" decimals="-6">-352000000</ifrs-full:IncreaseDecreaseInCashAndCashEquivalents>
+  <ifrs-full:EffectOfExchangeRateChangesOnCashAndCashEquivalents contextRef="ctx1" unitRef="vDKK" decimals="-6">19000000</ifrs-full:EffectOfExchangeRateChangesOnCashAndCashEquivalents>
+  <gsd:InformationOnTypeOfSubmittedReport contextRef="ctx1">Årsrapport</gsd:InformationOnTypeOfSubmittedReport>
+  <gsd:IdentificationNumberCvrOfSubmittingEnterprise contextRef="ctx1">30700228</gsd:IdentificationNumberCvrOfSubmittingEnterprise>
+  <gsd:NameOfSubmittingEnterprise contextRef="ctx1" xml:lang="da">EY</gsd:NameOfSubmittingEnterprise>
+  <gsd:AddressOfSubmittingEnterpriseStreetAndNumber contextRef="ctx1" xml:lang="da">Englandsgade  25</gsd:AddressOfSubmittingEnterpriseStreetAndNumber>
+  <gsd:AddressOfSubmittingEnterprisePostcodeAndTown contextRef="ctx1" xml:lang="da">5000 Odense</gsd:AddressOfSubmittingEnterprisePostcodeAndTown>
+  <gsd:PrecedingReportingPeriodStartDate contextRef="ctx1">2018-01-01</gsd:PrecedingReportingPeriodStartDate>
+  <gsd:PredingReportingPeriodEndDate contextRef="ctx1">2018-12-31</gsd:PredingReportingPeriodEndDate>
+  <cmn:TypeOfAuditorAssistance contextRef="ctx1">Revisionspåtegning</cmn:TypeOfAuditorAssistance>
+  <cmn:NameAndSurnameOfMemberOfExecutiveBoard contextRef="ctx2" xml:lang="da">Alexander Lacik</cmn:NameAndSurnameOfMemberOfExecutiveBoard>
+  <cmn:TitleOfMemberOfExecutiveBoard contextRef="ctx2" xml:lang="da">Chief Executive Officer</cmn:TitleOfMemberOfExecutiveBoard>
+  <cmn:NameAndSurnameOfMemberOfExecutiveBoard contextRef="ctx3" xml:lang="da">Anders Boyer</cmn:NameAndSurnameOfMemberOfExecutiveBoard>
+  <cmn:TitleOfMemberOfExecutiveBoard contextRef="ctx3" xml:lang="da">Chief Financial Officer</cmn:TitleOfMemberOfExecutiveBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx4" xml:lang="da">Peter A. Ruzicka</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:TitleOfMemberOfSupervisoryBoard contextRef="ctx4" xml:lang="da">Chairman</cmn:TitleOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx5" xml:lang="da">Christian Frigast</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:TitleOfMemberOfSupervisoryBoard contextRef="ctx5" xml:lang="da">Deputy Chairman</cmn:TitleOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx6" xml:lang="da">Andrea Alvey</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx7" xml:lang="da">Birgitta Stymne Göransson</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx8" xml:lang="da">Isabelle Parize</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx9" xml:lang="da">Per Bank</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx10" xml:lang="da">Ronica Wang</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <cmn:NameAndSurnameOfMemberOfSupervisoryBoard contextRef="ctx11" xml:lang="da">John Peace</cmn:NameAndSurnameOfMemberOfSupervisoryBoard>
+  <ifrs-full:Revenue contextRef="ctx12" unitRef="vDKK" decimals="-6">22806000000</ifrs-full:Revenue>
+  <ifrs-full:CostOfSales contextRef="ctx12" unitRef="vDKK" decimals="-6">5864000000</ifrs-full:CostOfSales>
+  <ifrs-full:GrossProfit contextRef="ctx12" unitRef="vDKK" decimals="-6">16942000000</ifrs-full:GrossProfit>
+  <easy:EasyX_1854766949 contextRef="ctx12" unitRef="vDKK" decimals="-6">8222000000</easy:EasyX_1854766949>
+  <easy:EasyX_1702842989 contextRef="ctx12" unitRef="vDKK" decimals="-6">2289000000</easy:EasyX_1702842989>
+  <ifrs-full:ProfitLossFromOperatingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">6431000000</ifrs-full:ProfitLossFromOperatingActivities>
+  <ifrs-full:FinanceIncome contextRef="ctx12" unitRef="vDKK" decimals="-6">533000000</ifrs-full:FinanceIncome>
+  <ifrs-full:FinanceCosts contextRef="ctx12" unitRef="vDKK" decimals="-6">382000000</ifrs-full:FinanceCosts>
+  <ifrs-full:ProfitLossBeforeTax contextRef="ctx12" unitRef="vDKK" decimals="-6">6582000000</ifrs-full:ProfitLossBeforeTax>
+  <ifrs-full:IncomeTaxExpenseContinuingOperations contextRef="ctx12" unitRef="vDKK" decimals="-6">1537000000</ifrs-full:IncomeTaxExpenseContinuingOperations>
+  <ifrs-full:ProfitLoss contextRef="ctx12" unitRef="vDKK" decimals="-6">5045000000</ifrs-full:ProfitLoss>
+  <ifrs-full:BasicEarningsLossPerShareFromContinuingOperations contextRef="ctx12" unitRef="share" decimals="4">47.2000</ifrs-full:BasicEarningsLossPerShareFromContinuingOperations>
+  <ifrs-full:DilutedEarningsLossPerShareFromContinuingOperations contextRef="ctx12" unitRef="share" decimals="4">47.0000</ifrs-full:DilutedEarningsLossPerShareFromContinuingOperations>
+  <easy:EasyX_1059149615 contextRef="ctx12" unitRef="vDKK" decimals="-6">1000000</easy:EasyX_1059149615>
+  <easy:RealisedInNetCostOfSales_797272215 contextRef="ctx12" unitRef="vDKK" decimals="-6">-106000000</easy:RealisedInNetCostOfSales_797272215>
+  <ifrs-dk:TransferToCostOfSalesBeforeTax contextRef="ctx12" unitRef="vDKK" decimals="-6">117000000</ifrs-dk:TransferToCostOfSalesBeforeTax>
+  <ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax contextRef="ctx12" unitRef="vDKK" decimals="-6">45000000</ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax>
+  <ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome contextRef="ctx12" unitRef="vDKK" decimals="-6">12000000</ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome>
+  <easy:EasyX_88980597 contextRef="ctx12" unitRef="vDKK" decimals="-6">12000000</easy:EasyX_88980597>
+  <ifrs-full:OtherComprehensiveIncome contextRef="ctx12" unitRef="vDKK" decimals="-6">57000000</ifrs-full:OtherComprehensiveIncome>
+  <ifrs-full:ComprehensiveIncome contextRef="ctx12" unitRef="vDKK" decimals="-6">5102000000</ifrs-full:ComprehensiveIncome>
+  <ifrs-full:AdjustmentsForFinanceIncome contextRef="ctx12" unitRef="vDKK" decimals="-6">533000000</ifrs-full:AdjustmentsForFinanceIncome>
+  <ifrs-full:AdjustmentsForFinanceCosts contextRef="ctx12" unitRef="vDKK" decimals="-6">382000000</ifrs-full:AdjustmentsForFinanceCosts>
+  <ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss contextRef="ctx12" unitRef="vDKK" decimals="-6">990000000</ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss>
+  <ifrs-full:AdjustmentsForSharebasedPayments contextRef="ctx12" unitRef="vDKK" decimals="-6">-31000000</ifrs-full:AdjustmentsForSharebasedPayments>
+  <ifrs-dk:DecreaseIncreaseInInventories contextRef="ctx12" unitRef="vDKK" decimals="-6">18000000</ifrs-dk:DecreaseIncreaseInInventories>
+  <ifrs-dk:DecreaseIncreaseInReceivables contextRef="ctx12" unitRef="vDKK" decimals="-6">224000000</ifrs-dk:DecreaseIncreaseInReceivables>
+  <ifrs-dk:DecreaseIncreaseInTradePayables contextRef="ctx12" unitRef="vDKK" decimals="-6">-762000000</ifrs-dk:DecreaseIncreaseInTradePayables>
+  <ifrs-full:OtherAdjustmentsToReconcileProfitLoss contextRef="ctx12" unitRef="vDKK" decimals="-6">59000000</ifrs-full:OtherAdjustmentsToReconcileProfitLoss>
+  <ifrs-full:InterestReceivedClassifiedAsOperatingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">4000000</ifrs-full:InterestReceivedClassifiedAsOperatingActivities>
+  <ifrs-full:InterestPaidClassifiedAsOperatingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">58000000</ifrs-full:InterestPaidClassifiedAsOperatingActivities>
+  <ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">1739000000</ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities>
+  <ifrs-full:CashFlowsFromUsedInOperatingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">6624000000</ifrs-full:CashFlowsFromUsedInOperatingActivities>
+  <easy:EasyX_1011634158 contextRef="ctx12" unitRef="vDKK" decimals="-6">1071000000</easy:EasyX_1011634158>
+  <ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">380000000</ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">727000000</ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfOtherLongtermAssetsClassifiedAsInvestingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">23000000</ifrs-full:PurchaseOfOtherLongtermAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">10000000</ifrs-full:ProceedsFromSalesOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:CashFlowsFromUsedInInvestingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">-2191000000</ifrs-full:CashFlowsFromUsedInInvestingActivities>
+  <easy:AcquisitionOfNoncontrollingInterests_1624810439 contextRef="ctx12" unitRef="vDKK" decimals="-6">0</easy:AcquisitionOfNoncontrollingInterests_1624810439>
+  <ifrs-full:DividendsPaidClassifiedAsFinancingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">1943000000</ifrs-full:DividendsPaidClassifiedAsFinancingActivities>
+  <easy:EasyX_1614596508 contextRef="ctx12" unitRef="vDKK" decimals="-6">3289000000</easy:EasyX_1614596508>
+  <ifrs-dk:CashReceiptsFromNoncurrentBorrowings contextRef="ctx12" unitRef="vDKK" decimals="-6">4413000000</ifrs-dk:CashReceiptsFromNoncurrentBorrowings>
+  <ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">3191000000</ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities>
+  <easy:RepaymentOfLeaseCommitments_144365145 contextRef="ctx12" unitRef="vDKK" decimals="-6">0</easy:RepaymentOfLeaseCommitments_144365145>
+  <ifrs-full:CashFlowsFromUsedInFinancingActivities contextRef="ctx12" unitRef="vDKK" decimals="-6">-4010000000</ifrs-full:CashFlowsFromUsedInFinancingActivities>
+  <ifrs-full:IncreaseDecreaseInCashAndCashEquivalents contextRef="ctx12" unitRef="vDKK" decimals="-6">423000000</ifrs-full:IncreaseDecreaseInCashAndCashEquivalents>
+  <ifrs-full:EffectOfExchangeRateChangesOnCashAndCashEquivalents contextRef="ctx12" unitRef="vDKK" decimals="-6">-29000000</ifrs-full:EffectOfExchangeRateChangesOnCashAndCashEquivalents>
+  <ifrs-full:Goodwill contextRef="ctx13" unitRef="vDKK" decimals="-6">4416000000</ifrs-full:Goodwill>
+  <ifrs-full:BrandNames contextRef="ctx13" unitRef="vDKK" decimals="-6">1057000000</ifrs-full:BrandNames>
+  <ifrs-dk:DistributionNetwork contextRef="ctx13" unitRef="vDKK" decimals="-6">94000000</ifrs-dk:DistributionNetwork>
+  <easy:EasyX_1797316955 contextRef="ctx13" unitRef="vDKK" decimals="-6">1047000000</easy:EasyX_1797316955>
+  <easy:EasyX_80279786 contextRef="ctx13" unitRef="vDKK" decimals="-6">831000000</easy:EasyX_80279786>
+  <ifrs-full:IntangibleAssetsAndGoodwill contextRef="ctx13" unitRef="vDKK" decimals="-6">7445000000</ifrs-full:IntangibleAssetsAndGoodwill>
+  <ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment contextRef="ctx13" unitRef="vDKK" decimals="-6">2585000000</ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment>
+  <easy:EasyX_1577442536 contextRef="ctx13" unitRef="vDKK" decimals="-6">4010000000</easy:EasyX_1577442536>
+  <ifrs-full:DeferredTaxAssets contextRef="ctx13" unitRef="vDKK" decimals="-6">675000000</ifrs-full:DeferredTaxAssets>
+  <easy:EasyX_221659210 contextRef="ctx13" unitRef="vDKK" decimals="-6">290000000</easy:EasyX_221659210>
+  <ifrs-full:NoncurrentAssets contextRef="ctx13" unitRef="vDKK" decimals="-6">15006000000</ifrs-full:NoncurrentAssets>
+  <ifrs-full:Inventories contextRef="ctx13" unitRef="vDKK" decimals="-6">2137000000</ifrs-full:Inventories>
+  <ifrs-full:CurrentTradeReceivables contextRef="ctx13" unitRef="vDKK" decimals="-6">1643000000</ifrs-full:CurrentTradeReceivables>
+  <easy:EasyX_119271179 contextRef="ctx13" unitRef="vDKK" decimals="-6">73000000</easy:EasyX_119271179>
+  <easy:EasyX_1442817173 contextRef="ctx13" unitRef="vDKK" decimals="-6">187000000</easy:EasyX_1442817173>
+  <ifrs-full:CurrentTaxAssetsCurrent contextRef="ctx13" unitRef="vDKK" decimals="-6">467000000</ifrs-full:CurrentTaxAssetsCurrent>
+  <easy:EasyX_720326515 contextRef="ctx13" unitRef="vDKK" decimals="-6">1004000000</easy:EasyX_720326515>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx13" unitRef="vDKK" decimals="-6">1054000000</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CurrentAssets contextRef="ctx13" unitRef="vDKK" decimals="-6">6565000000</ifrs-full:CurrentAssets>
+  <ifrs-full:Assets contextRef="ctx13" unitRef="vDKK" decimals="-6">21571000000</ifrs-full:Assets>
+  <ifrs-full:IssuedCapital contextRef="ctx13" unitRef="vDKK" decimals="-6">100000000</ifrs-full:IssuedCapital>
+  <ifrs-full:TreasuryShares contextRef="ctx13" unitRef="vDKK" decimals="-6">1964000000</ifrs-full:TreasuryShares>
+  <ifrs-full:ReserveOfCashFlowHedges contextRef="ctx13" unitRef="vDKK" decimals="-6">1167000000</ifrs-full:ReserveOfCashFlowHedges>
+  <ifrs-dk:DividendAvailableForDistribution contextRef="ctx13" unitRef="vDKK" decimals="-6">836000000</ifrs-dk:DividendAvailableForDistribution>
+  <ifrs-full:RetainedEarnings contextRef="ctx13" unitRef="vDKK" decimals="-6">5110000000</ifrs-full:RetainedEarnings>
+  <ifrs-full:Equity contextRef="ctx13" unitRef="vDKK" decimals="-6">5249000000</ifrs-full:Equity>
+  <ifrs-full:NoncurrentProvisions contextRef="ctx13" unitRef="vDKK" decimals="-6">278000000</ifrs-full:NoncurrentProvisions>
+  <ifrs-dk:NoncurrentPayablesToCreditInstitutions contextRef="ctx13" unitRef="vDKK" decimals="-6">7962000000</ifrs-dk:NoncurrentPayablesToCreditInstitutions>
+  <ifrs-full:DeferredTaxLiabilities contextRef="ctx13" unitRef="vDKK" decimals="-6">235000000</ifrs-full:DeferredTaxLiabilities>
+  <ifrs-full:OtherNoncurrentPayables contextRef="ctx13" unitRef="vDKK" decimals="-6">1000000</ifrs-full:OtherNoncurrentPayables>
+  <ifrs-full:NoncurrentLiabilities contextRef="ctx13" unitRef="vDKK" decimals="-6">8476000000</ifrs-full:NoncurrentLiabilities>
+  <ifrs-full:CurrentProvisions contextRef="ctx13" unitRef="vDKK" decimals="-6">53000000</ifrs-full:CurrentProvisions>
+  <easy:RefundLiabilities_308391778 contextRef="ctx13" unitRef="vDKK" decimals="-6">753000000</easy:RefundLiabilities_308391778>
+  <easy:EasyX_334604986 contextRef="ctx13" unitRef="vDKK" decimals="-6">71000000</easy:EasyX_334604986>
+  <ifrs-dk:CurrentPayablesToCreditInstitutions contextRef="ctx13" unitRef="vDKK" decimals="-6">2069000000</ifrs-dk:CurrentPayablesToCreditInstitutions>
+  <easy:DerivativeFinancialInstruments_1438890301 contextRef="ctx13" unitRef="vDKK" decimals="-6">115000000</easy:DerivativeFinancialInstruments_1438890301>
+  <ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers contextRef="ctx13" unitRef="vDKK" decimals="-6">3095000000</ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers>
+  <ifrs-full:CurrentTaxLiabilitiesCurrent contextRef="ctx13" unitRef="vDKK" decimals="-6">438000000</ifrs-full:CurrentTaxLiabilitiesCurrent>
+  <ifrs-full:OtherCurrentPayables contextRef="ctx13" unitRef="vDKK" decimals="-6">1250000000</ifrs-full:OtherCurrentPayables>
+  <ifrs-full:CurrentLiabilities contextRef="ctx13" unitRef="vDKK" decimals="-6">7846000000</ifrs-full:CurrentLiabilities>
+  <ifrs-full:Liabilities contextRef="ctx13" unitRef="vDKK" decimals="-6">16322000000</ifrs-full:Liabilities>
+  <ifrs-full:EquityAndLiabilities contextRef="ctx13" unitRef="vDKK" decimals="-6">21571000000</ifrs-full:EquityAndLiabilities>
+  <ifrs-full:Goodwill contextRef="ctx14" unitRef="vDKK" decimals="-6">4278000000</ifrs-full:Goodwill>
+  <ifrs-full:BrandNames contextRef="ctx14" unitRef="vDKK" decimals="-6">1057000000</ifrs-full:BrandNames>
+  <ifrs-dk:DistributionNetwork contextRef="ctx14" unitRef="vDKK" decimals="-6">124000000</ifrs-dk:DistributionNetwork>
+  <easy:EasyX_1797316955 contextRef="ctx14" unitRef="vDKK" decimals="-6">1047000000</easy:EasyX_1797316955>
+  <easy:EasyX_80279786 contextRef="ctx14" unitRef="vDKK" decimals="-6">1272000000</easy:EasyX_80279786>
+  <ifrs-full:IntangibleAssetsAndGoodwill contextRef="ctx14" unitRef="vDKK" decimals="-6">7778000000</ifrs-full:IntangibleAssetsAndGoodwill>
+  <ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment contextRef="ctx14" unitRef="vDKK" decimals="-6">2634000000</ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment>
+  <easy:EasyX_1577442536 contextRef="ctx14" unitRef="vDKK" decimals="-6">0</easy:EasyX_1577442536>
+  <ifrs-full:DeferredTaxAssets contextRef="ctx14" unitRef="vDKK" decimals="-6">1050000000</ifrs-full:DeferredTaxAssets>
+  <easy:EasyX_221659210 contextRef="ctx14" unitRef="vDKK" decimals="-6">323000000</easy:EasyX_221659210>
+  <ifrs-full:NoncurrentAssets contextRef="ctx14" unitRef="vDKK" decimals="-6">11785000000</ifrs-full:NoncurrentAssets>
+  <ifrs-full:Inventories contextRef="ctx14" unitRef="vDKK" decimals="-6">3158000000</ifrs-full:Inventories>
+  <ifrs-full:CurrentTradeReceivables contextRef="ctx14" unitRef="vDKK" decimals="-6">1650000000</ifrs-full:CurrentTradeReceivables>
+  <easy:EasyX_119271179 contextRef="ctx14" unitRef="vDKK" decimals="-6">94000000</easy:EasyX_119271179>
+  <easy:EasyX_1442817173 contextRef="ctx14" unitRef="vDKK" decimals="-6">162000000</easy:EasyX_1442817173>
+  <ifrs-full:CurrentTaxAssetsCurrent contextRef="ctx14" unitRef="vDKK" decimals="-6">86000000</ifrs-full:CurrentTaxAssetsCurrent>
+  <easy:EasyX_720326515 contextRef="ctx14" unitRef="vDKK" decimals="-6">922000000</easy:EasyX_720326515>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx14" unitRef="vDKK" decimals="-6">1387000000</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CurrentAssets contextRef="ctx14" unitRef="vDKK" decimals="-6">7459000000</ifrs-full:CurrentAssets>
+  <ifrs-full:Assets contextRef="ctx14" unitRef="vDKK" decimals="-6">19244000000</ifrs-full:Assets>
+  <ifrs-full:IssuedCapital contextRef="ctx14" unitRef="vDKK" decimals="-6">110000000</ifrs-full:IssuedCapital>
+  <ifrs-full:TreasuryShares contextRef="ctx14" unitRef="vDKK" decimals="-6">3469000000</ifrs-full:TreasuryShares>
+  <ifrs-full:ReserveOfCashFlowHedges contextRef="ctx14" unitRef="vDKK" decimals="-6">967000000</ifrs-full:ReserveOfCashFlowHedges>
+  <ifrs-dk:DividendAvailableForDistribution contextRef="ctx14" unitRef="vDKK" decimals="-6">920000000</ifrs-dk:DividendAvailableForDistribution>
+  <ifrs-full:RetainedEarnings contextRef="ctx14" unitRef="vDKK" decimals="-6">7891000000</ifrs-full:RetainedEarnings>
+  <ifrs-full:Equity contextRef="ctx14" unitRef="vDKK" decimals="-6">6419000000</ifrs-full:Equity>
+  <ifrs-full:NoncurrentProvisions contextRef="ctx14" unitRef="vDKK" decimals="-6">279000000</ifrs-full:NoncurrentProvisions>
+  <ifrs-dk:NoncurrentPayablesToCreditInstitutions contextRef="ctx14" unitRef="vDKK" decimals="-6">6421000000</ifrs-dk:NoncurrentPayablesToCreditInstitutions>
+  <ifrs-full:DeferredTaxLiabilities contextRef="ctx14" unitRef="vDKK" decimals="-6">461000000</ifrs-full:DeferredTaxLiabilities>
+  <ifrs-full:OtherNoncurrentPayables contextRef="ctx14" unitRef="vDKK" decimals="-6">172000000</ifrs-full:OtherNoncurrentPayables>
+  <ifrs-full:NoncurrentLiabilities contextRef="ctx14" unitRef="vDKK" decimals="-6">7333000000</ifrs-full:NoncurrentLiabilities>
+  <ifrs-full:CurrentProvisions contextRef="ctx14" unitRef="vDKK" decimals="-6">28000000</ifrs-full:CurrentProvisions>
+  <easy:RefundLiabilities_308391778 contextRef="ctx14" unitRef="vDKK" decimals="-6">869000000</easy:RefundLiabilities_308391778>
+  <easy:EasyX_334604986 contextRef="ctx14" unitRef="vDKK" decimals="-6">66000000</easy:EasyX_334604986>
+  <ifrs-dk:CurrentPayablesToCreditInstitutions contextRef="ctx14" unitRef="vDKK" decimals="-6">248000000</ifrs-dk:CurrentPayablesToCreditInstitutions>
+  <easy:DerivativeFinancialInstruments_1438890301 contextRef="ctx14" unitRef="vDKK" decimals="-6">83000000</easy:DerivativeFinancialInstruments_1438890301>
+  <ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers contextRef="ctx14" unitRef="vDKK" decimals="-6">2253000000</ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers>
+  <ifrs-full:CurrentTaxLiabilitiesCurrent contextRef="ctx14" unitRef="vDKK" decimals="-6">543000000</ifrs-full:CurrentTaxLiabilitiesCurrent>
+  <ifrs-full:OtherCurrentPayables contextRef="ctx14" unitRef="vDKK" decimals="-6">1402000000</ifrs-full:OtherCurrentPayables>
+  <ifrs-full:CurrentLiabilities contextRef="ctx14" unitRef="vDKK" decimals="-6">5492000000</ifrs-full:CurrentLiabilities>
+  <ifrs-full:Liabilities contextRef="ctx14" unitRef="vDKK" decimals="-6">12825000000</ifrs-full:Liabilities>
+  <ifrs-full:EquityAndLiabilities contextRef="ctx14" unitRef="vDKK" decimals="-6">19244000000</ifrs-full:EquityAndLiabilities>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx15" unitRef="vDKK" decimals="-6">1387000000</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx16" unitRef="vDKK" decimals="-6">993000000</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:Revenue contextRef="ctx17" unitRef="vDKK" decimals="-6">9533000000</ifrs-full:Revenue>
+  <ifrs-full:CostOfSales contextRef="ctx17" unitRef="vDKK" decimals="-6">5994000000</ifrs-full:CostOfSales>
+  <ifrs-full:GrossProfit contextRef="ctx17" unitRef="vDKK" decimals="-6">3539000000</ifrs-full:GrossProfit>
+  <easy:EasyX_1854766949 contextRef="ctx17" unitRef="vDKK" decimals="-6">934000000</easy:EasyX_1854766949>
+  <easy:EasyX_1702842989 contextRef="ctx17" unitRef="vDKK" decimals="-6">2261000000</easy:EasyX_1702842989>
+  <ifrs-full:ProfitLossFromOperatingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">343000000</ifrs-full:ProfitLossFromOperatingActivities>
+  <ifrs-dk:ProfitLossInSubsidiaries contextRef="ctx17" unitRef="vDKK" decimals="-6">1321000000</ifrs-dk:ProfitLossInSubsidiaries>
+  <easy:ImpairmentOfInvestmentsInSubsidiaries_410586159 contextRef="ctx17" unitRef="vDKK" decimals="-6">-107000000</easy:ImpairmentOfInvestmentsInSubsidiaries_410586159>
+  <ifrs-full:FinanceIncome contextRef="ctx17" unitRef="vDKK" decimals="-6">678000000</ifrs-full:FinanceIncome>
+  <ifrs-full:FinanceCosts contextRef="ctx17" unitRef="vDKK" decimals="-6">234000000</ifrs-full:FinanceCosts>
+  <ifrs-full:ProfitLossBeforeTax contextRef="ctx17" unitRef="vDKK" decimals="-6">2001000000</ifrs-full:ProfitLossBeforeTax>
+  <ifrs-full:IncomeTaxExpenseContinuingOperations contextRef="ctx17" unitRef="vDKK" decimals="-6">212000000</ifrs-full:IncomeTaxExpenseContinuingOperations>
+  <ifrs-full:ProfitLoss contextRef="ctx17" unitRef="vDKK" decimals="-6">1789000000</ifrs-full:ProfitLoss>
+  <easy:RealisedInNetCostOfSales_797272215 contextRef="ctx17" unitRef="vDKK" decimals="-6">-36000000</easy:RealisedInNetCostOfSales_797272215>
+  <ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax contextRef="ctx17" unitRef="vDKK" decimals="-6">11000000</ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax>
+  <ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome contextRef="ctx17" unitRef="vDKK" decimals="-6">-5000000</ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome>
+  <ifrs-full:OtherComprehensiveIncome contextRef="ctx17" unitRef="vDKK" decimals="-6">-20000000</ifrs-full:OtherComprehensiveIncome>
+  <ifrs-full:ComprehensiveIncome contextRef="ctx17" unitRef="vDKK" decimals="-6">1769000000</ifrs-full:ComprehensiveIncome>
+  <ifrs-full:AdjustmentsForFinanceIncome contextRef="ctx17" unitRef="vDKK" decimals="-6">678000000</ifrs-full:AdjustmentsForFinanceIncome>
+  <ifrs-full:AdjustmentsForFinanceCosts contextRef="ctx17" unitRef="vDKK" decimals="-6">234000000</ifrs-full:AdjustmentsForFinanceCosts>
+  <ifrs-dk:GainsLossesFromSubsidiariesJointVenturesAndAssociates contextRef="ctx17" unitRef="vDKK" decimals="-6">1321000000</ifrs-dk:GainsLossesFromSubsidiariesJointVenturesAndAssociates>
+  <easy:ImpairmentOfInvestmentsOnSubsidiaries_1888541954 contextRef="ctx17" unitRef="vDKK" decimals="-6">-107000000</easy:ImpairmentOfInvestmentsOnSubsidiaries_1888541954>
+  <ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss contextRef="ctx17" unitRef="vDKK" decimals="-6">415000000</ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss>
+  <ifrs-full:AdjustmentsForSharebasedPayments contextRef="ctx17" unitRef="vDKK" decimals="-6">10000000</ifrs-full:AdjustmentsForSharebasedPayments>
+  <ifrs-dk:DecreaseIncreaseInInventories contextRef="ctx17" unitRef="vDKK" decimals="-6">-460000000</ifrs-dk:DecreaseIncreaseInInventories>
+  <ifrs-dk:DecreaseIncreaseInReceivables contextRef="ctx17" unitRef="vDKK" decimals="-6">462000000</ifrs-dk:DecreaseIncreaseInReceivables>
+  <ifrs-dk:DecreaseIncreaseInTradePayables contextRef="ctx17" unitRef="vDKK" decimals="-6">-992000000</ifrs-dk:DecreaseIncreaseInTradePayables>
+  <ifrs-full:OtherAdjustmentsToReconcileProfitLoss contextRef="ctx17" unitRef="vDKK" decimals="-6">300000000</ifrs-full:OtherAdjustmentsToReconcileProfitLoss>
+  <ifrs-full:InterestReceivedClassifiedAsOperatingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">171000000</ifrs-full:InterestReceivedClassifiedAsOperatingActivities>
+  <ifrs-full:InterestPaidClassifiedAsOperatingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">48000000</ifrs-full:InterestPaidClassifiedAsOperatingActivities>
+  <ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">728000000</ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities>
+  <ifrs-full:CashFlowsFromUsedInOperatingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">2377000000</ifrs-full:CashFlowsFromUsedInOperatingActivities>
+  <easy:EasyX_1011634158 contextRef="ctx17" unitRef="vDKK" decimals="-6">351000000</easy:EasyX_1011634158>
+  <ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">64000000</ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">24000000</ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:DividendsReceivedClassifiedAsInvestingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">44000000</ifrs-full:DividendsReceivedClassifiedAsInvestingActivities>
+  <ifrs-full:CashFlowsFromUsedInInvestingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">-394000000</ifrs-full:CashFlowsFromUsedInInvestingActivities>
+  <ifrs-full:DividendsPaidClassifiedAsFinancingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">1756000000</ifrs-full:DividendsPaidClassifiedAsFinancingActivities>
+  <easy:EasyX_1614596508 contextRef="ctx17" unitRef="vDKK" decimals="-6">2583000000</easy:EasyX_1614596508>
+  <ifrs-dk:CashReceiptsFromNoncurrentBorrowings contextRef="ctx17" unitRef="vDKK" decimals="-6">5614000000</ifrs-dk:CashReceiptsFromNoncurrentBorrowings>
+  <ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">2890000000</ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities>
+  <easy:RepaymentOfLeaseCommitments_144365145 contextRef="ctx17" unitRef="vDKK" decimals="-6">20000000</easy:RepaymentOfLeaseCommitments_144365145>
+  <ifrs-full:CashFlowsFromUsedInFinancingActivities contextRef="ctx17" unitRef="vDKK" decimals="-6">-1636000000</ifrs-full:CashFlowsFromUsedInFinancingActivities>
+  <ifrs-full:IncreaseDecreaseInCashAndCashEquivalents contextRef="ctx17" unitRef="vDKK" decimals="-6">347000000</ifrs-full:IncreaseDecreaseInCashAndCashEquivalents>
+  <ifrs-full:Revenue contextRef="ctx18" unitRef="vDKK" decimals="-6">12933000000</ifrs-full:Revenue>
+  <ifrs-full:CostOfSales contextRef="ctx18" unitRef="vDKK" decimals="-6">6314000000</ifrs-full:CostOfSales>
+  <ifrs-full:GrossProfit contextRef="ctx18" unitRef="vDKK" decimals="-6">6619000000</ifrs-full:GrossProfit>
+  <easy:EasyX_1854766949 contextRef="ctx18" unitRef="vDKK" decimals="-6">450000000</easy:EasyX_1854766949>
+  <easy:EasyX_1702842989 contextRef="ctx18" unitRef="vDKK" decimals="-6">1615000000</easy:EasyX_1702842989>
+  <ifrs-full:ProfitLossFromOperatingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">4554000000</ifrs-full:ProfitLossFromOperatingActivities>
+  <ifrs-dk:ProfitLossInSubsidiaries contextRef="ctx18" unitRef="vDKK" decimals="-6">1883000000</ifrs-dk:ProfitLossInSubsidiaries>
+  <easy:ImpairmentOfInvestmentsInSubsidiaries_410586159 contextRef="ctx18" unitRef="vDKK" decimals="-6">0</easy:ImpairmentOfInvestmentsInSubsidiaries_410586159>
+  <ifrs-full:FinanceIncome contextRef="ctx18" unitRef="vDKK" decimals="-6">669000000</ifrs-full:FinanceIncome>
+  <ifrs-full:FinanceCosts contextRef="ctx18" unitRef="vDKK" decimals="-6">324000000</ifrs-full:FinanceCosts>
+  <ifrs-full:ProfitLossBeforeTax contextRef="ctx18" unitRef="vDKK" decimals="-6">6782000000</ifrs-full:ProfitLossBeforeTax>
+  <ifrs-full:IncomeTaxExpenseContinuingOperations contextRef="ctx18" unitRef="vDKK" decimals="-6">1117000000</ifrs-full:IncomeTaxExpenseContinuingOperations>
+  <ifrs-full:ProfitLoss contextRef="ctx18" unitRef="vDKK" decimals="-6">5665000000</ifrs-full:ProfitLoss>
+  <easy:RealisedInNetCostOfSales_797272215 contextRef="ctx18" unitRef="vDKK" decimals="-6">-104000000</easy:RealisedInNetCostOfSales_797272215>
+  <ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax contextRef="ctx18" unitRef="vDKK" decimals="-6">136000000</ifrs-full:GainsLossesOnExchangeDifferencesOnTranslationBeforeTax>
+  <ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome contextRef="ctx18" unitRef="vDKK" decimals="-6">7000000</ifrs-full:IncomeTaxRelatingToComponentsOfOtherComprehensiveIncome>
+  <ifrs-full:OtherComprehensiveIncome contextRef="ctx18" unitRef="vDKK" decimals="-6">25000000</ifrs-full:OtherComprehensiveIncome>
+  <ifrs-full:ComprehensiveIncome contextRef="ctx18" unitRef="vDKK" decimals="-6">5690000000</ifrs-full:ComprehensiveIncome>
+  <ifrs-full:AdjustmentsForFinanceIncome contextRef="ctx18" unitRef="vDKK" decimals="-6">669000000</ifrs-full:AdjustmentsForFinanceIncome>
+  <ifrs-full:AdjustmentsForFinanceCosts contextRef="ctx18" unitRef="vDKK" decimals="-6">324000000</ifrs-full:AdjustmentsForFinanceCosts>
+  <ifrs-dk:GainsLossesFromSubsidiariesJointVenturesAndAssociates contextRef="ctx18" unitRef="vDKK" decimals="-6">1883000000</ifrs-dk:GainsLossesFromSubsidiariesJointVenturesAndAssociates>
+  <easy:ImpairmentOfInvestmentsOnSubsidiaries_1888541954 contextRef="ctx18" unitRef="vDKK" decimals="-6">0</easy:ImpairmentOfInvestmentsOnSubsidiaries_1888541954>
+  <ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss contextRef="ctx18" unitRef="vDKK" decimals="-6">201000000</ifrs-dk:AdjustmentsForDepreciationAndImpairmentLoss>
+  <ifrs-full:AdjustmentsForSharebasedPayments contextRef="ctx18" unitRef="vDKK" decimals="-6">-10000000</ifrs-full:AdjustmentsForSharebasedPayments>
+  <ifrs-dk:DecreaseIncreaseInInventories contextRef="ctx18" unitRef="vDKK" decimals="-6">200000000</ifrs-dk:DecreaseIncreaseInInventories>
+  <ifrs-dk:DecreaseIncreaseInReceivables contextRef="ctx18" unitRef="vDKK" decimals="-6">2603000000</ifrs-dk:DecreaseIncreaseInReceivables>
+  <ifrs-dk:DecreaseIncreaseInTradePayables contextRef="ctx18" unitRef="vDKK" decimals="-6">-689000000</ifrs-dk:DecreaseIncreaseInTradePayables>
+  <ifrs-full:OtherAdjustmentsToReconcileProfitLoss contextRef="ctx18" unitRef="vDKK" decimals="-6">291000000</ifrs-full:OtherAdjustmentsToReconcileProfitLoss>
+  <ifrs-full:InterestReceivedClassifiedAsOperatingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">125000000</ifrs-full:InterestReceivedClassifiedAsOperatingActivities>
+  <ifrs-full:InterestPaidClassifiedAsOperatingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">38000000</ifrs-full:InterestPaidClassifiedAsOperatingActivities>
+  <ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">1187000000</ifrs-full:IncomeTaxesPaidRefundClassifiedAsOperatingActivities>
+  <ifrs-full:CashFlowsFromUsedInOperatingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">7028000000</ifrs-full:CashFlowsFromUsedInOperatingActivities>
+  <easy:EasyX_1011634158 contextRef="ctx18" unitRef="vDKK" decimals="-6">823000000</easy:EasyX_1011634158>
+  <ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">195000000</ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities>
+  <ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">5000000</ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities>
+  <ifrs-full:DividendsReceivedClassifiedAsInvestingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">1883000000</ifrs-full:DividendsReceivedClassifiedAsInvestingActivities>
+  <ifrs-full:CashFlowsFromUsedInInvestingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">860000000</ifrs-full:CashFlowsFromUsedInInvestingActivities>
+  <ifrs-full:DividendsPaidClassifiedAsFinancingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">1943000000</ifrs-full:DividendsPaidClassifiedAsFinancingActivities>
+  <easy:EasyX_1614596508 contextRef="ctx18" unitRef="vDKK" decimals="-6">3289000000</easy:EasyX_1614596508>
+  <ifrs-dk:CashReceiptsFromNoncurrentBorrowings contextRef="ctx18" unitRef="vDKK" decimals="-6">4372000000</ifrs-dk:CashReceiptsFromNoncurrentBorrowings>
+  <ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">7096000000</ifrs-full:RepaymentsOfBorrowingsClassifiedAsFinancingActivities>
+  <easy:RepaymentOfLeaseCommitments_144365145 contextRef="ctx18" unitRef="vDKK" decimals="-6">0</easy:RepaymentOfLeaseCommitments_144365145>
+  <ifrs-full:CashFlowsFromUsedInFinancingActivities contextRef="ctx18" unitRef="vDKK" decimals="-6">-7956000000</ifrs-full:CashFlowsFromUsedInFinancingActivities>
+  <ifrs-full:IncreaseDecreaseInCashAndCashEquivalents contextRef="ctx18" unitRef="vDKK" decimals="-6">-68000000</ifrs-full:IncreaseDecreaseInCashAndCashEquivalents>
+  <ifrs-full:IntangibleAssetsAndGoodwill contextRef="ctx19" unitRef="vDKK" decimals="-6">3091000000</ifrs-full:IntangibleAssetsAndGoodwill>
+  <ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment contextRef="ctx19" unitRef="vDKK" decimals="-6">50000000</ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment>
+  <easy:EasyX_1577442536 contextRef="ctx19" unitRef="vDKK" decimals="-6">136000000</easy:EasyX_1577442536>
+  <ifrs-full:InvestmentsInSubsidiaries contextRef="ctx19" unitRef="vDKK" decimals="-6">6304000000</ifrs-full:InvestmentsInSubsidiaries>
+  <ifrs-dk:NoncurrentReceivablesFromSubsidaries contextRef="ctx19" unitRef="vDKK" decimals="-6">1783000000</ifrs-dk:NoncurrentReceivablesFromSubsidaries>
+  <easy:EasyX_221659210 contextRef="ctx19" unitRef="vDKK" decimals="-6">9000000</easy:EasyX_221659210>
+  <ifrs-full:NoncurrentAssets contextRef="ctx19" unitRef="vDKK" decimals="-6">11373000000</ifrs-full:NoncurrentAssets>
+  <ifrs-full:Inventories contextRef="ctx19" unitRef="vDKK" decimals="-6">714000000</ifrs-full:Inventories>
+  <ifrs-full:CurrentTradeReceivables contextRef="ctx19" unitRef="vDKK" decimals="-6">12000000</ifrs-full:CurrentTradeReceivables>
+  <ifrs-dk:CurrentReceivablesFromSubsidaries contextRef="ctx19" unitRef="vDKK" decimals="-6">3227000000</ifrs-dk:CurrentReceivablesFromSubsidaries>
+  <easy:EasyX_119271179 contextRef="ctx19" unitRef="vDKK" decimals="-6">235000000</easy:EasyX_119271179>
+  <easy:EasyX_1442817173 contextRef="ctx19" unitRef="vDKK" decimals="-6">187000000</easy:EasyX_1442817173>
+  <ifrs-full:CurrentTaxAssetsCurrent contextRef="ctx19" unitRef="vDKK" decimals="-6">319000000</ifrs-full:CurrentTaxAssetsCurrent>
+  <easy:EasyX_720326515 contextRef="ctx19" unitRef="vDKK" decimals="-6">422000000</easy:EasyX_720326515>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx19" unitRef="vDKK" decimals="-6">347000000</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CurrentAssets contextRef="ctx19" unitRef="vDKK" decimals="-6">5463000000</ifrs-full:CurrentAssets>
+  <ifrs-full:Assets contextRef="ctx19" unitRef="vDKK" decimals="-6">16835000000</ifrs-full:Assets>
+  <ifrs-full:IssuedCapital contextRef="ctx19" unitRef="vDKK" decimals="-6">100000000</ifrs-full:IssuedCapital>
+  <ifrs-full:TreasuryShares contextRef="ctx19" unitRef="vDKK" decimals="-6">1964000000</ifrs-full:TreasuryShares>
+  <ifrs-full:ReserveOfCashFlowHedges contextRef="ctx19" unitRef="vDKK" decimals="-6">291000000</ifrs-full:ReserveOfCashFlowHedges>
+  <ifrs-dk:DividendAvailableForDistribution contextRef="ctx19" unitRef="vDKK" decimals="-6">836000000</ifrs-dk:DividendAvailableForDistribution>
+  <ifrs-full:RetainedEarnings contextRef="ctx19" unitRef="vDKK" decimals="-6">5568000000</ifrs-full:RetainedEarnings>
+  <ifrs-full:Equity contextRef="ctx19" unitRef="vDKK" decimals="-6">4832000000</ifrs-full:Equity>
+  <ifrs-full:NoncurrentProvisions contextRef="ctx19" unitRef="vDKK" decimals="-6">0</ifrs-full:NoncurrentProvisions>
+  <ifrs-dk:NoncurrentPayablesToCreditInstitutions contextRef="ctx19" unitRef="vDKK" decimals="-6">5277000000</ifrs-dk:NoncurrentPayablesToCreditInstitutions>
+  <ifrs-full:DeferredTaxLiabilities contextRef="ctx19" unitRef="vDKK" decimals="-6">154000000</ifrs-full:DeferredTaxLiabilities>
+  <ifrs-full:OtherNoncurrentPayables contextRef="ctx19" unitRef="vDKK" decimals="-6">0</ifrs-full:OtherNoncurrentPayables>
+  <ifrs-full:NoncurrentLiabilities contextRef="ctx19" unitRef="vDKK" decimals="-6">5430000000</ifrs-full:NoncurrentLiabilities>
+  <ifrs-full:CurrentProvisions contextRef="ctx19" unitRef="vDKK" decimals="-6">4000000</ifrs-full:CurrentProvisions>
+  <easy:EasyX_1474718286 contextRef="ctx19" unitRef="vDKK" decimals="-6">1615000000</easy:EasyX_1474718286>
+  <ifrs-dk:CurrentPayablesToCreditInstitutions contextRef="ctx19" unitRef="vDKK" decimals="-6">954000000</ifrs-dk:CurrentPayablesToCreditInstitutions>
+  <easy:DerivativeFinancialInstruments_1438890301 contextRef="ctx19" unitRef="vDKK" decimals="-6">115000000</easy:DerivativeFinancialInstruments_1438890301>
+  <ifrs-dk:TradeAndOtherCurrentPayablesToParentCompany contextRef="ctx19" unitRef="vDKK" decimals="-6">2632000000</ifrs-dk:TradeAndOtherCurrentPayablesToParentCompany>
+  <ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers contextRef="ctx19" unitRef="vDKK" decimals="-6">1115000000</ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers>
+  <ifrs-full:OtherCurrentPayables contextRef="ctx19" unitRef="vDKK" decimals="-6">138000000</ifrs-full:OtherCurrentPayables>
+  <ifrs-full:CurrentLiabilities contextRef="ctx19" unitRef="vDKK" decimals="-6">6573000000</ifrs-full:CurrentLiabilities>
+  <ifrs-full:Liabilities contextRef="ctx19" unitRef="vDKK" decimals="-6">12004000000</ifrs-full:Liabilities>
+  <ifrs-full:EquityAndLiabilities contextRef="ctx19" unitRef="vDKK" decimals="-6">16835000000</ifrs-full:EquityAndLiabilities>
+  <ifrs-full:IntangibleAssetsAndGoodwill contextRef="ctx20" unitRef="vDKK" decimals="-6">3405000000</ifrs-full:IntangibleAssetsAndGoodwill>
+  <ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment contextRef="ctx20" unitRef="vDKK" decimals="-6">55000000</ifrs-dk:OtherPlantFixturesAndFittingsToolsAndEquipment>
+  <easy:EasyX_1577442536 contextRef="ctx20" unitRef="vDKK" decimals="-6">0</easy:EasyX_1577442536>
+  <ifrs-full:InvestmentsInSubsidiaries contextRef="ctx20" unitRef="vDKK" decimals="-6">4738000000</ifrs-full:InvestmentsInSubsidiaries>
+  <ifrs-dk:NoncurrentReceivablesFromSubsidaries contextRef="ctx20" unitRef="vDKK" decimals="-6">1201000000</ifrs-dk:NoncurrentReceivablesFromSubsidaries>
+  <easy:EasyX_221659210 contextRef="ctx20" unitRef="vDKK" decimals="-6">9000000</easy:EasyX_221659210>
+  <ifrs-full:NoncurrentAssets contextRef="ctx20" unitRef="vDKK" decimals="-6">9408000000</ifrs-full:NoncurrentAssets>
+  <ifrs-full:Inventories contextRef="ctx20" unitRef="vDKK" decimals="-6">1175000000</ifrs-full:Inventories>
+  <ifrs-full:CurrentTradeReceivables contextRef="ctx20" unitRef="vDKK" decimals="-6">15000000</ifrs-full:CurrentTradeReceivables>
+  <ifrs-dk:CurrentReceivablesFromSubsidaries contextRef="ctx20" unitRef="vDKK" decimals="-6">6694000000</ifrs-dk:CurrentReceivablesFromSubsidaries>
+  <easy:EasyX_119271179 contextRef="ctx20" unitRef="vDKK" decimals="-6">200000000</easy:EasyX_119271179>
+  <easy:EasyX_1442817173 contextRef="ctx20" unitRef="vDKK" decimals="-6">162000000</easy:EasyX_1442817173>
+  <ifrs-full:CurrentTaxAssetsCurrent contextRef="ctx20" unitRef="vDKK" decimals="-6">20000000</ifrs-full:CurrentTaxAssetsCurrent>
+  <easy:EasyX_720326515 contextRef="ctx20" unitRef="vDKK" decimals="-6">231000000</easy:EasyX_720326515>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx20" unitRef="vDKK" decimals="-6">0</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CurrentAssets contextRef="ctx20" unitRef="vDKK" decimals="-6">8497000000</ifrs-full:CurrentAssets>
+  <ifrs-full:Assets contextRef="ctx20" unitRef="vDKK" decimals="-6">17905000000</ifrs-full:Assets>
+  <ifrs-full:IssuedCapital contextRef="ctx20" unitRef="vDKK" decimals="-6">110000000</ifrs-full:IssuedCapital>
+  <ifrs-full:TreasuryShares contextRef="ctx20" unitRef="vDKK" decimals="-6">3469000000</ifrs-full:TreasuryShares>
+  <ifrs-full:ReserveOfCashFlowHedges contextRef="ctx20" unitRef="vDKK" decimals="-6">531000000</ifrs-full:ReserveOfCashFlowHedges>
+  <ifrs-dk:DividendAvailableForDistribution contextRef="ctx20" unitRef="vDKK" decimals="-6">920000000</ifrs-dk:DividendAvailableForDistribution>
+  <ifrs-full:RetainedEarnings contextRef="ctx20" unitRef="vDKK" decimals="-6">9306000000</ifrs-full:RetainedEarnings>
+  <ifrs-full:Equity contextRef="ctx20" unitRef="vDKK" decimals="-6">7398000000</ifrs-full:Equity>
+  <ifrs-full:NoncurrentProvisions contextRef="ctx20" unitRef="vDKK" decimals="-6">8000000</ifrs-full:NoncurrentProvisions>
+  <ifrs-dk:NoncurrentPayablesToCreditInstitutions contextRef="ctx20" unitRef="vDKK" decimals="-6">6421000000</ifrs-dk:NoncurrentPayablesToCreditInstitutions>
+  <ifrs-full:DeferredTaxLiabilities contextRef="ctx20" unitRef="vDKK" decimals="-6">386000000</ifrs-full:DeferredTaxLiabilities>
+  <ifrs-full:OtherNoncurrentPayables contextRef="ctx20" unitRef="vDKK" decimals="-6">11000000</ifrs-full:OtherNoncurrentPayables>
+  <ifrs-full:NoncurrentLiabilities contextRef="ctx20" unitRef="vDKK" decimals="-6">6826000000</ifrs-full:NoncurrentLiabilities>
+  <ifrs-full:CurrentProvisions contextRef="ctx20" unitRef="vDKK" decimals="-6">4000000</ifrs-full:CurrentProvisions>
+  <easy:EasyX_1474718286 contextRef="ctx20" unitRef="vDKK" decimals="-6">1260000000</easy:EasyX_1474718286>
+  <ifrs-dk:CurrentPayablesToCreditInstitutions contextRef="ctx20" unitRef="vDKK" decimals="-6">125000000</ifrs-dk:CurrentPayablesToCreditInstitutions>
+  <easy:DerivativeFinancialInstruments_1438890301 contextRef="ctx20" unitRef="vDKK" decimals="-6">83000000</easy:DerivativeFinancialInstruments_1438890301>
+  <ifrs-dk:TradeAndOtherCurrentPayablesToParentCompany contextRef="ctx20" unitRef="vDKK" decimals="-6">1537000000</ifrs-dk:TradeAndOtherCurrentPayablesToParentCompany>
+  <ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers contextRef="ctx20" unitRef="vDKK" decimals="-6">563000000</ifrs-full:TradeAndOtherCurrentPayablesToTradeSuppliers>
+  <ifrs-full:OtherCurrentPayables contextRef="ctx20" unitRef="vDKK" decimals="-6">109000000</ifrs-full:OtherCurrentPayables>
+  <ifrs-full:CurrentLiabilities contextRef="ctx20" unitRef="vDKK" decimals="-6">3681000000</ifrs-full:CurrentLiabilities>
+  <ifrs-full:Liabilities contextRef="ctx20" unitRef="vDKK" decimals="-6">10507000000</ifrs-full:Liabilities>
+  <ifrs-full:EquityAndLiabilities contextRef="ctx20" unitRef="vDKK" decimals="-6">17905000000</ifrs-full:EquityAndLiabilities>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx21" unitRef="vDKK" decimals="-6">0</ifrs-full:CashAndCashEquivalents>
+  <ifrs-full:CashAndCashEquivalents contextRef="ctx22" unitRef="vDKK" decimals="-6">68000000</ifrs-full:CashAndCashEquivalents>
+  <cmn:NameOfAuditFirm contextRef="ctx23" xml:lang="da">ERNST &amp; YOUNG Godkendt Revisionspartnerselskab</cmn:NameOfAuditFirm>
+  <cmn:IdentificationNumberCvrOfAuditFirm contextRef="ctx23">30700228</cmn:IdentificationNumberCvrOfAuditFirm>
+  <cmn:NameAndSurnameOfAuditor contextRef="ctx23" xml:lang="da">Henrik Kronborg Iversen</cmn:NameAndSurnameOfAuditor>
+  <cmn:DescriptionOfAuditor contextRef="ctx23" xml:lang="da">State Authorised Public Accountant</cmn:DescriptionOfAuditor>
+  <arr:IdentificationNumberOfAuditor contextRef="ctx23">mne24687</arr:IdentificationNumberOfAuditor>
+  <cmn:NameAndSurnameOfAuditor contextRef="ctx24" xml:lang="da">Mikkel Sthyr</cmn:NameAndSurnameOfAuditor>
+  <cmn:DescriptionOfAuditor contextRef="ctx24" xml:lang="da">State Authorised Public Accountant</cmn:DescriptionOfAuditor>
+  <arr:IdentificationNumberOfAuditor contextRef="ctx24">mne26693</arr:IdentificationNumberOfAuditor>
+  <cmn:IdentificationNumberCvrOfAuditFirm contextRef="ctx24">30700228</cmn:IdentificationNumberCvrOfAuditFirm>
+  <cmn:NameOfAuditFirm contextRef="ctx24" xml:lang="da">ERNST &amp; YOUNG Godkendt Revisionspartnerselskab</cmn:NameOfAuditFirm>
+</xbrli:xbrl>
