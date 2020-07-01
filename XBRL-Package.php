@@ -78,12 +78,25 @@ EOT;
 		// Any additional package classes should be evaluated first.
 		// Additional classes should make sure there is validation so they are not used when they are really not suitable
 		$packageClasses = $additionalPackageClasses + $packageClasses;
-
+		// The 'isPackage' function may add schema files to the mapUrl
+		// If the package is found to be not valid then the added
+		// functions will hold the instance open and, so, keep a lock
+		// on the respective zip file
+		global $mapUrl;
 		foreach ( $packageClasses as $packageClassName )
 		{
+			// Make a note of the current top of the mapUrl chain
+			$previousMapUrl = $mapUrl;
+
 			/** @var XBRL_Package $package */
 			$package = XBRL_Package::fromFile( $taxonomyPackage, $packageClassName );
-			if ( ! $package->isPackage() ) continue;
+			$package->is = $package->isPackage();
+			if ( ! $package->is )
+			{
+				// Release the added functions so the instance will be release, the destructor called and the zip file closed.
+				$mapUrl = $previousMapUrl;
+				continue;
+			}
 
 			// Load the XBRL class
 			$className = $package->getXBRLClassname();
@@ -91,11 +104,8 @@ EOT;
 			return $package;
 		}
 
-		if ( ! $found )
-		{
-			$zip = basename( $taxonomyPackage );
-			throw new Exception( "The contents of file '$zip' do not match any of the supported taxonomy package formats" );
-		}
+		$zip = basename( $taxonomyPackage );
+		throw new Exception( "The contents of file '$zip' does not match any of the supported taxonomy package formats" );
 	}
 
 	/**
@@ -187,12 +197,22 @@ EOT;
 	 */
 	public $errors = array();
 
+	static $unique = 1;
+
+	private $index = 0;
+
+	private $is = null;
+
 	/**
 	 * Default constructor
 	 * @param ZipArchive $zipArchive
 	 */
 	public function __construct( ZipArchive $zipArchive  )
 	{
+		$this->index = XBRL_Package::$unique;
+		XBRL_Package::$unique++;
+
+		// error_log(sprintf("% 3d construct %s % -30s %s", $this->index, $this->is ? 'y' : ( is_null($this->is) ? '-' : 'n' ), basename($zipArchive->filename), get_class( $this ) ) );
 		$this->zipArchive = $zipArchive;
 
 		$this->contents = array();
@@ -223,9 +243,7 @@ EOT;
 
 				$current = &$current[ $part ];
 			}
-
 		}
-
 	}
 
 	/**
@@ -234,7 +252,12 @@ EOT;
 	function __destruct()
 	{
 		if ( ! $this->zipArchive ) return;
-		$this->zipArchive->close();
+		// error_log(sprintf("% 3d destruct  %s % -30s %s", $this->index, $this->is ? 'y' : ( is_null($this->is) ? '-' : 'n' ), basename($this->zipArchive->filename), get_class( $this ) ) );
+		if ( ! $this->zipArchive->close() )
+		{
+			echo "Failed to close the package zip file\n";
+		}
+		$this->zipArchive = null;
 	}
 
 	/**
@@ -433,33 +456,33 @@ EOT;
 	{
 		if ( ! $callback ) return;
 
-		$traverse = function( $nodes, $path = "" ) use ( &$traverse, &$callback )
+		$this->traverse( $callback, $this->contents );
+	}
+
+	private function traverse( $callback, $nodes, $path = "" )
+	{
+		if ( is_string( $nodes ) )
 		{
-			if ( is_string( $nodes ) )
+			return $callback( $path, $nodes, PATHINFO_BASENAME );
+		}
+
+		foreach ( $nodes as $name => $children )
+		{
+			if ( ! is_array( $children ) ) // It's a file
 			{
-				return $callback( $path, $nodes, PATHINFO_BASENAME );
+				if ( ! $this->traverse( $callback, $children, $path ) ) return false;
+				continue;
 			}
 
-			foreach ( $nodes as $name => $children )
+			if ( ! $callback( $path, $name, PATHINFO_DIRNAME ) ) return false;
+
+			if ( ! $this->traverse( $callback, $children, "$path$name/" ) )
 			{
-				if ( ! is_array( $children ) ) // It's a file
-				{
-					if ( ! $traverse( $children, $path ) ) return false;
-					continue;
-				}
-
-				if ( ! $callback( $path, $name, PATHINFO_DIRNAME ) ) return false;
-
-				if ( ! $traverse( $children, "$path$name/" ) )
-				{
-					return false;
-				}
+				return false;
 			}
+		}
 
-			return true;
-		};
-
-		$traverse( $this->contents );
+		return true;
 	}
 
 	/**
@@ -755,7 +778,6 @@ EOT;
 
 		global $mapUrl;  // This is a function assigned below.  Effectively a change of url maps is created.
 		$previousMap = $mapUrl;
-		// $schemaFile = $this->schemaFile;
 
 		$mapUrl = function( $url ) use( &$previousMap, $schemaFile )
 		{
@@ -770,6 +792,7 @@ EOT;
 
 			return $url;
 		};
+
 
 	}
 
