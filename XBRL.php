@@ -18766,7 +18766,8 @@ class XBRL {
 					'text' => self::preferredLabelToDescription( $label ),
 					'definition' => $definition,
 					'href' => "http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd#$label",
-					'label' => $label
+					'label' => $label,
+					'namespace' => 'http://www.xbrl.org/2003/role'
 				);
 			}
 
@@ -18777,9 +18778,11 @@ class XBRL {
 				{
 					$href = trim( $lrrRole->authoritativeHref );
 					$uri = strstr( $href, '#', true );
+					$namespace = '';
 					if ( ! isset( $linkTypes[ $uri ] ) )
 					{
 						$taxonomy = \XBRL::load_taxonomy( $uri );
+						$namespace = $taxonomy->getNamespace();
 						$roleTypes[ $uri ] = $taxonomy->getRoleTypes( $taxonomy->getTaxonomyXSD() );
 					}
 
@@ -18800,7 +18803,8 @@ class XBRL {
 						'text' => self::preferredLabelToDescription( $label ),
 						'definition' => $role['definition'],
 						'href' => $href,
-						'label' => $label
+						'label' => $label,
+						'namespace' => $namespace
 					);
 				}
 			}
