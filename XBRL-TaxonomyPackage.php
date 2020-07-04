@@ -760,6 +760,22 @@ EOT;
 	}
 
 	/**
+	 * Returns a list of countries
+	 * @param boolean $addCode
+	 * @return array
+	 */
+	public static function getCountries( $addCode = false )
+	{
+		return $addCode
+			? XBRL::array_reduce_key( self::$countries, function( $carry, $country, $code )
+				{
+					$carry[ $code ] = "$country ($code)";
+					return $carry;
+				}, [] )
+			: self::$countries;
+	}
+
+	/**
 	 * A list of countries indexed by their 2-letter code
 	 * @var array[string]
 	 */
