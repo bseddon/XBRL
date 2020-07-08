@@ -70,8 +70,9 @@ define( "STANDARD_PREFIX_FORMULA_TUPLE", "tuple" );
 define( "STANDARD_PREFIX_FILTER_DIMENSION", "df" );
 define( "STANDARD_PREFIX_ASPECT_TEST", "aspectTest" );
 define( "STANDARD_PREFIX_XPATH_FUNCTIONS", "fn" );
-define( "STANDARD_PREFIX_VALIDATION", "valm" );
-define( "STANDARD_PREFIX_VALIDATION_ERROR", "xbrlvalme" );
+define( "STANDARD_PREFIX_VALIDATION", "validation" );
+define( "STANDARD_PREFIX_VALIDATION_MESSAGE", "valm" );
+define( "STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR", "xbrlvalme" );
 define( "STANDARD_PREFIX_VALUE", "va" );
 define( "STANDARD_PREFIX_EXISTENCE", "ea" );
 define( "STANDARD_PREFIX_CONSISTENCY", "ca" );
@@ -112,6 +113,9 @@ define( "STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20", "enumte20" );
 define( "STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS_20", "enumie20" );
 define( "STANDARD_PREFIX_GENERIC_PREFERRED_LABEL", "gpl" );
 define( "STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR", "gple" );
+
+define( "STANDARD_PREFIX_DTR_NUMERIC", "num" );
+define( "STANDARD_PREFIX_DTR_NONNUMERIC", "nonnum" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -190,8 +194,9 @@ class XBRL_Constants
 		STANDARD_PREFIX_VARIABLE_ERROR			=> "http://xbrl.org/2008/variable/error",
 		STANDARD_PREFIX_ASPECT					=> "http://xbrl.org/2008/variable/aspect", // This one is used by aspect tests
 		STANDARD_PREFIX_ASPECT_TEST				=> "http://xbrl.org/2008/variable/aspectTest",
-		STANDARD_PREFIX_VALIDATION				=> "http://xbrl.org/2010/message/validation",
-		STANDARD_PREFIX_VALIDATION_ERROR		=> "http://xbrl.org/2010/message/validation/error",
+		STANDARD_PREFIX_VALIDATION				=> "http://xbrl.org/2008/validation",
+		STANDARD_PREFIX_VALIDATION_MESSAGE		=> "http://xbrl.org/2010/message/validation",
+		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR=> "http://xbrl.org/2010/message/validation/error",
 		STANDARD_PREFIX_VALUE					=> "http://xbrl.org/2008/assertion/value",
 		STANDARD_PREFIX_EXISTENCE				=> "http://xbrl.org/2008/assertion/existence",
 		STANDARD_PREFIX_CONSISTENCY				=> "http://xbrl.org/2008/assertion/consistency",
@@ -230,6 +235,8 @@ class XBRL_Constants
 		STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS_20	=> "http://xbrl.org/PWD/2017-09-05/extensible-enumerations-2.0/taxonomy-errors",
 		STANDARD_PREFIX_GENERIC_PREFERRED_LABEL			=> "http://xbrl.org/2013/preferred-label",
 		STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR	=> "http://xbrl.org/2013/preferred-label/error",
+		STANDARD_PREFIX_DTR_NUMERIC						=> "http://www.xbrl.org/dtr/type/numeric",
+		STANDARD_PREFIX_DTR_NONNUMERIC					=> "http://www.xbrl.org/dtr/type/non-numeric",
 	);
 
 	/**
@@ -241,14 +248,36 @@ class XBRL_Constants
 	 * A list of the locations of the standard schemas
 	 */
 	public static $standardNamespaceSchemaLocations = array(
-		STANDARD_PREFIX_GENERIC	=> "http://www.xbrl.org/2008/generic-link.xsd",
-		"genLabel"				=> "http://www.xbrl.org/2008/generic-label.xsd",
-		"genReference"			=> "http://www.xbrl.org/2008/generic-reference.xsd",
-		STANDARD_PREFIX_LINK	=> "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
-		STANDARD_PREFIX_XBRLI	=> "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
-		STANDARD_PREFIX_XBRLDT	=> "http://www.xbrl.org/2005/xbrldt-2005.xsd",
-		STANDARD_PREFIX_XBRLDI	=> "http://www.xbrl.org/2006/xbrldi-2006.xsd",
-		STANDARD_PREFIX_XL		=> "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
+		STANDARD_PREFIX_GENERIC						=> "http://www.xbrl.org/2008/generic-link.xsd",
+		STANDARD_PREFIX_LABEL						=> "http://www.xbrl.org/2008/generic-label.xsd",
+		"genLabel"									=> "http://www.xbrl.org/2008/generic-label.xsd",
+		STANDARD_PREFIX_REFERENCE					=> "http://www.xbrl.org/2008/generic-reference.xsd",
+		"genReference"								=> "http://www.xbrl.org/2008/generic-reference.xsd",
+		STANDARD_PREFIX_LINK						=> "http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd",
+		STANDARD_PREFIX_XLINK						=> "http://www.xbrl.org/2003/xlink-2003-12-31.xsd",
+		STANDARD_PREFIX_XBRLI						=> "http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd",
+		STANDARD_PREFIX_XBRLDT						=> "http://www.xbrl.org/2005/xbrldt-2005.xsd",
+		STANDARD_PREFIX_XBRLDI						=> "http://www.xbrl.org/2006/xbrldi-2006.xsd",
+		STANDARD_PREFIX_XL							=> "http://www.xbrl.org/2003/xl-2003-12-31.xsd",
+		STANDARD_PREFIX_DTR_NUMERIC					=> "http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd",
+		STANDARD_PREFIX_DTR_NONNUMERIC				=> "http://www.xbrl.org/dtr/type/nonnumeric-2009-12-16.xsd",
+		STANDARD_PREFIX_FORMULA						=> "http://www.xbrl.org/2008/formula.xsd",
+		STANDARD_PREFIX_CONSISTENCY					=> "http://www.xbrl.org/2008/consistency-assertion.xsd",
+		STANDARD_PREFIX_EXISTENCE					=> "http://www.xbrl.org/2008/existence-assertion.xsd",
+		STANDARD_PREFIX_FILTER_DIMENSION			=> "http://www.xbrl.org/2008/dimension-filter.xsd",
+		STANDARD_PREFIX_VALUE						=> "http://www.xbrl.org/2008/value-assertion.xsd",
+		STANDARD_PREFIX_VA							=> "http://www.xbrl.org/2008/value-assertion.xsd",
+		STANDARD_PREFIX_PF							=> "http://www.xbrl.org/2008/period-filter.xsd",
+		STANDARD_PREFIX_CF							=> "http://www.xbrl.org/2008/concept-filter.xsd",
+		STANDARD_PREFIX_DF							=> "http://www.xbrl.org/2008/dimension-filter.xsd",
+		STANDARD_PREFIX_GF							=> "http://www.xbrl.org/2008/general-filter.xsd",
+		STANDARD_PREFIX_UF							=> "http://www.xbrl.org/2008/unit-filter.xsd",
+		STANDARD_PREFIX_EF							=> "http://www.xbrl.org/2008/entity-filter.xsd",
+		STANDARD_PREFIX_VARIABLE					=> "http://www.xbrl.org/2008/variable.xsd",
+		STANDARD_PREFIX_VALIDATION_MESSAGE			=> "http://www.xbrl.org/2010/validation-message.xsd",
+		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR	=> "http://www.xbrl.org/2010/validation-message.xsd",
+		STANDARD_PREFIX_VALIDATION					=> "http://www.xbrl.org/2008/validation.xsd",
+		STANDARD_PREFIX_MESSAGE						=> "http://www.xbrl.org/2010/generic-message.xsd",
 	);
 
 	/**
