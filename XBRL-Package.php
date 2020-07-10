@@ -448,9 +448,9 @@ EOT;
 	/**
 	 * Traverses the contents folders and files calling $callback for each node
 	 * @param Funtion $callback Three arguents will be passed to the the callback:
-	 * 		The path preceding the Name
-	 * 		The name
-	 * 		PATHINFO_BASENAME is the name is a file or PATHINFO_DIRNAME
+	 * 		1) The path preceding the Name
+	 * 		2) The name
+	 * 		3) PATHINFO_BASENAME if the name is a file or PATHINFO_DIRNAME
 	 */
 	public function traverseContents( $callback )
 	{
