@@ -2119,7 +2119,7 @@ class XBRL {
 	}
 
 	/**
-	 * Return the details of a namespace if it exists or null
+	 * Return the details of a linkbase if it exists or null
 	 * @param string $linkbaseName
 	 * @return NULL|array
 	 */
@@ -4142,7 +4142,7 @@ class XBRL {
 
 	/**
 	 * Returns the flag indicating whether or not the taxonomy includes formulas
-	 * @param bool $checkAllSchemas (optional) Forces the test to look at all taxonomies and return true if any one taxonomy has formulas
+	 * @param bool $checkAllSchemas (optional: default = false) Forces the test to look at all taxonomies and return true if any one taxonomy has formulas
 	 * @return boolean
 	 */
 	public function getHasFormulas( $checkAllSchemas = false )
@@ -4371,7 +4371,7 @@ class XBRL {
 
 	/**
 	 * Get a list of imported schemas
-	 * @return an array of all loaded schemas
+	 * @return XBRL[] an array of all loaded schemas
 	 */
 	public function getImportedSchemas()
 	{
@@ -18672,7 +18672,19 @@ class XBRL {
 
 		$patterns = array('~/{2,}~', '~/(\./)+~', '~([^/\.]+/(?R)*\.{2,}/)~', '~\.\./~');
 	    $replacements = array('/', '/', '', '');
-	    return preg_replace($patterns, $replacements, $path);
+	    $prefix = '';
+		if ( strpos( $path, 'http://' ) === 0 )
+		{
+			$prefix = 'http:/';
+			$path = substr( $path, 6 );
+		}
+		if ( strpos( $path, 'https://' ) === 0 )
+		{
+			$prefix = 'https:/';
+			$path = substr( $path, 7 );
+		}
+
+	    return $prefix . preg_replace($patterns, $replacements, $path);
 	}
 
 	/**
