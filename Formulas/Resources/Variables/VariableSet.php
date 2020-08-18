@@ -498,7 +498,7 @@ class VariableSet extends Resource
 			try
 			{
 				$vars = $this->getBindingsAsVars();
-				$result = $this->evaluateXPathExpression( $this, $precondition->testXPathExpression, $vars );
+				$result = CoreFuncs::BooleanValue( $this->evaluateXPathExpression( $this, $precondition->testXPathExpression, $vars ) );
 				// The pre-condition result should be true or false and only true will allow the evaluation to be counted
 				if ( ! $result instanceof CoreFuncs::$True )
 				{
