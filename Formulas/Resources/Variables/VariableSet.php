@@ -498,6 +498,8 @@ class VariableSet extends Resource
 			try
 			{
 				$vars = $this->getBindingsAsVars();
+				// BMS 2020-08-18 Force the result to a CoreFuncs::BooleanValue value.  In the BE 2020 taxonomy
+				// the pre-condition tests in the COVID formulas return the strings 'true' or 'false'
 				$result = CoreFuncs::BooleanValue( $this->evaluateXPathExpression( $this, $precondition->testXPathExpression, $vars ) );
 				// The pre-condition result should be true or false and only true will allow the evaluation to be counted
 				if ( ! $result instanceof CoreFuncs::$True )
