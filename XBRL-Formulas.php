@@ -341,6 +341,10 @@ class XBRL_Formulas extends Resource
 
 			foreach ( $schemasWithFormulas as $namespace => $taxonomy )
 			{
+				// Note that is this is not the first taxonomy then $this->variableSets
+				// may not be empty.  Formulas that have been evaluated are retained in
+				// case their results need to be used in other formulas such as scope dependency
+
 				$this->parameterQnames = array();
 				$this->nsMgr = new XmlNamespaceManager();
 
@@ -1415,10 +1419,15 @@ class XBRL_Formulas extends Resource
 		        	}
 		        }
 
+		        // No need to evaluate a formula if its already been evaluated
+		        // Handy to have this test here so a break point can be assigned to the evaluate line
+				if ( ! isset( $variableSetInstance->evaluated ) )
+				{
 				// Evaluate the variable set
 				if ( ! $this->evaluate( $variableSetInstance ) )
 				{
 					return false;
+					}
 				}
 			}
 		}
