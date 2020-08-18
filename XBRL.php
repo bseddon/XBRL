@@ -18832,6 +18832,113 @@ class XBRL {
 	}
 
 	/**
+	 * Get a list of the citem types for a specific taxonomy
+	 * @param string $category
+	 * @param unknown $itemTypes
+	 * @param string $clean
+	 */
+	public function getItemTypes( $category, &$itemTypes, $clean = true )
+	{
+		$prefix = $this->getPrefix();
+		foreach( $this->context->types->toArray()['types'] as $qname => &$type )
+		{
+			if ( ! isset( $type['prefix'] ) || $type['prefix'] != $prefix ) continue;
+			$hasParent = isset( $type['contentType'] ) && $type['contentType'] == 'restriction' && isset( $type['parent'] );
+			$hasContextRef = isset( $type['attributeGroups'] ) && count( array_intersect_key($type['attributeGroups'][0]['attributes'], array( 'xbrli:contextRef' => 1 ) ) );
+			if ( $hasContextRef || $hasParent )
+			{
+				$itemTypes[ $qname ] = array(
+					"category" => $category,
+					"numeric" => isset( $type['numeric'] ) && $type['numeric'],
+					"description" => preg_replace( "/([A-Z][a-z]+)/", "$1 ", ucfirst( str_replace( 'ItemType', "", $type['name'] ) ) ) . "($prefix)",
+					"prefix" => $prefix,
+					"uniRef" => isset( $type['attributeGroups'][0]['attributes']['xbrli:unitRef'] ),
+					"parent" => $hasParent ? $type['parent'] : false
+				);
+			}
+		}
+
+		unset( $type );
+
+		if ( ! $clean ) return;
+
+		// Now all the item types have been gathered run over them to remove any that do not have a parent that is also an item type
+		foreach ( $itemTypes as $qname => $type )
+		{
+			// Base item types (defined in xbrli) will have no parent
+			if ( ! $type['parent'] || isset( $itemTypes[ $type['parent'] ] ) ) continue;
+			unset( $itemTypes[ $qname ] );
+		}
+	}
+
+	private static $cacheDTRItems = array();
+
+	/**
+	 * Get a list of core item types (xbrli, num, nonnum, dtr)
+	 * Note: When forcing a refresh the global context will be reset when
+	 * 		 this function is called so call it before any other calls
+	 * @param boolean $forceRefresh Forces any existing file to be refreshed
+	 * @return array
+	 */
+	public static function getDTRItems( $forceRefresh = false )
+	{
+		if ( $forceRefresh || ! self::$cacheDTRItems )
+		{
+			self::$cacheDTRItems = array();
+
+			$filename =  __DIR__ . '/dtr.json';
+			if ( $forceRefresh || ! file_exists( $filename ) )
+			{
+				$urls = array(
+					'http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd' => 'General',
+					'https://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd' => 'Non-numeric',
+					'http://www.xbrl.org/dtr/2013-03-31/numeric-2013-03-31.xsd' => 'Numeric',
+					'https://www.xbrl.org/dtr/type/2020-01-21/types.xsd' => 'DTR Types'
+				);
+
+				$itemTypes = [];
+				foreach( $urls as $url => $category)
+				{
+					$taxonomy = \XBRL::load_taxonomy( $url );
+					$taxonomy->getItemTypes( $category, $itemTypes );
+					\XBRL_Global::reset();
+					unset( $taxonomy );
+				}
+
+				file_put_contents( $filename, json_encode( $itemTypes ) );
+				self::$cacheDTRItems = $itemTypes;
+			}
+			else
+			{
+				self::$cacheDTRItems = json_decode( file_get_contents( $filename ), true );
+			}
+		}
+
+		return self::$cacheDTRItems;
+	}
+
+	/**
+	 * Returns a list of item types unique to a taxonomy
+	 * @param string $category The category to assign to item types found in the current taxonomy
+	 */
+	public function getTaxonomyItemTypes( $category )
+	{
+		// Get the core/DTR item types
+		$original = $itemTypes = \XBRL::getDTRItems();
+		foreach ( $this->context->importedSchemas as $namespace => /** @var XBRL $xbrl */ $xbrl )
+		{
+			if ( in_array( $xbrl->getPrefix(), array( 'xbrli', 'num', 'nonnum', 'dtr-types' ) ) ) continue;
+			$xbrl->getItemTypes( $category, $itemTypes, false );
+		}
+
+		// Clean up after getting the items types for the main taxonomy
+		$this->getItemTypes( $category, $itemTypes, true );
+
+		// Return the difference between the built-in and taxonomy item types
+		return array_diff_key( $itemTypes, $original );
+	}
+
+	/**
 	 * Returns a reference to the log function
 	 *
 	 * @return XBRL_Log
