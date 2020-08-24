@@ -18832,7 +18832,7 @@ class XBRL {
 	}
 
 	/**
-	 * Get a list of the citem types for a specific taxonomy
+	 * Get a list of the item types for a specific taxonomy
 	 * @param string $category
 	 * @param unknown $itemTypes
 	 * @param string $clean
@@ -18915,6 +18915,121 @@ class XBRL {
 		}
 
 		return self::$cacheDTRItems;
+	}
+
+	private static $cacheDTRItemDefaults = array();
+
+	/**
+	 * Get a list of defaults for each of the item types
+	 * @param boolean $forceRefresh Forces any existing file to be refreshed
+	 * @return array
+	 */
+	public static function getDTRItemDefaults()
+	{
+		if ( ! self::$cacheDTRItemDefaults )
+		{
+			self::$cacheDTRItemDefaults = array();
+
+			$filename =  __DIR__ . '/dtr-defaults.json';
+			if ( ! file_exists( $filename ) ) return array();
+
+			self::$cacheDTRItemDefaults = json_decode( file_get_contents( $filename ), true );
+			if ( ! self::$cacheDTRItemDefaults )
+			{
+				error_log( 'getDTRItemDefaults' . \XBRL::json_last_error_msg() );
+				self::$cacheDTRItemDefaults = array();
+			}
+		}
+
+		return self::$cacheDTRItemDefaults;
+	}
+
+	private static $cacheUTRItems = array();
+
+	/**
+	 * Get a list of unit types
+	 * @param boolean $forceRefresh Forces any existing file to be refreshed
+	 * @return array
+	 */
+	public static function getUTRItems( $forceRefresh = false )
+	{
+		if ( $forceRefresh || ! self::$cacheUTRItems )
+		{
+			self::$cacheUTRItems = array();
+
+			$filename =  __DIR__ . '/utr.json';
+			if ( $forceRefresh || ! file_exists( $filename ) )
+			{
+				$url = 'https://www.xbrl.org/utr/2017-07-12/utr.xml';
+
+				// The document element will be <utr>
+				$utrDoc = simplexml_load_file( $url );
+
+				/**
+				 * @var SimpleXMLElement $units
+				 */
+				$units = $utrDoc->units;
+
+				$unitTypes = [];
+
+				$fields = array(
+					'unitId',
+					'unitName',
+					'itemType',
+					'itemTypeDate',
+					'symbol',
+					'definition',
+					'status',
+					'versionDate',
+					'nsItemType',
+					'numeratorItemType',
+					// 'nsNumeratorItemType',
+					'denominatorItemType',
+					// 'nsDenominatorItemType'
+				);
+
+				$prefixes = array_flip( \XBRL_Constants::$standardPrefixes );
+				foreach ( $units->unit as /** @var SimpleXMLElement $unit */ $unit )
+				{
+					foreach( $fields as $field )
+					{
+						$id = (string)$unit->attributes()->id;
+						$unitTypes[ $id ][ $field ] = (string)$unit->$field;
+					}
+
+					$unitTypes[ $id ]['prefix'] = (string)$unit->nsUnit && isset( $prefixes[ (string)$unit->nsUnit ] )
+						? $prefixes[ (string)$unit->nsUnit ]
+						: null;
+
+					$unitTypes[ $id ]['prefixNumerator'] = (string)$unit->nsNumeratorItemType && isset( $prefixes[ (string)$unit->nsNumeratorItemType ] )
+						? $prefixes[ (string)$unit->nsNumeratorItemType ]
+						: null;
+
+					$unitTypes[ $id ]['prefixDenominator'] = (string)$unit->nsDenominatorItemType && isset( $prefixes[ (string)$unit->nsDenominatorItemType ] )
+						? $prefixes[ (string)$unit->nsDenominatorItemType ]
+						: null;
+
+					$unitTypes[ $id ] = array_filter( $unitTypes[ $id ] );
+				}
+
+				// Reorganize to group by itemType
+				$unitTypes = \XBRL::array_reduce_key( $unitTypes, function( $carry, $unit, $id )
+				{
+					$unit['id'] = $id;
+					$carry[ $unit['itemType'] ][ $unit['unitId'] ] = $unit;
+					return $carry;
+				}, array() );
+
+				file_put_contents( $filename, json_encode( $unitTypes ) );
+				self::$cacheUTRItems = $unitTypes;
+			}
+			else
+			{
+				self::$cacheUTRItems = json_decode( file_get_contents( $filename ), true );
+			}
+		}
+
+		return self::$cacheUTRItems;
 	}
 
 	/**

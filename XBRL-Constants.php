@@ -116,6 +116,7 @@ define( "STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR", "gple" );
 
 define( "STANDARD_PREFIX_DTR_NUMERIC", "num" );
 define( "STANDARD_PREFIX_DTR_NONNUMERIC", "nonnum" );
+define( "STANDARD_PREFIX_DTR_TYPES", "dtr-types" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -155,78 +156,78 @@ class XBRL_Constants
 	 * A list of the standard prefixes used by XBRL and the correponding namespace
 	 */
 	public static $standardPrefixes = array(
-		STANDARD_PREFIX_XPATH_FUNCTIONS			=> "http://www.w3.org/2005/xpath-functions",
-		STANDARD_PREFIX_LINK					=> "http://www.xbrl.org/2003/linkbase",
-		STANDARD_PREFIX_GENERIC					=> "http://xbrl.org/2008/generic",
-		STANDARD_PREFIX_ISO4217					=> "http://www.xbrl.org/2003/iso4217",
-		STANDARD_PREFIX_IX						=> "http://www.xbrl.org/2008/inlineXBRL",
-		STANDARD_PREFIX_IX11					=> "http://www.xbrl.org/2013/inlineXBRL",
-		STANDARD_PREFIX_IXT						=> "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
-		STANDARD_PREFIX_LABEL					=> "http://xbrl.org/2008/label",
-		STANDARD_PREFIX_MODEL					=> "http://www.eurofiling.info/xbrl/ext/model",
-		STANDARD_PREFIX_REFERENCE				=> "http://xbrl.org/2008/reference",
-		STANDARD_PREFIX_REFERENCE_ERROR			=> "http://xbrl.org/2008/reference/error",
-		STANDARD_PREFIX_UTR						=> "http://www.xbrl.org/2009/utr",
-		STANDARD_PREFIX_UTR_ERROR				=> "http://www.xbrl.org/2009/utr/errors",
-		STANDARD_PREFIX_LABEL_ERROR				=> "http://xbrl.org/2008/label/error",
-		STANDARD_PREFIX_XBRLDT					=> "http://xbrl.org/2005/xbrldt",
-		STANDARD_PREFIX_XBRLDT_ERROR			=> "http://xbrl.org/2005/xbrldt/errors",
-		STANDARD_PREFIX_XBRLDI					=> "http://xbrl.org/2006/xbrldi",
-		STANDARD_PREFIX_XBRLDI_ERROR			=> "http://xbrl.org/2005/xbrldi/errors",
-		STANDARD_PREFIX_GENERIC_ERROR			=> "http://xbrl.org/2008/generic/error",
-		STANDARD_PREFIX_XBRLI					=> "http://www.xbrl.org/2003/instance",
-		STANDARD_PREFIX_XLINK					=> "http://www.w3.org/1999/xlink",
-		STANDARD_PREFIX_XL						=> "http://www.xbrl.org/2003/XLink",
-		STANDARD_PREFIX_SCHEMA					=> "http://www.w3.org/2001/XMLSchema",
-		STANDARD_PREFIX_SCHEMA_ALTERNATIVE		=> "http://www.w3.org/2001/XMLSchema",
-		"xhtml"									=> "http://www.w3.org/1999/xhtml",
-		STANDARD_PREFIX_SCHEMA_INSTANCE			=> "http://www.w3.org/2001/XMLSchema-instance",
-		STANDARD_PREFIX_XML						=> "http://www.w3.org/XML/1998/namespace",
-		STANDARD_PREFIX_TABLE					=> "http://xbrl.org/2014/table",
-		STANDARD_PREFIX_TABLE_ERROR				=> "http://xbrl.org/2014/table/error",
-		STANDARD_PREFIX_TABLE_MODEL				=> "http://xbrl.org/2014/table/model",
-		STANDARD_PREFIX_FUNCTION_INSTANCE_ERROR	=> "http://www.xbrl.org/2008/function/instance/error",
-		STANDARD_PREFIX_FUNCTION_INSTANCE		=> "http://www.xbrl.org/2008/function/instance",
-		STANDARD_PREFIX_VARIABLE				=> "http://xbrl.org/2008/variable",
-		STANDARD_PREFIX_FORMULA					=> "http://xbrl.org/2008/formula",
-		STANDARD_PREFIX_FORMULA_TUPLE			=> "http://xbrl.org/2010/formula/tuple",
-		STANDARD_PREFIX_FILTER_DIMENSION		=> "http://xbrl.org/2008/filter/dimension",
-		STANDARD_PREFIX_VARIABLE_ERROR			=> "http://xbrl.org/2008/variable/error",
-		STANDARD_PREFIX_ASPECT					=> "http://xbrl.org/2008/variable/aspect", // This one is used by aspect tests
-		STANDARD_PREFIX_ASPECT_TEST				=> "http://xbrl.org/2008/variable/aspectTest",
-		STANDARD_PREFIX_VALIDATION				=> "http://xbrl.org/2008/validation",
-		STANDARD_PREFIX_VALIDATION_MESSAGE		=> "http://xbrl.org/2010/message/validation",
-		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR=> "http://xbrl.org/2010/message/validation/error",
-		STANDARD_PREFIX_VALUE					=> "http://xbrl.org/2008/assertion/value",
-		STANDARD_PREFIX_EXISTENCE				=> "http://xbrl.org/2008/assertion/existence",
-		STANDARD_PREFIX_CONSISTENCY				=> "http://xbrl.org/2008/assertion/consistency",
-		STANDARD_PREFIX_MESSAGE					=> "http://xbrl.org/2010/message",
-		STANDARD_PREFIX_MESSAGE_ERROR			=> "http://xbrl.org/2010/message/error",
-		STANDARD_PREFIX_ACF						=> "http://xbrl.org/2010/filter/aspect-cover",
-		STANDARD_PREFIX_BF						=> "http://xbrl.org/2008/filter/boolean",
-		STANDARD_PREFIX_CA						=> "http://xbrl.org/2008/assertion/consistency",
-		STANDARD_PREFIX_CF						=> "http://xbrl.org/2008/filter/concept",
-		STANDARD_PREFIX_CF_ERROR				=> "http://xbrl.org/2008/filter/concept/error",
-		STANDARD_PREFIX_CFI						=> "http://xbrl.org/2010/custom-function",
-		STANDARD_PREFIX_CRF						=> "http://xbrl.org/2010/filter/concept-relation",
-		STANDARD_PREFIX_DF						=> "http://xbrl.org/2008/filter/dimension",
-		STANDARD_PREFIX_EA						=> "http://xbrl.org/2008/assertion/existence",
-		STANDARD_PREFIX_EF						=> "http://xbrl.org/2008/filter/entity",
-		STANDARD_PREFIX_PF						=> "http://xbrl.org/2008/filter/period",
-		STANDARD_PREFIX_GF						=> "http://xbrl.org/2008/filter/general",
-		STANDARD_PREFIX_RF						=> "http://xbrl.org/2008/filter/relative",
-		STANDARD_PREFIX_TF						=> "http://xbrl.org/2008/filter/tuple",
-		STANDARD_PREFIX_UF						=> "http://xbrl.org/2008/filter/unit",
-		STANDARD_PREFIX_VA						=> "http://xbrl.org/2008/assertion/value",
-		STANDARD_PREFIX_REG						=> "http://xbrl.org/2008/registry",
-		STANDARD_PREFIX_FUNCTION				=> "http://xbrl.org/2008/function",
-		STANDARD_PREFIX_CONFORMANCE_FUNCTION	=> "http://xbrl.org/2008/conformance/function",
-		STANDARD_PREFIX_FUNCTION_FORMULA		=> "http://www.xbrl.org/2010/function/formula",
-		STANDARD_PREFIX_FUNCTION_FORMULA_ERROR	=> "http://www.xbrl.org/2010/function/formula/error",
-		STANDARD_PREFIX_IMPLICIT_FILTER_ERROR	=> "http://xbrl.org/2008/filter/implicit/error",
-		STANDARD_PREFIX_INSTANCES				=> "http://xbrl.org/2010/variable/instance",
-		STANDARD_PREFIX_LYQUIDITY				=> "http://lyquidity.com/2017/functions",
-		STANDARD_PREFIX_SEVERITY				=> "http://xbrl.org/2016/assertion-severity",
+		STANDARD_PREFIX_XPATH_FUNCTIONS					=> "http://www.w3.org/2005/xpath-functions",
+		STANDARD_PREFIX_LINK							=> "http://www.xbrl.org/2003/linkbase",
+		STANDARD_PREFIX_GENERIC							=> "http://xbrl.org/2008/generic",
+		STANDARD_PREFIX_ISO4217							=> "http://www.xbrl.org/2003/iso4217",
+		STANDARD_PREFIX_IX								=> "http://www.xbrl.org/2008/inlineXBRL",
+		STANDARD_PREFIX_IX11							=> "http://www.xbrl.org/2013/inlineXBRL",
+		STANDARD_PREFIX_IXT								=> "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
+		STANDARD_PREFIX_LABEL							=> "http://xbrl.org/2008/label",
+		STANDARD_PREFIX_MODEL							=> "http://www.eurofiling.info/xbrl/ext/model",
+		STANDARD_PREFIX_REFERENCE						=> "http://xbrl.org/2008/reference",
+		STANDARD_PREFIX_REFERENCE_ERROR					=> "http://xbrl.org/2008/reference/error",
+		STANDARD_PREFIX_UTR								=> "http://www.xbrl.org/2009/utr",
+		STANDARD_PREFIX_UTR_ERROR						=> "http://www.xbrl.org/2009/utr/errors",
+		STANDARD_PREFIX_LABEL_ERROR						=> "http://xbrl.org/2008/label/error",
+		STANDARD_PREFIX_XBRLDT							=> "http://xbrl.org/2005/xbrldt",
+		STANDARD_PREFIX_XBRLDT_ERROR					=> "http://xbrl.org/2005/xbrldt/errors",
+		STANDARD_PREFIX_XBRLDI							=> "http://xbrl.org/2006/xbrldi",
+		STANDARD_PREFIX_XBRLDI_ERROR					=> "http://xbrl.org/2005/xbrldi/errors",
+		STANDARD_PREFIX_GENERIC_ERROR					=> "http://xbrl.org/2008/generic/error",
+		STANDARD_PREFIX_XBRLI							=> "http://www.xbrl.org/2003/instance",
+		STANDARD_PREFIX_XLINK							=> "http://www.w3.org/1999/xlink",
+		STANDARD_PREFIX_XL								=> "http://www.xbrl.org/2003/XLink",
+		STANDARD_PREFIX_SCHEMA							=> "http://www.w3.org/2001/XMLSchema",
+		STANDARD_PREFIX_SCHEMA_ALTERNATIVE				=> "http://www.w3.org/2001/XMLSchema",
+		"xhtml"											=> "http://www.w3.org/1999/xhtml",
+		STANDARD_PREFIX_SCHEMA_INSTANCE					=> "http://www.w3.org/2001/XMLSchema-instance",
+		STANDARD_PREFIX_XML								=> "http://www.w3.org/XML/1998/namespace",
+		STANDARD_PREFIX_TABLE							=> "http://xbrl.org/2014/table",
+		STANDARD_PREFIX_TABLE_ERROR						=> "http://xbrl.org/2014/table/error",
+		STANDARD_PREFIX_TABLE_MODEL						=> "http://xbrl.org/2014/table/model",
+		STANDARD_PREFIX_FUNCTION_INSTANCE_ERROR			=> "http://www.xbrl.org/2008/function/instance/error",
+		STANDARD_PREFIX_FUNCTION_INSTANCE				=> "http://www.xbrl.org/2008/function/instance",
+		STANDARD_PREFIX_VARIABLE						=> "http://xbrl.org/2008/variable",
+		STANDARD_PREFIX_FORMULA							=> "http://xbrl.org/2008/formula",
+		STANDARD_PREFIX_FORMULA_TUPLE					=> "http://xbrl.org/2010/formula/tuple",
+		STANDARD_PREFIX_FILTER_DIMENSION				=> "http://xbrl.org/2008/filter/dimension",
+		STANDARD_PREFIX_VARIABLE_ERROR					=> "http://xbrl.org/2008/variable/error",
+		STANDARD_PREFIX_ASPECT							=> "http://xbrl.org/2008/variable/aspect", // This one is used by aspect tests
+		STANDARD_PREFIX_ASPECT_TEST						=> "http://xbrl.org/2008/variable/aspectTest",
+		STANDARD_PREFIX_VALIDATION						=> "http://xbrl.org/2008/validation",
+		STANDARD_PREFIX_VALIDATION_MESSAGE				=> "http://xbrl.org/2010/message/validation",
+		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR		=> "http://xbrl.org/2010/message/validation/error",
+		STANDARD_PREFIX_VALUE							=> "http://xbrl.org/2008/assertion/value",
+		STANDARD_PREFIX_EXISTENCE						=> "http://xbrl.org/2008/assertion/existence",
+		STANDARD_PREFIX_CONSISTENCY						=> "http://xbrl.org/2008/assertion/consistency",
+		STANDARD_PREFIX_MESSAGE							=> "http://xbrl.org/2010/message",
+		STANDARD_PREFIX_MESSAGE_ERROR					=> "http://xbrl.org/2010/message/error",
+		STANDARD_PREFIX_ACF								=> "http://xbrl.org/2010/filter/aspect-cover",
+		STANDARD_PREFIX_BF								=> "http://xbrl.org/2008/filter/boolean",
+		STANDARD_PREFIX_CA								=> "http://xbrl.org/2008/assertion/consistency",
+		STANDARD_PREFIX_CF								=> "http://xbrl.org/2008/filter/concept",
+		STANDARD_PREFIX_CF_ERROR						=> "http://xbrl.org/2008/filter/concept/error",
+		STANDARD_PREFIX_CFI								=> "http://xbrl.org/2010/custom-function",
+		STANDARD_PREFIX_CRF								=> "http://xbrl.org/2010/filter/concept-relation",
+		STANDARD_PREFIX_DF								=> "http://xbrl.org/2008/filter/dimension",
+		STANDARD_PREFIX_EA								=> "http://xbrl.org/2008/assertion/existence",
+		STANDARD_PREFIX_EF								=> "http://xbrl.org/2008/filter/entity",
+		STANDARD_PREFIX_PF								=> "http://xbrl.org/2008/filter/period",
+		STANDARD_PREFIX_GF								=> "http://xbrl.org/2008/filter/general",
+		STANDARD_PREFIX_RF								=> "http://xbrl.org/2008/filter/relative",
+		STANDARD_PREFIX_TF								=> "http://xbrl.org/2008/filter/tuple",
+		STANDARD_PREFIX_UF								=> "http://xbrl.org/2008/filter/unit",
+		STANDARD_PREFIX_VA								=> "http://xbrl.org/2008/assertion/value",
+		STANDARD_PREFIX_REG								=> "http://xbrl.org/2008/registry",
+		STANDARD_PREFIX_FUNCTION						=> "http://xbrl.org/2008/function",
+		STANDARD_PREFIX_CONFORMANCE_FUNCTION			=> "http://xbrl.org/2008/conformance/function",
+		STANDARD_PREFIX_FUNCTION_FORMULA				=> "http://www.xbrl.org/2010/function/formula",
+		STANDARD_PREFIX_FUNCTION_FORMULA_ERROR			=> "http://www.xbrl.org/2010/function/formula/error",
+		STANDARD_PREFIX_IMPLICIT_FILTER_ERROR			=> "http://xbrl.org/2008/filter/implicit/error",
+		STANDARD_PREFIX_INSTANCES						=> "http://xbrl.org/2010/variable/instance",
+		STANDARD_PREFIX_LYQUIDITY						=> "http://lyquidity.com/2017/functions",
+		STANDARD_PREFIX_SEVERITY						=> "http://xbrl.org/2016/assertion-severity",
 		STANDARD_PREFIX_ENUMERATIONS					=> "http://xbrl.org/2014/extensible-enumerations",
 		STANDARD_PREFIX_ENUMERATIONS_INSTANCE_ERRORS	=> "http://xbrl.org/2014/extensible-enumerations/instance-errors",
 		STANDARD_PREFIX_ENUMERATIONS_TAXONOMY_ERRORS	=> "http://xbrl.org/2014/extensible-enumerations/taxonomy-errors",
@@ -237,6 +238,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_GENERIC_PREFERRED_LABEL_ERROR	=> "http://xbrl.org/2013/preferred-label/error",
 		STANDARD_PREFIX_DTR_NUMERIC						=> "http://www.xbrl.org/dtr/type/numeric",
 		STANDARD_PREFIX_DTR_NONNUMERIC					=> "http://www.xbrl.org/dtr/type/non-numeric",
+		STANDARD_PREFIX_DTR_TYPES						=> "http://www.xbrl.org/dtr/type/2020-01-21",
 	);
 
 	/**
@@ -1431,18 +1433,28 @@ class XBRL_Constants
 	 * @var string
 	 */
 	public static $dtrTypesStartsWith		= "http://www.xbrl.org/dtr/type/";
+
 	/**
 	 * http://www.xbrl.org/dtr/type/numeric
-	 * Numeric data type role
+	 * Numeric data type namespace
 	 * @var string
 	 */
+
 	public static $dtrNumeric				= "http://www.xbrl.org/dtr/type/numeric";
 	/**
 	 * http://www.xbrl.org/dtr/type/non-numeric
-	 * Non-numeric data type role
+	 * Non-numeric data type namespace
 	 * @var string
 	 */
+
 	public static $dtrNonnum				= "http://www.xbrl.org/dtr/type/non-numeric";
+
+	/**
+	 * http://www.xbrl.org/dtr/type/2020-01-21
+	 * Interoperable Taxonomy Architecture (ITA) initiative data type namespace
+	 * @var string
+	 */
+	public static $dtrTypes					= "http://www.xbrl.org/dtr/type/2020-01-21";
 
 	/* ------------------------------------------------------------------------------------------
 	 * Standard Labels
