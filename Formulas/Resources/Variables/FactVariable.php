@@ -509,7 +509,7 @@ class FactVariable extends Variable
 		// if ( $evaluation->notBindings && $factsClone->MoveNext() )
 		if ( $evaluation->notBindings )
 		{
-			// Got to compare the facts with the facts if the corresponding binding so begin by making a list of these facts
+			// Got to compare the facts with the facts of the corresponding binding so begin by making a list of these facts
 			// This is the equivalent of the Arelle function evaluationIsUnnecessary in FormulaEvaluator.py.  Arelle uses
 			// hashes of fact objects indexed by the variable QName to determine if the same facts are being use more than once
 			// to create an evaluation.  I'm not sure that hashes of DOMNode instances are stable enough to do something similar

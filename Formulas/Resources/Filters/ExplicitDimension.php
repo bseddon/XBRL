@@ -354,7 +354,7 @@ class ExplicitDimension extends Filter
 			}
 		}
 
-		return implode( " or ", $clauses );
+		return '(' . implode( " or ", $clauses ) . ')';
 
 	}
 
