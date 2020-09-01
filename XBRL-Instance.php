@@ -5240,6 +5240,7 @@ class XBRL_Instance
 					$reason = "";
 
 					// Get the unit - it must exist as its been validated already but you never know
+					if ( isset( $entry['unitRef'] ) && ! empty( $entry['unitRef'] ) )
 					if ( $this->units[ $entry['unitRef'] ] )
 					{
 						$unit = $this->units[ $entry['unitRef'] ];
