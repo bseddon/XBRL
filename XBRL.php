@@ -10186,103 +10186,9 @@ class XBRL {
 			unset( $this->definitionRoleRefs[ $roleUri ]['dimensions'][ $to ] );
 		}
 
-		// BMS 2017-03-21 Not using the hierarchy any more so the reference to 'paths' is redundant
-		return;
-
-		$toFragment = parse_url( $to, PHP_URL_FRAGMENT );
-		$fromFragment = parse_url( $from, PHP_URL_FRAGMENT );
-
-		if ( isset( $this->definitionRoleRefs[ $roleUri ]['paths'][ $toFragment ] ) )
+		if ( isset( $this->definitionRoleRefs[ $roleUri ]['hypercubes'][ $to ] ) )
 		{
-			$paths = $this->definitionRoleRefs[ $roleUri ]['paths'][ $toFragment ];
-			$me = $this;
-			$this->processNodeByPath( $this->definitionRoleRefs[ $roleUri ]['hierarchy'], $paths, $from,
-				function( &$node, $path, $parentKey ) use( &$me, $from, $to, $roleUri ) {
-
-					if ( $node['label'] != $from && ! isset( $node['children'][ $to ] ) ) return;
-
-					// If this node has children then they need to be removed!
-					if ( isset( $node['children'][ $to ]['children'] ) )
-					{
-						foreach ( $node['children'][ $to ]['children'] as $childKey => $child )
-						{
-							$me->removeDefinitionArc( $roleUri, $to, $childKey );
-						}
-					}
-
-					unset( $node['children'][ $to ] );
-				}
-			);
-			unset( $me );
-
-			/*
-			foreach ( $paths as $path )
-			{
-				if ( isset( $current ) ) unset( $current );
-				$current =& $this->definitionRoleRefs[ $roleUri ]['hierarchy'];
-				$previous = null;
-				$previousKey = null;
-				$partsPath = "";
-
-				// Use the path to find the hierarchy node to be removed
-				$parts = explode( '/', $path );
-				foreach ( $parts as $part )
-				{
-					if ( ! isset( $current[ $part ] ) )
-					{
-						break;
-					}
-
-					$previous =& $current;
-
-					if ( ! empty( $partsPath ) ) $partsPath .= '/';
-					$partsPath .= $part;
-
-					$current =& $current[ $part ];
-
-					if ( ! isset( $current['children'] ) || $current['label'] == $parts[ count( $parts ) - 1 ] )
-					{
-						break;
-					}
-
-					$current =& $current['children'];
-					$previousKey = $part;
-				}
-
-				if ( $partsPath != $path )
-				{
-					continue;
-				}
-
-				// The label of $current should be $toFragment and the label of $previous should be $fromFragment
-				if ( $current['label'] != $to )
-				{
-					continue;
-				}
-
-				if ( $previousKey != $from)
-				{
-					// This means the path contains the $to node but its parent on this path is not $from
-					continue;
-				}
-
-				// If this node has children then they need to be removed!
-				if ( isset( $current['children'] ) )
-				{
-					foreach ( $current['children'] as $childKey => $child )
-					{
-						$this->removeDefinitionArc( $roleUri, $to, $childKey );
-					}
-				}
-
-				// Remove the arc
-				unset( $previous[ $to ] );
-
-			}
-			*/
-
-			// Remove the paths
-			unset( $this->definitionRoleRefs[ $roleUri ]['paths'][ $toFragment ] );
+			// unset( $this->definitionRoleRefs[ $roleUri ]['hypercubes'][ $to ] );
 		}
 
 	}
@@ -18839,21 +18745,45 @@ class XBRL {
 	 */
 	public function getItemTypes( $category, &$itemTypes, $clean = true )
 	{
+		$types = $this->context->types->toArray()['types'];
+
+		$getAncestorTypes = function( $qname ) use( &$getAncestorTypes, &$types )
+		{
+			$typeList = [];
+			while ( isset( $types[ $qname ]['parent'] ) )
+			{
+				$qname = $types[ $qname ]['parent'];
+
+				if ( isset( $types[ $qname ]['types'] ) )
+				{
+					$typeList[] = implode('|', $types[ $qname ]['types'] );
+				}
+				else
+				{
+					$typeList[] = $qname;
+				}
+			}
+
+			return $typeList;
+		};
+
 		$prefix = $this->getPrefix();
-		foreach( $this->context->types->toArray()['types'] as $qname => &$type )
+		foreach( $types as $qname => &$type )
 		{
 			if ( ! isset( $type['prefix'] ) || $type['prefix'] != $prefix ) continue;
 			$hasParent = isset( $type['contentType'] ) && $type['contentType'] == 'restriction' && isset( $type['parent'] );
 			$hasContextRef = isset( $type['attributeGroups'] ) && count( array_intersect_key($type['attributeGroups'][0]['attributes'], array( 'xbrli:contextRef' => 1 ) ) );
 			if ( $hasContextRef || $hasParent )
 			{
+				$typeList = $getAncestorTypes( $qname );
 				$itemTypes[ $qname ] = array(
 					"category" => $category,
 					"numeric" => isset( $type['numeric'] ) && $type['numeric'],
 					"description" => preg_replace( "/([A-Z][a-z]+)/", "$1 ", ucfirst( str_replace( 'ItemType', "", $type['name'] ) ) ) . "($prefix)",
 					"prefix" => $prefix,
-					"uniRef" => isset( $type['attributeGroups'][0]['attributes']['xbrli:unitRef'] ),
-					"parent" => $hasParent ? $type['parent'] : false
+					"unitRef" => isset( $type['attributeGroups'][0]['attributes']['xbrli:unitRef'] ),
+					"parent" => $hasParent ? $type['parent'] : false,
+					"schemaType" => join(',', $typeList)
 				);
 			}
 		}
@@ -19019,6 +18949,36 @@ class XBRL {
 					$carry[ $unit['itemType'] ][ $unit['unitId'] ] = $unit;
 					return $carry;
 				}, array() );
+
+				// Add kph and mph because they are missing
+				$unitTypes["speedItemType"] = array(
+					"kph" => array(
+			            "unitId" => "kph",
+			            "unitName" => "Kilometres\/Hour",
+			            "itemType" => "speedItemType",
+			            "itemTypeDate" => "2020-08-24",
+			            "definition" => "Length \/ Duration",
+			            "status" => "LYQUIDITY",
+			            "versionDate" => "2012-10-31",
+			            "numeratorItemType" => "lengthItemType",
+			            "denominatorItemType" => "durationItemType",
+			            "prefixNumerator" => "num",
+			            "prefixDenominator" => "xbrli"
+					),
+					"mph" => array(
+			            "unitId" => "mph",
+			            "unitName" => "Miles\/Hour",
+			            "itemType" => "speedItemType",
+			            "itemTypeDate" => "2020-08-24",
+			            "definition" => "Length \/ Duration",
+			            "status" => "LYQUIDITY",
+			            "versionDate" => "2012-10-31",
+			            "numeratorItemType" => "lengthItemType",
+			            "denominatorItemType" => "durationItemType",
+			            "prefixNumerator" => "num",
+			            "prefixDenominator" => "xbrli"
+					)
+				);
 
 				file_put_contents( $filename, json_encode( $unitTypes ) );
 				self::$cacheUTRItems = $unitTypes;
