@@ -875,6 +875,7 @@ class XBRL_DFR
 				'periodType' => 'duration',
 				'prefix' => $this->taxonomy->getPrefix(),
 			);
+			$paths[ $id ] = array( $root );
 
 			$this->presentationNetworks[ $roleUri ] = array(
 				'type' => 'simple',
@@ -1012,6 +1013,117 @@ class XBRL_DFR
 							'error' => 'error:OneAndOnlyOneLineItems'
 						)
 					);
+				}
+
+				if ( $tables && ! $axes )
+				{
+					// BMS 2020-09-01 This is a partially complete presentation hierarchy. Probably a
+					//				  regular taxonomy not a DFR so try to complete the table.
+					$definitionPrimaryItems = $this->taxonomy->getDefinitionPrimaryItems();
+
+					// There is a valid hypercube but no dimensions so create on from the definition
+					foreach( $tables as $primaryLabel => $tableLabel )
+					{
+						if ( ! isset( $definitionPrimaryItems[ $primaryLabel ] ) ) continue;
+						$drs = $this->taxonomy->getPrimaryItemDRS( $definitionPrimaryItems[ $primaryLabel ] );
+						if ( ! isset( $drs[ $tableLabel ] ) )
+						{
+							unset( $tables[ $primaryLabel ] );
+							continue;
+						}
+
+						// If necessary change the table label because the report generation
+						// requires it to create an accumulated tables list see line 4711.
+						if ( key( $role['hierarchy'] ) != $primaryLabel )
+						{
+							$tables[ key( $role['hierarchy'] ) ] = $tableLabel;
+							unset( $tables[ $primaryLabel ] );
+						}
+						$hypercubes = $drs[ $tableLabel ];
+						foreach( $hypercubes as $hypercubeRole => $hypercube )
+						{
+							foreach( $hypercube['dimensions'] as $dimensionLabel => $dimension )
+							{
+								// Don't fill the same axis twice
+								if ( isset( $axes[ $tableLabel ][ $dimensionLabel ] ) ) continue;
+
+								// Create an axis
+								$dimTaxonomy = $this->taxonomy->getTaxonomyForXSD( $dimensionLabel );
+								$element = $dimTaxonomy->getElementById( $dimensionLabel );
+
+								$defaultMember = isset( $this->taxonomy->context->dimensionDefaults[ $dimensionLabel ]['label'] )
+									? $this->taxonomy->context->dimensionDefaults[ $dimensionLabel ]['label']
+									: false;
+								$typedDomainRef = isset( $element['typedDomainRef'] )
+									? $element['typedDomainRef']
+									: false;
+
+								$axis = array(
+									'dimension' => new QName( $dimTaxonomy->getPrefix(), $dimTaxonomy->getNamespace(), $element['name'] ),
+									'dimension-label' => $dimensionLabel,
+									'default-member' => $defaultMember,
+									'typedDomainRef' => $typedDomainRef,
+									'root-member' => false,
+									'domain-member' => false,
+									'members' => array()
+								);
+
+								// Add all dimension members to the axis
+								$addMembers = function( $dimensionMembers, $root ) use( &$addMembers, &$axis, &$dimensionLabel )
+								{
+									foreach( $dimensionMembers as $memberLabel => $member )
+									{
+										$memberTaxonomy = $this->taxonomy->getTaxonomyForXSD( $memberLabel );
+										if ( ! $memberTaxonomy ) continue;
+
+										if ( $root )
+										{
+											$axis['root-member'] = $memberLabel;
+											$root = false;
+										}
+
+										if ( isset( $member['parents'][ $dimensionLabel ] ) )
+										{
+											$arcrole = $member['parents'][ $dimensionLabel ]['arcrole'];
+											if ( $arcrole == XBRL_Constants::$arcRoleDimensionDomain )
+											{
+												$axis['domain-member'] = $memberLabel;
+											}
+											unset( $arcrole );
+										}
+
+										$element = $memberTaxonomy->getElementById( $memberLabel );
+
+										$axis['members'][ $memberLabel ] = new QName( $memberTaxonomy->getPrefix(), $memberTaxonomy->getNamespace(), $element['name'] );
+
+										if ( ! isset( $member['children'] ) ) continue;
+
+										$addMembers( $member['children'], false );
+									}
+								};
+
+								$addMembers( $dimension['members'], true );
+
+								$axes[ $tableLabel ][ $dimensionLabel ] = $axis;
+
+								unset( $axis );
+								unset( $element );
+								unset( $members );
+								unset( $dimTaxonomy );
+							}
+
+							unset( $dimensionLabel );
+							unset( $dimension );
+						}
+
+						unset( $drs );
+						unset( $hypercube );
+						unset( $hypercubeRole );
+						unset( $hypercubes );
+					}
+					unset( $definitionPrimaryItems );
+					unset( $primaryLabel );
+					unset( $tableLabel );
 				}
 			}
 			else if ( $tables )
@@ -2704,6 +2816,13 @@ class XBRL_DFR
 	 * @param QName $entityQName
 	 * @param array $formulaSummaries	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
+	 * @param array $resultFactsLayout
+	 * @param array $accumulatedTables
+	 * @param array $nodesToProcess
+	 * @param array|boolean $lineItems
+	 * @param boolean $excludeEmptyHeadrers
+	 * @param integer &$row
+	 * @param array $lasts
 	 * @param string $allowConstrained  Set to false if the view is only one column of text
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param string $parentLabel
@@ -2772,7 +2891,8 @@ class XBRL_DFR
 
 				if ( isset( $network['tables'][ $label ] ) && ! isset( $accumulatedTables[ $label ] ) )
 				{
-					continue;
+					// BMS 2020-08-31 In the presentation hierarchy node might be linked to a table
+					if ( ! isset( $node['children'] ) ) continue;
 				}
 
 				if ( isset( $network['concepts'][ $label ] ) )
