@@ -255,7 +255,7 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 			'xbrli:fractionItemType' => array( 'type' => 'xbrli:fractionItemType', 'base' => 'xs:complex', 'unitRef' => 'yes' ),
 			// The following non-numeric types are all based on XML Schema built-in types that are not derived from either decimal or string.
 			'xbrli:stringItemType' => array( 'type' => 'xbrli:stringItemType', 'base' => 'xs:string', 'unitRef' => 'no' ),
-			'xbrli:booleanItemType' => array( 'type' => 'xbrli:booleanItemType', 'base' => 'xs:Boolean', 'unitRef' => 'no' ),
+			'xbrli:booleanItemType' => array( 'type' => 'xbrli:booleanItemType', 'base' => 'xs:boolean', 'unitRef' => 'no' ),
 			'xbrli:hexBinaryItemType' => array( 'type' => 'xbrli:hexBinaryItemType', 'base' => 'xs:hexBinary', 'unitRef' => 'no' ),
 			'xbrli:base64BinaryItemType' => array( 'type' => 'xbrli:base64BinaryItemType', 'base' => 'xs:base64Binary', 'unitRef' => 'no' ),
 			'xbrli:anyURIItemType' => array( 'type' => 'xbrli:anyURIItemType', 'base' => 'xs:anyURI', 'unitRef' => 'no' ),
