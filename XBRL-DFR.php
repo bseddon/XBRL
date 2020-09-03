@@ -2923,7 +2923,10 @@ class XBRL_DFR
 		// Next, create a list of the context refs used
 		$contextRefs = array_reduce( $elements, function( $carry, $element ) use ( $instance )
 		{
-			$result = array_unique( array_map( function( $fact ) { return $fact['contextRef']; }, array_values( $element ) ) );
+			$result = array_unique( array_filter( array_map( function( $fact )
+			{
+				return $fact['taxonomy_element']['substitutionGroup'] == XBRL_Constants::$xbrliTuple ? null : $fact['contextRef'];
+			}, array_values( $element ) ) ) );
 			return array_unique( array_merge( $carry, $result ) );
 		}, array() );
 
@@ -3506,8 +3509,8 @@ class XBRL_DFR
 
 						// Add the data.  There is likely to be only a partial facts set
 						$facts = $instance->getElement( $nodeElement['name'] );
-						// Filter facts by contexts
-						$facts = array_filter( $facts, function( $fact ) use ( $contexts ) { return isset( $contexts[ $fact['contextRef'] ] ); } );
+						// Filter facts by contexts (ignore tuples - the ones without a contextRef )
+						$facts = array_filter( $facts, function( $fact ) use ( $contexts ) { return isset( $fact['contextRef'] ) && isset( $contexts[ $fact['contextRef'] ] ); } );
 
 						// echo count( $facts ) . " $label\n";
 
