@@ -918,13 +918,10 @@ class XBRL {
 			 */
 			$taxonomy_instance = new $classname();
 			$taxonomy_instance->context =& $context;
-			// $taxonomy_instance->loadTaxonomy( $taxonomyXsdFile, $xbrlDocument, $namespace, $depth + 1, $processXsd );
 			if ( ! $taxonomy_instance->loadSchema( $taxonomyXsdFile, $xbrlDocument, $namespace, $depth + 1, $processXsd ) )
 			{
 				return null;
 			}
-
-			// $taxonomy_instance->afterMainTaxonomy();
 
 			return $taxonomy_instance;
 		};
@@ -2057,45 +2054,18 @@ class XBRL {
 
 		$type = "$prefix:$name";
 
-		switch ( $type )
+		// Give a value registry entry a chance
+		foreach ( self::$valueAlignmentForTypeRegistry as $callback )
 		{
-			case 'num:perShareItemType':
-			case 'num:percentItemType':
-			case 'xbrli:decimalItemType':
-			case XBRL_Constants::$xbrliMonetaryItemType:
-			case 'xbrli:sharesItemType':
-			case 'xbrli:integerItemType':
-			case 'xbrli:pureItemType':
-			case 'types:EPSItemType';
-				return "right";
-
-			case 'nonnum:textBlockItemType':
-			case 'nonnum:escapedItemType':
-			case 'xbrli:dateItemType':
-			case 'xbrli:stringItemType':
-			case 'xbrli:booleanItemType':
-			case 'xbrli:normalizedStringItemType':
-			case 'xbrli:gMonthDayItemType':
-			case 'xbrli:gYearItemType':
-			case 'xbrli:durationItemType':
-			case 'xbrli:tokenItemType':
-			case 'xbrli:anyURIItemType':
-			case 'types:RelatedPartyItemType':
-			case 'types:TextBlockNoteItemType':
-			case 'types:TextBlockScheduleItemType':
-			case 'types:TextBlockPolicyItemType':
-				return "left";
-
-			default:
-				foreach ( self::$valueAlignmentForTypeRegistry as $callback )
-				{
-					if ( ! is_callable( $callback ) ) continue;
-					$result = $callback( $type );
-					if ( $result ) return $result;
-				}
-				$this->log()->warning( "valueAlignmentForNamespace: Need to handle type '$type'" );
-				return "left";
+			if ( ! is_callable( $callback ) ) continue;
+			$result = $callback( $type );
+			if ( $result ) return $result;
 		}
+
+		// Otherwise use an alignment based on type
+		return $this->context->types->resolvesToBaseType( $type, array( 'xs:decimal' ) )
+			? 'right'
+			: 'left';
 	}
 
 	/**
@@ -3237,7 +3207,7 @@ class XBRL {
 					}
 				}
 
-				// Reduce the accummulated list back to a simple list of hypercubes
+				// Reduce the accumulated list back to a simple list of hypercubes
 				$hypercubes = array_reduce( $hypercubes, function( $carry, $hypercubes ) {
 					$carry = array_unique( array_merge( $carry, array_keys( $hypercubes ) ) );
 					return $carry;
@@ -10185,12 +10155,6 @@ class XBRL {
 		{
 			unset( $this->definitionRoleRefs[ $roleUri ]['dimensions'][ $to ] );
 		}
-
-		if ( isset( $this->definitionRoleRefs[ $roleUri ]['hypercubes'][ $to ] ) )
-		{
-			// unset( $this->definitionRoleRefs[ $roleUri ]['hypercubes'][ $to ] );
-		}
-
 	}
 
 	/**
@@ -10811,49 +10775,40 @@ class XBRL {
 								extract( $this->validateArcAttributes( 'definitions', $fromLabel, $toLabel, $attributes ) );
 
 								// Create a node for the 'to' component
-								if ( ! isset( $nodes[ $to ] ) && $use != 'prohibited' )
+								// if ( ! isset( $nodes[ $to ] ) && $use != 'prohibited' )
+								if ( ! isset( $nodes[ $to ] ) )
 								{
 									$nodes[ $to ] = array(
 										'label' => $to,
 										'parents' => array( $from => array() ),
 									);
 								}
-								else
+								else if ( ! isset( $nodes[ $to ]['parents'][ $from ] ) )
 								{
-									if ( $use == 'prohibited' )
+									$nodes[ $to ]['parents'][ $from ] = array();
+								}
+
+								// If its a hypercube, let the merge role function handle the prohibition
+								if ( $use == 'prohibited' && ! in_array( $arcroleUri, \XBRL_Constants::$hasHypercube ) )
+								{
+									echo "Use prohibited ($to)\n";
+
+									if (
+										  ! isset( $nodes[ $to ]['parents'][ $from ]['priority'] ) ||
+											$nodes[ $to ]['parents'][ $from ]['priority'] >= $priority // $priority here is from the extracted result above
+									   )
 									{
-										echo "Use prohibited ($to)\n";
-
-										if (
-											  ! isset( $nodes[ $to ]['parents'][ $from ]['priority'] ) ||
-												$nodes[ $to ]['parents'][ $from ]['priority'] >= $priority // $priority here is from the extracted result above
-										   )
+										// If this node represents a primary item then remove it from the list
+										// Otherwise the prohibition will be affected in the merge hierarchy function.
+										if ( isset( $primaryItems[ $to ] ) )
 										{
-											// If this node represents a primary item then remove it from the list
-											// Otherwise the prohibition will be affected in the merge hierarchy function.
-											if ( isset( $primaryItems[ $to ] ) )
-											{
-												unset( $primaryItems[ $to ] );
-											}
-
-											$home_taxonomy->removeDefinitionArc( $roleRefsKey, $from, $to );
+											unset( $primaryItems[ $to ] );
 										}
 
-										continue;
+										$home_taxonomy->removeDefinitionArc( $roleRefsKey, $from, $to );
 									}
 
-									if ( isset( $nodes[ $to ]['parents'][ $from ]['priority'] ) )
-									{
-										if ( $priority > $nodes[ $to ]['parents'][ $from ]['priority'] )
-										{
-											// only replace if the priority is higher
-											$nodes[ $to ]['parents'][ $from ] = array();
-										}
-									}
-									else
-									{
-										$nodes[ $to ]['parents'][ $from ] = array();
-									}
+									continue;
 								}
 
 								if ( ! count( $nodes[ $to ]['parents'][ $from ] ) )
@@ -10863,6 +10818,15 @@ class XBRL {
 									$nodes[ $to ]['parents'][ $from ]['use']		= $use;
 									$nodes[ $to ]['parents'][ $from ]['title']		= $title;
 									$nodes[ $to ]['parents'][ $from ]['priority']	= $priority;
+								}
+								else if ( $priority > 0 )
+								{
+									if ( ! isset( $nodes[ $to ]['parents'][ $from ]['priority'] ) ||
+										 $priority > $nodes[ $to ]['parents'][ $from ]['priority'] )
+									{
+										// only replace if the priority is higher
+										$nodes[ $to ]['parents'][ $from ] = array();
+									}
 								}
 
 								$namespace = null;
@@ -11060,9 +11024,10 @@ class XBRL {
 												// If the hypercube already exists then the task is to add
 												// the hypercube to the list of existing hypercubes
 												$primaryItems[ $from ]['hypercubes'][] = $to;
+												$primaryItems[ $from ]['hypercubes'] = array_unique( $primaryItems[ $from ]['hypercubes'] );
 												$primaryItems[ $from ]['localhypercubes'][] = $to;
+												$primaryItems[ $from ]['localhypercubes'] = array_unique( $primaryItems[ $from ]['localhypercubes'] );
 												// Need to add this to any child primary items
-
 											}
 											else
 											{
@@ -11421,6 +11386,8 @@ class XBRL {
 										}
 										$parentCopy['contextElement']  = $hypercubes[ $hypercubeId ]['parents'][ $parentKey ]['contextElement'];
 										$primaryItems[ $nodeKey ]['hypercubes'][] = $hypercubeId;
+										$primaryItems[ $nodeKey ]['hypercubes'] = array_unique( $primaryItems[ $nodeKey ]['hypercubes'] );
+
 										if ( isset( $hypercubes[ $hypercubeId ] ) )
 										{
 											$hypercubes[ $hypercubeId ]['parents'][ $nodeKey ] = $parentCopy;
@@ -13875,11 +13842,11 @@ class XBRL {
 
 		if ( filter_var( $result['priority'], FILTER_VALIDATE_INT ) === false )
 		{
-			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc priority value MUST be an integer",
+			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc 'priority' value MUST be an integer",
 				array(
 					'linkbase' => $linkbase,
-					'from' => $fromLabel,
-					'to' => $toLabel,
+					'from' => $from,
+					'to' => $to,
 					'priority' => $result['priority'],
 				)
 			);
@@ -13887,23 +13854,24 @@ class XBRL {
 
 		if ( ! in_array( $result['use'], XBRL_Constants::$xlinkUseValues ) )
 		{
-			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc priority value MUST be an integer",
+			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc 'use' value MUST be an integer",
 				array(
 					'linkbase' => $linkbase,
-					'from' => $fromLabel,
-					'to' => $toLabel,
+					'from' => $from,
+					'to' => $to,
 					'use' => $result['use'],
+					'should be' => join( ' or ', XBRL_Constants::$xlinkUseValues )
 				)
 			);
 		}
 
 		if ( ! is_numeric( $result['order'] ) )
 		{
-			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc order value MUST be numeric",
+			$this->log()->taxonomy_validation( "3.5.3.9.5", "The arc 'order' value MUST be numeric",
 				array(
 					'linkbase' => $linkbase,
-					'from' => $fromLabel,
-					'to' => $toLabel,
+					'from' => $from,
+					'to' => $to,
 					'order' => $result['order'],
 				)
 			);
@@ -16102,7 +16070,7 @@ class XBRL {
 						// Look for a match in any one of the linkbases
 						// array_reduce( array_map( 'array_keys', $arcs ), 'array_merge', array() );
 						$matches = array_reduce( array_keys( $linkbaseroleTypes ), function( $carry, $item ) use( &$linkbaseroleTypes, $targetRole, &$target ) {
-							if ( isset( $linkbaseroleTypes[ $item][ "link:definitionLink:$targetRole" ] ) )
+							if ( isset( $linkbaseroleTypes[ $item ][ "link:definitionLink:$targetRole" ] ) )
 							{
 								$carry[] = $item;
 							}
@@ -16334,7 +16302,7 @@ class XBRL {
 		{
 			if ( ! $this->resolvePrimaryItemHypercubeDRS( $primaryItemId, $hypercubeId, $role ) )
 			{
-				// Something went wrong
+				// Something went wrong or there is a prohibited hypercube targetrole
 				continue;
 			}
 
@@ -16522,8 +16490,13 @@ class XBRL {
 
 		if ( isset( $hypercube['parents'][ $primaryItemId ]['targetRole'] ) )
 		{
+			$parent = $hypercube['parents'][ $primaryItemId ];
+			// BMS 2020-09-02 Account for prohibited hypercube links
+			// BMS 2020-09-02 Account for prohibited hypercube links
+			if ( isset( $parent['use'] ) && $parent['use'] == XBRL_Constants::$xlinkUseProhibited ) return false;
+
 			// Need to merge hypercube from targetRole.  First check it is valid.
-			$targetRoleUri = $hypercube['parents'][ $primaryItemId ]['targetRole'];
+			$targetRoleUri = $parent['targetRole'];
 
 			$targetRole = $this->getDefinitionRoleRef( $targetRoleUri );
 
@@ -16535,6 +16508,7 @@ class XBRL {
 				{
 					$targetRole = $taxonomy->getDefinitionRoleRef( $targetRoleUri );
 				}
+				unset( $taxonomy );
 			}
 
 			if ( $targetRole )
@@ -16547,7 +16521,7 @@ class XBRL {
 				{
 					$this->log()->dimension_validation( "2.4.3", "The hypercube cannot be located in the hypercubes collection of the target role",
 						array(
-							'target role' => "'{$hypercube['parents'][ $primaryItemId ]['targetRole']}'",
+							'target role' => "'{$parent['targetRole']}'",
 							'hypercube' => "'$hypercubeId'",
 						)
 					);
@@ -16562,7 +16536,12 @@ class XBRL {
 					// Something went horribly wrong
 					return false;
 				}
+				unset( $originalRole );
 			}
+
+			unset( $parent );
+			unset( $targetRole );
+			unset( $targetRoleUri );
 		}
 
 		// Next handle dimensions with targetRoles recursively
@@ -16573,6 +16552,8 @@ class XBRL {
 			{
 				// Can only merge if there is a targetRole
 				if ( ! isset( $parent['targetRole'] ) ) continue;
+				// BMS 2020-09-02 Account for prohibited hypercube links
+				if ( isset( $parent['use'] ) && $parent['use'] == XBRL_Constants::$xlinkUseProhibited ) continue;
 				// No need to merge if the role has already been seen and merged
 				if ( in_array( $parent['targetRole'], $mergedRoles ) ) continue;
 
@@ -16617,6 +16598,8 @@ class XBRL {
 			{
 				// Can only merge if there is a targetRole
 				if ( ! isset( $parent['targetRole'] ) ) continue;
+				// BMS 2020-09-02 Account for prohibited hypercube links
+				if ( isset( $parent['use'] ) && $parent['use'] == XBRL_Constants::$xlinkUseProhibited ) continue;
 				// No need to merge if the role has already been seen and merged
 				if ( in_array( $parent['targetRole'], $mergedRoles ) ) continue;
 
