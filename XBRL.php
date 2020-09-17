@@ -18766,7 +18766,9 @@ class XBRL {
 					"prefix" => $prefix,
 					"unitRef" => isset( $type['attributeGroups'][0]['attributes']['xbrli:unitRef'] ),
 					"parent" => $hasParent ? $type['parent'] : false,
-					"schemaType" => join(',', $typeList)
+					"schemaType" => join(',', $typeList),
+					"pattern" => isset( $type['pattern'] ) ? $type['pattern'] : null,
+					"values" => isset( $type['values'] ) ? implode( ',', array_map( function( $value ) { return $value['value']; }, $type['values'] ) ) : null
 				);
 			}
 		}
