@@ -41,7 +41,7 @@ define( 'NEGATIVE_AS_MINUS', 'minus' );
 class XBRL_DFR
 {
 	/**
-	 *
+	 * This is set in getConceptualModelRoles
 	 * @var string
 	 */
 	public static $originallyStatedLabel = "";
@@ -524,7 +524,6 @@ class XBRL_DFR
 			'RangeAxis' => XBRL_Constants::$dfrRangeAxis,
 			'ReportingScenarioAxis' => XBRL_Constants::$dfrReportingScenarioAxis,
 			'CalendarPeriodAxis' => XBRL_Constants::$dfrCalendarPeriodAxis,
-			'ReportDateAxis' => XBRL_Constants::$dfrReportDateAxis,
 			'FiscalPeriodAxis' => XBRL_Constants::$dfrFiscalPeriodAxis,
 			'origionallyStatedLabel' => 'origionallyStated',
 			'restatedLabel' => XBRL_Constants::$labelRoleRestatedLabel,
