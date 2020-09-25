@@ -429,6 +429,26 @@ class XBRL_Global
 	}
 
 	/**
+	 * Recursively remove files
+	 * @param string $dir
+	 */
+	public static function removeFiles($dir)
+	{
+	    foreach ( glob( $dir ) as $file )
+	    {
+	        if ( is_dir( $file ) )
+	        {
+	            self::removeFiles( "$file/*" );
+	            rmdir( $file );
+	        }
+	        else
+	        {
+	            unlink( $file );
+	        }
+	    }
+	}
+
+	/**
 	 * Removes any cached file and directories
 	 * @return boolean True if the directory exists and has been deleted
 	 */
@@ -438,23 +458,8 @@ class XBRL_Global
 
 		if ( ! is_dir( $this->cacheLocation ) ) return false;
 
-		$rmrf = function ($dir) use ( &$rmrf )
-		{
-		    foreach ( glob( $dir ) as $file )
-		    {
-		        if ( is_dir( $file ) )
-		        {
-		            $rmrf( "$file/*" );
-		            rmdir( $file );
-		        }
-		        else
-		        {
-		            unlink( $file );
-		        }
-		    }
-		};
 
-		$rmrf( $this->cacheLocation );
+		self::removeFiles( $this->cacheLocation );
 
 		return true;
 	}
