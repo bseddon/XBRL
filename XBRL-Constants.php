@@ -936,7 +936,7 @@ class XBRL_Constants
 	/* Assertion roles */
 
 	/**
-	 * http://xbrl.org/arcrole/2008/variable-set
+	 * http://xbrl.org/arcrole/2008/assertion-set
 	 * @var string $arcRoleVariableFilter
 	 */
 	public static $arcRoleAssertionSet					= "http://xbrl.org/arcrole/2008/assertion-set";
@@ -950,7 +950,7 @@ class XBRL_Constants
 	/* Variable roles */
 
 	/**
-	 * http://xbrl.org/arcrole/2008/variable-filter
+	 * http://xbrl.org/arcrole/2008/boolean-filter
 	 * @var string $arcRoleVariableFilter
 	 */
 	public static $arcRoleBooleanFilter					= "http://xbrl.org/arcrole/2008/boolean-filter";
@@ -1100,7 +1100,7 @@ class XBRL_Constants
 	public static $genericElementLabel		= "http://xbrl.org/arcrole/2008/element-label";
 
 	/**
-	 * http://xbrl.org/arcrole/2008/element-label
+	 * http://xbrl.org/arcrole/2008/preferred-label
 	 * For the generic labels specification
 	 * @var string
 	 */
