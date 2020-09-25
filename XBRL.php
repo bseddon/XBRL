@@ -900,12 +900,18 @@ class XBRL {
 			$namespace = (string) $xbrlDocument['targetNamespace'];
 			if ( isset( $context->importedSchemas[ $namespace ] ) )
 			{
+				$taxonomy = $context->importedSchemas[ $namespace ];
+
+				if ( ! property_exists( $taxonomy, 'xbrlDocument' ) || ! $taxonomy->xbrlDocument )
+				{
+					// $taxonomy->xbrlDocument = $xbrlDocument;
+				}
 				if ( ! isset( $context->schemaFileToNamespace[ $taxonomyXsdFile ] ) )
 				{
 					$context->schemaFileToNamespace[ $taxonomyXsdFile ] = $namespace;
 					$context->schemaFileToNamespace[ basename( $taxonomyXsdFile ) ] = $namespace;
 				}
-				return $context->importedSchemas[ $namespace ];
+				return $taxonomy;
 			}
 
 			/**
@@ -6167,12 +6173,12 @@ class XBRL {
 			$linkbaseSchemaLocation = (string)$xml->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_INSTANCE ] )->schemaLocation;
 			$parts = array_filter( preg_split( "/\s/s",  $linkbaseSchemaLocation ) );
 
-			$key = "";
+			$namespace = "";
 			foreach ( $parts as $part )
 			{
-				if ( empty( $key ) )
+				if ( empty( $namespace ) )
 				{
-					$key = $part;
+					$namespace = $part;
 				}
 				else
 				{
@@ -6180,13 +6186,17 @@ class XBRL {
 					$schemaLocation = XBRL::resolve_path( pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ), $part );
 					if ( ! isset( $this->context->schemaFileToNamespace[ $schemaLocation ] ) )
 					{
-						if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
+						if ( isset( $this->context->importedSchemas[ $namespace ] ) )
+						{
+							$this->context->schemaFileToNamespace[ $schemaLocation ] = $namespace;
+						}
+						else if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
 						{
 							$result = XBRL::withTaxonomy( $schemaLocation, true );
 						}
 					}
 
-					$key = "";
+					$namespace = "";
 				}
 			}
 		}
@@ -6268,6 +6278,8 @@ class XBRL {
 			$validArcType = function( $arcroleUri ) use( &$arcroleTypes, &$validArcType, &$taxonomy )
 			{
 				if ( ! count( $arcroleTypes ) ) return false;
+				// BMS 2020-09-24 Don't understand the reason for this line
+				//				  It appears to mean that if any one arcrole allows link:definitionArc then all arcs are valid?
 				if ( isset( $arcroleTypes['link:definitionArc'][ $arcroleUri ] ) ) return 'link:definitionArc';
 
 				// Look for $arcroleUri as a child of one of the elements in $arcroleTypes
@@ -6353,7 +6365,7 @@ class XBRL {
 						array(
 							'href' => "'$arcroleRefHref'",
 							'linkbase' => "'$xml_basename'",
-							'arcroleref' => "'$roleUri'",
+							'roleUri' => "'$roleUri'",
 						)
 					);
 					continue;
@@ -6865,8 +6877,8 @@ class XBRL {
 			// Collect any resources.  Resources are elements in the same namespace that are part
 			// of the xl:resource substitutionGroup.  Got to do this using XPath because the resource
 			// element local name and prefix can be anything and may not be defined in the schema
-			$linkbasePrefix = "";
-			$linkPrefix = "";
+			// $linkbasePrefix = "";
+			// $linkPrefix = "";
 			$xlinkPrefix = "";
 
 			foreach ( $link->getDocNamespaces( true ) as $prefix => $namespace )
@@ -6875,7 +6887,7 @@ class XBRL {
 
 				if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )
 				{
-					$linkbasePrefix = "$prefix:";
+					// $linkbasePrefix = "$prefix:";
 				}
 				else if ( $namespace == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] )
 				{
@@ -6883,12 +6895,11 @@ class XBRL {
 				}
 				else if ( $namespace == $linkQName->namespaceURI )
 				{
-					$linkPrefix = "$prefix:";
+					// $linkPrefix = "$prefix:";
 				}
 				$link->registerXPathNamespace( $prefix, $namespace );
 			}
 
-			// $query = "/{$linkbasePrefix}linkbase/{$linkPrefix}{$linkQName->localName}/*[@{$xlinkPrefix}type = 'resource']";
 			$query = $linkPath . "/*[@{$xlinkPrefix}type = 'resource']";
 			$nodes = $link->xpath( $query );
 			foreach ( $nodes as $childKey => $childElement )
@@ -7114,7 +7125,9 @@ class XBRL {
 			$linkAttributes = $link->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
 			$isGeneric = $this->context->types->resolveToSubstitutionGroup( $linkQName, array( "gen:link" ) );
 			$linkPath = $this->getXmlNodePath( $link );
-			$linkbaseDescription =  ( $isGeneric ? "Generic" : "Custom" ) . " ({$linkQName->prefix}:{$linkQName->localName})";
+			$roleListName = $isGeneric ? "genericRoles" : "customRoles";
+			$linkbaseDescription =  $roleListName . " ({$linkQName->prefix}:{$linkQName->localName})";
+			$xlinkPrefix = STANDARD_PREFIX_XLINK;
 
 			$roleUri = property_exists( $linkAttributes, "role" )
 				? (string)$linkAttributes['role']
@@ -7163,7 +7176,7 @@ class XBRL {
 			{
 				if ( $isGeneric )
 				{
-					$query = $linkPath . "/*[@{$xlinkPrefix}type = 'arc']";
+					$query = $linkPath . "/*[@{$xlinkPrefix}:type = 'arc']";
 					$nodes = $link->xpath( $query );
 
 					if ( count( $nodes ) )
@@ -7177,7 +7190,8 @@ class XBRL {
 							array(
 								'link' => $linkQName->clarkNotation(),
 								'arcs' => $arcs,
-								'error' => 'xbrlgene:missingArcRoleUsedOnValue'
+								'error' => 'xbrlgene:missingArcRoleUsedOnValue',
+								'linkbase' => $xml_basename
 							)
 						);
 					}
@@ -7189,7 +7203,7 @@ class XBRL {
 			if ( XBRL::isValidating() && $isGeneric )
 			{
 				// Look for arcs to check there is an arcRoleRef for each arc role used
-				$query = $linkPath . "/*[@{$xlinkPrefix}type = 'arc']";
+				$query = $linkPath . "/*[@{$xlinkPrefix}:type = 'arc']";
 				$arcNodes = $link->xpath( $query );
 				$arcroles = array_unique( array_filter( array_map( function( $node ) {
 					$attributes = $node->attributes( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
@@ -7239,11 +7253,20 @@ class XBRL {
 
 					$preferredLabelRole = (string)$arc->attributes( XBRL_Constants::$genericPreferredLabel );
 
-					// If the arcrole is not one of the standard roles then there MUST be an arcroleRef.
+					// If the arcrole is not one of the standard roles then there MUST be an arcroleRef (3.5.2.5) except if the arc itself is not standard.
 					// If one does not exist, ignore the arc.
-					if ( ! XBRL_Constants::isStandardArcrole( $arcrole ) )
+					if ( ! XBRL_Constants::isStandardArcrole( $arcrole ) && XBRL_Constants::isStandardArcElement( $domNode->namespaceURI, $domNode->localName ) )
 					{
-						if ( ! $arcroleRefs || ! isset( $arcroleRefs[ $arcrole ] ) ) return true;
+						if ( ! $arcroleRefs || ! isset( $arcroleRefs[ $arcrole ] ) )
+						{
+							$this->log()->taxonomy_validation( "3.5.2.5", "An arcroleRef element MUST be used when a non-standard arcrole is used on an arc.",
+								array(
+									'arcrole' => $arcrole,
+									'linkbase' => $xml_basename
+								)
+							);
+							return true;
+						}
 					}
 
 					if ( ! $isPreferredLabelArc && $preferredLabelRole )
@@ -15323,7 +15346,7 @@ class XBRL {
 				{
 					$this->log()->dimension_validation(
 						"2.5.1",
-						"An element that is in the substitution group of the xbrldt:dimensionalItem element is not abstract.",
+						"An element that is in the substitution group of the xbrldt:dimensionItem element is not abstract.",
 						array(
 							'name' => $name,
 							'schema' => $this->getSchemaLocation(),
@@ -15990,7 +16013,7 @@ class XBRL {
 						$attributePrefix = strstr( $attribute, ":", true );
 						$attributeNamespace = $this->getDocumentNamespaces()[ $attributePrefix ];
 						$tax = $this->getTaxonomyForNamespace( $attributeNamespace );
-						// If there is no taxonomy it ma be a built-in
+						// If there is no taxonomy it may be a built-in
 						// if ( ! $tax ) continue;
 						$prefix = $tax
 							? $tax->getPrefix()
@@ -17372,7 +17395,7 @@ class XBRL {
 
 					if ( ! count( $roleTypes ) ) continue;
 
-					// Create an array indexing the
+					// Create an array indexing the existing role types
 					$rolesByUse = array();
 					foreach ( $this->roleTypes as $usedOn => $roleType )
 					{
@@ -17388,6 +17411,9 @@ class XBRL {
 					{
 						$id = (string) $roleType->attributes()->id;
 						$roleUri = (string) $roleType->attributes()->roleURI;
+						// BMS 2020-09-22 Adds $usedOn and $namne
+						$usedOn = (string) $roleType->attributes()->usedOn;
+						$name = (string) $roleType->attributes()->name;
 
 						if ( $this->isValidating() )
 						{
@@ -17399,14 +17425,15 @@ class XBRL {
 									$this->log()->taxonomy_validation( "Role Type", "id attribute is not a valid NCName", array( 'id' => $id ) );
 								}
 							}
-							if ( ! $roleUri && ! isset( \XBRL_Global::$taxonomiesToIgnore[ $this->getSchemaLocation() ] ) )
+							// BMS 2020-09-22 Updated to check for usedOn and name attributes
+							if ( ! ( $roleUri || isset( \XBRL_Global::$taxonomiesToIgnore[ $this->getSchemaLocation() ] ) || ( $usedOn && $name ) ) )
 							{
 								$this->log()->taxonomy_validation( "Role Type", "roleURI attribute does not exist or is empty", array() );
 							}
 						}
 
 						$qnames = array();
-						$roleUseOnList = array();
+						$roleUsedOnList = array();
 
 						foreach ( $roleType->usedOn as $usedOnKey => /** @var SimpleXMLElement $usedOn  */ $usedOn )
 						{
@@ -17443,7 +17470,35 @@ class XBRL {
 								);
 							}
 
-							$roleUseOnList[] = "{$qname->prefix}:{$qname->localName}";
+							$roleUsedOnList[] = "{$qname->prefix}:{$qname->localName}";
+						}
+
+						// BMS 2020-09-22
+						// http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd uses 'usedOn' as an attribute
+						// even though the 'roleType' schema definition does not define this attribute
+						if ( $usedOn && $name )
+						{
+							$originalUsedOn = $usedOn;
+							$usedOn = strpos( $usedOn, ':' ) === false
+								? "link:$usedOn"
+								: $usedOn;
+
+							$roleUri = "http://www.xbrl.org/2003/role/$name";
+							$id = $name;
+
+							if ( $originalUsedOn == 'label' && ! isset( $this->context->labelRoleRefs[ $roleUri ] ) )
+							{
+								$this->context->labelRoleRefs[ $roleUri ] = array(
+									'type' => 'simple',
+									'href' => basename( $this->schemaLocation ) . "#$name",
+									'roleUri' => $roleUri,
+								);
+							}
+
+							$roleUsedOnList[] = $usedOn;
+
+							unset( $originalUsedOn );
+
 						}
 
 						$duplicates = array_filter( array_count_values( $qnames ), function( $count ) { return $count > 1; } );
@@ -17458,16 +17513,19 @@ class XBRL {
 							) );
 						}
 
+						// Ignore this test is reading http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd
+						// because it doesn't conform anyway as it uses 'usedO' as an attribute
+						if ( ! ( $usedOn && $name ) )
 						if ( isset( $rolesByUse[ $roleUri ] ) && count( $rolesByUse[ $roleUri ] ) )
 						{
 							// Make sure the list of usedOn items are consistent.
 							// All of the existing ones MUST be present in the new one.
-							if ( count( array_intersect( $rolesByUse[ $roleUri ], $roleUseOnList ) ) != count( $rolesByUse[ $roleUri ] ) )
+							if ( count( array_intersect( $rolesByUse[ $roleUri ], $roleUsedOnList ) ) != count( $rolesByUse[ $roleUri ] ) )
 							{
 								$this->log()->taxonomy_validation( "5.1.3.4", "Role types cannot be redefined.  Within a <roleType> element there MUST NOT be S-Equal <usedOn> elements",
 									array(
 										'role' => $roleUri,
-										'usedOn' => implode( ",", $roleUseOnList ),
+										'usedOn' => implode( ",", $roleUsedOnList ),
 										'alreadyUsedOn' => implode( ",", $rolesByUse[ $roleUri ] ),
 									)
 								);
@@ -17477,7 +17535,7 @@ class XBRL {
 						// Look for the new usedOn entries
 						if ( isset( $rolesByUse[ $roleUri ] ) )
 						{
-							$roleUseOnList = array_diff( $roleUseOnList, $rolesByUse[ $roleUri ] );
+							$roleUsedOnList = array_diff( $roleUsedOnList, $rolesByUse[ $roleUri ] );
 						}
 
 						$rt = array(
@@ -17487,7 +17545,7 @@ class XBRL {
 							'id' => $id,
 						);
 
-						foreach ( $roleUseOnList as $usedOn )
+						foreach ( $roleUsedOnList as $usedOn )
 						{
 							if ( ! isset( $this->roleTypes[ $usedOn ] ) )
 							{
@@ -17498,6 +17556,8 @@ class XBRL {
 							$this->roleTypes[ $usedOn ][ $roleUri ] = $rt;
 							$rolesByUse[ $roleUri ][] = $usedOn;
 						}
+
+						unset( $roleUsedOnList );
 					}
 				}
 			}
@@ -17535,6 +17595,13 @@ class XBRL {
 
 					foreach ( $arcroleTypes as $arcroleTypesKey => $arcroleType )
 					{
+						$id = (string) $arcroleType->attributes()->id;
+						$arcroleUri = (string) $arcroleType->attributes()->arcroleURI;
+						$cyclesAllowed = (string) $arcroleType->attributes()->cyclesAllowed;
+						// BMS 2020-09-22 Adds $usedOn and $namne
+						$usedOn = (string) $arcroleType->attributes()->usedOn;
+						$name = (string) $arcroleType->attributes()->name;
+
 						if ( $this->isValidating() )
 						{
 							if ( property_exists( $arcroleType->attributes(), 'id' ) &&
@@ -17553,9 +17620,9 @@ class XBRL {
    								}
 							}
 
-							if ( ! property_exists( $arcroleType->attributes(), 'arcroleURI' ) ||
-								 empty( $arcroleType->attributes()->arcroleURI )
-							   )
+							// BMS 2020-09-22 Updated to check for usedOn and name attributes
+							if ( ! ( $usedOn && $name ) )
+							if ( ! $arcroleUri )
 							{
 								$this->log()->taxonomy_validation( "5.1.4.1", "The arcrole types MUST include an arcroleURI attribute",
 									array(
@@ -17563,7 +17630,7 @@ class XBRL {
 									)
 								);
 							}
-							else if ( ! parse_url( $arcroleType->attributes()->arcroleURI, PHP_URL_SCHEME ) )
+							else if ( ! parse_url( $arcroleUri, PHP_URL_SCHEME ) )
 							{
 								// XBRL 2.1 conformance test 161 V-15 requires this test claiming section 5.1.3 though I can't find this requirement in the text
 								$this->log()->taxonomy_validation( "5.1.3", "The arcrole types MUST include an arcroleURI attribute",
@@ -17594,10 +17661,6 @@ class XBRL {
 							}
 						}
 
-						$id = (string) $arcroleType->attributes()->id;
-						$arcroleUri = (string) $arcroleType->attributes()->arcroleURI;
-						$cyclesAllowed = (string) $arcroleType->attributes()->cyclesAllowed;
-
 						$qnames = array();
 						$arcroleUseOnList = array();
 						foreach ( $arcroleType->usedOn as $usedOnKey => $usedOn )
@@ -17626,6 +17689,25 @@ class XBRL {
 								$qname->prefix = STANDARD_PREFIX_LINK;
 							}
 							$arcroleUseOnList[] = trim( (string) $usedOn );
+						}
+
+						// BMS 2020-09-22
+						// http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd uses 'usedOn' as an attribute
+						// even though the 'arcroleType' schema definition does not define this attribute
+						if ( $usedOn && $name )
+						{
+							$qname = strpos( $usedOn, ':' ) === false
+								? "link:$usedOn"
+								: $usedOn;
+
+							$arcroleUri = "http://www.xbrl.org/2003/role/$name";
+							$id = $name;
+
+							$qnames[] = $qname;
+							$arcroleUseOnList[] = $qname;
+
+							unset( $qname );
+
 						}
 
 						$duplicates = array_filter( array_count_values( $qnames ), function( $count ) { return $count > 1; } );
