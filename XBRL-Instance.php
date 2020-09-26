@@ -5936,9 +5936,12 @@ class XBRL_Instance
 			// 3.1.4.4.3 (2) Should be checked when validaing the fact value
 
 			// Need to map the local prefix to the source taxonomy prefix
-			$parts = explode( ":", $type );
+
+			$parts = strpos( $type, ':' ) === false ? array( $this->getInstanceTaxonomy()->getPrefix(), $type ) : explode( ':', $type );
 			$parts[0] = $this->normalizePrefix( $parts[0] );
-			$typeElement = $types->getElement( implode( ":", $parts ) );
+			// Recreate the type in case it has been change so the correct value is used later in this loop
+			$type = implode( ":", $parts );
+			$typeElement = $types->getElement( $type );
 			if ( ! $typeElement ||
 				 ! count( $typeElement['types'] )
 			)
