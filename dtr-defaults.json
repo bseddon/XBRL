@@ -25,7 +25,7 @@
     "xbrli:base64BinaryItemType": null,
     "xbrli:anyURIItemType": null,
     "xbrli:QNameItemType": null,
-    "xbrli:durationItemType": "Y",
+    "xbrli:durationItemType": "H",
     "xbrli:dateTimeItemType": null,
     "xbrli:timeItemType": null,
     "xbrli:dateItemType": null,

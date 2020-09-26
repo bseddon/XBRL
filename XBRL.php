@@ -18972,6 +18972,7 @@ class XBRL {
 				$fields = array(
 					'unitId',
 					'unitName',
+					'nsUnit',
 					'itemType',
 					'itemTypeDate',
 					'symbol',
