@@ -1420,10 +1420,8 @@ class XBRL_Instance
 					{
 						$result = XBRL::withTaxonomy( $href, true );
 					}
-
 				}
 			}
-
 		}
 
 		$taxonomy = XBRL_Instance::$instance_taxonomy[ $this->schemaFilename ];
