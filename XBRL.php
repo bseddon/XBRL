@@ -15781,7 +15781,7 @@ class XBRL {
 								{
 									$result = false;
 
-									// Check that any xbrli attributes do not have attributes themsevles.
+									// Check that any xbrli attributes do not have attributes themselves.
 									if ( isset( $type['attributes'] ) )
 									foreach ( $type['attributes'] as $qname => $attribute )
 									{
