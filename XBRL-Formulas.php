@@ -1423,10 +1423,10 @@ class XBRL_Formulas extends Resource
 		        // Handy to have this test here so a break point can be assigned to the evaluate line
 				if ( ! isset( $variableSetInstance->evaluated ) )
 				{
-				// Evaluate the variable set
-				if ( ! $this->evaluate( $variableSetInstance ) )
-				{
-					return false;
+					// Evaluate the variable set
+					if ( ! $this->evaluate( $variableSetInstance ) )
+					{
+						return false;
 					}
 				}
 			}
@@ -1590,7 +1590,7 @@ class XBRL_Formulas extends Resource
 				if ( $resource['path'] != $variableFilterArc['topath'] /* || $linkbase != $variableFilterArc['linkbase'] */ ) return true;
 
 				$resource['linkbase'] = $linkbase;
-				if ( $variableFilterArc['attributes'] )
+				if ( isset( $variableFilterArc['attributes'] ) )
 				{
 					foreach ( $variableFilterArc['attributes'] as $name => $attribute )
 					{
