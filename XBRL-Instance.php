@@ -5705,35 +5705,6 @@ class XBRL_Instance
 			return false;
 		}
 
-		// BMS 2018-04-18 This test is not quite right because it's the local name that MUST be pure or shares if the namespace resolves to xbrli
-		//				  From 4.8.2:	A <measure> element with a namespace prefix that resolves to the
-		//								"http://www.xbrl.org/2003/instance" namespace MUST have a local
-		//								part of either "pure" or "shares".
-		// if ( $qName->localName == 'pure' && ! isset( $this->instance_namespaces[ $qName->prefix ] ) )
-		// if ( $qName->localName == 'pure' && $qName->prefix == STANDARD_PREFIX_XBRLI )
-		// {
-		// 	if ( $qName->namespaceURI == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ) return true;
-		// 	$this->log()->instance_validation( "4.8.2", "The xbrli:pure measure must have a namespace of http://www.xbrl.org/2003/instance",
-		// 		array(
-		// 			'unit' => $unitId,
-		// 			'measure' => $measure,
-		// 		)
-		// 	);
-		// 	return false;
-		// }
-        //
-		// if ( $qName->localName == 'shares' )
-		// {
-		// 	if ( $qName->namespaceURI == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ) return true;
-		// 	$this->log()->instance_validation( "4.8.2", "The shares measure must have a namespace of http://www.xbrl.org/2003/instance",
-		// 		array(
-		// 			'unit' => $unitId,
-		// 			'measure' => $measure,
-		// 		)
-		// 	);
-		// 	return false;
-		// }
-
 		if ( $qName->namespaceURI == XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] )
 		{
 			if ( ! in_array( $qName->localName, array( 'pure', 'shares' ) ) )
