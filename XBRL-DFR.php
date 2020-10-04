@@ -5313,7 +5313,7 @@ class XBRL_DFR
 					}
 				}
 
-				if ( $variableSet->generatedSatisifiedMessages || $variableSet->generatedSatisifiedMessages )
+				if ( $variableSet->generatedSatisifiedMessages || $variableSet->generatedUnsatisifiedMessages )
 				{
 					foreach ( $variableSet->generatedSatisifiedMessages as $message )
 					{
@@ -5329,8 +5329,9 @@ class XBRL_DFR
 				else
 				{
 					$formula['messages'] = "There are no messages defined";
-					$log->info( "$indent    There are no messages defined" );
+					$log->info( "$indent    {$formula['messages']}" );
 				}
+				$log->info( "$indent        for {$variableSet->label} in {$variableSet->extendedLinkRoleUri}" );
 
 				$results['formulas'][] = $formula;
 			}
