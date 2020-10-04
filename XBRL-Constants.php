@@ -280,6 +280,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR	=> "http://www.xbrl.org/2010/validation-message.xsd",
 		STANDARD_PREFIX_VALIDATION					=> "http://www.xbrl.org/2008/validation.xsd",
 		STANDARD_PREFIX_MESSAGE						=> "http://www.xbrl.org/2010/generic-message.xsd",
+		STANDARD_PREFIX_ACF							=> "http://www.xbrl.org/2010/aspect-cover-filter.xsd"
 	);
 
 	/**
