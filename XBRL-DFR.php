@@ -5328,7 +5328,7 @@ class XBRL_DFR
 				}
 				else
 				{
-					$formula['messages'] = "There are no messages defined";
+					$formula['messages'] = "No messages have been generated because no formulas have been evaluated.  This may be because data is missing.  ";
 					$log->info( "$indent    {$formula['messages']}" );
 				}
 				$log->info( "$indent        for {$variableSet->label} in {$variableSet->extendedLinkRoleUri}" );

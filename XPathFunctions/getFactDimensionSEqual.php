@@ -43,7 +43,7 @@ use lyquidity\XPath2\XPath2Exception;
 require_once "getFactDimensions.php";
 
 /**
- * Returns a sequence of QNames of all typed dimensions that are reported in the segment or scenario of the item.
+ * Returns a sequence of QNames of all dimensions that are reported in the segment or scenario of the item.
  *
  * @param XPath2Context $context
  * @param NodeProvider	$provider

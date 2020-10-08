@@ -39,6 +39,7 @@ use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Value\QNameValue;
 use lyquidity\XPath2\Iterator\EmptyIterator;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 // Make sure any required functions are imported
 require_once "getSegment.php";
@@ -59,19 +60,33 @@ function getFactDimensions( $context, $provider, $args, $typed )
 {
 	try
 	{
-		if ( ! $args[0] instanceof XPath2NodeIterator )
+		if ( ! $args[0] instanceof XPath2NodeIterator && ! $args[0] instanceof DOMXPathNavigator  )
 		{
 			throw new \InvalidArgumentException();
 		}
 
-		if ( $args[0]->getCount() != 1 )
-		{
-			throw new \InvalidArgumentException( "There can only be one fact element" );
-		}
+		$fact = null;
 
-		if ( ! $args[0]->MoveNext() )
+		if ( $args[0] instanceof XPath2NodeIterator )
 		{
-			return EmptyIterator::$Shared;
+			if ( $args[0]->getCount() != 1 )
+			{
+				throw new \InvalidArgumentException( "There can only be one fact element" );
+			}
+
+			if ( ! $args[0]->MoveNext() )
+			{
+				return EmptyIterator::$Shared;
+			}
+
+			/**
+			 * @var XPathNavigator $fact
+			 */
+			$fact = $args[0]->getCurrent()->CloneInstance();
+		}
+		else
+		{
+			$fact = $args[0]->CloneInstance();
 		}
 
 		/**
@@ -83,11 +98,6 @@ function getFactDimensions( $context, $provider, $args, $typed )
 		 * @var \XBRL $taxonomy
 		 */
 		$taxonomy = $context->xbrlTaxonomy;
-
-		/**
-		 * @var XPathNavigator $fact
-		 */
-		$fact = $args[0]->getCurrent()->CloneInstance();
 
 		// The primary item must be valid
 		$piElement = $taxonomy->getElementByName( $fact->getLocalName() );
