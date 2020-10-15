@@ -4431,6 +4431,9 @@ class XBRL_Instance
 			return false;
 		};
 
+		$this->getInstanceTaxonomy()->generateAllDRSs();
+		$primaryItems = $this->getInstanceTaxonomy()->getDefinitionPrimaryItems( false );
+
 		foreach ( $roles as $roleKey => $role )
 		{
 			if ( ! isset( $role['calculations'] ) ) continue;
@@ -4515,6 +4518,15 @@ class XBRL_Instance
 					continue;
 				}
 
+				$hasDimensions = false;
+
+				// This function will return an empty array if there is no primary item or if the primary item is not
+				// associated with any hypercubes.  Otherwise it will contain summary information about the dimensional
+				// validation of the primary item.  If the dimensional validation fails it means the fact is not
+				// associated with any hypercubes valid for the fact context.
+				$primaryItem = isset( $primaryItems[ $from ] ) ? $primaryItems[ $from ] : array();
+				$drsHypercubes = $this->getInstanceTaxonomy()->getPrimaryItemDRS( $primaryItem );
+
 				$fromCombinations = new TupleDictionary(); // Detect duplicates
 
 				foreach ( $fromFact as $fromFactKey => $fromFactEntry )
@@ -4522,6 +4534,12 @@ class XBRL_Instance
 					if ( isset( $fromFactEntry['duplicate'] ) && $fromFactEntry['duplicate'] )
 					{
 						continue;
+					}
+
+					if ( $primaryItem )
+					{
+						$validHypercubes = $this->validateRoleHypercubes( $drsHypercubes, $roleKey, $from, $fromFactEntry );
+						if ( ! $validHypercubes ) continue;
 					}
 
 					$fromValue = $this->getNumericPresentation( $fromFactEntry );
@@ -5321,7 +5339,6 @@ class XBRL_Instance
 		// Resolve the dimensional relationship set for the entry primary item
 		if ( ! count( $drsHypercubes ) ) return;
 
-		// $xsd = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $this->getNamespaceForPrefix( $entry['namespace'] ) )->getTaxonomyXSD();
 		$primaryItemId = $entry['label'];
 
 		// Hypercubes in different roles are evaluated independently
@@ -5332,214 +5349,10 @@ class XBRL_Instance
 
 		foreach ( $primaryItem['roles'] as $roleUri )
 		{
-			// If the primary items does not have any hypercubes then there is no dimensional validation to do
+			// If the primary item does not have any hypercubes then there is no dimensional validation to do
 			if ( isset( $primaryItem[ $roleUri ]['hypercubes'] ) && $primaryItem[ $roleUri ]['hypercubes'] )
 			{
-				// Hypercubes in within a role are 'conjoined' (XDT specification 2.3.1)
-				$validHypercubes = true; // Assume valid
-
-				foreach ( $drsHypercubes as $hypercubeId => &$roles )
-				{
-					if ( ! isset( $roles[ $roleUri ] ) )
-					{
-						continue;
-					}
-
-					$hypercube = &$roles[ $roleUri ];
-
-					if ( ! isset( $hypercube['parents'][ $primaryItemId ] ) )
-					{
-						// Should never happen
-						$this->log()->warning( "The parents of hypercube '$hypercubeId' do not include primary item '$primaryItemId' and this should never happen" );
-						continue;
-					}
-
-					// See if the dimension information has been retrieved for this context
-					$contextElement = $hypercube['parents'][ $primaryItemId ]['contextElement'];
-					if ( ! isset( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ] ) )
-					{
-						$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'] = array();
-						$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] = false;
-
-						// No so retrieve and record
-						$dimInfo = $this->getElementsForContext( $entry['contextRef'], false, $contextElement );
-						if ( $dimInfo )
-						{
-							foreach ( $dimInfo as $dimInfoKey => $item )
-							{
-								if ( isset( $item['dimension'] ) )
-								{
-									$dimTaxonomy = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $item['dimension']['namespace'] );
-									$dimXsd = $dimTaxonomy->getTaxonomyXSD();
-									$dim = "$dimXsd#{$item['dimension']['element']['id']}";
-
-									$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] = array();
-									$dimElement = $dimTaxonomy->getElementById( $dim );
-									if ( ! $dimElement )
-									{
-										continue;
-									}
-
-									if ( isset( $item['type'] ) && $item['type'] == 'explicitMember' )
-									{
-										$memElement = false;
-										$memTaxonomy = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $item['member']['namespace'] );
-										if ( $memTaxonomy )
-										{
-											$memXsd = $memTaxonomy->getTaxonomyXSD();
-											$mem = "$memXsd#{$item['member']['element']['id']}";
-											$memElement = $memTaxonomy->getElementById( $mem );
-
-											if ( $memElement )
-											{
-												$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ][] = $mem;
-											}
-										}
-									}
-
-									if ( isset( $item['type'] ) && $item['type'] == 'typedMember' )
-									{
-										foreach ( $item['member'] as $type => $codes )
-										{
-											foreach ( $codes as $code )
-											{
-												$code = trim( $code );
-												$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ][] = $code;
-											}
-										}
-
-										$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] = array_unique( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] );
-									}
-								}
-								else
-								{
-									$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] = true;
-								}
-							}
-						}
-					}
-
-					$hasHypercube = $hypercube['parents'][ $primaryItemId ]['arcrole'] == XBRL_Constants::$arcRoleAll;
-					$isClosed = isset( $hypercube['parents'][ $primaryItemId ]['closed'] ) && $hypercube['parents'][ $primaryItemId ]['closed'];
-
-					// Identify any context dimensions that are not part of the hypercube
-					$additionalContextDimensions = array_diff_key( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'], $hypercube['dimensions'] );
-					if ( $isClosed && ( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] || count( $additionalContextDimensions ) ) )
-					{
-						// There are additional dimensions but the hypercube is closed
-						$validHypercubes = $hasHypercube ? false : true;
-						break;
-					}
-
-					$dimensions = array();
-					foreach ( $hypercube['dimensions'] as $dimensionId => &$dimension )
-					{
-						if ( ! isset( $dimension['namespace'] ) )
-						{
-							$taxonomy = $this->getInstanceTaxonomy()->getTaxonomyForXSD( $dimensionId );
-							if ( ! $taxonomy )
-							{
-								$this->log()->warning( "A taxonomy cannot be located for namespace '$namespace'" );
-								continue;
-							}
-
-							$dimension['namespace'] = $taxonomy->getNamespace();
-						}
-
-						// See if there is an entry for this dimension
-						$dimensions[ $dimensionId ] = null;
-
-						if ( isset( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dimensionId ] ) )
-						{
-							$contextMembers = $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dimensionId ];
-
-							foreach ( $contextMembers as $contextMember )
-							{
-								if ( $dimension['explicit'] )
-								{
-									$parts = explode( "#", $contextMember );
-									// Should validate the $parts array is OK (has two items)
-
-									if ( ! isset( $dimension['memberpaths'][ $parts[1] ] ) )
-									{
-										continue;
-									}
-
-									// Find the member
-									$this->getInstanceTaxonomy()->processNodeByPath(
-										$dimension['members'],
-										$dimension['memberpaths'][ $parts[1] ],
-										$contextMember,
-										function( $node, $path, $id ) use( &$dimensions, &$dimension, &$entry ) {
-
-											// OK, found the label so record it
-
-											// If there is a default make sure this is not it
-											if ( isset( $dimension['default'] ) )
-											{
-												if ( $node['label'] == $dimension['default']['label'] )
-												{
-													XBRL_Log::getInstance()->dimension_validation( "3.1.4.2", "The default value for a dimension appears in the instance context",
-														array(
-															'dimension' => $dimension['label'],
-															'context' => $entry['contextRef'],
-															'error' => 'xbrldie:DefaultValueUsedInInstanceError',
-														)
-													);
-
-													return;
-												}
-											}
-
-											if ( in_array( $node['label'], $dimension['unusablemembers'] ) ) return;
-
-											$dimensions[ $dimension['label'] ] = $node['label'];
-										}
-									);
-
-									// $element = $memberTaxonomy->getElementById( $parts[1] );
-									// $name = $element['name'];
-								}
-								else
-								{
-									$dimensions[ $dimension['label'] ] = $contextMember;
-								}
-							}
-						}
-
-						// Add the default if there is one
-						if ( $hasHypercube && is_null( $dimensions[ $dimensionId ] ) && isset( $dimension['default'] ) )
-						{
-							$dimensions[ $dimensionId ] = $dimension['default']['label'];
-						}
-
-					}
-
-					unset( $dimension );
-
-					// If there are no null dimensions then the hypercube is valid
-					$unmatchedDimensions = array_filter( $dimensions, function( $dimension ) { return is_null( $dimension ); } );
-					$hypercubeValid = ! count( $unmatchedDimensions );
-
-					// A hypercube is valid if the has-hypercube role is /all and there are no unmatched dimensions or
-					// the has-hypercube role is /notAll and *all* the dimensions are unmatched.
-					// Within the base set it is the conjunction of the hypercubes that is valid or not
-					// 2.3.1 The instantiation of a primary item declaration [Def, 1] in an instance document is dimensionally
-					//       valid with respect to a conjunction of hypercubes only if it is valid with respect to all of the
-					//	     conjoined hypercubes individually. A negated hypercube notAll is valid if the non negated version
-					//		 of the same hypercube definition is invalid. The conjunction of a single hypercube is the hypercube
-					//		 itself.
-					$validHypercubes &= $hasHypercube ? $hypercubeValid : ! $hypercubeValid;
-					if ( ! $validHypercubes )
-					{
-						break;
-					}
-
-					unset( $hypercube );
-				}
-
-				unset( $roles );
-
+				$validHypercubes = $this->validateRoleHypercubes( $drsHypercubes, $roleUri, $primaryItemId, $entry );
 				// 2.3 These relationships MAY be in different base sets. When has-hypercube relationships are in different base sets,
 				//     a Primary Item that is dimensionally valid in any base set is dimensionally valid.
 				if ( $validHypercubes )
@@ -5569,6 +5382,216 @@ class XBRL_Instance
 		}
 
 		return $validationResult;
+	}
+
+	private function validateRoleHypercubes( $drsHypercubes, $roleUri, $primaryItemId, $entry )
+	{
+		// Hypercubes in within a role are 'conjoined' (XDT specification 2.3.1)
+		$validHypercubes = true; // Assume valid
+
+		foreach ( $drsHypercubes as $hypercubeId => &$roles )
+		{
+			if ( ! isset( $roles[ $roleUri ] ) )
+			{
+				continue;
+			}
+
+			$hypercube = &$roles[ $roleUri ];
+
+			if ( ! isset( $hypercube['parents'][ $primaryItemId ] ) )
+			{
+				// Should never happen
+				$this->log()->warning( "The parents of hypercube '$hypercubeId' do not include primary item '$primaryItemId' and this should never happen" );
+				continue;
+			}
+
+			// See if the dimension information has been retrieved for this context
+			$contextElement = $hypercube['parents'][ $primaryItemId ]['contextElement'];
+			if ( ! isset( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ] ) )
+			{
+				$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'] = array();
+				$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] = false;
+
+				// No so retrieve and record
+				$dimInfo = $this->getElementsForContext( $entry['contextRef'], false, $contextElement );
+				if ( $dimInfo )
+				{
+					foreach ( $dimInfo as $dimInfoKey => $item )
+					{
+						if ( isset( $item['dimension'] ) )
+						{
+							$dimTaxonomy = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $item['dimension']['namespace'] );
+							$dimXsd = $dimTaxonomy->getTaxonomyXSD();
+							$dim = "$dimXsd#{$item['dimension']['element']['id']}";
+
+							$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] = array();
+							$dimElement = $dimTaxonomy->getElementById( $dim );
+							if ( ! $dimElement )
+							{
+								continue;
+							}
+
+							if ( isset( $item['type'] ) && $item['type'] == 'explicitMember' )
+							{
+								$memElement = false;
+								$memTaxonomy = $this->getInstanceTaxonomy()->getTaxonomyForNamespace( $item['member']['namespace'] );
+								if ( $memTaxonomy )
+								{
+									$memXsd = $memTaxonomy->getTaxonomyXSD();
+									$mem = "$memXsd#{$item['member']['element']['id']}";
+									$memElement = $memTaxonomy->getElementById( $mem );
+
+									if ( $memElement )
+									{
+										$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ][] = $mem;
+									}
+								}
+							}
+
+							if ( isset( $item['type'] ) && $item['type'] == 'typedMember' )
+							{
+								foreach ( $item['member'] as $type => $codes )
+								{
+									foreach ( $codes as $code )
+									{
+										$code = trim( $code );
+										$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ][] = $code;
+									}
+								}
+
+								$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] = array_unique( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dim ] );
+							}
+						}
+						else
+						{
+							$this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] = true;
+						}
+					}
+				}
+			}
+
+			$hasHypercube = $hypercube['parents'][ $primaryItemId ]['arcrole'] == XBRL_Constants::$arcRoleAll;
+			$isClosed = isset( $hypercube['parents'][ $primaryItemId ]['closed'] ) && $hypercube['parents'][ $primaryItemId ]['closed'];
+
+			// Identify any context dimensions that are not part of the hypercube
+			$additionalContextDimensions = array_diff_key( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'], $hypercube['dimensions'] );
+			if ( $isClosed && ( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['extra'] || count( $additionalContextDimensions ) ) )
+			{
+				// There are additional dimensions but the hypercube is closed
+				$validHypercubes = $hasHypercube ? false : true;
+				break;
+			}
+
+			$dimensions = array();
+			foreach ( $hypercube['dimensions'] as $dimensionId => &$dimension )
+			{
+				if ( ! isset( $dimension['namespace'] ) )
+				{
+					$taxonomy = $this->getInstanceTaxonomy()->getTaxonomyForXSD( $dimensionId );
+					if ( ! $taxonomy )
+					{
+						$this->log()->warning( "A taxonomy cannot be located for namespace '$namespace'" );
+						continue;
+					}
+
+					$dimension['namespace'] = $taxonomy->getNamespace();
+				}
+
+				// See if there is an entry for this dimension
+				$dimensions[ $dimensionId ] = null;
+
+				if ( isset( $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dimensionId ] ) )
+				{
+					$contextMembers = $this->contextDimensionMemberList[ $entry['contextRef'] ][ $contextElement ]['data'][ $dimensionId ];
+
+					foreach ( $contextMembers as $contextMember )
+					{
+						if ( $dimension['explicit'] )
+						{
+							$parts = explode( "#", $contextMember );
+							// Should validate the $parts array is OK (has two items)
+
+							if ( ! isset( $dimension['memberpaths'][ $parts[1] ] ) )
+							{
+								continue;
+							}
+
+							// Find the member
+							$this->getInstanceTaxonomy()->processNodeByPath(
+								$dimension['members'],
+								$dimension['memberpaths'][ $parts[1] ],
+								$contextMember,
+								function( $node, $path, $id ) use( &$dimensions, &$dimension, &$entry ) {
+
+									// OK, found the label so record it
+
+									// If there is a default make sure this is not it
+									if ( isset( $dimension['default'] ) )
+									{
+										if ( $node['label'] == $dimension['default']['label'] )
+										{
+											XBRL_Log::getInstance()->dimension_validation( "3.1.4.2", "The default value for a dimension appears in the instance context",
+												array(
+													'dimension' => $dimension['label'],
+													'context' => $entry['contextRef'],
+													'error' => 'xbrldie:DefaultValueUsedInInstanceError',
+												)
+											);
+
+											return;
+										}
+									}
+
+									if ( in_array( $node['label'], $dimension['unusablemembers'] ) ) return;
+
+									$dimensions[ $dimension['label'] ] = $node['label'];
+								}
+							);
+
+							// $element = $memberTaxonomy->getElementById( $parts[1] );
+							// $name = $element['name'];
+						}
+						else
+						{
+							$dimensions[ $dimension['label'] ] = $contextMember;
+						}
+					}
+				}
+
+				// Add the default if there is one
+				if ( $hasHypercube && is_null( $dimensions[ $dimensionId ] ) && isset( $dimension['default'] ) )
+				{
+					$dimensions[ $dimensionId ] = $dimension['default']['label'];
+				}
+
+			}
+
+			unset( $dimension );
+			unset( $hypercube );
+
+			// If there are no null dimensions then the hypercube is valid
+			$unmatchedDimensions = array_filter( $dimensions, function( $dimension ) { return is_null( $dimension ); } );
+			$hypercubeValid = ! count( $unmatchedDimensions );
+
+			// A hypercube is valid if the has-hypercube role is /all and there are no unmatched dimensions or
+			// the has-hypercube role is /notAll and *all* the dimensions are unmatched.
+			// Within the base set it is the conjunction of the hypercubes that is valid or not
+			// 2.3.1 The instantiation of a primary item declaration [Def, 1] in an instance document is dimensionally
+			//       valid with respect to a conjunction of hypercubes only if it is valid with respect to all of the
+			//	     conjoined hypercubes individually. A negated hypercube notAll is valid if the non negated version
+			//		 of the same hypercube definition is invalid. The conjunction of a single hypercube is the hypercube
+			//		 itself.
+			$validHypercubes &= $hasHypercube ? $hypercubeValid : ! $hypercubeValid;
+			if ( ! $validHypercubes )
+			{
+				break;
+			}
+
+		}
+
+		unset( $roles );
+
+		return $validHypercubes;
 	}
 
 	/**
