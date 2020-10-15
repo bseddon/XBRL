@@ -13237,7 +13237,7 @@ class XBRL {
 
 			if ( ! isset( $node['children'] ) ) continue;
 
-			$result = $this->processAllNodes( $node['children'], $callback );
+			$result = self::processAllNodes( $node['children'], $callback );
 			if ( $result === false ) return false;
 		}
 	}
@@ -14590,7 +14590,7 @@ class XBRL {
 				 */
 				$labelsByLabel = array();
 
-				// Note: The XBRL specification explicitly defines an element calle 'label' to be the label value.  However,
+				// Note: The XBRL specification explicitly defines an element called 'label' to be the label value.  However,
 				//		 the XLink specification allows an element with any local name so long as it has an attribute
 				//		 called 'type' with a value of 'resource'.
 				foreach ( $labelLink->children( XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] )->label as $labelKey => /* @var SimpleXMLElement $labelEl */ $labelEl )
@@ -15017,7 +15017,7 @@ class XBRL {
 					);
 				}
 
-				break;
+				// break;
 			}
 		}
 
