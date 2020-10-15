@@ -1925,6 +1925,10 @@ class XBRL_DFR
 						$total = key( $totals );
 						foreach ( $nonAbstractNodes as $nonAbstractNode )
 						{
+							// BMS 2020-10-08 Make a label because $nonAbstractNode may include the preferred label suffix
+							$taxonomy = $this->taxonomy->getTaxonomyForXSD( $nonAbstractNode );
+							$element = $taxonomy->getElementById( $nonAbstractNode );
+							$nonAbstractNode = "{$taxonomy->getTaxonomyXSD()}#{$element['id']}";
 							if ( $nonAbstractNode == $total ) continue;
 							if ( $isDescendent( $total, $nonAbstractNode ) ) continue;
 							$error = true;
@@ -1963,12 +1967,17 @@ class XBRL_DFR
 				}
 
 				// Filter any non-PI nodes.  This occurs in the pathalogical test case when a dimension member is a rollup.
-				$pis = array_filter( array_keys( $node['children'] ), function( $label )
+				// BMS 2020-10-08 Changed to a reduce so the label can be converted back to one that does not include a preferred label suffix
+				$pis = array_reduce( array_keys( $node['children'] ), function( $carry, $label ) use( &$node )
 				{
 					$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
 					$element = $taxonomy->getElementById( $label );
-					return ! $element['abstract'] && $this->taxonomy->isPrimaryItem( $element );
-				} );
+					if ( ! $element['abstract'] && $this->taxonomy->isPrimaryItem( $element ) )
+					{
+						$carry[] = "{$taxonomy->getTaxonomyXSD()}#{$element['id']}";
+					}
+					return $carry;
+				}, array() );
 
 				// Capture the elements in node['children']
 				$presentationRollupPIs[ $elr ] = isset( $presentationRollupPIs[ $elr ] )
@@ -2527,6 +2536,8 @@ class XBRL_DFR
 		{
 			if ( ! isset( $axis['dimension'] ) ) continue;
 
+			if ( in_array( $axis['dimension']->localName, $this->reportDateAxisAliases ) ) continue;
+
 			// More than one member?
 			if ( $hasMultipleMembers( $axes, $axis ) )
 			{
@@ -2908,6 +2919,7 @@ class XBRL_DFR
 			return $result;
 		};
 
+		// $dimensionalNodes is an array of PIs that have dimensions
 		$dimensionalNodes = $getDimensionalNodes( $nodes );
 
 		// Get the names of the concepts used by this view (excluding ones in sub-reports)
@@ -3008,7 +3020,6 @@ class XBRL_DFR
 			$dimTaxonomy = $instance->getInstanceTaxonomy()->getTaxonomyForXSD( $axisLabel );
 			$axisContexts = $cf->SegmentContexts( strstr( $axisLabel, '#' ), $dimTaxonomy->getNamespace() );
 			if ( $axisContexts->count() <= 1 ) continue;
-			$multiMemberAxes[] = $axisLabel;
 
 			$label = $axis['typedDomainRef'];
 			$memTaxonomy = $dimTaxonomy;
@@ -3021,14 +3032,37 @@ class XBRL_DFR
 			$memPrefix = $instance->getPrefixForNamespace( $memTaxonomy->getNamespace() );
 			$memQName = "$memPrefix:{$memElement['name']}";
 
+			$members = array();
 			foreach ( $axisContexts->getContexts() as $contextRef => $context )
 			{
 				$segment = $instance->getContextSegment( $context );
 				$typedDomain = reset( $segment['typedMember'] ); // Probably should search for the one with the dimension label
 				$memberText = preg_replace( array( "!<$memQName>!", "!</$memQName>!" ), "", reset( $typedDomain['member'][ $memQName ] ) );
-				$axes[ $axisLabel ]['typedDomainMembers'][ $memberText ] = $contextRef;
+				$members[ $memberText ] = isset( $members[ $memberText ] ) ? $members[ $memberText ] + 1 : 1;
+				// BMS 2020-10-09 Changed to store context refs in an array (see other notes with the same date)
+				$axes[ $axisLabel ]['typedDomainMembers'][ $memberText ][] = $contextRef;
+				unset( $memberText );
+				unset( $segment );
+				unset( $typedDomain );
 			}
+
+			if ( count( $members ) > 1 )
+			{
+				$multiMemberAxes[] = $axisLabel;
+			}
+
+			unset( $axisContexts );
+			unset( $dimTaxonomy );
+			unset( $label );
+			unset( $members );
+			unset( $memElement );
+			unset( $memPrefix );
+			unset( $memQName );
+			unset( $memTaxonomy );
 		}
+
+		unset( $axisLabel );
+		unset( $axis );
 
 		// Get count of dimensions with more than one member
 		$multiMemberAxesCount = count( $multiMemberAxes );
@@ -3145,21 +3179,21 @@ class XBRL_DFR
 			{
 				$totalChildren = 0;
 
-				foreach ( $columnHierarchy as $axisLabel => &$members )
+				foreach ( $columnHierarchy as $axisLabel => &$columnAxismembers )
 				{
 					if ( ! $multiMemberAxes )
 					{
-						$totalChildren += $members['total-children'];
+						$totalChildren += $columnAxismembers['total-children'];
 						continue;
 					}
 
-					foreach ( $members as $index => &$member )
+					foreach ( $columnAxismembers as $index => &$columnAxismember )
 					{
 						if ( $index == 'total-children' ) continue;
 
-						if ( isset( $member['children'] ) )
+						if ( isset( $columnAxismember['children'] ) )
 						{
-							$totalChildren += $addToColumnHierarchy( $member['children'], $multiMemberAxes );
+							$totalChildren += $addToColumnHierarchy( $columnAxismember['children'], $multiMemberAxes );
 						}
 						else
 						{
@@ -3175,32 +3209,55 @@ class XBRL_DFR
 
 							if ( isset( $axis['typedDomainMembers'] ) )
 							{
-								if ( count( $member['contextRefs'] ) > count( $axis['typedDomainMembers'] ) )
+								// BMS 2020-10-09 This section has changed.  See other notes with the same date for more information.
+								/**
+								 * @var ContextsFilter $dimensionContexts
+								 */
+								$dimensionContexts = $instance->getContexts()->getContextsByRef( $columnAxismember['contextRefs'] )->SegmentContexts( strstr( $nextAxisLabel, '#' ) );
+								foreach( $axis['typedDomainMembers'] as $typedLabel => $contextRefs )
 								{
-									XBRL_Log::getInstance()->warning( "addToColumnHierarchy: The number of contexts in member label '$nextAxisLabel' is greater than the number of typed domain members" );
+									$dimensionContexts = $dimensionContexts->remove( $contextRefs );
 								}
+								unset( $contextRefs );
+								unset( $typedLabel );
 
-								foreach ( $axis['typedDomainMembers'] as $memberText => $contextRef )
+								if ( $dimensionContexts->count() )
 								{
-									if ( ! in_array( $contextRef, $member['contextRefs'] ) ) continue;
+									$extra = join(',', array_keys( $dimensionContexts->getContexts() ) );
+									XBRL_Log::getInstance()->warning( "addToColumnHierarchy: The contexts in typed dimension with label '$nextAxisLabel' do not match all the dimensional contexts for '$index'. The unmatched contexts are $extra." );
+								}
+								unset( $dimensionContexts );
+
+								foreach ( $axis['typedDomainMembers'] as $memberText => $memberContextRefs )
+								{
+									// BMS 2020-10-09 Changed because $axis['typedDomainMembers']['contextRefs'] has changed (see other notes with the same date)
+									$contextRefs = array_intersect( $columnAxismember['contextRefs'], $memberContextRefs );
+									// if ( ! in_array( $contextRef, $columnAxismember['contextRefs'] ) ) continue;
+									if ( ! count( $contextRefs ) ) continue;
 									$guid = XBRL::GUID();
 									$nextMembers[ $guid ] = array(
 										'text' => $memberText,
 										'dimension-label' => $nextAxisLabel,
 										'member-label' => null,
-										'contextRefs' => array( $contextRef ),
+										// BMS 2020-10-09 Changed because $axis['typedDomainMembers']['contextRefs'] has changed (see other notes with the same date)
+										'contextRefs' => $contextRefs,
 										'default-member' => false,
 										'domain-member' => false,
 										'root-member' => false
 									);
+
+									unset( $contextRefs );
 								}
+
+								unset( $memberContextRefs );
+								unset( $memberText );
 							}
 							else
 							{
 								$axisMembers = $getAxisMembers( $axes[ $nextAxisLabel ]['members'] );
 
 								// Workout which contexts apply
-								$cf = new ContextsFilter( $instance, array_reduce( $member['contextRefs'], function( $carry, $contextRef ) use( $instance) { $carry[ $contextRef ] = $instance->getContext( $contextRef ); return $carry; }, array() ) );
+								$cf = new ContextsFilter( $instance, array_reduce( $columnAxismember['contextRefs'], function( $carry, $contextRef ) use( $instance) { $carry[ $contextRef ] = $instance->getContext( $contextRef ); return $carry; }, array() ) );
 
 								foreach ( $axisMembers as $memberLabel )
 								{
@@ -3243,25 +3300,29 @@ class XBRL_DFR
 							}
 
 							$nextMembers['total-children'] = count( $nextMembers );
-							$member['children'][ $axisText ] = $nextMembers;
+							$columnAxismember['children'][ $axisText ] = $nextMembers;
 
 							// if ( count( $multiMemberAxes ) == 1 ) continue;
 
-							$immediateChildren = $addToColumnHierarchy( $member['children'], array_slice( $multiMemberAxes, 1 ) );
+							$immediateChildren = $addToColumnHierarchy( $columnAxismember['children'], array_slice( $multiMemberAxes, 1 ) );
 							// Remove any immediate children that have no descendents
 							if ( ! $immediateChildren )
 							{
-								unset( $members[ $index ] );
+								unset( $columnAxismembers[ $index ] );
 							}
 							$totalChildren += $immediateChildren;
 						}
 					}
-					unset( $member );
+
+					unset( $index );
+					unset( $columnAxismember );
 				}
 
-				$members['total-children'] = $totalChildren;
+				unset( $axisLabel );
 
-				unset( $members );
+				$columnAxismembers['total-children'] = $totalChildren;
+
+				unset( $columnAxismembers );
 
 				return $totalChildren;
 			};
@@ -3417,7 +3478,7 @@ class XBRL_DFR
 		$getStatedFacts = function( $nodeTaxonomy, &$facts, &$axis, /** @var ContextsFilter $cf */ $cf, $originally = false )
 			use ( &$getStatedFacts, $hasReportDateAxis )
 		{
-			// !! This is a spepcial case and there will be only one prior value not prior values for several previuous years
+			// !! This is a spepcial case and there will be only one prior value not prior values for several previous years
 
 			// The opening balance value is the one that has a context with the non-default/non-domain member
 			$members = array_reduce( $axis['members'], function( $carry, $memberQName ) use( &$axis, $nodeTaxonomy ) {
@@ -3530,16 +3591,25 @@ class XBRL_DFR
 								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
 								{
 									$facts = $getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, true );
-
+									$contextRef = reset($facts)['contextRef'];
+									$period = $instantContextsFilter->getContext( $contextRef )['period']['startDate'];
+									// This should be one of the columns so do a check
+									if ( ! isset( $columnRefs[ $period ] ) )
+									{
+										error_log( "The adjustment originally stated fact with context '$contextRef' does not have a period that is a column of the report" );
+									}
+									$instantContextsFilter = $instantContextsFilter->remove( $contextRef )->ContextsContainDate( $period );
+									$context = $instantContextsFilter->getContexts();
 									// There will be one column here so insert the appropriate context
-									$columnId = key( $columnRefs );
-									$candidates = array_filter( $contextRefColumns, function( $id ) use( $columnId ) { return $id == $columnId; } );
-									$context = array_intersect_key( $instantContextsFilter->getContexts(), $candidates );
+									// $columnId = key( $columnRefs );
+									// $candidates = array_filter( $contextRefColumns, function( $id ) use( $columnId ) { return $id == $columnId; } );
+									// $context = array_intersect_key( $instantContextsFilter->remove($contexts)->getContexts(), $candidates );
 									if ( $context )
 									{
 										// Need to retain the the original context so the correct text for the adjustment reported date columns can be retrieved
 										// This will be used to replace the contextRef when the text has been retrieved.
 										$facts[ key( $facts ) ]['contextRefRestated'] = key( $context );
+										error_log( key( $context ) );
 									}
 								}
 								else
@@ -3600,9 +3670,9 @@ class XBRL_DFR
 							{
 								if ( $axis['default-member'] || $axis['domain-member'] || $axis['root-member'] )
 								{
-									$cf = new ContextsFilter( $instance, $contexts );
+									// $cf = new ContextsFilter( $instance, $contexts );
 									/** @var ContextsFilter $instantContextsFilter */
-									$instantContextsFilter = $cf->InstantContexts();
+									// $instantContextsFilter = $cf->InstantContexts();
 									$facts = $getStatedFacts( $nodeTaxonomy, $facts, $axis, $instantContextsFilter, false );
 									// $fact = reset( $facts );
 								}
@@ -4225,7 +4295,7 @@ class XBRL_DFR
 					$preferredLabels = isset( $node['preferredLabel'] ) ? array( $node['preferredLabel'] ) : null;
 					// Do this because $label includes the preferred label roles and the label passed cannot include it
 					$title =  "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}";
-					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang, $elr );
+					$text = $nodeTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $nodeTaxonomy->getTaxonomyXSD() . '#' . $nodeElement['id'], $preferredLabels, $lang /* , $elr */ );
 					if ( ! $text )
 					{
 						$text = $nodeElement['name'];
@@ -4806,6 +4876,29 @@ class XBRL_DFR
 
 		$allowConstrained = $allowConstrained && $count < 2 || ( ! $this->showAllGrids && $this->includeCheckboxControls );
 
+		$hasTextFactSet = function() use( $network )
+		{
+			$hasText = false;
+			\XBRL::processAllNodes( $network['hierarchy'], function( $node, $id ) use( &$hasText )
+			{
+				if ( $node['modelType'] == 'cm.xsd#cm_LineItems' )
+				{
+					if ( $node['patterntype'] == 'text' )
+					{
+						$hasText = true;
+						return false;
+					}
+				}
+
+				return true;
+			} );
+
+			return $hasText;
+		};
+
+		// If a network includes a text block then there should be no column constraints
+		if ( $allowConstrained && $hasTextFactSet() ) $allowConstrained = false;
+
 		$report = ( $this->includeCheckboxControls ?
 			"<div class='report-selection'>" .
 			"	<span class='report-selection-title'>" . $this->getConstantTextTranslation( $lang, 'Rendering sections' ) . ":</span>" .
@@ -5328,7 +5421,7 @@ class XBRL_DFR
 				}
 				else
 				{
-					$formula['messages'] = "No messages have been generated because no formulas have been evaluated.  This may be because data is missing.  ";
+					$formula['messages'] = "No messages have been generated because no formulas have been evaluated.  This may be because no message was defined or because data is missing.  ";
 					$log->info( "$indent    {$formula['messages']}" );
 				}
 				$log->info( "$indent        for {$variableSet->label} in {$variableSet->extendedLinkRoleUri}" );
