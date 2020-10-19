@@ -217,9 +217,9 @@ class XBRL_Formulas extends Resource
 					$left = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( strstr( $valueAssertion->test, $equality, true ) ) ) ), $variableNames );
 					$right = array_intersect( array_map( function( $item ) { return ltrim( $item, '$' ); }, preg_split( "/[\s\(\)\-\+\/\*]/", trim( ltrim( strstr( $valueAssertion->test, $equality ), $equality ) ) ) ), $variableNames );
 
-					$testAssigmentVariables += count( $left ) ==1 && count( $right ) == 1
+					$testAssigmentVariables += count( $left ) == 1 && count( $right ) == 1
 						? array_merge( $left, $right )
-						: ( count( $left ) ==1 && count( $right ) >= 1
+						: ( count( $left ) == 1 && count( $right ) >= 1
 								? $left
 								: (
 									count( $right ) == 1 && count( $left ) >= 1
@@ -241,6 +241,8 @@ class XBRL_Formulas extends Resource
 						$message = $valueAssertion->createDefaultMessage( $valueAssertion->test, $result['vars'], false );
 						$variableDetails['message'] = $message;
 						$variableDetails['satisfied'] = $success;
+						$variableDetails['id'] = $valueAssertion->id;
+						$variableDetails['label'] = $valueAssertion->label;
 
 						/** @var QName $qname */
 						$qName = qname( $variableDetails['concept'], array( $navigator->getPrefix() => $navigator->getNamespaceURI() ) );
