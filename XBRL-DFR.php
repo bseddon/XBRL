@@ -589,14 +589,14 @@ class XBRL_DFR
 	 * Renders an evidence package for a set of networks
 	 * @param array $networks
 	 * @param XBRL_Instance $instance
-	 * @param array $formulaSummaries
+	 * @param array $report
 	 * @param Observer $observer
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @param bool $echo
 	 * @param array $factsData			@reference If not null an array
 	 * @return array
 	 */
-	public function renderPresentationNetworks( $networks, $instance, &$formulaSummaries, $observer, $lang = null, $echo = true, &$factsData = null )
+	public function renderPresentationNetworks( $networks, $instance, &$report, $observer, $lang = null, $echo = true, &$factsData = null )
 	{
 		// If the checkboxes are not displayed then make sure all selected tables are shown
 		if ( ! $this->includeCheckboxControls ) $this->showAllGrids = true;
@@ -609,7 +609,7 @@ class XBRL_DFR
 
 			$entityHasReport = false;
 			$data = is_array( $factsData ) ? array() : null;
-			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $formulaSummaries, $observer, $entityHasReport, $lang, $echo, $data );
+			$entities = $this->renderPresentationNetwork( $network, $elr, $instance, $report, $observer, $entityHasReport, $lang, $echo, $data );
 			if ( is_array( $factsData ) ) $factsData[ $elr ] = $data;
 
 			// error_log( $elr );
@@ -628,7 +628,7 @@ class XBRL_DFR
 	 * @param array $network
 	 * @param string $elr
 	 * @param XBRL_Instance $instance
-	 * @param array $formulaSummaries
+	 * @param array $report
 	 * @param Observer $observer
 	 * @param bool $entityHasReport
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
@@ -636,7 +636,7 @@ class XBRL_DFR
 	 * @param array $factsData			@reference If not null an array
 	 * @return array
 	 */
-	public function renderPresentationNetwork( $network, $elr, $instance, &$formulaSummaries, $observer, &$entityHasReport = false, $lang = null, $echo = true, &$factsData = null )
+	public function renderPresentationNetwork( $network, $elr, $instance, &$report, $observer, &$entityHasReport = false, $lang = null, $echo = true, &$factsData = null )
 	{
 		$entities = $instance->getContexts()->AllEntities();
 
@@ -662,7 +662,7 @@ class XBRL_DFR
 
 			$hasReport = false;
 			$data = is_array( $factsData ) ? array() : null;
-			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, $hasReport, $lang, $echo, $data );
+			$result[ $entity ] = $this->renderNetworkReport( $network, $elr, $instance, $entityQName, $report, $observer, $hasReport, $lang, $echo, $data );
 			if ( is_array( $factsData ) ) $factsData[ $entity ] = $data;
 			$entityHasReport |= $hasReport;
 		}
@@ -959,22 +959,6 @@ class XBRL_DFR
 
 			// If there were preferred label roles in any of the PIs then there will be duplicates.  This also sorts the list.
 			$this->presentationPIs[ $elr ] = array_unique( $this->presentationPIs[ $elr ] );
-
-			// This set of closures will become methods in a class
-			// $formulasForELR = array();
-			// if ( $formulas )
-			// {
-			// 	$variableSets = $formulas->getVariableSets();
-			// 	foreach ( $variableSets as $variableSetQName => $variableSetForQName )
-			// 	{
-			// 		foreach ( $variableSetForQName as /** @var ValueAssertion $variableSet */ $variableSet )
-			// 		{
-			// 			if ( $variableSet->extendedLinkRoleUri != $elr ) continue;
-			// 			if ( ! $variableSet instanceof ValueAssertion ) continue;
-			// 			$formulasForELR[] = $variableSet;
-			// 		}
-			// 	}
-			// }
 
 			$calculationELRPIs = isset( $this->calculationPIs[ $elr ] ) ? $this->calculationPIs[ $elr ] : array();
 
@@ -1630,7 +1614,7 @@ class XBRL_DFR
 									{
 										if ( $element['periodType'] == 'instant' )
 										{
-											if ( in_array( 'rollforward', $possiblePatternTypes ) && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) ) )
+											if ( in_array( 'rollforward', $possiblePatternTypes ) && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) || $this->findConceptInFormula( $formulaSummaries[ \XBRL_Constants::$defaultLinkRole ], $taxonomy, $element ) ) )
 											{
 												$patternType = "rollforward";
 												$possiblePatternTypes = array();
@@ -1660,7 +1644,7 @@ class XBRL_DFR
 										}
 									}
 
-									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
+									if ( in_array( 'complex', $possiblePatternTypes ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) || $this->findConceptInFormula( $formulaSummaries[ \XBRL_Constants::$defaultLinkRole ], $taxonomy, $element ) )
 									{
 										$patternType = "complex";
 										$possiblePatternTypes = array();
@@ -1675,7 +1659,7 @@ class XBRL_DFR
 									}
 								}
 
-								if ( ! in_array( 'complex', $possiblePatternTypes ) && $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
+								if ( ! in_array( 'complex', $possiblePatternTypes ) && ( $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) || $this->findConceptInFormula( $formulaSummaries[ \XBRL_Constants::$defaultLinkRole ], $taxonomy, $element ) ) )
 								{
 									$possiblePatternTypes[] = 'complex';
 								}
@@ -1690,7 +1674,7 @@ class XBRL_DFR
 									if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodStartLabel )
 									{
 										$possiblePatternTypes[] = 'rollforwardinfo';
-										if ( $element['periodType'] == 'instant' && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) ) )
+										if ( $element['periodType'] == 'instant' && ( isset( $calculationELRPIs[ $label ] ) || $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) || $this->findConceptInFormula( $formulaSummaries[ \XBRL_Constants::$defaultLinkRole ], $taxonomy, $element ) ) )
 										{
 											$possiblePatternTypes[] = 'rollforward';
 										}
@@ -1721,7 +1705,7 @@ class XBRL_DFR
 								}
 
 								// Complex
-								if ( $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) )
+								if ( $this->findConceptInFormula( $formulaSummaries[ $elr ], $taxonomy, $element ) || $this->findConceptInFormula( $formulaSummaries[ \XBRL_Constants::$defaultLinkRole ], $taxonomy, $element ) )
 								{
 									if ( $last )
 									{
@@ -2824,7 +2808,7 @@ class XBRL_DFR
 	 * @param string $elr
 	 * @param XBRL_Instance $instance
 	 * @param QName $entityQName
-	 * @param array $formulaSummaries	The evaluated formulas
+	 * @param array $report	The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param array $resultFactsLayout
 	 * @param array $accumulatedTables
@@ -2838,7 +2822,7 @@ class XBRL_DFR
 	 * @param string $parentLabel
 	 * @return string
 	 */
-	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, &$formulaSummaries, $observer, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, &$allowConstrained, $lang = null, $parentLabel = null )
+	private function renderReportTable( $network, $nodes, $elr, $instance, $entityQName, &$report, $observer, &$resultFactsLayout, $accumulatedTables, $nodesToProcess, $lineItems, $excludeEmptyHeadrers, &$row, $lasts, &$allowConstrained, $lang = null, $parentLabel = null )
 	{
 		/**
 		 * How does this work?
@@ -3609,7 +3593,6 @@ class XBRL_DFR
 										// Need to retain the the original context so the correct text for the adjustment reported date columns can be retrieved
 										// This will be used to replace the contextRef when the text has been retrieved.
 										$facts[ key( $facts ) ]['contextRefRestated'] = key( $context );
-										error_log( key( $context ) );
 									}
 								}
 								else
@@ -4001,7 +3984,7 @@ class XBRL_DFR
 
 				if ( ! isset( $node['children'] ) || ! $node['children'] ) continue;
 
-				$rows = array_merge( $rows, $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems, isset( $node['modelType'] ) ? $node['modelType'] : $parentModelType, "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}" ) );
+				$rows = array_merge( $getFactsLayout( $node['children'], $contexts, $label, isset( $node['patterntype'] ) ? $node['patterntype'] : $parentPattern, $lineItems, isset( $node['modelType'] ) ? $node['modelType'] : $parentModelType, "{$nodeTaxonomy->getPrefix()}:{$nodeElement['name']}" ), $rows );
 				if ( isset( $rows[ $label ] ) )
 				{
 					$rows[ $label ]['taxonomy'] = $nodeTaxonomy ;
@@ -4225,7 +4208,7 @@ class XBRL_DFR
 				 $columnCount, &$columnLayout, &$columnRefs, &$contextRefColumns, $elr,
 				 &$contexts, $factsLayout, &$resultFactsLayout, $headerColumnCount, $headerRowCount, $rowCount,
 				 &$factSetTypes, $hasReportDateAxis, &$tail, &$top, &$network,
-				 $entityQName, &$formulaSummaries, $observer, &$nodesToProcess,
+				 $entityQName, &$report, $observer, &$nodesToProcess,
 				 $reportDateColumn, &$singleMemberAxes, $lang, &$allowConstrained
 			)
 		{
@@ -4274,7 +4257,6 @@ class XBRL_DFR
 			$firstRow = reset( $nodes );
 			$lastRow = end( $nodes );
 			if ( $patternType == 'rollup' ) $depth++;
-			// $formulaSummaries = $this->getFormulaSummariesForRole( $formulas, $elr );
 
 			foreach ( $nodes as $label => $node )
 			{
@@ -4395,9 +4377,12 @@ class XBRL_DFR
 								: array();
 
 							$rowClarkName = "{{$rowDetails['taxonomy']->getNamespace()}}{$rowDetails['element']['name']}";
-							$conceptResults = isset( $formulaSummaries[ $elr ][ $rowClarkName ] )
-								? $formulaSummaries[ $elr ][ $rowClarkName ]
-								: array();
+							$conceptResults = isset( $report['formulasummaries'][ $elr ][ $rowClarkName ] )
+								? $report['formulasummaries'][ $elr ][ $rowClarkName ]
+								: ( isset( $report['formulasummaries'][ \XBRL_Constants::$defaultLinkRole ][ $rowClarkName ] )
+									? $report['formulasummaries'][ \XBRL_Constants::$defaultLinkRole ][ $rowClarkName ]
+									: array()
+								  );
 
 							// This line MUST appear after preferred labels have been processed
 							$divs[] = "		<div class='report-line line-item $totalClass depth$depth' data-row='$row' title='$title'>$text</div>";
@@ -4454,6 +4439,10 @@ class XBRL_DFR
 								$divs[] = "<div class='report-line member-label value $reportAxisMemberClass' title='$title'>$text</div>";
 							}
 							else if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] == XBRL_Constants::$labelRolePeriodEndLabel && $patternType == 'rollforward' )
+							{
+								$totalClass = 'total';
+							}
+							else if ( $patternType == 'complex' && ( $this->findConceptInFormula( $report['formulasummaries'][ $elr ], $nodeTaxonomy, $nodeElement ) /* || $this->findConceptInFormula( $report['formulasummaries'][ \XBRL_Constants::$defaultLinkRole ], $nodeTaxonomy, $nodeElement ) */ ) )
 							{
 								$totalClass = 'total';
 							}
@@ -4662,6 +4651,7 @@ class XBRL_DFR
 							unset( $columnFacts );
 
 							// Fill in
+							if ( is_array( $lastRowLayout ) )
 							foreach ( $lastRowLayout as $columnIndex => $column )
 							{
 								if ( isset( $columns[ $columnIndex ] ) ) continue;
@@ -4705,7 +4695,7 @@ class XBRL_DFR
 					$nextAccumulatedTables[ $label ] = $network['tables'][ $label ];
 
 					$resultFactsLayout[ $label ] = array();
-					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $formulaSummaries, $observer, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $allowConstrained, $lang, $text );
+					$render = $this->renderReportTable( $network, $node['children'], $elr, $instance, $entityQName, $report, $observer, $resultFactsLayout, $nextAccumulatedTables, $nodesToProcess, true, $excludeEmptyHeadrers, $row, array_merge( $lasts, array( $last ) ), $allowConstrained, $lang, $text );
 
 					if ( ! $render ) continue;
 
@@ -4766,14 +4756,14 @@ class XBRL_DFR
 	 * @param string $elr				The extended link role URI
 	 * @param XBRL_Instance $instance	The instance being reported
 	 * @param QName $entityQName
-	 * @param array	$formulaSummaries	The evaluated formulas
+	 * @param array	$report				The evaluated formulas
 	 * @param Observer $observer		An obsever with any validation errors
 	 * @param bool $hasReport
 	 * @param $echo						If true the HTML will be echoed
 	 * @param array $factsData			@reference If not null an array
 	 * @return string
 	 */
-	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $formulaSummaries, $observer, &$hasReport = false, $lang = null, $echo = true, &$factsData = null )
+	private function renderNetworkReport( $network, $elr, $instance, $entityQName, $report, $observer, &$hasReport = false, $lang = null, $echo = true, &$factsData = null )
 	{
 		$componentTable = $this->renderComponentTable( $network, $elr, $lang );
 
@@ -4795,7 +4785,7 @@ class XBRL_DFR
 		$allowConstrained = false;
 		$row = 0;
 		$reportTable = $this->renderReportTable(
-			$network, $network['hierarchy'], $elr, $instance, $entityQName, $formulaSummaries,
+			$network, $network['hierarchy'], $elr, $instance, $entityQName, $report,
 			$observer, $factsLayouts, $accumulatedTables, $nodesToProcess,
 			false, $excludeEmptyHeadrers, $row, array(), $allowConstrained, $lang );
 
@@ -4819,7 +4809,7 @@ class XBRL_DFR
 
 		$renderFactsTable = $this->renderFactsTable( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
 
-		$businessRules = $this->renderBusinessRules( $network, $elr, $instance, $entityQName, $factsLayouts, $lang );
+		$businessRules = $this->renderBusinessRules( $network, $elr, $instance, $entityQName, $factsLayouts, $report, $lang );
 
 		XBRL_Log::getInstance()->info( $elr );
 
@@ -4973,162 +4963,239 @@ class XBRL_DFR
 	 * @param XBRL_Instance $instance	The instance being reported
 	 * @param QName $entityQName
 	 * @param array $factsLayout
+	 * @param array $report
 	 * @param string|null $lang			(optional: default = null) The language to use or null for the default
 	 * @return string
 	 */
-	private function renderBusinessRules( $network, $elr, $instance, $entityQName, $reportFactsLayout, $lang = null )
+	private function renderBusinessRules( $network, $elr, $instance, $entityQName, $reportFactsLayout, $report, $lang = null )
 	{
 		if ( ! $this->includeBusinessRules ) return '';
 
 		$hideSection = $this->showAllGrids ? '' : 'hide-section';
 
-		if ( ! isset( $this->calculationNetworks[ $elr]['calculations'] ) )
+		if ( ! isset( $this->calculationNetworks[ $elr]['calculations'] ) && ! isset( $report['formulasummaries'][ $elr] ) )
 		{
 			return "<div class='business-rules-section $hideSection'>" . $this->getConstantTextTranslation( $lang, 'There are no business rules' ) . "</div>";
 		}
 
-		$reportTable =
-			"	<div class='business-rules-section $hideSection' style='display: grid; grid-template-columns: auto 1fr; '>" .
-			"		<div>" . $this->getConstantTextTranslation( $lang, 'Business Rules' ) . "</div><div></div>";
+		$reportTable = '';
 
-		// Report each total
-		foreach ( $this->calculationNetworks[ $elr]['calculations'] as $calcTotalLabel => $calculations )
+		if ( isset( $report['formulasummaries'][ $elr] ) )
 		{
-			$calcTotalText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel, null, $lang, $elr );
-			$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
-			$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
-			$header = "$calcTotalText ({$calcTaxonomy->getPrefix()}:{$calcElement['name']})";
+			$reportTable .=
+				"	<div class='business-rules-section $hideSection' style='display: grid; grid-template-columns: auto auto; '>" .
+				"		<div>" . $this->getConstantTextTranslation( $lang, 'Business Rules (formulas)' ) . "</div><div></div>";
 
-			// Find the $factsLayout containing $calcTotalLabel
-			$totalFactsLayout = array_filter( $reportFactsLayout, function( $factsLayout ) use( $calcTotalLabel )
+			$summaries = &$report['formulasummaries'][ $elr];
+
+			foreach( $network['concepts'] as $label => /** @var \lyquidity\xml\QName $qName */ $qName )
 			{
-				return isset( $factsLayout['data'][ $calcTotalLabel ] );
-			} );
-			if ( ! $totalFactsLayout ) continue;
-			$totalFactsLayout = array_map( function( $factsLayout ) { return $factsLayout['data']; }, $totalFactsLayout );
-			// if ( ! isset( $factsLayout[ $calcTotalLabel ] ) ) continue;
+				if ( ! isset( $summaries[ $qName->clarkNotation() ] ) ) continue;
 
-			foreach ( $totalFactsLayout as $reportLabel => $factsLayout )
-			{
-				$columnCount = max( array_map( function( $row ) { return count( $row['columns'] ); }, $factsLayout ) );
+				$reportTable .= "<div class='business-rules-table formulas' style='display: grid; grid-template-columns: 1fr;'>";
 
-				// And each period
-				for ( $columnIndex = 0; $columnIndex < $columnCount; $columnIndex++ )
+				$first = true;
+				// $evaluations = count( $summaries[ $qName->clarkNotation() ] );
+				foreach( $summaries[ $qName->clarkNotation() ] as $contextRef => $evaluation )
 				{
-					$totalRow = $factsLayout[ $calcTotalLabel ];
-					if ( ! isset( $totalRow['calcTotals'][ $columnIndex ] ) ) continue;
-
-					$contextRefs = array_unique( array_filter( array_values( array_map( function( $row ) use( $columnIndex )
+					if ( $first )
 					{
-						return isset( $row['columns'][ $columnIndex ]['contextRef'] )
-							? $row['columns'][ $columnIndex ]['contextRef']
-							: false;
-					}, $factsLayout ) ) ) );
+						$factTotalText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $label, null, $lang, $elr );
+						$header = "$factTotalText ({$evaluation['concept']})";
 
-					if ( ! $contextRefs ) continue;
+						$reportTable .=
+							"			<div class='business-rules-roles formulas'>$header</div>" .
+							"			<div class='business-rules-rows' style='display: grid; grid-template-columns: auto 1fr auto;' >" .
+							"				<div class='business-rules-header context'>" . $this->getConstantTextTranslation( $lang, 'Context' ) . "</div>" .
+							"				<div class='business-rules-header formula'>" . $this->getConstantTextTranslation( $lang, 'Formula' ) . "</div>" .
+							"				<div class='business-rules-header details-link last'></div>";
 
-					$contextsFilter = $instance-> getContexts()->getContextsByRef( $contextRefs );
-					if ( ! $contextsFilter->count() )
-					{
-						// This should never happen
-						error_log( "Oops.  No valid contexts found for context refs: " . implode( ",", $contextRefs ) );
-						continue;
+						unset( $factTotalText );
+						unset( $header );
 					}
 
-					if ( $this->includeSlicers )
-					{
-						$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, $elr, null, 'business-rules-slicers-table', $contextsFilter, $lang ) . "<div></div>";
-					}
+					$first = false;
+
+					$status = $evaluation['satisfied'] ? 'match' : 'mismatch';
+					$message = str_replace( '$','', $evaluation['message'] );
 
 					$reportTable .=
-						"		<div class='business-rules-table' style='display: grid; grid-template-columns: 1fr;'>" .
-						"			<div class='business-rules-roles'>$header</div>" .
-						"			<div class='business-rules-rows' style='display: grid; grid-template-columns: 400px  repeat( 4, auto );' >" .
-						"				<div class='business-rules-header line-item'>" . $this->getConstantTextTranslation( $lang, 'Line item' ) . "</div>" .
-						"				<div class='business-rules-header calculated'>" . $this->getConstantTextTranslation( $lang, 'Calculated' ) . "</div>" .
-						"				<div class='business-rules-header sign'></div>" .
-						"				<div class='business-rules-header balance'>" . $this->getConstantTextTranslation( $lang, 'Balance' ) . "</div>" .
-						"				<div class='business-rules-header decimals last'>" . $this->getConstantTextTranslation( $lang, 'Decimals' ) . "</div>";
+						"			<div class='business-rules-row line-item'>{$evaluation['context']}</div>" .
+						"			<div class='business-rules-row formula' title='{$evaluation['id']}/{$evaluation['label']}'>{$message}</div>" .
+						"			<div class='business-rules-row calculated details-link last {$status}' title='Click to review evaluation details'>" .
+						"				<a target='_blank' href='report-formulas.html?xbrl-validate-nonce=!!!&xbrl_validate_action=get-instance-formulas&xbrl-validate-log-id=!!!&formula-label={$evaluation['id']}'>...</a>" .
+						"			</div>";
+				}
 
-					foreach ( $calculations as $calcLabel => $calcItem )
+				$reportTable .=
+					"			<div class='business-rules-row final'></div>" .
+					"			<div class='business-rules-row final'></div>" .
+					"			<div class='business-rules-row final last'></div>";
+
+				$reportTable .= "</div><div></div>";
+
+				// error_log("$reportTable");
+
+				unset( $contextRefs );
+				unset( $evaluation );
+				unset( $first );
+			}
+
+			unset( $label );
+			unset( $qName );
+			unset( $summaries );
+
+			$reportTable .=
+				"	</div>" .
+				"<div></div>" .
+				"";
+		}
+
+		if ( isset( $this->calculationNetworks[ $elr]['calculations'] ) )
+		{
+			$reportTable .=
+				"	<div class='business-rules-section $hideSection' style='display: grid; grid-template-columns: auto 1fr; '>" .
+				"		<div>" . $this->getConstantTextTranslation( $lang, 'Business Rules (calculations)' ) . "</div><div></div>";
+
+			// Report each total
+			foreach ( $this->calculationNetworks[ $elr]['calculations'] as $calcTotalLabel => $calculations )
+			{
+				$calcTotalText = $this->taxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcTotalLabel, null, $lang, $elr );
+				$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
+				$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
+				$header = "$calcTotalText ({$calcTaxonomy->getPrefix()}:{$calcElement['name']})";
+
+				// Find the $factsLayout containing $calcTotalLabel
+				$totalFactsLayout = array_filter( $reportFactsLayout, function( $factsLayout ) use( $calcTotalLabel )
+				{
+					return isset( $factsLayout['data'][ $calcTotalLabel ] );
+				} );
+				if ( ! $totalFactsLayout ) continue;
+				$totalFactsLayout = array_map( function( $factsLayout ) { return $factsLayout['data']; }, $totalFactsLayout );
+				// if ( ! isset( $factsLayout[ $calcTotalLabel ] ) ) continue;
+
+				foreach ( $totalFactsLayout as $reportLabel => $factsLayout )
+				{
+					$columnCount = max( array_map( function( $row ) { return count( $row['columns'] ); }, $factsLayout ) );
+
+					// And each period
+					for ( $columnIndex = 0; $columnIndex < $columnCount; $columnIndex++ )
 					{
-						$row = isset( $factsLayout[ $calcLabel ] ) ? $factsLayout[ $calcLabel ] : null;
-						if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
+						$totalRow = $factsLayout[ $calcTotalLabel ];
+						if ( ! isset( $totalRow['calcTotals'][ $columnIndex ] ) ) continue;
 
-						$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcLabel );
-						$calcElement = $calcTaxonomy->getElementById( $calcLabel );
+						$contextRefs = array_unique( array_filter( array_values( array_map( function( $row ) use( $columnIndex )
+						{
+							return isset( $row['columns'][ $columnIndex ]['contextRef'] )
+								? $row['columns'][ $columnIndex ]['contextRef']
+								: false;
+						}, $factsLayout ) ) ) );
+
+						if ( ! $contextRefs ) continue;
+
+						$contextsFilter = $instance-> getContexts()->getContextsByRef( $contextRefs );
+						if ( ! $contextsFilter->count() )
+						{
+							// This should never happen
+							error_log( "Oops.  No valid contexts found for context refs: " . implode( ",", $contextRefs ) );
+							continue;
+						}
+
+						if ( $this->includeSlicers )
+						{
+							$reportTable .= $this->renderSlicers( $network, $instance, $entityQName, $elr, null, 'business-rules-slicers-table', $contextsFilter, $lang ) . "<div></div>";
+						}
+
+						$reportTable .=
+							"		<div class='business-rules-table calculations' style='display: grid; grid-template-columns: 1fr;'>" .
+							"			<div class='business-rules-roles'>$header</div>" .
+							"			<div class='business-rules-rows' style='display: grid; grid-template-columns: 400px  repeat( 4, auto );' >" .
+							"				<div class='business-rules-header line-item'>" . $this->getConstantTextTranslation( $lang, 'Line item' ) . "</div>" .
+							"				<div class='business-rules-header calculated'>" . $this->getConstantTextTranslation( $lang, 'Calculated' ) . "</div>" .
+							"				<div class='business-rules-header sign'></div>" .
+							"				<div class='business-rules-header balance'>" . $this->getConstantTextTranslation( $lang, 'Balance' ) . "</div>" .
+							"				<div class='business-rules-header decimals last'>" . $this->getConstantTextTranslation( $lang, 'Decimals' ) . "</div>";
+
+						foreach ( $calculations as $calcLabel => $calcItem )
+						{
+							$row = isset( $factsLayout[ $calcLabel ] ) ? $factsLayout[ $calcLabel ] : null;
+							if ( ! isset( $row['columns'][ $columnIndex ] ) ) continue;
+
+							$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcLabel );
+							$calcElement = $calcTaxonomy->getElementById( $calcLabel );
+							$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
+
+							$text = $calcTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcLabel, null, $lang, $elr );
+							$value = $row ? $instance->getNumericPresentation( $row['columns'][ $columnIndex ] ) : '';
+							$sign = isset( $calcItem['weight'] ) && $calcItem['weight'] < 0 ? '-' : '+';
+
+							$valueClass = "";
+							if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
+							{
+								if ( $value < 0 )
+								{
+									$valueClass = ' neg';
+									$value = "(" . abs( $value ) . ")";
+								}
+								else $valueClass = ' pos';
+							}
+
+							$balance = isset( $calcElement['balance'] ) ? $calcElement['balance'] : '';
+							$decimals = isset( $row['columns'][ $columnIndex ]['decimals'] ) ? $row['columns'][ $columnIndex ]['decimals'] : 'INF';
+							$reportTable .=
+								"				<div class='business-rules-row line-item' title='$calcQName'>$text</div>" .
+								"				<div class='business-rules-row calculated $valueClass'>$value</div>" .
+								"				<div class='business-rules-row sign'>$sign</div>" .
+								"				<div class='business-rules-row balance'>$balance</div>" .
+								"				<div class='business-rules-row decimals last'>$decimals</div>";
+						}
+
+						$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
+						$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
 						$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
 
-						$text = $calcTaxonomy->getTaxonomyDescriptionForIdWithDefaults( $calcLabel, null, $lang, $elr );
-						$value = $row ? $instance->getNumericPresentation( $row['columns'][ $columnIndex ] ) : '';
-						$sign = isset( $calcItem['weight'] ) && $calcItem['weight'] < 0 ? '-' : '+';
+						$totalValue = $instance->getNumericPresentation($totalRow['columns'][ $columnIndex ]);
+						$matchClass = $totalValue == $totalRow['calcTotals'][ $columnIndex ] ? 'match' : 'mismatch';
 
 						$valueClass = "";
 						if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
 						{
-							if ( $value < 0 )
+							if ( $totalValue < 0 )
 							{
-								$valueClass = ' neg';
-								$value = "(" . abs( $value ) . ")";
+								$valueClass .= ' neg';
+								$totalValue = "(" . abs( $totalValue ) . ")";
 							}
-							else $valueClass = ' pos';
+							else $valueClass .= ' pos';
 						}
 
 						$balance = isset( $calcElement['balance'] ) ? $calcElement['balance'] : '';
-						$decimals = isset( $row['columns'][ $columnIndex ]['decimals'] ) ? $row['columns'][ $columnIndex ]['decimals'] : 'INF';
+						$decimals = isset( $totalRow['columns'][ $columnIndex ]['decimals'] ) ? $totalRow['columns'][ $columnIndex ]['decimals'] : 'INF';
 						$reportTable .=
-							"				<div class='business-rules-row line-item' title='$calcQName'>$text</div>" .
-							"				<div class='business-rules-row calculated $valueClass'>$value</div>" .
-							"				<div class='business-rules-row sign'>$sign</div>" .
+							"				<div class='business-rules-row line-item' title='$calcQName'>$calcTotalText</div>" .
+							"				<div class='business-rules-row calculated total $valueClass $matchClass'>$totalValue</div>" .
+							"				<div class='business-rules-row sign'></div>" .
 							"				<div class='business-rules-row balance'>$balance</div>" .
 							"				<div class='business-rules-row decimals last'>$decimals</div>";
+
+						$reportTable .=
+							"				<div class='business-rules-row line-item final'></div>" .
+							"				<div class='business-rules-row calculated final'></div>" .
+							"				<div class='business-rules-row sign final'></div>" .
+							"				<div class='business-rules-row balance final'></div>" .
+							"				<div class='business-rules-row decimals final last'></div>";
+
+						$reportTable .=
+							"			</div>" .
+							"		</div>" .
+							"		<div></div>";
 					}
-
-					$calcTaxonomy = $this->taxonomy->getTaxonomyForXSD( $calcTotalLabel );
-					$calcElement = $calcTaxonomy->getElementById( $calcTotalLabel );
-					$calcQName = "{$calcTaxonomy->getPrefix()}:{$calcElement['name']}";
-
-					$totalValue = $instance->getNumericPresentation($totalRow['columns'][ $columnIndex ]);
-					$matchClass = $totalValue == $totalRow['calcTotals'][ $columnIndex ] ? 'match' : 'mismatch';
-
-					$valueClass = "";
-					if ( $this->negativeStyle == NEGATIVE_AS_BRACKETS )
-					{
-						if ( $totalValue < 0 )
-						{
-							$valueClass .= ' neg';
-							$totalValue = "(" . abs( $totalValue ) . ")";
-						}
-						else $valueClass .= ' pos';
-					}
-
-					$balance = isset( $calcElement['balance'] ) ? $calcElement['balance'] : '';
-					$decimals = isset( $totalRow['columns'][ $columnIndex ]['decimals'] ) ? $totalRow['columns'][ $columnIndex ]['decimals'] : 'INF';
-					$reportTable .=
-						"				<div class='business-rules-row line-item' title='$calcQName'>$calcTotalText</div>" .
-						"				<div class='business-rules-row calculated total $valueClass $matchClass'>$totalValue</div>" .
-						"				<div class='business-rules-row sign'></div>" .
-						"				<div class='business-rules-row balance'>$balance</div>" .
-						"				<div class='business-rules-row decimals last'>$decimals</div>";
-
-					$reportTable .=
-						"				<div class='business-rules-row line-item final'></div>" .
-						"				<div class='business-rules-row calculated final'></div>" .
-						"				<div class='business-rules-row sign final'></div>" .
-						"				<div class='business-rules-row balance final'></div>" .
-						"				<div class='business-rules-row decimals final last'></div>";
-
-					$reportTable .=
-						"			</div>" .
-						"		</div>" .
-						"		<div></div>";
 				}
 			}
-		}
 
-		$reportTable .=
-			"	</div>" .
-			"";
+			$reportTable .=
+				"	</div>" .
+				"";
+		}
 
 		return $reportTable;
 	}
