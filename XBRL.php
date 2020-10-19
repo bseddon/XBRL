@@ -13192,7 +13192,7 @@ class XBRL {
 			{
 				$result = false;
 				$taxonomy_element = $this->findTaxonomyElement( $node['label'], 'presentation' );
-				if ( isset( $roleRef['locators'][ $taxonomy_element['id'] ] ) )
+				if ( isset( $roleRef['paths'][ $taxonomy_element['id'] ] ) )
 				{
 					if ( isset( $roleRef['paths'][ $taxonomy_element['id'] ] ) && ! isset( $roleRef['hierarchy'][ $nodeKey ] ) )
 					{
