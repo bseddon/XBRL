@@ -58,6 +58,7 @@ function qname( $value, $name = null, $noPrefixIsNoNamespace = false, $castExcep
 return;
 
 /**
+ * @deprecated
  * Generate a QName instance.
  *
  * @param array|string $value	can be a QName, an array or a string.  If a string it will be the
@@ -339,6 +340,7 @@ function qnameEltPfxName( $element, $prefixedName, $prefixException = null )
 }
 
 /**
+ * @deprecated
  * Represents a namespace, prefix and localname
  */
 class QNamex
