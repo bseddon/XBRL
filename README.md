@@ -76,6 +76,14 @@ XBRL Formulas includes support for:
 * The full set of [functions registry](https://specifications.xbrl.org/registries/functions-registry-1.0/) (XFI) are also supported 
 including both recommended and draft functions. 
 
+Notable exceptions:
+
+Only instance documents using the XML format can be read as the processor does not support any of the [OIM[(https://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html) mappings.
+In a similar way, instance information cannot be extracted from [in-line XBRL](https://www.xbrl.org/the-standard/what/specifications/) documents.
+
+These exceptions exist because there has been no reason to add support.  At the moment where iXBRL is being used, submitters are also providing data in XML 
+formatted instance documents.
+
 ### Taxonomy package support
 
 There are many instances of zip files containing taxonomies.  If a zip file content follows the 
