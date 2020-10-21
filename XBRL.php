@@ -16266,7 +16266,7 @@ class XBRL {
 	{
 		$result = array();
 
-		if ( ! isset( $primaryItem ) ) return $result;
+		if ( ! isset( $primaryItem ) || ! $primaryItem ) return $result;
 
 		foreach ( $primaryItem['roles'] as $roleUri )
 		{
