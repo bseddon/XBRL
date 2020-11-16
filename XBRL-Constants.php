@@ -1302,6 +1302,18 @@ class XBRL_Constants
 	 */
 	public static $enumSetItemType			= "enum:enumerationSetItemType";
 
+	/**
+	 * Returns enum2:enumerationItemType
+	 * @var string $enum2ItemType
+	 */
+	public static $enum2ItemType			= "enum2:enumerationItemType";
+
+	/**
+	 * Returns enum2:enumerationSetItemType
+	 * @var string $enum2SetItemType
+	 */
+	public static $enum2SetItemType			= "enum2:enumerationSetItemType";
+
 	/* -----------------------------------------------------------------------------
 	 * Inline-XBRL
 	 * -----------------------------------------------------------------------------
