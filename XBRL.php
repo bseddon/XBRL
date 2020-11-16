@@ -12118,7 +12118,7 @@ class XBRL {
 	 * @param string $path The node path of the parent.  Defaults to an empty string
 	 * @return An array indexed by node labels of paths to each node
 	 */
-	private function createHierarchyPaths( $nodes, $paths = array(), $path = "" )
+	public function createHierarchyPaths( $nodes, $paths = array(), $path = "" )
 	{
 		foreach ( $nodes as $nodeKey => $node )
 		{
