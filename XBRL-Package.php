@@ -274,17 +274,21 @@ EOT;
 
 		if ( $schemaFile )
 		{
-			$schemaNamespace = $this->getNamespaceForSchema( $schemaFile );
+			$schemaNamespace = rtrim( $this->getNamespaceForSchema( $schemaFile ), '/' );
 		}
 		else
 		{
 			$schemaFile = $this->schemaFile;
 		}
 
+		$schemaPath = $schemaFile == basename( $schemaFile )
+			? "$schemaNamespace/$schemaFile"
+			: $schemaFile;
+
 		if ( $this->isExtensionTaxonomy( $schemaFile ) )
 		{
 			return XBRL::compileExtensionXSD(
-				$schemaFile,
+				$schemaPath,
 				$this->getXBRLClassname(),
 				$schemaNamespace,
 				$output_basename,
@@ -294,7 +298,7 @@ EOT;
 		else
 		{
 			return XBRL::compile(
-				$schemaFile,
+				$schemaPath,
 				$schemaNamespace,
 				$compiledPath . ( is_null( $output_basename ) ? $this->getSchemaFileBasename() : $output_basename )
 			);
@@ -370,13 +374,14 @@ EOT;
 
 		// If the schema in the package imports one of the schemas with an entry point namespace then an extension compilation should be used
 		$xml = $this->getFileAsXML( $this->getActualUri( $schemaFile ) );
+		if ( ! $xml ) return false;
 		$xml->registerXPathNamespace( SCHEMA_PREFIX, SCHEMA_NAMESPACE );
 		foreach ( $xml->xpath("/xs:schema/xs:import") as $tag => /** @var SimpleXMLElement $element */ $element )
 		{
 			$attributes = $element->attributes();
 			if ( ! isset( $attributes['namespace'] ) ) continue;
 			// echo "{$attributes['namespace']}\n";
-			// $nameOfXBRLClass = $this->getXBRLClassname();
+			$nameOfXBRLClass = $this->getXBRLClassname();
 			if ( ( $className = $nameOfXBRLClass::class_from_namespace( (string)$attributes['namespace'] ) ) == "XBRL" ) continue;
 
 			return true;
@@ -820,7 +825,7 @@ EOT;
 
 		if ( $schemaFile )
 		{
-			$schemaNamespace = $this->getNamespaceForSchema( $schemaFile );
+			$schemaNamespace = rtrim( $this->getNamespaceForSchema( $schemaFile ), '/' );
 		}
 		else
 		{
@@ -841,6 +846,10 @@ EOT;
 			);
 		}
 
-		return XBRL::withTaxonomy( $schemaFile );
+		$schemaPath = $schemaFile == basename( $schemaFile )
+			? "$schemaNamespace/$schemaFile"
+			: $schemaFile;
+
+		return XBRL::withTaxonomy( $schemaPath );
 	}
 }
