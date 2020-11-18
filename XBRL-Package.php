@@ -738,7 +738,7 @@ EOT;
 				throw new \Exception( $msg );
 			}
 
-			return false;
+			return true;
 		}
 
 		if ( ! $context->saveCacheFile( "$schemaFile", $content ) )

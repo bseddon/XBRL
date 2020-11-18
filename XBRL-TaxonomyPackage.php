@@ -695,7 +695,7 @@ EOT;
 		if ( $context->findCachedFile( $this->schemaFile ) )
 		{
 			$this->errors[] = "The schema file '{$this->schemaFile}' already exists in the cache.";
-			return false;
+			return true;
 		}
 
 		// Look at the entry points and remap them to their location in the zip file
