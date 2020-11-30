@@ -202,6 +202,42 @@ class XBRL {
 	public $context								= null;
 
 	/**
+	 * A list of the schemas directly imported by this schema
+	 * @var array
+	 */	private $indirectNamespaces				= array();
+
+	/**
+	 * An array of schema files imported by this taxonomy
+	 */
+	public function getIndirectNamespaces()
+	{
+		return $this->indirectNamespaces;
+	}
+
+	/**
+	 * An array of the schema namespaces that have used this schema
+	 * @var array
+	 */	private $usedByNamespaces				= array();
+
+	/**
+	 *
+	 * @param XBRL $taxonomy
+	 */
+	public function AddUserNamespace( $taxonomy )
+	{
+		if ( ! ( $taxonomy instanceof XBRL ) ) return;
+		$this->usedByNamespaces[] = $taxonomy->getNamespace();
+	}
+
+	/**
+	 * A list of the schemas that have used this schema
+	 */
+	public function getUsedByNamespaces()
+	{
+		return $this->usedByNamespaces;
+	}
+
+	/**
 	 * The XML of the texonomy schema document
 	 * @var SimpleXMLElement $xbrlDocument
 	 */
@@ -387,6 +423,14 @@ class XBRL {
 	 * @var array $schemaFiles
 	 */
 	private $importedFiles						= array();
+
+	/**
+	 * An array of schema files imported by this taxonomy
+	 */
+	public function getImportedFiles()
+	{
+		return $this->importedFiles;
+	}
 
 	/**
 	 * A list of the schema files included by this schema
@@ -3668,6 +3712,9 @@ class XBRL {
 		$this->linkbaseIds			=& $data['linkbaseIds'];
 		$this->hasFormulas			=& $data['hasFormulas'];
 		$this->linkbases			=& $data['linkbases'];
+		$this->importedFiles		=& $data['importedFiles'];
+		$this->indirectNamespaces	=& $data['indirectNamespaces'];
+		$this->usedByNamespaces		=& $data['usedByNamespaces'];
 
 		if ( ( $key = array_search( $this->namespace, $this->documentPrefixes ) ) !== false )
 		{
@@ -3843,6 +3890,9 @@ class XBRL {
 			'hasFormulas'				=> $this->hasFormulas,
 			'linkbases'					=> $this->linkbases,
 			'foreignDefinitionRoleRefs'	=> &$this->foreignDefinitionRoleRefs,
+			'importedFiles'				=> &$this->importedFiles,
+			'indirectNamespaces'		=> &$this->indirectNamespaces,
+			'usedByNamespaces'			=> &$this->usedByNamespaces,
 		);
 
 		if ( $this->context->isExtensionTaxonomy() && $this->extraElements )
@@ -6193,6 +6243,8 @@ class XBRL {
 						else if ( ! isset( XBRL_Global::$taxonomiesToIgnore[ $schemaLocation ] ) )
 						{
 							$result = XBRL::withTaxonomy( $schemaLocation, true );
+							$this->indirectNamespaces[] = $result->getNamespace();
+							$result->AddUserNamespace( $this );
 						}
 					}
 
@@ -6262,12 +6314,14 @@ class XBRL {
 				$href = XBRL::resolve_path( pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ), $parts[0] );
 				XBRL::withTaxonomy( $href, true ); // BMS 2017-04-03 Should probably use XBRL::WithTaxonomy
 				$taxonomy = $this->getTaxonomyForXSD( basename( $parts[0] ) );
-
 				if ( ! $taxonomy )
 				{
 					$this->log()->warning( "The schema ('{$parts[0]}') specified arcrole '$arcroleUri' does not exist.  The linkbase content that makes use of elements defined in this schema cannot be read." );
 					continue;
 				}
+
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 
 				// Re-build the lists in case there are new roles and arcroles
 				$arcroleTypes = $this->getAllArcRoleTypes();
@@ -6374,13 +6428,15 @@ class XBRL {
 				// $href = XBRL::resolve_path( $linkbaseRef['href'], $parts['path'] );
 				$href = XBRL::resolve_path( str_replace( "//", "/", pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ) . "/" ), $parts[0] );
 				XBRL::withTaxonomy( $href, true ); // BMS 2017-04-03 Should probably use XBRL::WithTaxonomy
-				$taxonomy = $this->getTaxonomyForXSD( basename( $parts[0] ) );
-
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
 				if ( ! $taxonomy )
 				{
 					$this->log()->warning( "The schema ('{$parts[0]}') specified arcrole '$arcroleUri' does not exist.  The linkbase content that makes use of elements defined in this schema cannot be read." );
 					continue;
 				}
+
+				$taxonomy = $this->getTaxonomyForXSD( basename( $parts[0] ) );
+				$taxonomy->AddUserNamespace( $this );
 
 				// Re-build the lists in case there are new roles and arcroles
 				$arcroleTypes = $this->getAllArcRoleTypes();
@@ -9548,6 +9604,8 @@ class XBRL {
 								$this->log()->taxonomy_validation( "3.2", "The locator reference is to an element that is not part of the DTS", array( 'href' => $locatorHref ) );
 								continue;
 							}
+							$this->indirectNamespaces[] = $taxonomy->getNamespace();
+							$taxonomy->AddUserNamespace( $this );
 						}
 					}
 
@@ -10298,7 +10356,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
 				// If the taxonomy is not already loaded, try loading it.
 				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
-
 				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -10310,6 +10367,8 @@ class XBRL {
 
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionArc
@@ -10383,7 +10442,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $roleRefHref );
 
 				$taxonomy = XBRL::withTaxonomy( strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd );
-
 				$taxonomy = $this->getTaxonomyForXSD( $roleRefHref );
 				if ( ! $taxonomy )
 				{
@@ -10398,6 +10456,8 @@ class XBRL {
 					}
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionLink IN THE TAXONOMY POINTED TO BY THE HREF
@@ -11887,7 +11947,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
 				// If the taxonomy is not already loaded, try loading it.
 				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
-
 				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -11898,6 +11957,8 @@ class XBRL {
 					);
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:referenceArc
@@ -11969,7 +12030,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $this->getSchemaLocation(), $roleRefHref );
 
 				$taxonomy = XBRL::withTaxonomy( strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd );
-
 				$taxonomy = $this->getTaxonomyForXSD( $roleRefHref );
 				if ( ! $taxonomy )
 				{
@@ -11984,6 +12044,8 @@ class XBRL {
 					}
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:referenceArc IN THE TAXONOMY POINTED TO BY THE HREF
@@ -12289,7 +12351,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
 				// If the taxonomy is not already loaded, try loading it.
 				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
-
 				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -12300,6 +12361,8 @@ class XBRL {
 					);
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:definitionArc
@@ -13021,10 +13084,10 @@ class XBRL {
 						return 0;
 					}
 
-					if ( ! isset( $a['parents'][ $label ]['order'] ) || ! isset( $b['parents'][ $label ]['order'] ) )
-					{
-						$x = 1;
-					}
+					// if ( ! isset( $a['parents'][ $label ]['order'] ) || ! isset( $b['parents'][ $label ]['order'] ) )
+					// {
+					//	$x = 1;
+					// }
 
 					if ( $a['parents'][ $label ]['order'] == $b['parents'][ $label ]['order'] )
 					{
@@ -13631,7 +13694,8 @@ class XBRL {
 		// 		$xsd = strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd;
         //
 		// 		$taxonomy = XBRL::withTaxonomy( $xsd );
-		// 		// $taxonomy = $this->getTaxonomyForXSD( $xsd );
+		//		$this->indirectNamespaces[] = $taxonomy->getNamespace();
+		//		$taxonomy->AddUserNamespace( $this );
 		// 	}
 		// }
         //
@@ -13755,7 +13819,8 @@ class XBRL {
 				$xsd = strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd;
 
 				$taxonomy = XBRL::withTaxonomy( $xsd );
-				// $taxonomy = $this->getTaxonomyForXSD( $xsd );
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 		}
 
@@ -14321,7 +14386,6 @@ class XBRL {
 				$xsd = $this->resolve_path( $linkbaseRef['href'], $xsd );
 				// If the taxonomy is not already loaded, try loading it.
 				$taxonomy = $xsd ? XBRL::withTaxonomy( $xsd ) : null;
-
 				if ( ! $taxonomy )
 				{
 					$this->log()->taxonomy_validation( "5.1.3.4", "Taxonomy for arcroleRef href does not exist",
@@ -14332,6 +14396,8 @@ class XBRL {
 					);
 					continue;
 				}
+				$this->indirectNamespaces[] = $taxonomy->getNamespace();
+				$taxonomy->AddUserNamespace( $this );
 			}
 
 			// This role MUST be defined as 'usedOn' in the linkbaseRef for link:labelArc
@@ -14448,7 +14514,6 @@ class XBRL {
 					$xsd = $this->resolve_path( $this->getSchemaLocation(), $roleRefHref );
 
 					$taxonomy = XBRL::withTaxonomy( strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd );
-
 					$taxonomy = $this->getTaxonomyForXSD( $roleRefHref );
 					if ( ! $taxonomy )
 					{
@@ -14464,6 +14529,8 @@ class XBRL {
 						}
 						continue;
 					}
+					$this->indirectNamespaces[] = $taxonomy->getNamespace();
+					$taxonomy->AddUserNamespace( $this );
 				}
 
 				// This role MUST be defined as 'usedOn' in the linkbaseRef for link:labelLink
@@ -14607,7 +14674,7 @@ class XBRL {
 						continue;
 					}
 
-					$role = (string) $xlinkAttributes->role;
+					$role = (string)$xlinkAttributes->role;
 					if ( ! $role ) $role = XBRL_Constants::$labelRoleLabel;
 
 					if ( ! isset( $this->context->labelRoleRefs[ $role ] ) )
@@ -18080,6 +18147,8 @@ class XBRL {
 			$this->log()->warning( "Unable to create taxonomy from schema file '$schemaLocation'" );
 			return;
 		}
+		$this->indirectNamespaces[] = $taxonomy->getNamespace();
+		$taxonomy->AddUserNamespace( $this );
 
 		$this->importedFiles[] = $schemaLocation;
 		$namespace = $taxonomy->getNamespace();
