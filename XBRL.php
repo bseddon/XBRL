@@ -4979,6 +4979,8 @@ class XBRL {
 			// Apply the filter if one is provided
 			if ( count( $filter ) && ! isset( $filter[ strtolower( $refKey ) ] ) ) continue;
 
+			if ( ! isset( $ref['calculations'] ) || ! count( $ref['calculations'] ) ) continue;
+
 			$result[ $refKey ] = $this->context->calculationRoleRefs[ $refKey ];
 
 			$description = $this->getCalculationLinkRoleDescription( $ref );
@@ -10165,6 +10167,8 @@ class XBRL {
 
 			$this->context->calculationRoleRefs[ XBRL_Constants::$defaultLinkRole ] = array(
 				'type' => 'simple',
+				// Why is this being done?  It can lead to an invalid url as happens when compile a fac
+				// where the linkbases are in the relations folder and the schema in the reporting styles folder
 				'href' => XBRL::resolve_path( $linkbaseRef['href'], $this->getTaxonomyXSD() ), // $linkbaseRef['href'],
 				'roleUri' => $roleUri,
 			);
