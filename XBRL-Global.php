@@ -284,7 +284,7 @@ class XBRL_Global
 		if ( is_string( $href ) && \XBRL::endsWith( $href, '.xsd' ) && \XBRL::startsWith( $href, 'http' ) )
 		{
 			if ( ! isset( $this->schemaFileToNamespace[ $href ] ) )
-				return null;
+				return false;
 
 			$xsd = $href;
 		}
