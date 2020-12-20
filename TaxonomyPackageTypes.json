@@ -4,6 +4,7 @@
 	"classNames": [
 		"XBRL_ESMA_ESEF_Package",
 		"XBRL_IFRS_Package",
+		"XBRL_USGAAP_Package",
 		"XBRL_TaxonomyPackage", 
 		"XBRL_SEC_JSON_Package", 
 		"XBRL_SEC_XML_Package", 
