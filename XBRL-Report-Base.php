@@ -379,14 +379,11 @@ abstract class XBRL_Report_Base
 		// Remove any years that are not in the valid years list
 		if ( ! $this->validYears ) return;
 
-		foreach ( $this->years as $yearKey => $year )
-		{
-			if ( in_array( $yearKey, $this->validYears ) ) continue;
-			unset( $this->years[ $yearKey ] );
-		}
+		$validYears = array_flip( $this->validYears );
 
-		// Sort the years collection in the same order as the valid years
-		$this->years = array_replace( array_flip( $this->validYears ), $this->years );
+		$validYears = array_intersect_key( $validYears, $this->years );
+		$this->validYears = array_flip( $validYears );
+		$this->years = array_intersect_key( $this->years, $validYears );
 	}
 
 	/**
@@ -419,7 +416,7 @@ abstract class XBRL_Report_Base
 		if ( ! $this->initTaxonomy() )
 			throw new Exception( "Failed to initialize the taxonomy" );
 
-		$this->log()->info( "Prepare {$this->elapsedTime()}" );
+		// $this->log()->info( "Prepare {$this->elapsedTime()}" );
 		$roles = &$this->taxonomy->getPresentationRoleRefs();
 
 		$taxonomies = $this->taxonomy->getImportedSchemas();
@@ -1110,17 +1107,17 @@ abstract class XBRL_Report_Base
 			} // $instance_elements
 		} // $this->instanceDocuments
 
-		if ( $this->debug ) $this->log()->debug( "After prepare: {$this->elapsedTime()}" );
+		// if ( $this->debug ) $this->log()->debug( "After prepare: {$this->elapsedTime()}" );
 		// Start pruning the tree.
 
 		if ( $prune )
 		{
-			if ( $this->debug ) $this->log()->debug( "Before prune: {$this->elapsedTime()}" );
+			// if ( $this->debug ) $this->log()->debug( "Before prune: {$this->elapsedTime()}" );
 			$this->pruneNodes( $roles );
 		}
 		// file_put_contents( 'output.json', json_encode( $this->hierarchies ) );
 
-		if ( $this->debug ) $this->log()->debug( "Compact: {$this->elapsedTime()}" );
+		// if ( $this->debug ) $this->log()->debug( "Compact: {$this->elapsedTime()}" );
 		$this->hierarchies = array();
 		$processTotal = 0;
 		$compactTotal = 0;
@@ -1150,7 +1147,7 @@ abstract class XBRL_Report_Base
 
 			$this->log()->info( "$roleKey" );
 
-			$before = $this->elapsedTime();
+			// $before = $this->elapsedTime();
 
 			$test = false;
 			if ( $test )
@@ -1165,17 +1162,17 @@ abstract class XBRL_Report_Base
 			{
 				$hierarchy = $this->processDimensionGroups( $role['hierarchy'] );
 			}
-			$after = $this->elapsedTime();
-			$processTime = $after - $before;
-			$processTotal += $processTime;
+			// $after = $this->elapsedTime();
+			// $processTime = $after - $before;
+			// $processTotal += $processTime;
 
-			$before = $this->elapsedTime();
+			// $before = $this->elapsedTime();
 			$this->compactDimensionGroups( $hierarchy );
-			$after = $this->elapsedTime();
-			$compactTime = $after - $before;
-			$compactTotal += $compactTime;
+			// $after = $this->elapsedTime();
+			// $compactTime = $after - $before;
+			// $compactTotal += $compactTime;
 
-			$this->log()->info( "{$this->leafCount} $processTime $compactTime $roleKey" );
+			//$this->log()->info( "{$this->leafCount} $processTime $compactTime $roleKey" );
 			$this->countDepth( $hierarchy );
 
 			$this->hierarchies[ $roleKey ] = array(
@@ -1184,8 +1181,8 @@ abstract class XBRL_Report_Base
 			);
 		}
 
-		$this->log()->info( "Process time: $processTotal" );
-		$this->log()->info( "Compact time: $compactTotal" );
+		// $this->log()->info( "Process time: $processTotal" );
+		// $this->log()->info( "Compact time: $compactTotal" );
 
 		// file_put_contents( 'output.json', json_encode( $this->hierarchies ) );
 		// $this->log()->info( json_encode( $this->hierarchies ) );
@@ -1320,11 +1317,11 @@ abstract class XBRL_Report_Base
 
 			// Once the child nodes have been processed, compact this node
 			// This node will be compacted if there is only one child and that child is the default member
-			if ( $node['nodeclass'] === 'dimension' )
+			if ( ( $node['nodeclass'] ?? '' )=== 'dimension' )
 			{
 				// If its a dimension node does the node have a default member?
 				// If there are only non-default children keep this node
-				if ( ! isset( $node['hasdefault'] ) || ! $node['hasdefault'] ) continue;
+				if ( ! ( $node['hasdefault'] ?? false ) ) continue;
 
 				// If it has a default member is there only one member?
 				if ( ! isset( $node['children'] ) ) continue;
@@ -1377,7 +1374,7 @@ abstract class XBRL_Report_Base
 
 				$node['default'] = true;
 			}
-			elseif ( $node['nodeclass'] === 'member' )
+			elseif ( ( $node['nodeclass'] ?? '' ) === 'member' )
 			{
 				// If its a member node is it a default member?
 				if ( ( ! isset( $node['default'] ) || ! $node['default'] ) &&
@@ -1390,7 +1387,7 @@ abstract class XBRL_Report_Base
 
 				foreach ( $node['children'] as $childKey => $child )
 				{
-					if ( $child['nodeclass'] === 'dimension' && isset( $child['default'] ) && $child['default'] )
+					if ( ( $child['nodeclass'] ?? '' ) === 'dimension' && ( $child['default'] ?? false ) )
 					{
 						// If the child is the only member and it is a default then it can be removed.
 						if ( isset( $child['elements'] ) && count( $child['elements'] ) > 0 ) continue;
@@ -1410,14 +1407,14 @@ abstract class XBRL_Report_Base
 				// Child may have been set before
 				unset( $child );
 				$child = reset( $node['children'] );
-				if ( $child['nodeclass'] !== 'primaryitem' )
+				if ( ( $child['nodeclass'] ?? '' ) !== 'primaryitem' )
 				{
-					if ( $child['nodeclass'] === 'dimension' && isset( $child['children'] ) && count( $child['children'] ) > 1 )
+					if ( ( $child['nodeclass'] ?? '' ) === 'dimension' && isset( $child['children'] ) && count( $child['children'] ) > 1 )
 					{
 						// Or are all the children non-dimensional (eg primary items)?
-						if ( count( array_filter( $child['children'],
+						if ( count( array_filter( $child['children'] ?? array(),
 							function( $node ) {
-								return $node['nodeclass'] === 'dimension' ||
+								return ( $node['nodeclass'] ?? '' ) === 'dimension' ||
 								$node['nodeclass'] === 'member';
 							} ) ) !== 0
 						)
@@ -1488,7 +1485,7 @@ abstract class XBRL_Report_Base
 				// Is the child a dimension?
 				// unset( $child );
 				$child = reset( $node['children'] );
-				if ( $child['nodeclass'] !== 'dimension' ) continue;
+				if ( ( $child['nodeclass'] ?? '' ) !== 'dimension' ) continue;
 				if ( isset( $child['children'] ) && count( $child['children'] ) > 1 )
 				{
 					// Or are all the children non-dimensional (eg primary items)?
@@ -1502,7 +1499,7 @@ abstract class XBRL_Report_Base
 				}
 
 				// OK, is the child a default
-				if ( ! isset( $child['hasdefault'] ) || ! isset( $child['default'] ) || ! $child['default'] ) continue;
+				if ( ! isset( $child['hasdefault'] ) || ! ( $child['default'] ?? false ) ) continue;
 
 				$retainChildren = isset( $child['retainchildren'] );
 
@@ -2317,17 +2314,17 @@ abstract class XBRL_Report_Base
 				$nodeHasDimensions = false;
 
 				// Potential conditions here:
-				$newNodeIsDimensional = $newNode['nodeclass'] === 'dimension' || $newNode['nodeclass'] === 'member';
-				$newNodeIsPrimaryItem = $newNode['nodeclass'] === 'primaryitem';
+				$newNodeIsDimensional = ( $newNode['nodeclass'] ?? '' ) === 'dimension' || ( $newNode['nodeclass'] ?? '' ) === 'member';
+				$newNodeIsPrimaryItem = ( $newNode['nodeclass'] ?? '' ) === 'primaryitem';
 				$newNodeHasElements = isset( $newNode['elements'] ) && count( $newNode['elements'] );
 				$newNodeHasChildren = isset( $newNode['children'] ) && count( $newNode['children'] );
-				$newNodeHasPrimaryItemChildren = count( array_filter( $newNode['children'], function( $item ) { return $item['nodeclass'] === 'primaryitem'; } ) );
+				$newNodeHasPrimaryItemChildren = count( array_filter( $newNode['children'] ?? array(), function( $item ) { return ( $item['nodeclass'] ?? '' ) === 'primaryitem'; } ) );
 
 				// Remove elements that have been used for non-primary item types
 				if ( ! $newNodeHasPrimaryItemChildren && $newNodeHasElements && ! $newNodeIsPrimaryItem )
 				{
 					// BMS 2016-02-01 Commented this out.  It's causing problems with total/sub-total nodes.  Why is it here?
-					$elements = array_filter( $newNode['elements'], function( $element ) { return isset( $element['used'] ) && $element['used']; } );
+					$elements = array_filter( $newNode['elements'] ?? array(), function( $element ) { return isset( $element['used'] ) && $element['used']; } );
 					if ( count( $elements ) === 0 )
 						unset( $newNode['elements'] );
 					else
@@ -2798,9 +2795,9 @@ abstract class XBRL_Report_Base
 			"</html>",
 		);
 
-		$this->log()->info( "Flatten: {$this->elapsedTime()}" );
+		// $this->log()->info( "Flatten: {$this->elapsedTime()}" );
 		$x = $this->flatten( $html );
-		$this->log()->info( "Write: {$this->elapsedTime()}" );
+		// $this->log()->info( "Write: {$this->elapsedTime()}" );
 		return join( "\n", $x );
 	}
 
@@ -2859,9 +2856,9 @@ abstract class XBRL_Report_Base
 			foreach ( $openingBalances as $nodeKey => $openingBalance )
 			{
 				$closingBalances += array_filter( $nodes, function( $node ) use( $openingBalance ) {
-					if ( $node['nodeclass'] != 'simple' && $node['nodeclass'] != 'primaryitem' ) return false;
+					if (( $node['nodeclass'] ?? '' ) != 'simple' && ( $node['nodeclass'] ?? '' ) != 'primaryitem' ) return false;
 					if ( $node['taxonomy_element']['id'] !== $openingBalance['taxonomy_element']['id'] ) return false;
-					if ( isset( $node['preferredLabel'] ) && $node['preferredLabel'] === XBRL_Constants::$labelRolePeriodStartLabel ) return false;
+					if ( ( $node['preferredLabel'] ?? '' ) === XBRL_Constants::$labelRolePeriodStartLabel ) return false;
 					return true;
 				} );
 			}
@@ -2920,10 +2917,10 @@ abstract class XBRL_Report_Base
 				$output_array[] = "<td colspan=\"{$remaining}\">%text</td>";
 
 				//  The member description is good enough if the next child is a primary item
-				if ( $node['nodeclass'] === 'member' && isset( $node['children'] ) && count( $node['children'] ) == 1 )
+				if ( ( $node['nodeclass'] ?? '' ) === 'member' && isset( $node['children'] ) && count( $node['children'] ) == 1 )
 				{
 					$child = reset( $node['children'] );
-					if ( $child['nodeclass'] === 'primaryitem' )
+					if ( ( $child['nodeclass'] ?? '' ) === 'primaryitem' )
 					{
 						// Promote the node
 						$node = $child;
@@ -3416,7 +3413,7 @@ abstract class XBRL_Report_Base
 
 		$rus = $this->rustart;
 		$ru = getrusage();
-		return ( $ru[ "ru_$index.tv_sec" ] * 1000 + intval( $ru[ "ru_$index.tv_usec" ] / 1000 ) ) - ( $rus[ "ru_$index.tv_sec" ] * 1000 + intval( $rus[ "ru_$index.tv_usec" ] / 1000 ) );
+		return ( $ru[ "ru_$index.tv_sec" ] * 1000 + intval( $ru[ "ru_$index.tv_usec" ] / 1000 ) ) - ( $rus ? $rus[ "ru_$index.tv_sec" ] * 1000 + intval( $rus[ "ru_$index.tv_usec" ] / 1000 ) : 0 );
 	}
 
 	/**

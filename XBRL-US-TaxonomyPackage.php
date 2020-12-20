@@ -42,7 +42,6 @@ class XBRL_US_TaxonomyPackage extends XBRL_SimplePackage
 		'2020-01-31' => 'http://xbrl.fasb.org/us-gaap/2020/entire/us-gaap-entryPoint-all-2020-01-31.xsd'
 	);
 
-
 	/**
 	 * Notes about using this package instance
 	 * @var string

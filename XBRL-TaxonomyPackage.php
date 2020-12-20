@@ -77,6 +77,12 @@ EOT;
 	private $catalog;
 
 	/**
+	 * This collection will be a list of specific entry points to skip
+	 * @var array
+	 */
+	public $skipEntryPoints = array();
+
+	/**
 	 * Required. Provides a URI that uniquely identifies the package.
 	 * @var string
 	 */
@@ -191,6 +197,46 @@ EOT;
 	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null  )
 	{
 		return parent::compile( $output_basename, $compiledPath, $schemaFile );
+	}
+
+	/**
+	 * Compile all entry point taxonmies
+	 * @param string $cacheLocation
+	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @return array A list of compiled entry points
+	 * @throws Exception
+	 */
+	public function compileAll( $cacheLocation, $compiledPath  )
+	{
+		$compiled = array();
+
+		foreach( $this->entryPoints as $entryPoint )
+		{
+			$entryPointDocument = reset( $entryPoint['entryPointDocument'] );
+			if ( array_search( $entryPointDocument, $this->skipEntryPoints ) !== false ) continue;
+			$basename = $this->getSchemaFileBasename( "", $entryPointDocument );
+
+			\XBRL_Global::reset();
+			$context = XBRL_Global::getInstance();
+			$context->useCache = true;
+			$context->cacheLocation = $cacheLocation;
+			$context->initializeCache();
+			XBRL_Log::getInstance()->resetConformanceIssueWarning();
+
+			if ( $this->isCompiled( $compiledPath, $basename ) ) continue;
+
+			if ( $this->compile( $basename, $compiledPath, $entryPointDocument ) )
+			{
+				if ( XBRL_Log::getInstance()->hasConformanceIssueWarning() )
+				{
+					echo "There are conformance issues found during taxonomy compilation for {$entryPointDocument}\n";
+				}
+
+				$compiled[] = $entryPointDocument;
+			}
+		}
+
+		return $compiled;
 	}
 
 	/**
@@ -329,7 +375,7 @@ EOT;
 
 						$elementAttributes = $xml->attributes();
 						$licenseName = isset( $elementAttributes['name'] ) ? (string)$elementAttributes['name'] : '';
-						if ( ! $licenseName ) continue;
+						if ( ! $licenseName ) break;
 						$href = isset( $elementAttributes['href'] ) ? (string)$elementAttributes['href'] : '';
 
 						$this->$name['name'] = $licenseName;

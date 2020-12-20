@@ -1138,7 +1138,7 @@ class Formula extends VariableSet
 				}
 			}
 
-			if ( $this->conceptRule['qname'] )
+			if ( $this->conceptRule['qname'] ?? false )
 			{
 				// BMS 2015-03-26
 				// If the concept rule is really a source then the qname will reference a variable so reset
@@ -1250,6 +1250,8 @@ class Formula extends VariableSet
 	 */
 	public function getIsFormulaUncoveredQName( $source )
 	{
+		if ( ! $source ) return;
+
 		return $source instanceof QName
 			? $source->namespaceURI == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FORMULA ] && $source->localName == 'uncovered'
 			: $source['namespace'] == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FORMULA ] && $source['name'] == 'uncovered';
@@ -2674,6 +2676,7 @@ class Formula extends VariableSet
 	private function checkSAVConflicts( $source, $aspect, $evaluationResult, $log )
 	{
 		// Find out if $source refers to a variable in the evaluation result
+		if ( ! $source ) return;
 		$qname = new QName( $source['originalPrefix'], $source['namespace'], $source['name'] );
 		if ( ! isset( $evaluationResult['vars'][ $qname->clarkNotation() ] ) ) return;
 

@@ -306,6 +306,18 @@ EOT;
 	}
 
 	/**
+	 * If a package type supports multiple entry points this method can be overridden to Compile all entry point taxonmies
+	 * @param string $cacheLocation
+	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @return array A list of compiled entry points
+	 * @throws Exception
+	 */
+	public function compileAll( $cacheLocation, $compiledPath  )
+	{
+		// Do nothing here
+	}
+
+	/**
 	 * An implementation will return true if the package can be processed
 	 * by its implementation.
 	 */

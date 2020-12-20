@@ -126,44 +126,6 @@ function initialize_xsd_to_class_map()
 }
 
 /**
- * Call the function
- */
-// initialize_xsd_to_class_map();
-// With the bootloader in place these are two classes that MUST be loaded
-require_once __DIR__ . '/XBRL-Constants.php';
-
-global $use_xbrl_functions;
-if ( $use_xbrl_functions )
-{
-	// If composer autoload is being used this class will be loaded automatically
-	if ( ! class_exists( "\lyquidity\XPath2\FunctionTable", true ) )
-	{
-		$xpathPath = isset( $_ENV['XPATH20_LIBRARY_PATH'] )
-			? $_ENV['XPATH20_LIBRARY_PATH']
-			: ( defined( 'XPATH20_LIBRARY_PATH' ) ? XPATH20_LIBRARY_PATH : __DIR__ . "/../XPath2/" );
-
-		require_once $xpathPath . '/bootstrap.php';
-	}
-
-	require_once __DIR__ . '/XBRL-Functions.php';
-	require_once __DIR__ . '/Formulas/Formulas.php';
-}
-else
-{
-	// If composer autoload is being used this class will be loaded automatically
-	if ( ! class_exists( "\lyquidity\xml\schema\SchemaTypes", true ) )
-	{
-		$xmlSchemaPath = isset( $_ENV['XML_LIBRARY_PATH'] )
-			? $_ENV['XML_LIBRARY_PATH']
-			: ( defined( 'XML_LIBRARY_PATH' ) ? XML_LIBRARY_PATH : __DIR__ . "/../xml/" );
-
-		require_once $xmlSchemaPath . '/bootstrap.php';
-	}
-}
-
-XBRL::constructor();
-
-/**
  * Main XBRL control class
  * @author Bill Seddon
  */
@@ -429,7 +391,7 @@ class XBRL {
 	 */
 	public function getImportedFiles()
 	{
-		return $this->importedFiles;
+		return is_array( $this->importedFiles ) ? $this->importedFiles : array();
 	}
 
 	/**
@@ -1765,6 +1727,9 @@ class XBRL {
 		}
 		else
 		{
+			// Attempt to free memory
+			gc_collect_cycles();
+
 			$json = $this->toJSON( null, false );
 
 			file_put_contents( "$output_basename.json", $json );
@@ -1934,7 +1899,18 @@ class XBRL {
 						{
 							$value = 0;
 						}
+						else
+						{
+							$locale = locale_get_default();
+							setlocale( LC_ALL, str_replace('_', '-', $this->context->locale ) );
+							$thousandsSep = localeconv()['thousands_sep'];
+							setlocale( LC_ALL, str_replace('_', '-', $locale ) );
 
+							if ( $thousandsSep && strpos( $value, $thousandsSep ) !== false )
+							{
+								$value = str_replace( $thousandsSep, '', $value );
+							}
+						}
 						// Lookup the format
 						$parts = isset( $element['format'] ) ? array_filter( explode( ':', $element['format'] ) ) : array();
 						if ( count( $parts ) > 1 )
@@ -4031,6 +4007,7 @@ class XBRL {
 
 		foreach ( $this->importedFiles as $importedFile )
 		{
+			// echo "$importedFile\n";
 			$taxonomy = $this->getTaxonomyForXSD( $importedFile );
 			if ( ! $taxonomy )
 			{
@@ -5372,11 +5349,25 @@ class XBRL {
 								$labelsByHref[ $parts[0] ] = array();
 							}
 
-							$labelsByHref[ $parts[0] ][ $items['id'] ][] = array(
-								'role'	=> $roleKey,
-								'label'	=> $labelLabel,
-								'lang'	=> $lang,
-							);
+							if ( is_array( $items['id'] ) )
+							{
+								foreach( $items['id'] as $id )
+								{
+									$labelsByHref[ $parts[0] ][ $id ][] = array(
+										'role'	=> $roleKey,
+										'label'	=> $labelLabel,
+										'lang'	=> $lang,
+									);
+								}
+							}
+							else
+							{
+								$labelsByHref[ $parts[0] ][ $items['id'] ][] = array(
+									'role'	=> $roleKey,
+									'label'	=> $labelLabel,
+									'lang'	=> $lang,
+								);
+							}
 						}
 					}
 				}
@@ -6016,7 +6007,7 @@ class XBRL {
 	public function getAllArcRoleTypes()
 	{
 		// Gather all arcrole types
-		return array_reduce( $this->context->importedSchemas, function( $carry, &$taxonomy )
+		return array_reduce( $this->context->importedSchemas, function( $carry, $taxonomy )
 		{
 			$arts = $taxonomy->getArcroleTypes();
 			$taxonomy->normalizeUsedOn( $arts, $taxonomy );
@@ -6057,7 +6048,7 @@ class XBRL {
 	public function getAllDimensions()
 	{
 		// Gather all arcrole types
-		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ &$taxonomy )
+		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ $taxonomy )
 		{
 			$dimensionNames = $taxonomy->getElementDimensions();
 			$dimensionElements = array();
@@ -6083,7 +6074,7 @@ class XBRL {
 	public function getAllLinkbaseRoleTypes()
 	{
 		// Gather all role types
-		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ &$taxonomy )
+		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ $taxonomy )
 		{
 			$lrts = $taxonomy->getLinkbaseRoleTypes();
 
@@ -6112,7 +6103,7 @@ class XBRL {
 	public function getAllRoleTypes()
 	{
 		// Gather all role types
-		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ &$taxonomy )
+		return array_reduce( $this->context->importedSchemas, function( $carry, /** @var XBRL $taxonomy */ $taxonomy )
 		{
 			$rts = $taxonomy->getRoleTypes();
 			$taxonomy->normalizeUsedOn( $rts, $taxonomy );
@@ -9046,29 +9037,31 @@ class XBRL {
 
 						// echo "Essence Alias\n";
 
-						$fromElement = $this->getElementById( $from );
-						$toElement = $this->getElementById( $to );
+						$taxonomy = $this->getTaxonomyForXSD( $from );
+						$fromElement = $taxonomy ? $taxonomy->getElementById( $from ) : false;
+						$taxonomy = $this->getTaxonomyForXSD( $to );
+						$toElement = $taxonomy ? $taxonomy->getElementById( $to ) : false;
 
-						if ( $fromElement['periodType'] != $toElement['periodType'] )
+						if ( ( $fromElement && ! $toElement ) || ( ! $fromElement && $toElement ) || $fromElement['periodType'] != $toElement['periodType'] )
 						{
 							$this->log()->taxonomy_validation( "5.2.6.2.2", "The essence type pair do not have the same period type",
 								array(
 									'from' => $from,
 									'to' => $to,
-									'from periodType' => $fromElement['periodType'],
-									'to periodType' => $toElement['periodType'],
+									'from periodType' => $fromElement ? $fromElement['periodType'] : 'unknown',
+									'to periodType' => $toElement ? $toElement['periodType'] : 'unknown',
 								)
 							);
 						}
 
-						if ( $fromElement['type'] != $toElement['type'] )
+						if ( ( $fromElement && ! $toElement ) || ( ! $fromElement && $toElement ) || $fromElement['type'] != $toElement['type'] )
 						{
 							$this->log()->taxonomy_validation( "5.2.6.2.2", "The essence type pair do not have the same type",
 								array(
 									'from' => $from,
 									'to' => $to,
-									'from type' => $fromElement['type'],
-									'to type' => $toElement['type'],
+									'from type' => $fromElement ? $fromElement['type'] : 'unknown',
+									'to type' => $toElement ? $toElement['type'] : 'unknown',
 								)
 							);
 						}
@@ -9184,7 +9177,7 @@ class XBRL {
 						if ( XBRL::isValidating() )
 						{
 							$taxonomy = $this->getTaxonomyForXSD( $from );
-							$element = $taxonomy->getElementByID( trim( strstr( $from, '#' ), '#' ) );
+							$element = $taxonomy->getElementByID( $from );
 							if ( $element )
 							{
 								if ( ! XBRL_Types::getInstance()->resolvesToBaseType( $element['type'], array( 'xs:decimal' ) ) )
@@ -9201,7 +9194,7 @@ class XBRL {
 							}
 
 							$taxonomy = $this->getTaxonomyForXSD( $to );
-							$element = $taxonomy->getElementByID( trim( strstr( $to, '#' ), '#' ) );
+							$element = $taxonomy->getElementByID( $to );
 							if ( $element )
 							{
 								if ( ! XBRL_Types::getInstance()->resolvesToBaseType( $element['type'], array( 'xs:decimal' ) ) )
@@ -11502,6 +11495,7 @@ class XBRL {
 								{
 									foreach ( $memberNodes as $key => $memberNode )
 									{
+										if ( isset ( $memberNode['arcrole'] ) )
 										if ( $memberNode['arcrole'] == XBRL_Constants::$arcRoleHypercubeDimension ||
 											 $memberNode['arcrole'] == XBRL_Constants::$arcRoleDimensionDomain )
 										{
@@ -11596,11 +11590,13 @@ class XBRL {
 						$this->log()->warning( "Sorting: can't find parent $label" );
 					}
 
-					if ( $a['parents'][ $label ]['order'] == $b['parents'][ $label ]['order'] )
+					$aOrder = $a['parents'][ $label ]['order'] ?? 0;
+					$bOrder = $b['parents'][ $label ]['order'] ?? 0;
+					if ( $aOrder == $bOrder )
 					{
-						return strcmp( $a['label'], $b['label'] );
+						return strcmp( $a['label'], $b['label'] ); // If the orders are the same order by label
 					}
-					return ( $a['parents'][ $label ]['order'] < $b['parents'][ $label ]['order'] ) ? -1 : 1;
+					return $aOrder < $bOrder ? -1 : 1;
 				} );
 			}
 
@@ -11609,7 +11605,7 @@ class XBRL {
 			//	return ! isset( $node['parents'] );
 			// });
 
-			$hierarchy = array_filter( $nodes, function( &$node ) use( $hypercubes ) {
+			$hierarchy = array_filter( $nodes, function( $node ) use( $hypercubes ) {
 				return ! isset( $node['parents'] ) && ! isset( $hypercubes[ $node['label'] ] );
 			});
 
@@ -13144,7 +13140,7 @@ class XBRL {
 				return $new_nodes;
 			}; // $realizeHierarchy
 
-			$hierarchy = array_filter( $nodes, function( &$node ) {
+			$hierarchy = array_filter( $nodes, function( $node ) {
 				return ! isset( $node['parents'] ) || count( $node['parents'] ) === 0;
 			});
 
@@ -13167,13 +13163,8 @@ class XBRL {
 						if ( isset( $nodes[ $node['label'] ]['children'][ $childNodeKey ] ) )
 						{
 							// Need to compare the priority of the existing node with the priority of the new node
-							$currentPriority = isset( $nodes[ $node['label'] ]['children'][ $childNodeKey ]['priority'] )
-								? $nodes[ $node['label'] ]['children'][ $childNodeKey ]['priority']
-								: 0;
-
-							$newPriority = isset( $childNode['priority'] )
-								? $childNode['priority']
-								: 0;
+							$currentPriority = $nodes[ $node['label'] ]['children'][ $childNodeKey ]['priority'] ?? 0;
+							$newPriority = $childNode['priority'] ?? 0;
 
 							// If the new priority is the same or greater than the existing priority then it needs to be removed
 							if ( $newPriority >= $currentPriority )
@@ -16982,14 +16973,14 @@ class XBRL {
 					{
 						if ( isset( $newRole['primaryitems'][ $targetPrimaryItemKey ]['parents'][ $targetParentKey ] ) )
 						{
-							$newRolePriority = $newRole['primaryitems'][ $targetPrimaryItemKey ]['parents'][ $targetParentKey ]['priority'];
-							$newRoleUse = $newRole['primaryitems'][ $targetPrimaryItemKey ]['parents'][ $targetParentKey ]['use'];
+							$newRolePriority = $newRole['primaryitems'][ $targetPrimaryItemKey ]['parents'][ $targetParentKey ]['priority'] ?? 0;
+							$newRoleUse = $newRole['primaryitems'][ $targetPrimaryItemKey ]['parents'][ $targetParentKey ]['use'] ?? XBRL_Constants::$xlinkUseOptional;
 
 							// If the $targetParent use is 'prohibited' and the $targetParent priority is = the newRole parent or
 							// if the $targetParent priority is < the newRole parent then there is nothing to do because newRole wins
 							if (
-									$targetParent['priority'] < $newRolePriority ||
-									( $targetParent['priority'] == $newRolePriority && $targetParent['use'] != XBRL_Constants::$xlinkUseProhibited )
+									$targetParent['priority'] ?? 0 < $newRolePriority ||
+									( $targetParent['priority'] ?? 0 == $newRolePriority && ( $targetParent['use'] ?? XBRL_Constants::$xlinkUseOptional ) != XBRL_Constants::$xlinkUseProhibited )
 							)
 							{
 								continue;
@@ -17025,13 +17016,13 @@ class XBRL {
 					{
 						if ( isset( $newRole['dimensions'][ $targetDimensionKey ]['parents'][ $targetParentKey ] ) )
 						{
-							$newRolePriority = $newRole['dimensions'][ $targetDimensionKey ]['parents'][ $targetParentKey ]['priority'];
-							$newRoleUse = $newRole['dimensions'][ $targetDimensionKey ]['parents'][ $targetParentKey ]['use'];
+							$newRolePriority = $newRole['dimensions'][ $targetDimensionKey ]['parents'][ $targetParentKey ]['priority'] ?? 0;
+							$newRoleUse = $newRole['dimensions'][ $targetDimensionKey ]['parents'][ $targetParentKey ]['use'] ?? XBRL_Constants::$xlinkUseOptional;
 
 							// If the $targetParent use is 'prohibited' and the $targetParent priority is = the newRole parent or
 							// if the $targetParent priority is < the newRole parent then there is nothing to do because newRole wins
-							if ( $targetParent['priority'] < $newRolePriority ||
-								 ( $targetParent['priority'] == $newRolePriority && $targetParent['use'] != XBRL_Constants::$xlinkUseProhibited )
+							if ( $targetParent['priority'] ?? 0 < $newRolePriority ||
+								 ( $targetParent['priority'] ?? 0 == $newRolePriority && ( $targetParent['use'] ?? XBRL_Constants::$xlinkUseOptional ) != XBRL_Constants::$xlinkUseProhibited )
 							)
 							{
 								continue;
@@ -17085,13 +17076,13 @@ class XBRL {
 					{
 						if ( isset( $newRole['members'][ $targetMemberKey ]['parents'][ $targetParentKey ] ) )
 						{
-							$newRolePriority = $newRole['members'][ $targetMemberKey ]['parents'][ $targetParentKey ]['priority'];
-							$newRoleUse = $newRole['members'][ $targetMemberKey ]['parents'][ $targetParentKey ]['use'];
+							$newRolePriority = $newRole['members'][ $targetMemberKey ]['parents'][ $targetParentKey ]['priority'] ?? 0;
+							$newRoleUse = $newRole['members'][ $targetMemberKey ]['parents'][ $targetParentKey ]['use'] ?? XBRL_Constants::$xlinkUseOptional;
 
 							// If the $targetParent use is 'prohibited' and the $targetParent priority is = the newRole parent or
 							// if the $targetParent priority is < the newRole parent then there is nothing to do because newRole wins
-							if ( $targetParent['priority'] < $newRolePriority ||
-								 ( $targetParent['priority'] == $newRolePriority && $targetParent['use'] != XBRL_Constants::$xlinkUseProhibited )
+							if ( $targetParent['priority'] ?? 0 < $newRolePriority ||
+								 ( $targetParent['priority'] ?? 0 == $newRolePriority && ( $targetParent['use'] ?? XBRL_Constants::$xlinkUseOptional ) != XBRL_Constants::$xlinkUseProhibited )
 							)
 							{
 								continue;
@@ -19222,4 +19213,42 @@ class XBRL {
 
 	}
 }
+
+/**
+ * Call the function
+ */
+// initialize_xsd_to_class_map();
+// With the bootloader in place these are two classes that MUST be loaded
+require_once __DIR__ . '/XBRL-Constants.php';
+
+global $use_xbrl_functions;
+if ( $use_xbrl_functions )
+{
+	// If composer autoload is being used this class will be loaded automatically
+	if ( ! class_exists( "\lyquidity\XPath2\FunctionTable", true ) )
+	{
+		$xpathPath = isset( $_ENV['XPATH20_LIBRARY_PATH'] )
+			? $_ENV['XPATH20_LIBRARY_PATH']
+			: ( defined( 'XPATH20_LIBRARY_PATH' ) ? XPATH20_LIBRARY_PATH : __DIR__ . "/../XPath2/" );
+
+		require_once $xpathPath . '/bootstrap.php';
+	}
+
+	require_once __DIR__ . '/XBRL-Functions.php';
+	require_once __DIR__ . '/Formulas/Formulas.php';
+}
+else
+{
+	// If composer autoload is being used this class will be loaded automatically
+	if ( ! class_exists( "\lyquidity\xml\schema\SchemaTypes", true ) )
+	{
+		$xmlSchemaPath = isset( $_ENV['XML_LIBRARY_PATH'] )
+			? $_ENV['XML_LIBRARY_PATH']
+			: ( defined( 'XML_LIBRARY_PATH' ) ? XML_LIBRARY_PATH : __DIR__ . "/../xml/" );
+
+		require_once $xmlSchemaPath . '/bootstrap.php';
+	}
+}
+
+XBRL::constructor();
 
