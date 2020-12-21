@@ -201,7 +201,7 @@ available in PHP 7.+.
 
 We have not made use of functions that require PHP extensions not in the standard distribution.
 
-###PHP version relative performance
+### PHP version relative performance
 
 Every night our test suites are run which includes around 50,000 unit tests covering the XPath 2.0 conformance suite, the XBRL 2.1, Formulas and Dimensions 
 conformance suites plus example compilation and report rendering.  There a 12 discrete tests (each is a separate invocation of PHP) that in total take 
@@ -231,7 +231,7 @@ We have a winner!  It's clear that the best performance is using version 8.0 wit
 The best version 7.2.6 time is 3:31.  The best 7.4.13 time is 2.55, a 21% improvement.  The best version 8.0 time is 2:25 a 35% improvement over version 
 7.2.6 and 18% better than 7.4.13.
 
-###Memory
+### Memory
 
 The default memory limit defined in php.ini is suitable for sites generating regular web pages.  However taxonomies can be large and 
 the source makes liberal use of memory to boost performance. We recommend that when you execute examples that you ensure the memory 
