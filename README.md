@@ -195,10 +195,43 @@ can perform additional code checks.  But there are downsides as well.  The abili
 
 **PHP versions and development tools**
 
-To work with the code you will need to use PHP 7.0 or later.  PHP is the latest and greatest and we currently develop using PHP 7.2.6.  In our experience 
-version 7.0 is *much* faster and it is likely we have used features of the language that are only available in PHP 7.+.
+To work with the code you will need to use PHP 7.0 or later.  PHP 8.0 is the latest and greatest and while it is supported, we currently develop using 
+PHP 7.4.13. PHP 8.0.  PHP 7.0 and later are *much* faster than earlier version and it is likely we have used features of the language that are only 
+available in PHP 7.+.
 
-We have not made use of functions that require PHP extensions not in the standard distribution.  
+We have not made use of functions that require PHP extensions not in the standard distribution.
+
+###PHP version relative performance
+
+Every night our test suites are run which includes around 50,000 unit tests covering the XPath 2.0 conformance suite, the XBRL 2.1, Formulas and Dimensions 
+conformance suites plus example compilation and report rendering.  There a 12 discrete tests (each is a separate invocation of PHP) that in total take 
+roughly 3-4 minutes to complete.  Because they are intensive and exhaustive they provide some indication of which versions of PHP are best for this type 
+of application.  
+
+The table below shows run times of the same tests on the same hardware with the same load.  The times are minutes:seconds. x(f) means that opcache is
+enabled and that file caching is enabled so the benefit of the opcache persists across invocations.  When opcache is enabled with file cache, the option
+to check timestamps is enabled.  Note that opcode file file caching is not the same as web site file caching.
+
+|Version|OpCache|JIT|Test 1|Test 2|
+|--|--|--|--|--|
+|7.2.6 |    | |3:56|3:37|
+|7.2.6 |x   | |3:50|3:41|
+|7.2.6 |x(f)| |3:37|3:31|
+|7.4.13|    | |3:15|3:19|
+|7.4.13|x   | |3:15|2:55|
+|7.4.13|x(f)| |3:02|2:59|
+|8.0   |    | |3:02|3:10|
+|8.0   |x   | |3:01|3:11|
+|8.0   |x(f)| |3:12|2:52|
+|8.0   |x(f)|x|**2:25**|**2:38**|
+|8.0   |x   |x|2:43|2:55|
+
+We have a winner!  It's clear that the best performance is using version 8.0 with JIT (JIT requires the opcache is enabled) and opcode file caching.
+
+The best version 7.2.6 time is 3:31.  The best 7.4.13 time is 2.55, a 21% improvement.  The best version 8.0 time is 2:25 a 35% improvement over version 
+7.2.6 and 18% better than 7.4.13.
+
+###Memory
 
 The default memory limit defined in php.ini is suitable for sites generating regular web pages.  However taxonomies can be large and 
 the source makes liberal use of memory to boost performance. We recommend that when you execute examples that you ensure the memory 
