@@ -124,7 +124,7 @@ EOT;
 
 	/**
 	 * The list of package files
-	 * @var string
+	 * @var string[]
 	 */
 	public $files = array();
 
@@ -140,7 +140,7 @@ EOT;
 	/**
 	 * Returns true if the zip file represents an SEC package
 	 * {@inheritDoc}
-	 * @see XBRL_IPackage::isPackage()
+	 * @see XBRL_Package::isPackage()
 	 */
 	public function isPackage()
 	{

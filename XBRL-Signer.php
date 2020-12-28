@@ -135,7 +135,7 @@ class XBRL_Signer
 		$public_key = openssl_pkey_get_public( $public_key_pem );
 		if ( $public_key === false )
 		{
-			$message = "Unable to create a key id from the public key resource $pem\n" . openssl_error_string();
+			$message = "Unable to create a key id from the public key resource $public_key_pem\n" . openssl_error_string();
 			throw new \Exception( $message );
 		}
 
@@ -179,7 +179,7 @@ class XBRL_Signer
 
 		if ( $private_key === false )
 		{
-			$message = "Unable to create a key id from the private key resource $pem\n" . openssl_error_string();
+			$message = "Unable to create a key id from the private key resource $private_key_pem\n" . openssl_error_string();
 			throw new \Exception( $message );
 		}
 

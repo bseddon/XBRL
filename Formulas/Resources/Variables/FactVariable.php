@@ -626,7 +626,7 @@ class FactVariable extends Variable
 	 * @param bool $negate
 	 * @param bool $resetCaches When true the caches will be reset.  Might be set to false when its
 	 * 							helpful for them to persist between calls such as in partitionFacts()
-	 * @return NULL
+	 * @return array
 	 */
 	public function aspectsMatch( $testableAspects, $uncoveredAspectFacts, $variableSet, &$facts, $negate = false, $resetCaches = true )
 	{
@@ -1281,7 +1281,9 @@ class FactVariable extends Variable
 					$equalityDefinitions = $this->getEqualityDefinitionsForTypedDimenson( $aspectQName, $variableSet->xbrlTaxonomy );
 					if ( $equalityDefinitions )
 					{
-						$customTest = "(" . implode( ") or (", array_map( function( $def ) { return $def['test']; }, Aspect::$customTypedDimensionTest ) ) . ")";
+						// BMS 2020-12-24 Aspect::$customTypedDimensionTest is a test not an array
+						// $customTest = "(" . implode( ") or (", array_map( function( $def ) { return $def['test']; }, Aspect::$customTypedDimensionTest ) ) . ")";
+						$customTest = "(" . implode( ") or (", array_map( function( $def ) { return $def['test']; }, $equalityDefinitions ) ) . ")";
 						$test = str_replace( "#custom", $customTest, Aspect::$customTypedDimensionTest );
 					}
 					else
@@ -1323,7 +1325,7 @@ class FactVariable extends Variable
 	/**
 	 * Return any equality definitions for the dimension defined by $aspectQName
 	 * @param QName $aspectQName
-	 * @param XBRL $taxonomy
+	 * @param \XBRL $taxonomy
 	 * @return array
 	 */
 	private function getEqualityDefinitionsForTypedDimenson( $aspectQName, $taxonomy )

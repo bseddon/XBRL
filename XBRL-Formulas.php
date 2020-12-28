@@ -71,7 +71,7 @@ class XBRL_Formulas extends Resource
 
 	/**
 	 * A list of parameter variables indexed by qname
-	 * @var array[Parameter] $parameterQnames
+	 * @var Parameter[] $parameterQnames
 	 */
 	private $parameterQnames = null;
 
@@ -498,7 +498,7 @@ class XBRL_Formulas extends Resource
 		{
 			if ( ( ! $this->consistencyAssertions || $this->formulaFactsContainer->hasInstanceFile( $expectedResultNode ) ) )
 			{
-				if ( $this->formulaFactsContainer->compareResult( $testCaseFolder, $expectedResultNode, $this->instances[ $this->instanceQName->clarkNotation() ] ) )
+				if ( $this->formulaFactsContainer->compareResult( $testCaseFolder, $expectedResultNode, $this->instances[ $this->instanceQName instanceof \lyquidity\xml\QName ? $this->instanceQName->clarkNotation() : $this->instanceQName ] ) )
 				{
 					return false; // False means no error
 				}
@@ -640,7 +640,7 @@ class XBRL_Formulas extends Resource
 
 		/**
 		 * Examines parameter dependcies
-		 * @var Function $hasCircularReference
+		 * @var Closure $hasCircularReference
 		 */
 		$parameterQnames = $this->parameterQnames;
 		$hasCircularReference = function( $dependencies, $history = array() ) use( &$hasCircularReference, $parameterDependencies, $parameterQnames )
@@ -942,7 +942,7 @@ class XBRL_Formulas extends Resource
 					{
 						$this->log->formula_validation( "Variables", "Invalid variable type",
 							array(
-								'variable type' => $resource['variableType'],
+								'variable type' => $this->resource['variableType'] ?? 'unknown',
 							)
 						);
 						return false;
@@ -1021,6 +1021,9 @@ class XBRL_Formulas extends Resource
 				return false;
 			}
 
+			/**
+			 * @var \XBRL\Formulas\Resources\Variables\VariableSet $variableSetInstance
+			 */
 			$variableSetInstance->validateMessages( $taxonomy->getDefaultLanguage() );
 
 			// The variable refs MUST either refer to variables or parameters
@@ -1436,7 +1439,7 @@ class XBRL_Formulas extends Resource
 
 		if ( $this->formulaFactsContainer )
 		{
-			$document = $this->formulaFactsContainer->generateInstanceDocument( $this->instances[ $this->instanceQName->clarkNotation() ], $this->nsMgr );
+			$document = $this->formulaFactsContainer->generateInstanceDocument( $this->instances[ $this->instanceQName instanceof \lyquidity\xml\QName ? $this->instanceQName->clarkNotation() : $this->instanceQName ], $this->nsMgr );
 		}
 
 		return true;
@@ -1642,7 +1645,7 @@ class XBRL_Formulas extends Resource
 				{
 					$this->log->formula_validation( "Filter", "Invalid filter type",
 						array(
-							'Filter type' => $resource['filterType'],
+							'Filter type' => $this->resource['filterType'] ?? 'unknown',
 						)
 					);
 					return false;
@@ -1707,6 +1710,9 @@ class XBRL_Formulas extends Resource
 					}
 				}
 
+				/**
+				 * @var \XBRL\Formulas\Resources\Variables\VariableSet $variable
+				 */
 				$variable->addFilter( $filter );
 			}
 		}
@@ -2098,7 +2104,7 @@ class XBRL_Formulas extends Resource
 	private function validateEqualityDefinition( $taxonomy )
 	{
 		\XBRL_Log::getInstance()->info( "Need to implement equality definition validation" );
-		$taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableEqualityDefinition );
+		$taxonomy->getGenericArc( XBRL_Constants::$arcRoleVariableEqualityDefinition, null );
 		return true;
 	}
 
@@ -2115,7 +2121,7 @@ class XBRL_Formulas extends Resource
 		// Process the variables in hierarchy order
 		// $variableSet->parameters =& $this->parameterQnames;
 		$variableSet->nsMgr = $this->nsMgr;
-		$variableSet->xbrlInstance = $this->instances[ $this->instanceQName->clarkNotation() ];
+		$variableSet->xbrlInstance = $this->instances[ $this->instanceQName instanceof \lyquidity\xml\QName ? $this->instanceQName->clarkNotation() : $this->instanceQName ];
 		if ( $variableSet->evaluate() )
 		{
 			// If the variable set is a formula then add a facts container
@@ -2125,6 +2131,9 @@ class XBRL_Formulas extends Resource
 				$variableSet->factsContainer = $this->formulaFactsContainer;
 			}
 
+			/**
+			 * @var \XBRL\Formulas\Resources\Formulas\Formula $variableSet
+			 */
 			$variableSet->ProcessEvaluationResult( $this->log );
 
 			// If the variable set is a formula recover the facts container

@@ -30,8 +30,12 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use lyquidity\XPath2\XPath2Expression;
+ use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the Identity filter
@@ -118,7 +122,7 @@ class Identifier extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{
@@ -144,7 +148,7 @@ class Identifier extends Filter
 			$this->testXPath2Expression = $xpath2Expression;
 			return true;
 		}
-		catch ( Exception $ex )
+		catch ( \Exception $ex )
 		{
 			\XBRL_Log::getInstance()->formula_validation( "Concept relation filter", "Failed to compile test expression",
 				array(

@@ -33,6 +33,7 @@
 use XBRL\Formulas\FactValues;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use XBRL\Formulas\Resources\Formulas\Formula;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
  * A class to process a general variable definitions
@@ -181,6 +182,7 @@ class Period extends Aspect
 				//				  conformance comparisons more reliable.  See 0023 V-04
 				// $start = $this->evaluateXPath( $variableSet, "({$this->start}) cast as xs:string", $evaluationResult['vars'] );
 				// $instant = $this->evaluateXPath( $variableSet, "({$this->instant}) cast as xs:string", $evaluationResult['vars'] );
+				/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator $instant */
 				$instant = $this->evaluateXPath( $variableSet, "lyquidity:minimized-date-string({$this->instant}, true()) cast as xs:string", $evaluationResult['vars'] );
 				$period = array(
 					'is_instant' => true,
@@ -206,8 +208,11 @@ class Period extends Aspect
 				//				  The purpose is to use short dates where possible to increase consistency and make
 				//				  conformance comparisons more reliable.  See 60500 V-04
 				// $start = $this->evaluateXPath( $variableSet, "({$this->start}) cast as xs:string", $evaluationResult['vars'] );
+								/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator $instant */
+				/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator $start */
 				$start = $this->evaluateXPath( $variableSet, "lyquidity:minimized-date-string({$this->start}, false()) cast as xs:string", $evaluationResult['vars'] );
 				// $end = $this->evaluateXPath( $variableSet, "({$this->end}) cast as xs:string", $evaluationResult['vars'] );
+				/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator $end */
 				$end = $this->evaluateXPath( $variableSet, "lyquidity:minimized-date-string({$this->end},true())", $evaluationResult['vars'] );
 
 				$period = array(

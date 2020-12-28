@@ -37,12 +37,14 @@ require_once $utiltiesPath . "tuple-dictionary.php";
 
 use lyquidity\XPath2\XPath2Expression;
 use lyquidity\xml\MS\IXmlNamespaceResolver;
+use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\XPath2\CoreFuncs;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Undefined;
 use XBRL\Formulas\Exceptions\FormulasException;
 use XBRL\Formulas\Resources\Resource;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\interfaces\IXmlSchemaType;
 
  /**
@@ -141,12 +143,12 @@ class ValueAssertion extends VariableSetAssertion
 				$expression = XPath2Expression::Compile( $this->test, $nsMgr );
 				$this->testXPath2Expression = $expression;
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->valueassertion_validation( "Value assertion", "Failed to compile test expression",
 					array(
 						'test expression' => $this->test,
-						'error' => $ex instanceof XPath2Exception ? $ex->ErrorCode : get_class( $ex ),
+						'error' => $ex instanceof \lyquidity\XPath2\XPath2Exception ? $ex->ErrorCode : get_class( $ex ),
 						'reason' => $ex->getMessage()
 					)
 				);
@@ -231,7 +233,7 @@ class ValueAssertion extends VariableSetAssertion
 			// This can used by message expressions
 			$vars[ "{{$this->namespace}}test-expression" ] = $this->test;
 			$evaluationResult = array( 'vars' => $vars, 'lastFactBinding' => $this->getLastFactBinding() );
-			$evaluationResult['uncoveredAspectFacts'] = $evaluationResult['lastFactBinding'] instanceof FactVariableBinding
+			$evaluationResult['uncoveredAspectFacts'] = $evaluationResult['lastFactBinding'] instanceof \XBRL\Formulas\FactVariableBinding
 				? $evaluationResult['lastFactBinding']->uncoveredAspectFacts
 				: array();
 

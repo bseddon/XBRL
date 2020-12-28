@@ -29,6 +29,8 @@
 
 namespace XBRL\Formulas;
 
+use Iterator;
+
 /**
  * A binding for scope variable results
  */
@@ -57,6 +59,7 @@ class ScopeVariableBinding extends FactVariableBinding
 	 */
 	public function current()
 	{
+		// Calling the grandparent method
 		$scopeFact = VariableBinding::current();
 		if ( ! $scopeFact || ! is_array( $scopeFact ) )
 		{
@@ -130,6 +133,7 @@ class ScopeVariableBinding extends FactVariableBinding
 	 */
 	public function getAdditionalVars()
 	{
+		$scopeFact = VariableBinding::current();
 		$scopeFact = VariableBinding::current();
 		if ( ! $scopeFact || ! is_array( $scopeFact ) )
 		{

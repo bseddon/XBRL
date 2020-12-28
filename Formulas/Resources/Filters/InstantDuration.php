@@ -30,7 +30,11 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use lyquidity\xml\QName;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\xml\QName;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the ConceptName filter
@@ -88,7 +92,7 @@ class InstantDuration extends Filter
 				? qname( $variable, $namespaces )
 				: new QName( "", null, $variable );
 			$this->variable = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? null : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);
@@ -159,7 +163,7 @@ class InstantDuration extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

@@ -30,8 +30,11 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Formulas\Formula;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\QName;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
 
  /**
@@ -107,7 +110,7 @@ class MatchFilter extends Filter
 				? qname( $variable, $namespaces )
 				: new QName( "", null, $variable );
 			$this->variable = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? null : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);

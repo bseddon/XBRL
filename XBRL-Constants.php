@@ -25,6 +25,8 @@
 /**
  * Include the QName code
  */
+use lyquidity\xml\QName;
+
 require_once( 'XBRL-QName.php' );
 
 define( "ASSERTION_SEVERITY_OK", "OK" );
@@ -2156,7 +2158,7 @@ class XBRL_Constants
 	 */
 	public static function isResourceArcrole( $arcrole )
 	{
-		return isset( self::$resourceArcRoles[ $arcrole ] ) || isFormulaArcrole( $arcrole );
+		return isset( self::$resourceArcRoles[ $arcrole ] ) || self::isFormulaArcrole( $arcrole );
 	}
 
 	/**

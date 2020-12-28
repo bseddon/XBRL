@@ -163,7 +163,7 @@ EOT;
 
 	/**
 	 * The meta file as a SimpleXMLElement
-	 * @var string
+	 * @var SimpleXMLElement
 	 */
 	protected  $metaFile;
 
@@ -464,7 +464,7 @@ EOT;
 
 	/**
 	 * Traverses the contents folders and files calling $callback for each node
-	 * @param Funtion $callback Three arguents will be passed to the the callback:
+	 * @param Closure $callback Three arguents will be passed to the the callback:
 	 * 		1) The path preceding the Name
 	 * 		2) The name
 	 * 		3) PATHINFO_BASENAME if the name is a file or PATHINFO_DIRNAME
@@ -668,7 +668,7 @@ EOT;
 	/**
 	 * Retrieves the taret namespace from $content which is expected to be an XM schema document
 	 * @param string $schemaName Name of the schema represented by $content
-	 * @param bytes $content Expected to be an XML schema
+	 * @param string $content Expected to be an XML schema
 	 * @param bool $throwException True if an exception should be thrown on error or false is returned otherwise
 	 * @return bool
 	 * @throws \Exception
@@ -710,7 +710,7 @@ EOT;
 	/**
 	 * Processes the schema document in a consistent way
 	 * @param \XBRL_Global $context A reference to the global context
-	 * @param bytes $content Expected to be an XML schema
+	 * @param string $content Expected to be an XML schema
 	 * @param bool $throwException True if an exception should be thrown on error or false is returned otherwise
 	 * @return bool
 	 * @throws \Exception

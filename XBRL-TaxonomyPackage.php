@@ -146,7 +146,7 @@ EOT;
 	/**
 	 * This element is not supported
 	 * Optional (1) Provides the identifer of a Taxonomy Package which is superseded by the current taxonomy.
-	 * @var array[taxonomyPackageRef]
+	 * @var XBRL_Package[]
 	 */
 	public $supersededTaxonomyPackages = array();
 
@@ -167,7 +167,7 @@ EOT;
 	 * 					entryPointDocument (Uri - *)
 	 * 					languages (string - *)
 	 * 				If the entryPointDocument uri points to anything other than a schema or linkbase the package will be invalid
-	 * @var array[entryPoint]
+	 * @var array
 	 */
 	public $entryPoints = array();
 
@@ -242,7 +242,7 @@ EOT;
 	/**
 	 * Returns true if the zip file represents a package that meets the taxonomy package specification
 	 * {@inheritDoc}
-	 * @see XBRL_IPackage::isPackage()
+	 * @see XBRL_Package::isPackage()
 	 */
 	public function isPackage()
 	{
@@ -308,7 +308,7 @@ EOT;
 			// The root element should be taxonomyPackage
 			if ( $xml->getName() != XBRL_TaxonomyPackage::rootElementNme )
 			{
-				throw XBRL_TaxonomyPackageException::withError( "tpe:invalidMetaDataFile", $ex->getMessage() );
+				throw XBRL_TaxonomyPackageException::withError( "tpe:invalidMetaDataFile", "Root name of $metaFilePath is not 'taxonomyPackage'" );
 			}
 
 			$this->metaFile = $xml;
@@ -319,6 +319,7 @@ EOT;
 
 			foreach ( $xml->children( $namespace ) as $name => $element )
 			{
+				/** @var SimpleXMLElement $element */
 				switch ( $name )
 				{
 					case 'name':
@@ -395,6 +396,7 @@ EOT;
 
 						foreach ( $element->children( $namespace ) as $entryPointName => $entryPoint )
 						{
+							/** @var SimpleXMLElement $entryPoint */
 							$elementXmlAttributes = $entryPoint->attributes( 'xml', true );
 							$elementLang2 = isset( $elementXmlAttributes['lang'] ) ? (string)$elementXmlAttributes['lang'] : $elementLang;
 
@@ -403,6 +405,7 @@ EOT;
 
 							foreach ( $entryPoint->children( $namespace ) as $elementName => $element )
 							{
+								/** @var SimpleXMLElement $element */
 								switch ( $elementName )
 								{
 									case 'name':
@@ -523,7 +526,7 @@ EOT;
 			// The root element should be taxonomyPackage
 			if ( $xml->getName() != XBRL_TaxonomyPackage::catalogRootElementNme )
 			{
-				throw XBRL_TaxonomyPackageException::withError( "tpe:invalidCatalogFile", $ex->getMessage() );
+				throw XBRL_TaxonomyPackageException::withError( "tpe:invalidCatalogFile", "The root slement name of $catalogFilePath is not " . XBRL_TaxonomyPackage::catalogRootElementNme );
 			}
 
 			$this->catalog = $xml;
@@ -531,6 +534,7 @@ EOT;
 
 			foreach ( $xml->children( $namespace ) as $name => $element )
 			{
+				/** @var SimpleXMLElement $element */
 				switch ( $name )
 				{
 					case 'rewriteURI':

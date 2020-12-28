@@ -30,8 +30,13 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use lyquidity\XPath2\XPath2Expression;
+ use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\XPath2Item;
+use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the ConceptName filter
@@ -191,7 +196,7 @@ class TypedDimension extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{
@@ -240,7 +245,7 @@ class TypedDimension extends Filter
 				}
 				$this->dimensionXPath2Expression = $xpath2Expression;
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->formula_validation( "Explicit dimension filter", "Failed to compile qname expression",
 					array(
@@ -266,11 +271,11 @@ class TypedDimension extends Filter
 				}
 				$this->testXPath2Expression = $xpath2Expression;
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->formula_validation( "Explicit dimension filter", "Failed to compile test expression",
 					array(
-						'qname expression' => $member['qnameExpression'],
+						'qname expression' => $this->test,
 						'error' => $ex instanceof XPath2Exception ? $ex->ErrorCode : get_class( $ex ),
 						'reason' => $ex->getMessage()
 					)

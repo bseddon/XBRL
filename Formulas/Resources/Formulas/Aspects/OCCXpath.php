@@ -32,6 +32,7 @@
 
 use XBRL\Formulas\FactValues;
 use XBRL\Formulas\Resources\Variables\VariableSet;
+use XBRL\Formulas\Resources\Formulas\Formula;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
@@ -83,7 +84,7 @@ class OCCXPath extends OCCEmpty
 
 	/**
 	 * Get the concept aspect value
-	 * @param VariableSet $variableSet
+	 * @param Formula $variableSet
 	 * @param array $evaluationResult
 	 * @param \XBRL_Log $log
 	 * @return DOMXPathNavigator

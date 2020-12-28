@@ -30,7 +30,12 @@
 
 namespace XBRL\Formulas\Resources\Formulas;
 
- use lyquidity\xml\QName;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Filters\ConceptName;
+use XBRL\Formulas\Resources\Variables\FactVariable;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\xml\QName;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the period filter
@@ -97,7 +102,7 @@ class Tuple extends Formula
 				foreach ( $this->conceptRule['qnameExpression'] as $qnameExpression )
 				{
 					// Check any variables in the expression are valid
-					$expression = XPath2Expression::Compile( $qnameExpression, $this->nsMgr );
+					$expression =  \lyquidity\XPath2\XPath2Expression::Compile( $qnameExpression, $this->nsMgr );
 					$variableRefs = $expression->getParameterQNames();
 					foreach ( $variableRefs as $variableQName )
 					{
@@ -130,7 +135,7 @@ class Tuple extends Formula
 	 				$selectedFilter = null;
 	 				foreach ( $this->variablesByQName[ $concept->clarkNotation() ]->filters as $filter )
 	 				{
-	 					if ( ! $filter instanceof ConceptName ) continue;
+	 					if ( ! $filter instanceof \XBRL\Formulas\Resources\Filters\ConceptName ) continue;
 	 					$selectedFilter = $filter;
 	 					break;
 	 				}
@@ -189,7 +194,7 @@ class Tuple extends Formula
 					{
 						$log->formula_validation( "Tuple", "The concept provided by the concept aspect rule is not a valid schema element",
 							array(
-								'formula' => $label,
+								'formula' => $conceptElement['name'] ?? 'unknown',
 								'error' => 'xbrlfe:missingConceptRule'
 							)
 						);
@@ -200,7 +205,7 @@ class Tuple extends Formula
 					{
 						$log->formula_validation( "Tuple", "The concept provided by the concept aspect rule is not a tuple",
 							array(
-								'formula' => $label,
+								'formula' => $conceptElement['name'] ?? 'unknown',
 								'error' => 'xbrlfe:invalidConceptRule'
 							)
 						);
@@ -217,7 +222,7 @@ class Tuple extends Formula
 				 $sourceQName->localName != "uncovered" )
 			{
 				if ( ! isset( $this->variablesByQName[ $sourceQName->clarkNotation() ] ) ||
-					 ! $this->variablesByQName[ $sourceQName->clarkNotation() ] instanceof FactVariable
+					 ! $this->variablesByQName[ $sourceQName->clarkNotation() ] instanceof \XBRL\Formulas\Resources\Variables\FactVariable
 				)
 				{
 					$log->formula_validation( "Formula", "",
@@ -280,7 +285,7 @@ class Tuple extends Formula
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

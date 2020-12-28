@@ -33,8 +33,10 @@
 use XBRL\Formulas\Resources\Formulas\Formula;
 use XBRL\Formulas\FactValues;
 use lyquidity\XPath2\XPath2Item;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\Value\QNameValue;
 use lyquidity\xml\QName;
+use SimpleXMLElement;
 
 /**
  * A class to represent unit aspect rule information
@@ -98,6 +100,9 @@ class Unit extends Aspect
 
 		foreach ( $unitChildren as $child )
 		{
+			/**
+			 * @var SimpleXMLElement $child
+			 */
 			$source = $this->source;
 			$measure = null;
 			$childAttributes = $child->attributes();
@@ -105,7 +110,7 @@ class Unit extends Aspect
 			if ( property_exists( $childAttributes, 'source' ) )
 			{
 				$qName = strpos( trim( $childAttributes->source ), ":" )
-					? qname( trim( $childAttributes->source ), $namespaces )
+					? qname( trim( $childAttributes->source ), $taxonomy->getDocumentNamespaces() )
 					: new QName( "", null, trim( $childAttributes->source ) );
 				$source = array(
 					'name' => is_null( $qName ) ? $source : $qName->localName,
@@ -210,6 +215,7 @@ class Unit extends Aspect
 			if ( $hasMeasure )
 			{
 				// This is an expression that needs evaluating
+				/** @var XPath2Item $result */
 				$result = $this->evaluateXPath( $variableSet, "{$numerator['measure']} cast as xs:string", $evaluationResult['vars'] );
 				$numerators[] = $result->getValue();
 			}
@@ -227,6 +233,7 @@ class Unit extends Aspect
 			if ( $hasMeasure )
 			{
 				// This is an expression that needs evaluating
+				/** @var XPath2Item $result */
 				$result = $this->evaluateXPath( $variableSet, "{$denominator['measure']} cast as xs:string", $evaluationResult['vars'] );
 				$denominators[] = $result->getValue();
 			}
@@ -287,7 +294,6 @@ class Unit extends Aspect
 	 * @param array $denominators List to populate with denominators
 	 * @param string The unitRef of the source (if there is one)
 	 * @return null
-	 * @throws An exception if the source is not valid
 	 */
 	private function getFactorsFromSource( $source, $variableSet, $evaluationResult, $log, &$numerators, &$denominators, &$unitRef = null )
 	{

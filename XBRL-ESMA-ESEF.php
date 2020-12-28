@@ -69,7 +69,7 @@ class XBRL_ESMA_ESEF extends XBRL
 	 * An array of element ids that when they appear in a report their values should be treated as text.
 	 * This has a specific meaning in the default report: the associated values are not shown tied to a
 	 * specific financial year.
-	 * @var array[string]
+	 * @var string[]
 	 */
 	private static $textItems = array();
 
@@ -282,7 +282,7 @@ class XBRL_ESMA_ESEF extends XBRL
 	 */
 	public function treatAsText( $key, $type )
 	{
-		if ( in_array( $key, XBRL_IFRS::$textItems ) ) return true;
+		if ( in_array( $key, self::$textItems ) ) return true;
 		return parent::treatAsText( $key, $type );
 	}
 

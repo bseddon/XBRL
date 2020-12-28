@@ -30,9 +30,9 @@
 
 namespace XBRL\Formulas\Resources\Formulas\Aspects;
 
-use XBRL\Formulas\Resources\Variables\VariableSet;
 use XBRL\Formulas\Resources\Formulas\Formula;
 use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
  * A class to process a general variable definitions
@@ -47,7 +47,7 @@ class TypedDimension extends Dimension
 
 	/**
 	 * The typed dimension value
-	 * @var string $member
+	 * @var string[][] $member
 	 */
 	public $member;
 
@@ -59,7 +59,7 @@ class TypedDimension extends Dimension
 
 	/**
 	 * The dimension aspect to use when evaluate $source
-	 * @var unknown
+	 * @var mixed
 	 */
 	public $aspectDimension;
 

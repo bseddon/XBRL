@@ -32,14 +32,14 @@
 
 use XBRL\Formulas\Resources\Resource;
 use XBRL\Formulas\Resources\Filters\Filter;
-use XBRL\Formulas\Resources\VariableBinding;
 use XBRL\Formulas\Resources\Formulas\Formula;
 use XBRL\Formulas\Evaluation;
+use XBRL\Formulas\VariableBinding;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\XPath2\CoreFuncs;
-use lyquidity\XPath2\Properties\Resources;
 use XBRL\Formulas\FactVariableBinding;
+use lyquidity\xml\xpath\XPathItem;
 use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\xml\QName;
 use lyquidity\XPath2\Iterator\BufferedNodeIterator;
@@ -91,7 +91,7 @@ class VariableSet extends Resource
 
 	/**
 	 * A list of variables associated with this variable set instance
-	 * @var array[Variable]
+	 * @var Variable[]
 	 */
 	public $variablesByQName = array();
 
@@ -115,7 +115,7 @@ class VariableSet extends Resource
 
 	/**
 	 * A reference to the global parameters list
-	 * @var array[Parameter] $parameters
+	 * @var Parameter[] $parameters
 	 */
 	public $parameters = array();
 
@@ -146,13 +146,13 @@ class VariableSet extends Resource
 
 	/**
 	 * A list of variable bindings
-	 * @var array[VariableBinding] $variableBindings
+	 * @var VariableBinding[] $variableBindings
 	 */
 	public $factVariableBindings = array();
 
 	/**
 	 * A list of bindings of general variables
-	 * @var array[VariableBinding] $generalVariableBindings
+	 * @var VariableBinding[] $generalVariableBindings
 	 */
 	public $generalVariableBindings = array();
 
@@ -306,7 +306,7 @@ class VariableSet extends Resource
 		{
 			$x = 1;
 			\XBRL_Log::getInstance()->formula_validation( "Variable-set", "The variable name (defined on an arc) already exists", array(
-				'name' => $qname->clarkNotation(),
+				'name' => $qname,
 				'error' => 'xbrlve:duplicateVariableNames'
 			) );
 			return false;
@@ -550,7 +550,7 @@ class VariableSet extends Resource
 		// $vars = array_merge( $existingVars, $this->parameters );
 		$vars = $this->getParametersAsVars( $vars );
 
-		foreach( $this->factVariableBindings as $bindingQName => /** @var \XBRL\Formulas\factVariableBinding $varBinding */ $varBinding )
+		foreach( $this->factVariableBindings as $bindingQName => /** @var FactVariableBinding $varBinding */ $varBinding )
 		{
 			if ( $varBinding->isFallback )
 			{
@@ -654,20 +654,20 @@ class VariableSet extends Resource
 
 	/**
 	 * A list of dimensions
-	 * @var array[\QName]|null
+	 * @var QName[]|null
 	 */
 	private $nilFactsDimensions;
 
 	/**
 	 * A list of dimensions
-	 * @var array[\QName]|null
+	 * @var QName[]|null
 	 */
 	private $factsDimensions;
 
 	/**
 	 * Return a list of the dimensions across all dimensions
 	 * @param bool $nils
-	 * @return array[\QName]|null
+	 * @return QName[]|null
 	 */
 	public function getFactsDimensions( $nils )
 	{
@@ -678,7 +678,7 @@ class VariableSet extends Resource
 	 * Set a list of the dimensions across all dimensions
 	 * @param bool $nils
 	 * @param array $dimensions
-	 * @return array[\QName]|null
+	 * @return QName[]|null
 	 */
 	public function setFactsDimensions( $nils, $dimensions )
 	{

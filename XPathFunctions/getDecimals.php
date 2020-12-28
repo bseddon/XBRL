@@ -32,6 +32,7 @@ namespace XBRL\functions;
 
 use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\XPath2\CoreFuncs;
+use lyquidity\XPath2\XPath2Item;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Properties\Resources;
 use lyquidity\XPath2\SequenceType;
@@ -48,7 +49,7 @@ use lyquidity\XPath2\XPath2Exception;
  * @param XPath2Context $context
  * @param NodeProvider $provider
  * @param array $args
- * @return Integer|string	Return the actual or the inferred decimals of a numeric fact. For "INF" the returned
+ * @return XPath2Item|Integer|string	Return the actual or the inferred decimals of a numeric fact. For "INF" the returned
  * 							type is xs:string. For numeric precision value, the returned type is xs:integer.
  *
  * This function has one real parameter:

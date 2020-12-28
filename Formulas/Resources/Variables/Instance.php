@@ -30,6 +30,8 @@
 
 namespace XBRL\Formulas\Resources\Variables;
 
+use XBRL\Formulas\FactVariableBinding;
+
 /**
   * Implements the filter class for the period filter
   * http://www.xbrl.org/Specification/valueFilters/REC-2009-06-22/valueFilters-REC-2009-06-22.html#sec-nil-filter
@@ -71,7 +73,7 @@ class Instance extends Variable
 			$qName = qname( $name, array_merge( $docNamespaces, $localNamespaces ) );
 
 			$this->name = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? $localName : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);
@@ -88,7 +90,7 @@ class Instance extends Variable
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

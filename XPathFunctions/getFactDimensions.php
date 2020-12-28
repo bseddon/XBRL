@@ -56,7 +56,7 @@ require_once "xbrlInstance.php";
  * @param bool $typed
  * @return array An array of dimension members indexed by their dimension
  */
-function getFactDimensions( $context, $provider, $args, $typed )
+function getFactDimensions( $context, $provider, $args, $typed = null )
 {
 	try
 	{

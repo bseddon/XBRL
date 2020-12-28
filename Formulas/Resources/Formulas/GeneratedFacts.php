@@ -32,6 +32,7 @@ namespace XBRL\Formulas\Resources\Formulas;
 
 use lyquidity\XPath2\TreeComparer;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
+use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\xml\xpath\XPathNodeType;
 use XBRL\Formulas\ContextComparer;
 use lyquidity\XPath2\Iterator\AttributeNodeIterator;
@@ -486,7 +487,7 @@ class GeneratedFacts
 	 * @param \XBRL_Instance $xbrlInstance
 	 * @param array $index (by reference) A list of concepts
 	 * @param string $path (by reference)
-	 * @return A list of concepts
+	 * @return array A list of concepts
 	 */
 	private function indexConcepts( $nav, $xbrlInstance, &$index = array(), $path = "" )
 	{
@@ -527,8 +528,8 @@ class GeneratedFacts
 	/**
 	 * Match up the components (contexts or units) and generate a map of the expected
 	 * component name to the corresponding generated component name
-	 * @param unknown $expected
-	 * @param unknown $generated
+	 * @param mixed $expected
+	 * @param mixed $generated
 	 */
 	private function normalizeComponents( $expected, $generated )
 	{
@@ -781,7 +782,7 @@ class GeneratedFacts
 					else
 					{
 						$inferredPrecision = \XBRL_Instance::inferPrecision( $generatedNav->getValue(), $generatedAttributes['decimals'] );
-						if ( $value != $inferredDecimals )
+						if ( $value != $inferredPrecision )
 						{
 							$this->comparisonError = "Attribute comparison '$name' for expected concept {$expectedNav->getLineNo()} failed ({$value} vs {$generatedAttributes[ $name ]})";
 						}

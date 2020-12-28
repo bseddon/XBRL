@@ -139,12 +139,14 @@ class EntityIdentifier extends Aspect
 
 		if ( $this->scheme )
 		{
+			/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator  $result */ 
 			$result = $this->evaluateXPath( $variableSet, "{$this->scheme} cast as xs:string", $evaluationResult['vars'] );
-			$identifier['scheme'] = is_object( $result ) ? $result->getValue() : $result;
+			$identifier['scheme'] = is_object( $result ) ?  $result->getValue() : $result;
 		}
 
 		if ( $this->value )
 		{
+			/** @var \lyquidity\XPath2\DOM\DOMXPathNavigator  $result */ 
 			$result = $this->evaluateXPath( $variableSet, "({$this->value}) cast as xs:string", $evaluationResult['vars'] );
 			$identifier['value'] = is_object( $result ) ? $result->getValue() : $result;
 		}

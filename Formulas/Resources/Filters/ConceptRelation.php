@@ -31,8 +31,10 @@
 namespace XBRL\Formulas\Resources\Filters;
 
  use lyquidity\XPath2\XPath2Expression;
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\QName;
+use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\XPath2\XPath2Exception;
 
  /**
@@ -209,7 +211,7 @@ class ConceptRelation extends Filter
 				: new QName( "", null, $variable );
 
 			$this->variable = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? $this->source : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);
@@ -487,7 +489,7 @@ class ConceptRelation extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{
@@ -503,7 +505,7 @@ class ConceptRelation extends Filter
 	 */
 	public function validate( $variableSet, $nsMgr )
 	{
-		$testExpression = function( $expressionName, $expression )
+		$testExpression = function( $expressionName, $expression ) use( &$nsMgr )
 		{
 			$xpath2Expression = null;
 
@@ -515,7 +517,7 @@ class ConceptRelation extends Filter
 					return false;
 				}
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->formula_validation( "Concept relation filter", "Failed to compile qname expression",
 					array(

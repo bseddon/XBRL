@@ -30,9 +30,14 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use lyquidity\XPath2\XPath2Expression;
+ use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\XPath2Expression;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\MS\XmlNamespaceManager;
+use lyquidity\xml\xpath\XPathNavigator;
 
  /**
   * Implements the filter class for the parent filter
@@ -164,7 +169,7 @@ class ParentFilter extends Filter
 
 		foreach ( $facts as /** @var XPathNavigator $fact */ $fact )
 		{
-			if ( $this->testParent( $fact ) )
+			if ( $this->testParent( $fact, $variableSet ) )
 			{
 				$matched[] = $fact->CloneInstance();
 			}
@@ -182,9 +187,10 @@ class ParentFilter extends Filter
 	 * This is just like the AncestorFilter implementation except that it goes up
 	 * only one level.
 	 * @param XPathNavigator $fact
+	 * @param VariableSet $variableSet
 	 * @return boolean
 	 */
-	private function testParent( $fact )
+	private function testParent( $fact, $variableSet )
 	{
 		$xpathQNames = null;
 		/**
@@ -212,10 +218,10 @@ class ParentFilter extends Filter
 				foreach ( $this->qnameXPath2Expressions as $xpathExpression )
 				{
 					/**
-					 * @var QNameValue $qname
+					 * @var \lyquidity\XPath2\Value\QNameValue $qname
 					 */
 					$qname = $this->evaluateXPathExpression( $variableSet, $xpathExpression, array( $fact ) );
-					if ( ! $qname instanceof QNameValue ) continue;
+					if ( ! $qname instanceof \lyquidity\XPath2\Value\QNameValue ) continue;
 
 					$xpathQNames[] = $qname->ToClarkNotation();
 				}
@@ -235,7 +241,7 @@ class ParentFilter extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

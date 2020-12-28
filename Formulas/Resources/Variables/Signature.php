@@ -96,10 +96,10 @@ class Signature extends Variable
 			$name = trim( $attributes->name );
 			$qName = strpos( $name, ":" )
 				? qname( $name, $namespaces )
-				: new QName( "", null, $name );
+				: new \lyquidity\xml\QName( "", null, $name );
 
 			$this->name = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? $localName : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);

@@ -32,10 +32,15 @@ namespace XBRL\Formulas\Resources\Filters;
 
 use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\XPath2Item;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\xml\QName;
+use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\XPath2\XPath2Exception;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use SimpleXMLElement;
 
- /**
+/**
   * Implements the filter class for the ConceptName filter
   * http://www.xbrl.org/Specification/dimensionFilters/REC-2009-06-22/dimensionFilters-REC-2009-06-22+corrected-errata-2011-03-10.html#sec-explicit-dimension-filter
   */
@@ -81,6 +86,9 @@ class ExplicitDimension extends Filter
 	{
 		$result = parent::process( $localName, $taxonomy, $roleUri, $linkbaseHref, $label, $node, $domNode, $log );
 
+		/**
+		 * @var SimpleXMLElement $dimension
+		 */
 		$dimension = $node->children( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_DF ] )->dimension;
 		if ( ! count( $dimension ) )
 		{
@@ -110,9 +118,9 @@ class ExplicitDimension extends Filter
 			}
 			else if ( property_exists( $dimension, "qnameExpression" ) )
 			{
-				$qname = trim( $dimension->qnameExpression );
-				if ( is_null( $qname ) ) return false;
-				$this->dimensionExpression = $qname->clarkNotation();
+				$qnameExpression = trim( $dimension->qnameExpression );
+				if ( is_null( $qnameExpression ) ) return false;
+				$this->dimensionExpression = $qnameExpression;
 				$result["dimensionExpression"] = $this->dimensionExpression;
 			}
 			else
@@ -175,7 +183,7 @@ class ExplicitDimension extends Filter
 				else
 				{
 					$mem['variable'] = array(
-						'name' => is_null( $qname ) ? $source : $qname->localName,
+						'name' => is_null( $qname ) ? null : $qname->localName,
 						'originalPrefix' => is_null( $qname ) ? null : $qname->prefix,
 						'namespace' => is_null( $qname ) ? null : $qname->namespaceURI,
 					);
@@ -187,7 +195,7 @@ class ExplicitDimension extends Filter
 				$qname = qname( trim( $member->qname ), $node->getDocNamespaces( true ) );
 				// $mem["qname"] = is_null( $qname ) ? null : $qname->clarkNotation();
 				$mem['qname'] = array(
-					'name' => is_null( $qname ) ? $source : $qname->localName,
+					'name' => is_null( $qname ) ? null : $qname->localName,
 					'originalPrefix' => is_null( $qname ) ? null : $qname->prefix,
 					'namespace' => is_null( $qname ) ? null : $qname->namespaceURI,
 				);
@@ -371,7 +379,7 @@ class ExplicitDimension extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{
@@ -420,7 +428,7 @@ class ExplicitDimension extends Filter
 				}
 				$this->dimensionXPath2Expression = $xpath2Expression;
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->formula_validation( "Explicit dimension filter", "Failed to compile qname expression",
 					array(
@@ -447,7 +455,7 @@ class ExplicitDimension extends Filter
 				}
 				$member['qnameXPath2Expression'] = $xpath2Expression;
 			}
-			catch ( Exception $ex )
+			catch ( \Exception $ex )
 			{
 				\XBRL_Log::getInstance()->formula_validation( "Explicit dimension filter", "Failed to compile test expression",
 					array(

@@ -36,15 +36,16 @@ require_once $utiltiesPath . "tuple-dictionary.php";
 
 use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\CoreFuncs;
-use XBRL\Formulas\Resources\Formulas\Formula;
 use lyquidity\xml\MS\XmlNamespaceManager;
+use lyquidity\xml\xpath\XPathItem;
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\XPath2\XPath2Item;
-use lyquidity\XPath2\NodeProvider;
 use lyquidity\XPath2\IContextProvider;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\Undefined;
 use lyquidity\XPath2\XPath2Exception;
+use XBRL\Formulas\Exceptions\FormulasException;
 
  /**
   * A class to process a formula definitions
@@ -162,7 +163,11 @@ class ExistenceAssertion extends VariableSetAssertion
 
 			return true;
 		}
-		catch ( Exception $ex )
+		catch( FormulasException $ex )
+		{
+			throw $ex;
+		}
+		catch ( \Exception $ex )
 		{
 			\XBRL_Log::getInstance()->valueassertion_validation( "Value assertion", "Failed to compile test expression",
 				array(

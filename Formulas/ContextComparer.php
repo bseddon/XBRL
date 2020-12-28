@@ -31,12 +31,15 @@
 namespace XBRL\Formulas;
 
 use lyquidity\XPath2\TreeComparer;
+use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\XPath2\Iterator\ExprIterator;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\Value\DateTimeValue;
 use lyquidity\XPath2\Value\DayTimeDurationValue;
 use lyquidity\XPath2\XPath2Item;
 use lyquidity\XPath2\Value\DateValue;
+use lyquidity\xml\xpath\XPathItem;
 
 /**
  * Implements a comparer that does not care about the order of sub-elements

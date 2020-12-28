@@ -638,7 +638,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 	 * An array of element ids that when they appear in a report their values should be treated as text.
 	 * This has a specific meaning in the default report: the associated values are not shown tied to a
 	 * specific financial year.
-	 * @var array[string]
+	 * @var string[]
 	 */
 	private static $textItems = array(
 		"dei_AccountingAddressMember",
@@ -1081,7 +1081,7 @@ class XBRL_US_GAAP_2015 extends XBRL
 	public function treatAsLabel( $key )
 	{
 		if ( isset( XBRL_US_GAAP_2015::$labelItems[ $key ] ) ) return XBRL_US_GAAP_2015::$labelItems[ $key ];
-		return parent::treatAsText( $key );
+		return parent::treatAsText( $key, null );
 	}
 
 	/**

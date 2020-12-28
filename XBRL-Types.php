@@ -45,7 +45,7 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 
 	/**
 	 * Get an instance of the types singleton
-	 * @param Function $instance (optional) A potentially descendant instance to use
+	 * @param Closure $instance (optional) A potentially descendant instance to use
 	 * @return SchemaTypes
 	 */
 	public static function &getInstance( $instance = null )
@@ -55,6 +55,9 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 			return parent::getInstance();
 		}
 
+		/**
+		 * @var XBRL_Types $instance
+		 */
 		$instance = parent::getInstance( new self() );
 		$instance->fromFile();
 		return $instance;
@@ -132,7 +135,7 @@ class XBRL_Types extends \lyquidity\xml\schema\SchemaTypes
 
 	/**
 	 * Allows a constructor to load types from a json file
-	 * @param $source File name
+	 * @param string $source File name
 	 * @return bool
 	 */
 	public function fromFile( $source = null )

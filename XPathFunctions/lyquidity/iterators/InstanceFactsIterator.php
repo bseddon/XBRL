@@ -72,7 +72,7 @@ class InstanceFactsIterator extends XPath2NodeIterator implements \Iterator
 
 	/**
 	 * The test to apply to nodes to retrieve the substitution group attribute
-	 * @var unknown
+	 * @var XmlQualifiedNameTest
 	 */
 	private static $nodeTest = null;
 
@@ -132,7 +132,7 @@ class InstanceFactsIterator extends XPath2NodeIterator implements \Iterator
 	{
 		if ( ! $sourceIterator instanceof XPath2NodeIterator )
 		{
-			return EmptyIterator::$Shared;
+			return \lyquidity\XPath2\Iterator\EmptyIterator::$Shared;
 		}
 
 		$test = new NodeTest( SequenceTypes::$Element );

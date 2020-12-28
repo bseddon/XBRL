@@ -31,6 +31,7 @@
 namespace XBRL\Formulas\Resources\Filters;
 
  use lyquidity\XPath2\XPath2Expression;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\xml\MS\XmlNamespaceManager;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\xpath\XPathNavigator;
@@ -175,7 +176,7 @@ class AncestorFilter extends Filter
 
 		foreach ( $facts as /** @var XPathNavigator $fact */ $fact )
 		{
-			if ( $this->testAncestor( $fact ) )
+			if ( $this->testAncestor( $fact, $variableSet ) )
 			{
 				$matched[] = $fact->CloneInstance();
 			}
@@ -191,9 +192,10 @@ class AncestorFilter extends Filter
 	/**
 	 * Tests the ancestors of $fact to see if they have one of the specified QNames
 	 * @param XPathNavigator $fact
+	 * @param VariableSet $variableSet
 	 * @return boolean
 	 */
-	private function testAncestor( $fact )
+	private function testAncestor( $fact, $variableSet )
 	{
 		$xpathQNames = null;
 		/**
@@ -245,7 +247,7 @@ class AncestorFilter extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

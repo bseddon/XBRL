@@ -30,16 +30,19 @@
 
 namespace XBRL\Formulas\Resources;
 
+use lyquidity\xml\QName;
 use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\NodeProvider;
 use lyquidity\XPath2\XPath2Expression;
 use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\xml\exceptions\InvalidOperationException;
 use lyquidity\xml\xpath\XPathNodeType;
-use XBRL\Formulas\Resources\Assertions\ExistenceAssertion;
+use XBRL\Formulas\Resources\Assertions\XPath2ItemProvider;
 use lyquidity\XPath2\XPath2Convert;
 use lyquidity\xml\xpath\XPathItem;
+use lyquidity\xml\xpath\XPathNavigator;
 
 /**
  * Base class for all resources
@@ -150,7 +153,7 @@ class Resource
 
 	/**
 	 * Allows a resource to return a list of the qnames of any variable references they contain
-	 * @return array[\QName]
+	 * @return QName[]
 	 */
 	public function getVariableRefs()
 	{
@@ -251,13 +254,13 @@ class Resource
 			 */
 			foreach ( $value as /** @var XPathItem $item */ $item )
 			{
-				if ( $item instanceof ExprIterator )
+				if ( $item instanceof \lyquidity\XPath2\Iterator\ExprIterator )
 				{
 					$inner = array();
 
 					foreach ( $item as $value )
 					{
-						$inner[] = $value instanceof XPath2Item
+						$inner[] = $value instanceof \lyquidity\XPath2\XPath2Item
 							? $value->getValue()
 							: $value->getInnerXml();
 					}
@@ -289,7 +292,7 @@ class Resource
 		else if ( $value instanceof XPathItem )
 		{
 			/**
-			 * @var XPathItem $item
+			 * @var XPathNavigator $item
 			 */
 			$item = $value;
 			if ( $item->getIsNode() )
@@ -301,7 +304,7 @@ class Resource
 				return (string)$item; // ->getValue();
 			}
 		}
-		else if ( $value instanceof Undefined )
+		else if ( $value instanceof \lyquidity\XPath2\Undefined )
 		{
 			return null;
 		}

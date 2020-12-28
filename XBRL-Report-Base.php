@@ -87,7 +87,7 @@ abstract class XBRL_Report_Base
 
 	/**
 	 * A list of the years that are valid
-	 * @var array[string]
+	 * @var array
 	 */
 	protected	$validYears = array();
 
@@ -353,7 +353,7 @@ abstract class XBRL_Report_Base
 	 * @param array $existingElements An array of instance entries to compare to $entry for context and value equivalence
 	 * @param array $entry An entry node representing a record in the instance document
 	 * @param string $entryEntity The entity for which the entry should be unique
-	 * @return Returns true if $entry is unique.
+	 * @return bool Returns true if $entry is unique.
 	 */
 	private function entry_is_unique( $existingElements, $entry, $entryEntity )
 	{
@@ -2224,7 +2224,7 @@ abstract class XBRL_Report_Base
 	 * @param array $nodes				An array of nodes with a 'children' element
 	 * @param array $activeDimensions	A list of the dimensions accrued from parent nodes
 	 * @param string $path				The current path
-	 * @return void
+	 * @return array
 	 *
 	 * For example, the tree at node 'Turnover' may have dimensions that are common
 	 * to it and it's sub-nodes.  The Turnover node and the sub-nodes should be

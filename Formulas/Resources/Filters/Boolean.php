@@ -30,9 +30,9 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use XBRL\Formulas\Resources\Variables\VariableSet;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\MS\XmlNamespaceManager;
-use XBRL\Formulas\Resources\Resource;
 
  /**
   * Implements the filter class for the ConceptName filter
@@ -52,7 +52,7 @@ class Boolean extends Filter
 	 *
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return string
+	 * @return string[]
 	 */
 	public function toQuery( $variableSet, $factVariableBinding )
 	{
@@ -114,7 +114,7 @@ class Boolean extends Filter
 					}
 				}
 
-				$filterResources[] = $resource;
+				// $filterResources[] = $resource;
 				$className = __NAMESPACE__ . '\\' . ucfirst( $resource['filterType'] );
 				$filters[] = $className::fromArray( $resource );
 
@@ -139,7 +139,7 @@ class Boolean extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

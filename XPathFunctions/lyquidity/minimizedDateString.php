@@ -37,7 +37,10 @@ use lyquidity\XPath2\Value\DateValue;
 use lyquidity\XPath2\Value\DayTimeDurationValue;
 use lyquidity\XPath2\DOM\XmlSchema;
 use lyquidity\XPath2\FalseValue;
+use lyquidity\XPath2\NodeProvider;
+use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\xpath\XPathNavigator;
 
 /**
  * Return a string representation of a date minimized to exclude any time portion.
@@ -75,7 +78,7 @@ function getMinimizedDateString( $context, $provider, $args )
 		throw XPath2Exception::withErrorCodeAndParams( "FORG0006", Resources::FORG0006 . " (DateTime parameter)",
 			array(
 				"lyquidity:minimized-date-string",
-				gettype( $arg[0]),
+				gettype( $args[0]),
 			)
 		);
 	}
@@ -90,7 +93,7 @@ function getMinimizedDateString( $context, $provider, $args )
 		throw XPath2Exception::withErrorCodeAndParams( "FORG0006", Resources::FORG0006 . " (Boolean parameter)",
 			array(
 				"lyquidity:minimized-date-string",
-				gettype( $arg[1]),
+				gettype( $args[1]),
 			)
 		);
 	}

@@ -30,9 +30,6 @@
 
 namespace XBRL\Formulas;
 
-use XBRL\Functions\Filters\Filter;
-use XBRL\Formulas\Resources\Resource;
-
 define( "ASPECT_LOCATION", "\\location" );
 define( "ASPECT_CONCEPT", "\\concept" );
 define( "ASPECT_ENTITY_IDENTIFIER", "\\entity_identifier" );
@@ -274,7 +271,7 @@ spl_autoload_register( 'XBRL\\Formulas\\formulas_autoload' );
 			);
 
 		/**
-		 * @var Resource $filter
+		 * @var Resource|object $filter
 		 */
 		$filter = new $filterName;
 		$resource = $filter->process( $localName, $taxonomy, $roleUri, $linkbaseHref, $label, $node, $domNode, $log );

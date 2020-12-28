@@ -30,11 +30,13 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use XBRL\Formulas\Resources\Variables\VariableSet;
+ use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\xml\QName;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\XPath2NodeIterator;
 
  /**
   * Implements the filter class for the parent filter
@@ -91,7 +93,7 @@ class SiblingFilter extends Filter
 				? qname( $variable, $namespaces )
 				: new QName( "", null, $variable );
 			$this->variable = array(
-				'name' => is_null( $qName ) ? $source : $qName->localName,
+				'name' => is_null( $qName ) ? null : $qName->localName,
 				'originalPrefix' => is_null( $qName ) ? null : $qName->prefix,
 				'namespace' => is_null( $qName ) ? null : $qName->namespaceURI,
 			);
@@ -139,7 +141,7 @@ class SiblingFilter extends Filter
 		if ( ! isset( $vars[ $clark ] ) )
 		{
 			// Should probably throw some kind of error here
-			throw XPath2Exception::withErrorCodeAndParam( "XPST0008", Resources::XPST0008, $clark );
+			throw XPath2Exception::withErrorCodeAndParam( "XPST0008", \lyquidity\XPath2\Properties\Resources::XPST0008, $clark );
 		}
 
 		/**
@@ -147,12 +149,12 @@ class SiblingFilter extends Filter
 		 */
 		$candidate = null;
 		$var = $vars[ $clark ];
-		if ( $var instanceof XPath2NodeIterator )
+		if ( $var instanceof \lyquidity\XPath2\XPath2NodeIterator )
 		{
 			$node = reset( $var->ToList() );
 			if ( is_null( $node ) )
 			{
-				throw XPath2Exception::withErrorCodeAndParam( "XPST0008", Resources::XPST0008, $clark );
+				throw XPath2Exception::withErrorCodeAndParam( "XPST0008", \lyquidity\XPath2\Properties\Resources::XPST0008, $clark );
 			}
 
 			$candidate = $node->getUnderlyingObject();
@@ -192,7 +194,7 @@ class SiblingFilter extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

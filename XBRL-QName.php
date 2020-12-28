@@ -58,190 +58,6 @@ function qname( $value, $name = null, $noPrefixIsNoNamespace = false, $castExcep
 return;
 
 /**
- * @deprecated
- * Generate a QName instance.
- *
- * @param array|string $value	can be a QName, an array or a string.  If a string it will be the
- * 								namespace of the value of $name or a Clark notation.
- * 								If an array then it will be an array representation of the QName.
- * @param array|string $name	Can be an array of prefix/namespace key/value pairs or it can be
- * 								the prefixed local name
- * @param bool $noPrefixIsNoNamespace  If no prefix is found then there will be no namespace if this is true
- * @param Exception $castException		In case there is a cast exception
- * @param Exception $prefixException	In case there is a prefix exception
- * @throws Exception
- * @return NULL|QName
- */
-function qnamex( $value, $name = null, $noPrefixIsNoNamespace = false, $castException = null, $prefixException = null )
-{
-	return \lyquidity\xml\qname( $value, $name, $noPrefixIsNoNamespace, $castException, $prefixException );
-
-	if ( $value instanceof SimpleXMLElement )
-	{
-		if ( $name ) // name is prefixed name
-		{
-			$element = $value;  // may be an attribute
-			$value = $name;
-			$name = null;
-		}
-		else
-		{
-			return new QName( value.prefix, value.namespaceURI, value.localName );
-		}
-	}
-	else if ( $name instanceof SimpleXMLElement )
-	{
-		$element = $name;
-		$name = null;
-		$element = null;
-		$value = $name;
-	}
-	else
-	{
-		$element = null;
-	}
-
-	if ( $value instanceof QName )
-	{
-		return $value;
-	}
-	else if ( is_array( $value ) )
-	{
-		if ( ! isset( $value['localname'] ) )
-		{
-			return null;
-		}
-
-		return new QName(
-			isset( $value['prefix'] ) ? $value['prefix'] : null,
-			isset( $value['namespace'] ) ? $value['namespace'] : null,
-			$value['localname']
-		);
-	}
-	else if ( ! is_string( $value ) )
-	{
-		if ( $castException ) throw $castException;
-		return null;
-	}
-
-	$namespaceDict = null;
-	if ( $value && $value[0] == '{' ) // clark notation (with optional prefix)
-	{
-		// namespaceURI,sep,prefixedLocalName = value[1:].rpartition('}')
-		$matches = null;
-		if ( ! preg_match( "/({(?<namespaceURI>.*)})?(?<prefixedLocalName>.*)/", $value, $matches ) )
-		{
-			return null;
-		}
-		$namespaceURI = $matches['namespaceURI'];
-		$prefixedLocalName = $matches['prefixedLocalName'];
-
-		// prefix,sep,localName = $prefixedLocalName.rpartition(':')
-		$matches = null;
-		if ( ! preg_match( "/((?<prefix>.*):)?(?<localName>.*)/", $prefixedLocalName, $matches ) )
-		{
-			return null;
-		}
-		$prefix = $matches['prefix'];
-		$localName = $matches['localName'];
-
-		if ( ! $prefix )
-		{
-			$prefix = null;
-			if ( is_array( $name ) )
-			{
-				if ( isset( $name[ $namespaceURI ] ) )
-				{
-					$prefix = $name[ $namespaceURI ];
-				}
-				else // reverse lookup
-				{
-					foreach ( $name as $_prefix => $_namespaceURI )
-					{
-						if ( $_namespaceURI == $namespaceURI )
-						{
-							$prefix = $_prefix;
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		if ( is_array( $name ) )
-		{
-			$namespaceURI = null;
-			$namespaceDict = $name; // note that functional prefix must be null, not '', in dict
-			$namespaceDict['xml'] = XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ];
-		}
-		else if ( $name != null )
-		{
-			$namespaceURI = $name // len > 0
-				? $value
-				: null;
-			$namespaceDict = null;
-			$value = $name;
-		}
-		else
-		{
-			$namespaceURI = null;
-			$namespaceDict = null;
-		}
-		// prefix,sep,localName = value.strip().partition(":")  # must be whitespace collapsed
-		$matches = null;
-		if ( ! preg_match( "/((?<prefix>.*):)?(?<localName>.*)/", $value, $matches ) )
-		{
-			return null;
-		}
-		$prefix = $matches['prefix'];
-		$localName = $matches['localName'];
-
-		if ( ! $prefix )
-		{
-			$prefix = null; # don't want '' but instead null if no prefix
-			if ( $noPrefixIsNoNamespace )
-			{
-				return new QName( null, null, $localName );
-			}
-		}
-	}
-
-	if ( $namespaceURI )
-	{
-		return new QName( $prefix, $namespaceURI, $localName );
-	}
-	else if ( $namespaceDict && isset( $namespaceDict[ $prefix ] ) )
-	{
-		return new QName( $prefix, $namespaceDict[ $prefix ], $localName );
-	}
-	else if ( isset( $element ) )
-	{
-		// same as XmlUtil.xmlns but local for efficiency
-		// namespaceURI = element.nsmap.get(prefix)
-		$names = $element->getDocNamespaces();
-		$namespaceURI = $names[ $prefix ] ? $names[ $prefix ] : null;
-		if ( ! $namespaceURI && $prefix == 'xml' )
-		{
-			$namespaceURI = "http://www.w3.org/XML/1998/namespace";
-		}
-	}
-
-	if ( ! $namespaceURI )
-	{
-		if ( $prefix )
-		{
-			if ( $prefixException ) throw $prefixException;
-			return null;  // error, prefix not found
-		}
-		$namespaceURI = null; # cancel namespace if it is a zero length string
-	}
-
-	return new QName( $prefix, $namespaceURI, $localName );
-}
-
-/**
  * Convert a namespace/local name pair into a QName instance
  * Does not handle localNames with prefix
  *
@@ -299,44 +115,12 @@ function qnameClarkName( $clarkname )
  * @param SimpleXMLElement $element
  * @param string $prefixedName
  * @param Exception $prefixException
- * @throws Exceptio
+ * @throws \Exception
  * @return NULL|QName
  */
 function qnameEltPfxName( $element, $prefixedName, $prefixException = null )
 {
-	$matches = null;
-	if ( ! preg_match( "/(?<prefix>.*)?:(?<localName>.*)/", $prefixedName, $matches ) )
-	{
-		return null;
-	}
-
-	if ( ! $matches['prefix'] )
-	{
-		$prefix = null; // don't want '' but instead null if no prefix
-	}
-
-	$names = $element->getDocNamespaces();
-	$namespaceURI = $names[ $prefix ] ? $names[ $prefix ] : null;
-	if ( ! $namespaceURI )
-	{
-		if ( $prefix )
-		{
-			if ( $prefix == 'xml' )
-			{
-				$namespaceURI = "http://www.w3.org/XML/1998/namespace";
-			}
-			else
-			{
-				if ( $prefixException ) throw $prefixException;
-				return null;
-			}
-		}
-		else
-		{
-			$namespaceURI = null; // cancel namespace if it is a zero length string
-		}
-	}
-	return new QName( $prefix, $namespaceURI, $localName );
+	return \lyquidity\xml\qnameEltPfxName( $element, $prefixedName, $prefixException );
 }
 
 /**
@@ -499,7 +283,7 @@ class QNamex
 	/**
 	 * Returns true if the QName is valid
 	 *
-	 * @return unknown
+	 * @return bool
 	 */
 	public function isValid()
 	{

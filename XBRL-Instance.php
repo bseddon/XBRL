@@ -401,7 +401,7 @@ class XBRL_Instance
 	/**
 	 * Returns the type of the element
 	 * @param string $element The element from which to access the type
-	 * @return the type as a string
+	 * @return string The type as a string
 	 */
 	public static function getElementType( $element )
 	{
@@ -688,7 +688,7 @@ class XBRL_Instance
 	/**
 	 * Get a specific element
 	 * @param string $id The id of the element to retrieve
-	 * @return string|null
+	 * @return string[]|null
 	 */
 	public function getElement( $id )
 	{
@@ -904,7 +904,7 @@ class XBRL_Instance
 	 * @param array|string $contextRef If a string the name of a context; if an array, one containing the context detail
 	 * @param boolean|array[string] $getText If true include the element text in the result.  If the argument is an array it will be an array of preferred labels.
 	 * @param string $elementName The name of the element within the entity element to use [segment|scenario]
-	 * @return False if the requested context id does not exist or the context is not dimensional otherwise any array of dimension member elements
+	 * @return array|false if the requested context id does not exist or the context is not dimensional otherwise any array of dimension member elements
 	 * @TODO If the context does not contain an explicitMember element the function should check the dimensional taxonomy.
 	 *       This will require that the primary element is passed as an argument
 	 */
@@ -1568,6 +1568,7 @@ class XBRL_Instance
 						$members[ $name ] = array();
 						foreach ( $namespaceMembers as $namespaceMember )
 						{
+							/** @var \SimpleXMLElement $namespaceMember */
 							$xml = $namespaceMember->asXML();
 							foreach ( $prefixMap as $localPrefix => $globalPrefix )
 							{
@@ -1803,7 +1804,7 @@ class XBRL_Instance
 
 	/**
 	 * A list of duplicate facts.  Duplicate facts require a validate warning.
-	 * @var array
+	 * @var TupleDictionary
 	 */
 	private $duplicateFacts = null;
 
@@ -1847,6 +1848,7 @@ class XBRL_Instance
 			{
 				foreach ( $rootElement->children( $namespace ) as $elementKey => $element )
 				{
+					/** @var \SimpleXMLElement $element */
 					$attributes = $element->attributes();
 
 					switch ( $elementKey )
@@ -2042,6 +2044,8 @@ class XBRL_Instance
 
 				foreach ( $rootElement->children( $namespace ) as $elementKey => $element )
 				{
+					/** @var \SimpleXMLElement $element */
+
 					switch ( $elementKey )
 					{
 						case 'footnoteLink':
@@ -2263,6 +2267,8 @@ class XBRL_Instance
 
 			foreach ( $rootElement->children( $namespace ) as $elementKey => $element )
 			{
+				/** @var \SimpleXMLElement $element */
+
 				// $this->log()->err( "$indent$elementKey" );
 				$guid = XBRL::GUID();
 
@@ -2340,7 +2346,7 @@ class XBRL_Instance
 						if ( $elementType )
 						{
 							// The tuple type may be complex and allow any elements
-							$type = isset( $elementType['types'][0] ) ? $elementType['types'][0] : $type;
+							$type = isset( $elementType['types'][0] ) ? $elementType['types'][0] : $elementType;
 							if ( is_string( $type ) )
 							{
 								$type = $types->getType( $type );
@@ -2603,7 +2609,7 @@ class XBRL_Instance
 	 * This is a simplified version of the code in XBRL processLabelLinkbase().  Simplified because
 	 * footnote locators can only be to elements in the same document.
 	 *
-	 * @param array $footnoteLink The element containing the link base type to process
+	 * @param SimpleXMLElement $footnoteLink The element containing the link base type to process
 	 * @return boolean
 	 */
 	private function processFootnoteLinkbase( $footnoteLink )
@@ -2702,7 +2708,7 @@ class XBRL_Instance
 				continue;
 			}
 
-			$lang = property_exists( $xmlAttributes, 'lang' ) ? (string) $xmlAttributes->lang : $this->getDefaultLanguage();
+			$lang = property_exists( $xmlAttributes, 'lang' ) ? (string) $xmlAttributes->lang : $this->getInstanceTaxonomy()->getDefaultLanguage();
 			$text = $footnoteEl->__toString();
 
 			if ( ! isset( $footnotes[ $role ] ) )
@@ -3714,7 +3720,7 @@ class XBRL_Instance
 				{
 					$this->log()->instance_validation( "5.2.6.2.4", "The concept of the target does not exist in the DTS",
 						array(
-							'to' => $to,
+							'to' => $target,
 						)
 					);
 					continue;
@@ -3759,7 +3765,7 @@ class XBRL_Instance
 		 * Examine the arcs recursively to look for directed cycles.
 		 * If there are directed cyles then the $alias of an arc will appear in the list of $parents
 		 *
-		 * @var function $detectDirected
+		 * @var Closure $detectDirected
 		 * @param string $essence
 		 * @param array $parents
 		 * @return bool
@@ -4224,7 +4230,7 @@ class XBRL_Instance
 		 * Examine the arcs recursively to look for directed cycles.
 		 * If there are directed cyles then the $alias of an arc will appear in the list of $parents
 		 *
-		 * @var function $detectDirected
+		 * @var Closure $detectDirected
 		 * @param string $source
 		 * @param array $parents
 		 * @return bool
@@ -4285,7 +4291,7 @@ class XBRL_Instance
 		 * Examine the arcs recursively to look for directed cycles.
 		 * If there are directed cyles then the $alias of an arc will appear in the list of $parents
 		 *
-		 * @var function $detectDirected
+		 * @var Closure $detectDirected
 		 * @param string $arcroleKey
 		 * @param string $arcrole
 		 * @param string $source
@@ -4404,7 +4410,7 @@ class XBRL_Instance
 		 * Examine the arcs recursively to look for directed cycles.
 		 * If there are directed cyles then the $alias of an arc will appear in the list of $parents
 		 *
-		 * @var function $detectDirected
+		 * @var Closure $detectDirected
 		 * @param string $source
 		 * @param array $parents
 		 * @return bool
@@ -5490,7 +5496,7 @@ class XBRL_Instance
 					$taxonomy = $this->getInstanceTaxonomy()->getTaxonomyForXSD( $dimensionId );
 					if ( ! $taxonomy )
 					{
-						$this->log()->warning( "A taxonomy cannot be located for namespace '$namespace'" );
+						$this->log()->warning( "A taxonomy cannot be located for namespace '$dimensionId'" );
 						continue;
 					}
 
@@ -5597,7 +5603,7 @@ class XBRL_Instance
 	/**
 	 * Validates the measure component of a unit definition
 	 *
-	 * @param string $divide
+	 * @param array $divide
 	 * @param string $unitId
 	 * @param XBRL_Types $types
 	 */
@@ -7118,7 +7124,7 @@ class ContextsFilter
 
 	/**
 	 * Remove one or more contexts.  The instance will be changed and will be removed.
-	 * @param string|string[]|ContextFilter $contexts
+	 * @param string|string[]|ContextsFilter $contexts
 	 * @return ContextsFilter
 	 */
 	public function remove( $contexts )
@@ -7287,7 +7293,7 @@ class InstanceElementsFilter
 
 	/**
 	 * Return a list of elements based on a set of contexts
-	 * @param array|string $contexts The parameter can be the name of an context, a comma delimited list of contexts or an array of contexts
+	 * @param ContextsFilter|string $contexts The parameter can be the name of an context, a comma delimited list of contexts or an array of contexts
 	 * @throws Exception
 	 * @return InstanceElementsFilter
 	 */
@@ -7519,7 +7525,7 @@ class InstanceElementsFilter
 	 * Compare $entry with $existingElements to determine if the associated contextRefs are equivalent.
 	 * @param array $existingElements An array of instance entries to compare to $entry for context and value equivalence
 	 * @param array $entry An entry node representing a record in the instance document
-	 * @return Returns true if $entry is unique.
+	 * @return bool Returns true if $entry is unique.
 	 */
 	private function entry_is_unique( $existingElements, $entry )
 	{

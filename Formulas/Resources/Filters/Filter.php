@@ -30,8 +30,11 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Resource;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\XPath2\XPath2Expression;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\xml\QName;
 use lyquidity\xml\exceptions\InvalidOperationException;
 
@@ -171,7 +174,7 @@ class Filter extends Resource
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array An array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

@@ -33,7 +33,7 @@ class XBRL_Global
 
 	/**
 	 * A reference to this singleton instance
-	 * @var Singleton
+	 * @var XBRL_Global Singleton
 	 */
 	private static $instance;
 
@@ -41,7 +41,7 @@ class XBRL_Global
 
 	/**
 	 * An array containing the set of taxonmies
-	 * @var array[XBRL]
+	 * @var array
 	 */
 	public $importedSchemas = array();
 	/**

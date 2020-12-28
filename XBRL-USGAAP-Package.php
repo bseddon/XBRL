@@ -122,8 +122,8 @@ EOT;
 
 				$this->setUrlMap( $schemaNamespace, $schemaFile );
 
-				if ( isset( XBRL_IFRS_Package::$defaultEntryPoints[ $this->publicationDate ] ) &&
-						XBRL_IFRS_Package::$defaultEntryPoints[ $this->publicationDate ] == $schemaFile )
+				if ( isset( XBRL_USGAAP_Package::$defaultEntryPoints[ $this->publicationDate ] ) &&
+						XBRL_USGAAP_Package::$defaultEntryPoints[ $this->publicationDate ] == $schemaFile )
 				{
 					$this->schemaNamespace = $schemaNamespace;
 					$this->schemaFile = $schemaFile;
