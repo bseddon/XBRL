@@ -30,6 +30,10 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\xml\MS\XmlNamespaceManager;
+
  /**
   * Implements the filter class for the period filter
   * http://www.xbrl.org/Specification/valueFilters/REC-2009-06-22/valueFilters-REC-2009-06-22.html#sec-precision-filter

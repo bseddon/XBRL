@@ -41,7 +41,7 @@ EOT;
 	/**
 	 * Returns true if the zip file represents no other specific package
 	 * {@inheritDoc}
-	 * @see XBRL_IPackage::isPackage()
+	 * @see XBRL_Package::isPackage()
 	 */
 	public function isPackage()
 	{

@@ -31,9 +31,11 @@
 namespace XBRL\Formulas\Resources\Filters;
 
 use lyquidity\XPath2\XPath2Expression;
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
+use lyquidity\xml\MS\XmlNamespaceManager;
 use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\xml\QName;
 use lyquidity\XPath2\XPath2Exception;
@@ -199,7 +201,7 @@ class ConceptName extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

@@ -31,8 +31,11 @@
 namespace XBRL\Formulas\Resources\Filters;
 
 use lyquidity\XPath2\XPath2Expression;
+use XBRL\Formulas\FactVariableBinding;
 use XBRL\Formulas\Resources\Formulas\Formula;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
 /**
   * Implements the filter class for the ConceptSubstitutionGroup filter
@@ -165,7 +168,7 @@ class ConceptSubstitutionGroup extends ConceptFilterWithQnameExpression
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

@@ -30,6 +30,11 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\xml\MS\XmlNamespaceManager;
+
  /**
   * Implements the filter class for the RegexpScheme filter
   * http://www.xbrl.org/specification/entityfilters/rec-2009-06-22/entityfilters-rec-2009-06-22.html#sec-regular-expression-entity-identifier-filter
@@ -106,7 +111,7 @@ class RegexpIdentifier extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

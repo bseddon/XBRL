@@ -104,7 +104,7 @@ EOT;
 	/**
 	 * Returns true if the zip file represents an SEC package
 	 * {@inheritDoc}
-	 * @see XBRL_IPackage::isPackage()
+	 * @see XBRL_Package::isPackage()
 	 */
 	public function isPackage()
 	{

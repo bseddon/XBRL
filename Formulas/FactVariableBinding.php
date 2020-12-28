@@ -133,7 +133,7 @@ class FactVariableBinding extends VariableBinding implements \Iterator
 	/**
 	 * Returns the next $fact value or FALSE if there are no more facts.
 	 * {@inheritDoc}
-	 * @see Iterator::next()
+	 * @see \Iterator::next()
 	 */
 	public function next()
 	{
@@ -144,7 +144,7 @@ class FactVariableBinding extends VariableBinding implements \Iterator
 	/**
 	 * Check if the current node is valid and that the pointer can be moved forwards
 	 * {@inheritDoc}
-	 * @see Iterator::valid()
+	 * @see \Iterator::valid()
 	 */
 	public function valid()
 	{

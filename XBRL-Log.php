@@ -43,7 +43,7 @@ class XBRL_Log
 
 	/**
 	 * A reference to this singleton instance
-	 * @var Singleton
+	 * @var XBRL_Log
 	 */
 	private static $instance;
 

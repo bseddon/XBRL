@@ -30,6 +30,10 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\xml\MS\XmlNamespaceManager;
+
  /**
   * Implements the filter class for the PeriodInstant filter
   * http://www.xbrl.org/Specification/periodFilters/REC-2009-06-22/periodFilters-REC-2009-06-22.html#eg-period-instant-filters

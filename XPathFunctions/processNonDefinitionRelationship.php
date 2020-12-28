@@ -36,7 +36,7 @@ use lyquidity\XPath2\Value\QNameValue;
 /**
  * Add the relationships to the nodes list
  * @param XPath2Context $context The global context
- * @param XBRL $taxonomy The active taxonomy
+ * @param \XBRL $taxonomy The active taxonomy
  * @param array $nodes The list of nodes being created
  * @param array $parents A list of the parents used
  * @param array $arcRef A reference to the non-dimension role being processed

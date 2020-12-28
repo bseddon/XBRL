@@ -29,6 +29,7 @@
 
 namespace XBRL\Formulas;
 
+use XBRL\Formulas\Resources\Formulas\Formula;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use lyquidity\XPath2\XPath2NodeIterator;
 

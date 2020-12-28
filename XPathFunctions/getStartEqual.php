@@ -31,6 +31,8 @@
 namespace XBRL\functions;
 
 use lyquidity\XPath2\CoreFuncs;
+use lyquidity\XPath2\NodeProvider;
+use lyquidity\XPath2\XPath2Context;
 use lyquidity\xml\xpath\XPathNavigator;
 use lyquidity\XPath2\Properties\Resources;
 use lyquidity\XPath2\XPath2NodeIterator;

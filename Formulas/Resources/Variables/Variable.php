@@ -30,6 +30,7 @@
 
 namespace XBRL\Formulas\Resources\Variables;
 
+use XBRL\Formulas\VariableBinding;
 use XBRL\Formulas\Resources\Resource;
 use lyquidity\xml\QName;
 

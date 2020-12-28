@@ -31,6 +31,7 @@
 namespace XBRL\Formulas\Resources\Assertions;
 
 use XBRL\Formulas\Resources\Resource;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\xml\exceptions\InvalidOperationException;
 use XBRL\Formulas\FactVariableBinding;
 

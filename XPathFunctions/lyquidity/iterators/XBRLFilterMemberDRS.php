@@ -36,6 +36,7 @@ use lyquidity\XPath2\Value\QNameValue;
 use lyquidity\XPath2\ContextProvider;
 use lyquidity\XPath2\Undefined;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\xpath\XPathItem;
 
 /**
  * XBRLIterator (public)

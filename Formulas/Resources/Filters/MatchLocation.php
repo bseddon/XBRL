@@ -30,7 +30,9 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
- use XBRL\Formulas\Resources\Formulas\Aspects\Aspect;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the period filter
@@ -62,7 +64,7 @@ class MatchLocation extends MatchFilter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

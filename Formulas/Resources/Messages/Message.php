@@ -30,7 +30,9 @@
 
 namespace XBRL\Formulas\Resources\Messages;
 
- use XBRL\Formulas\Resources\Resource;
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Resource;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 
  /**
   * Implements the filter class for messages
@@ -147,7 +149,7 @@ class Message extends Resource
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

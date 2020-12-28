@@ -31,9 +31,12 @@
 namespace XBRL\Formulas\Resources\Filters;
 
  use XBRL\Formulas\Resources\Formulas\Formula;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use XBRL\Formulas\FactVariableBinding;
 use lyquidity\XPath2\CoreFuncs;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Value\QNameValue;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
  /**
   * Implements the filter class for the period filter
@@ -187,7 +190,7 @@ class AspectCover extends Filter
 	 *
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

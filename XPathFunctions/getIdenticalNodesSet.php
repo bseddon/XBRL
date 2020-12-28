@@ -32,6 +32,8 @@ namespace XBRL\functions;
 
 use lyquidity\XPath2\NodeProvider;
 use lyquidity\XPath2\Properties\Resources;
+use lyquidity\XPath2\FalseValue;
+use lyquidity\XPath2\TrueValue;
 use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;

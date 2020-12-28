@@ -30,6 +30,9 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
+
  /**
   * Implements the filter class for the ConceptName filter
   * http://www.xbrl.org/Specification/periodFilters/REC-2009-06-22/periodFilters-REC-2009-06-22.html#sec-forever-filter
@@ -77,7 +80,7 @@ class Forever extends Filter
 	 * Returns the set of aspects covered by this instance
 	 * @param VariableSet $variableSet
 	 * @param FactVariableBinding $factVariableBinding
-	 * @return an array of aspect identifiers
+	 * @return array an array of aspect identifiers
 	 */
 	public function getAspectsCovered( $variableSet, $factVariableBinding )
 	{

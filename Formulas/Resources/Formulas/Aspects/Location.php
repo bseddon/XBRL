@@ -30,6 +30,9 @@
 
  namespace XBRL\Formulas\Resources\Formulas\Aspects;
 
+use XBRL\Formulas\Resources\Variables\VariableSet;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
+
 /**
  * A class to process a general variable definitions
  */

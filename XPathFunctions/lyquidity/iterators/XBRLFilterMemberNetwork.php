@@ -35,6 +35,8 @@ require_once __DIR__ . '/XBRLIterator.php';
 use lyquidity\XPath2\Value\QNameValue;
 use lyquidity\XPath2\ContextProvider;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\XPath2\XPath2NodeIterator;
+use lyquidity\xml\xpath\XPathItem;
 
 /**
  * XBRLIterator (public)

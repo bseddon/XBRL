@@ -32,6 +32,7 @@ namespace XBRL\Formulas;
 use XBRL\Formulas\Resources\Variables\FactVariable;
 use XBRL\Formulas\Resources\Variables\GeneralVariable;
 use XBRL\Formulas\Resources\Variables\Parameter;
+use XBRL\Formulas\Resources\Variables\Variable;
 use XBRL\Formulas\Resources\Formulas\Formula;
 use XBRL\Formulas\Resources\Formulas\Tuple;
 use XBRL\Formulas\Resources\Assertions\ValueAssertion;
@@ -240,7 +241,7 @@ class VariableBinding implements \Iterator
 	/**
 	 * Keys the key for the current $fact
 	 * {@inheritDoc}
-	 * @see Iterator::key()
+	 * @see \Iterator::key()
 	 */
 	public function key()
 	{
@@ -255,7 +256,7 @@ class VariableBinding implements \Iterator
 	/**
 	 * Returns the next $fact value or FALSE if there are no more facts.
 	 * {@inheritDoc}
-	 * @see Iterator::next()
+	 * @see \Iterator::next()
 	 */
 	public function next()
 	{
@@ -274,7 +275,7 @@ class VariableBinding implements \Iterator
 	/**
 	 * Check if the current node is valid and that the pointer can be moved forwards
 	 * {@inheritDoc}
-	 * @see Iterator::valid()
+	 * @see \Iterator::valid()
 	 */
 	public function valid()
 	{

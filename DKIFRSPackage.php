@@ -66,7 +66,7 @@ EOT;
 	/**
 	 * Overridden to make sure this class is not use unless the package DOES NOT have a META-INF folder
 	 * {@inheritDoc}
-	 * @see XBRL_SimplePackage::isPackage()
+	 * @see \XBRL_SimplePackage::isPackage()
 	 */
 	public function isPackage()
 	{
@@ -134,7 +134,7 @@ EOT;
 
 		if ( count( $schemaFilesList ) == 0 )
 		{
-			throw XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain any entry schema (.xsd) files" );
+			throw \XBRL_TaxonomyPackageException::withError( "tpe:schemaFileNotFound", "The package does not contain any entry schema (.xsd) files" );
 		}
 
 		foreach ( $schemaFilesList as $schemaFile )

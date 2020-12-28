@@ -52,7 +52,7 @@ class FormulasException extends \Exception
 	 * @param string QName of the error code being reported
 	 * @param string $formulaType
 	 * @param string $message
-	 * @return \XBRL\Formulas\Resources\FormulasException
+	 * @return \XBRL\Formulas\Exceptions\FormulasException
 	 */
 	public static function withType( $error, $formulaType, $message )
 	{

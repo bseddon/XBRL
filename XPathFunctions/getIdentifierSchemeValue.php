@@ -41,6 +41,7 @@ use lyquidity\xml\xpath\XPathNodeType;
 use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\NodeProvider;
 use lyquidity\XPath2\Value\AnyUriValue;
+use lyquidity\XPath2\Value\TokenValue;
 use lyquidity\XPath2\XPath2Exception;
 
 /**

@@ -30,8 +30,11 @@
 
 namespace XBRL\Formulas\Resources\Filters;
 
+use XBRL\Formulas\FactVariableBinding;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\MS\XmlNamespaceManager;
 
 /**
  * Implements the filter class for the ConceptDataType filter

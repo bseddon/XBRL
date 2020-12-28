@@ -30,9 +30,11 @@
 
 namespace XBRL\functions;
 
+use lyquidity\XPath2\ContextProvider;
 use lyquidity\XPath2\CoreFuncs;
 use lyquidity\XPath2\ExtFuncs;
 use lyquidity\XPath2\XPath2Exception;
+use lyquidity\xml\xpath\XPathItem;
 
 /**
  * Check the element is an item. An exception will be thrown if not

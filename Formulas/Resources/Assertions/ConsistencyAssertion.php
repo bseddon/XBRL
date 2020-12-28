@@ -127,7 +127,7 @@ class ConsistencyAssertion extends AssertionSet
 
 	/**
 	 * The value of an id attribute if one exists.  The attribute is read by the Resources class
-	 * @var unknown
+	 * @var string
 	 */
 	public $id;
 
@@ -537,7 +537,7 @@ class ConsistencyAssertion extends AssertionSet
 	 * Rounds a fact value takng into account the fact precision
 	 * @param float $value
 	 * @param int $precision
-	 * @return unknown|number
+	 * @return number
 	 */
 	private function roundValue( $value, $precision )
 	{

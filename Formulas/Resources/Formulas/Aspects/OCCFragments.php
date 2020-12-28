@@ -32,6 +32,7 @@
 
 use XBRL\Formulas\Resources\Formulas\Formula;
 use XBRL\Formulas\FactValues;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
 
 /**
  * A class to represent OCC aspect rule information in terms of an explicit definition

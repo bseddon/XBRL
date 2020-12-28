@@ -43,7 +43,7 @@ class XBRL_TaxonomyPackageException extends \Exception
 	 * Create an exception type with a taxonomy package error
 	 * @param string QName of the error code being reported
 	 * @param string $message
-	 * @return \XBRL\Formulas\Resources\FormulasException
+	 * @return \XBRL\Formulas\Exceptions\FormulasException
 	 */
 	public static function withError( $error, $message )
 	{
