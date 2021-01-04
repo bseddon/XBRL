@@ -899,16 +899,23 @@ class XBRL {
 				return;
 			}
 
-			$taxonomy->loadLinkbases( $depth + 1, $processXsd );
+			// If there is no xbrl document then the taxonomy has been loaded from a compiled taxonomy so linkbases will be loaded
+			if ( $taxonomy->xbrlDocument )
+			{
+				$taxonomy->loadLinkbases( $depth + 1, $processXsd );
+			}
 
 			return $taxonomy;
 		};
 
+		/**
+		 * @var \XBRL $taxonomy
+		 */
 		$taxonomy = $processXsd( $depth );
 
 		if ( $taxonomy )
 		{
-			if ( XBRL::isValidating() )
+			if ( $taxonomy->xbrlDocument && \XBRL::isValidating() )
 			{
 				// Look for circular references in each of the extended links
 				foreach ( $taxonomy->context->presentationRoleRefs as $role => $roleRef )
@@ -3923,16 +3930,17 @@ class XBRL {
 	{
 		if ( $this->linkbasesProcessed ) return $this;
 
-		foreach ( $this->importedFiles as $importedFile )
-		{
-			// echo "$importedFile\n";
-			$taxonomy = $this->getTaxonomyForXSD( $importedFile );
-			if ( ! $taxonomy )
+		if ( $this->importedFiles )
+			foreach ( $this->importedFiles as $importedFile )
 			{
-				XBRL_Log::getInstance()->warning( "The taxonomy for '$importedFile' cannot be found." );
+				// echo "$importedFile\n";
+				$taxonomy = $this->getTaxonomyForXSD( $importedFile );
+				if ( ! $taxonomy )
+				{
+					XBRL_Log::getInstance()->warning( "The taxonomy for '$importedFile' cannot be found." );
+				}
+				$taxonomy->loadLinkbases( $depth + 1 );
 			}
-			$taxonomy->loadLinkbases( $depth + 1 );
-		}
 
 		$xsd = $this->getTaxonomyXSD();
 		// echo strftime('%b %d %H:%M:%S ') . "Processing linkbases: $xsd\n";
@@ -5702,6 +5710,9 @@ class XBRL {
 	 */
 	private function processLinkbases()
 	{
+		// If the document does not exist the taxonomy has been loaded from a comiled file
+		if ( ! $this->xbrlDocument ) return;
+	
 		// Begin processing any in the appinfo element
 		$this->xbrlDocument->registerXPathNamespace( 'link', XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] );
 		$this->xbrlDocument->registerXPathNamespace( 'xlink', XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
@@ -13654,7 +13665,7 @@ class XBRL {
 	{
 		$result = true;
 
-		// $href = (string) $xlinkAttributes->href;
+		$href = (string) $xlinkAttributes->href;
 		// $parts = parse_url( $href );
 		if ( ! isset( $locatorParts['path'] ) )
 		{
@@ -13728,8 +13739,12 @@ class XBRL {
 			}
 			else
 			{
-				if ( function_exists( 'xdebug_break' ) ) xdebug_break();
-error_log('xdebug_break');
+				if ( PHP_SAPI === 'cli' && function_exists( 'xdebug_break' ) ) 
+				{
+					xdebug_break();
+					error_log('xdebug_break');					
+				}
+				
 				// Look for the taxonomy and include its contents in the DTS
 				$xsd = $this->resolve_path( $this->getSchemaLocation(), $href );
 				$xsd = strpos( $xsd, '#' ) ? strstr( $xsd, '#', true ) : $xsd;
@@ -18695,6 +18710,7 @@ error_log('xdebug_break');
 
 		if ( ! file_exists( $filename ) )
 		{
+			error_log('The getLRR function should only be called standalone when a new file needs to be generated.');
 			$lrr = array();
 
 			$linkTypes = [];
@@ -18739,7 +18755,8 @@ error_log('xdebug_break');
 					'definition' => $definition,
 					'href' => "http://www.xbrl.org/2003/xbrl-role-2003-07-31.xsd#$label",
 					'label' => $label,
-					'namespace' => 'http://www.xbrl.org/2003/role'
+					'namespace' => 'http://www.xbrl.org/2003/role',
+					'prefix' => 'role'
 				);
 			}
 
@@ -18751,10 +18768,12 @@ error_log('xdebug_break');
 					$href = trim( $lrrRole->authoritativeHref );
 					$uri = strstr( $href, '#', true );
 					$namespace = '';
+					$prefix = '';
 					if ( ! isset( $linkTypes[ $uri ] ) )
 					{
 						$taxonomy = \XBRL::load_taxonomy( $uri );
 						$namespace = $taxonomy->getNamespace();
+						$prefix = $taxonomy->getPrefix();
 						$roleTypes[ $uri ] = $taxonomy->getRoleTypes( $taxonomy->getTaxonomyXSD() );
 					}
 
@@ -18776,7 +18795,8 @@ error_log('xdebug_break');
 						'definition' => $role['definition'],
 						'href' => $href,
 						'label' => $label,
-						'namespace' => $namespace
+						'namespace' => $namespace,
+						'prefix' => $prefix
 					);
 				}
 			}
