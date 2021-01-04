@@ -633,11 +633,12 @@ EOT;
 		}
 		else if ( is_string( $entryPointId ) )
 		{
-			return @reset( array_filter( $this->entryPoints, function( $entryPoint ) use ( $entryPointId )
+			$entryPoints = array_filter( $this->entryPoints, function( $entryPoint ) use ( $entryPointId )
 			{
 				return isset( $entryPoint['entryPointDocument'][0] ) &&
 					   $entryPoint['entryPointDocument'][0] == $entryPointId;
-			} ) );
+			} );
+			return @reset( $entryPoints );
 		}
 
 		return array();
