@@ -1684,6 +1684,7 @@ class XBRL_Constants
 
 	/**
 	 * Report Date [Axis]
+	 * @var string $dfrReportDateAxis
 	 */
 	public static $dfrReportDateAxis = "ReportDateAxis";
 
