@@ -50,7 +50,9 @@ use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use XBRL\Formulas\Resources\Variables\Instance;
 use lyquidity\xml\QName;
 use XBRL\Formulas\Resources\Assertions\ValueAssertion;
+use XBRL\Formulas\Resources\Assertions\ExistenceAssertion;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
+use XBRL\Formulas\Resources\Filters\Filter;
 
 /**
  * Main class for formula evaluation
@@ -95,7 +97,7 @@ class XBRL_Formulas extends Resource
 
 	/**
 	 * The QName to use for the output instance
-	 * @var string $instanceQName
+	 * @var string|QName $instanceQName
 	 */
 	private $instanceQName = 'instances:standard-output-instance';
 
@@ -942,13 +944,13 @@ class XBRL_Formulas extends Resource
 					{
 						$this->log->formula_validation( "Variables", "Invalid variable type",
 							array(
-								'variable type' => $this->resource['variableType'] ?? 'unknown',
+								'variable type' => $variableResource['variableType'],
 							)
 						);
 						return false;
 					}
 
-					/** @var \XBRL\Formulas\Resources\Variables\Variable $variable */
+					/** @var Variable $variable */
 					$variable = $variableClassName::fromArray( $variableResource );
 					$variable->extendedLinkRoleUri = $variableResource['linkRoleUri'];
 
@@ -1022,7 +1024,7 @@ class XBRL_Formulas extends Resource
 			}
 
 			/**
-			 * @var \XBRL\Formulas\Resources\Variables\VariableSet $variableSetInstance
+			 * @var VariableSet $variableSetInstance
 			 */
 			$variableSetInstance->validateMessages( $taxonomy->getDefaultLanguage() );
 
@@ -1545,7 +1547,7 @@ class XBRL_Formulas extends Resource
 	 * Process all the variable filters that are the target of an arc.
 	 * @param XBRL $taxonomy
 	 * @param string $arcRole
-	 * @param Variable $variable (by reference)
+	 * @param VariableSet $variable (by reference)
 	 * @param VariableSet $variableSet
 	 * @return bool
 	 */
@@ -1645,7 +1647,7 @@ class XBRL_Formulas extends Resource
 				{
 					$this->log->formula_validation( "Filter", "Invalid filter type",
 						array(
-							'Filter type' => $this->resource['filterType'] ?? 'unknown',
+							'Filter type' => $filterResource['filterType'],
 						)
 					);
 					return false;
@@ -1678,7 +1680,7 @@ class XBRL_Formulas extends Resource
 					);
 				}
 
-				/** @var \XBRL\Formulas\Resources\Filters\Filter $filter */
+				/** @var Filter $filter */
 				$filter = $filterClassName::fromArray( $filterResource );
 
 				if ( ! $filter->validate( $variableSet, $this->nsMgr ) )
@@ -1711,7 +1713,7 @@ class XBRL_Formulas extends Resource
 				}
 
 				/**
-				 * @var \XBRL\Formulas\Resources\Variables\VariableSet $variable
+				 * @var VariableSet $variable
 				 */
 				$variable->addFilter( $filter );
 			}
@@ -2132,7 +2134,7 @@ class XBRL_Formulas extends Resource
 			}
 
 			/**
-			 * @var \XBRL\Formulas\Resources\Formulas\Formula $variableSet
+			 * @var ExistenceAssertion|Formula|ValueAssertion  $variableSet
 			 */
 			$variableSet->ProcessEvaluationResult( $this->log );
 
