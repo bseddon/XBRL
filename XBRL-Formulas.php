@@ -115,7 +115,7 @@ class XBRL_Formulas extends Resource
 
 	/**
 	 * A list of variable sets and parameters by name (not qname)
-	 * @var array[VariableSet] $variableSets
+	 * @var VariableSet[] $variableSets
 	 */
 	private $variableSets = array();
 
@@ -154,6 +154,29 @@ class XBRL_Formulas extends Resource
 	 * @var bool $canEvaluate
 	 */
 	private $canEvaluate = false;
+
+	/**
+	 * Stores an ru structure representing the beginning of a timing session.
+	 */
+	private function startTiming()
+	{
+		if ( version_compare( PHP_VERSION, "7.0", "<" ) ) return;
+		$this->rustart = getrusage();
+	}
+
+	/**
+	 * Generate a progress value in milliseconds
+	 * @param string $index An index such as 'utime' or 'stime'
+	 * @return int|number|bool
+	 */
+	private function elapsedTime( $index = 'utime')
+	{
+		if ( version_compare( PHP_VERSION, "7.0", "<" ) ) return false;
+
+		$rus = $this->rustart;
+		$ru = getrusage();
+		return ( $ru[ "ru_$index.tv_sec" ] * 1000 + intval( $ru[ "ru_$index.tv_usec" ] / 1000 ) ) - ( $rus ? $rus[ "ru_$index.tv_sec" ] * 1000 + intval( $rus[ "ru_$index.tv_usec" ] / 1000 ) : 0 );
+	}
 
 	/**
 	 * Default constructor
@@ -416,7 +439,7 @@ class XBRL_Formulas extends Resource
 				// }
 				// exit();
 
-				if ( ! $this->validateCommon( $taxonomy, $contextParameters, $roleFilterPart ) )
+				if ( ! $this->validateCommon( $taxonomy, $contextParameters, null ) )
 				{
 					$result = false;
 					// return false;
@@ -437,9 +460,19 @@ class XBRL_Formulas extends Resource
 	 * @param array $contextParameters			A list of parameters to be added to the context
 	 * @return void
 	 */
-	public function processFormulasForTaxonomy( $taxonomy, $additionalNamespaces = null, $contextParameters = null )
+	public function processFormulasForTaxonomy( $taxonomy, $additionalNamespaces = null, $contextParameters = null, $roleFilterPart = null, $validateTest = true )
 	{
-		if ( ! $taxonomy->getHasFormulas() ) return;
+		// BMS 2018-12-13
+		$schemasWithFormulas = array_filter( $taxonomy->getImportedSchemas(), function( $taxonomy ) use( $roleFilterPart )
+		{
+			/** @var \XBRL $taxonomy */
+			if ( $roleFilterPart && $roleFilterPart != $taxonomy->getNamespace() )
+			{
+				return false;
+			}
+
+			 return $taxonomy->getHasFormulas(); 
+		} );
 
 		if ( is_null( $contextParameters ) )
 		{
@@ -448,11 +481,9 @@ class XBRL_Formulas extends Resource
 
 		XBRL_Instance::reset();
 
-		// BMS 2018-12-13
-		$schemasWithFormulas = array_filter( $taxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
-
-		// // For now, take just one of the taxonomies with formulas
-		// // $taxonomy = reset( $schemasWithFormulas );
+		// $this->startTiming();
+		// $lastElapsed = 0;
+		// $lastCount = 0;
 
 		$result = true;
 		foreach ( $schemasWithFormulas as $namespace => $taxonomy )
@@ -465,11 +496,23 @@ class XBRL_Formulas extends Resource
 			$this->instanceQNames[ $this->instanceQName->localName ] = $this->instanceQName;
 			$this->instances[ $this->instanceQName->clarkNotation() ] = null;
 
-			if ( ! $this->validateCommon( $taxonomy, $contextParameters ) )
+			if ( ! $this->validateCommon( $taxonomy, $contextParameters, null, $validateTest ) )
 			{
 				// return false;
 				$result = false;
 			}
+
+			// $count = \XBRL::array_reduce_key( $this->variableSets, function( $carry, $assertions ) { $carry += count( $assertions ); return $carry; }, 0 );
+			// $diffCount = $count - $lastCount;
+
+			// $elapsed = $this->elapsedTime();
+			// $diffElapsed = $elapsed - $lastElapsed;
+			// $lastElapsed = $elapsed;
+			// $lastCount = $count;
+
+			// $perCount = $diffCount ? $diffElapsed / $diffCount : '-';
+
+			// error_log( "$diffElapsed $diffCount $perCount $elapsed $namespace" );
 		}
 
 		return $result;
@@ -537,9 +580,10 @@ class XBRL_Formulas extends Resource
 	 * @param XBRL $taxonomy
 	 * @param array $contextParameters A list of the parameter values to be used as sources for formula parameters
 	 * @param string|null $roleFilterPart (optional) Retrict the evaluation of formulas to those with $roleFilterPart in the roleUri
+	 * @param bool $validateTest When true (default) the test will be compiled. If the formulas are not going to be evaluated, it can be quicker to skip this test.
 	 * @return bool
 	 */
-	private function validateCommon( $taxonomy, $contextParameters, $roleFilterPart = null )
+	private function validateCommon( $taxonomy, $contextParameters, $roleFilterPart = null, $validateTest = true )
 	{
 		// if ( ! $this->validateParameters( $taxonomy, $contextParameters ) )
 		// {
@@ -551,7 +595,7 @@ class XBRL_Formulas extends Resource
 			return false;
 		}
 
-		if ( ! $this->validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart ) )
+		if ( ! $this->validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart, $validateTest ) )
 		{
 			return false;
 		}
@@ -822,13 +866,13 @@ class XBRL_Formulas extends Resource
 	 * @param string|null $roleFilterPart (optional) Retrict the evaluation of formulas to those with $roleFilterPart in the roleUri
 	 * @return bool
 	 */
-	private function validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart = null )
+	private function validateVariableSets( $taxonomy, $contextParameters, $roleFilterPart = null, $validateTest = true )
 	{
 		// Variable sets are headed by a formula or assertion
 		$variableSets = $taxonomy->getGenericResource( 'variableset', null );
 
 		if ( $variableSets )
-		foreach ( $variableSets as $index => $variableSet )
+		foreach ( $variableSets as $variableSet )
 		{
 			if ( $roleFilterPart )
 			{
@@ -1018,6 +1062,7 @@ class XBRL_Formulas extends Resource
 			}
 
 			// Now the variables are known validate the formula
+			if ( $validateTest )
 			if ( ! $variableSetInstance->validate( null, $this->nsMgr ) )
 			{
 				return false;
@@ -1426,9 +1471,9 @@ class XBRL_Formulas extends Resource
 		        	}
 		        }
 
-		        // No need to evaluate a formula if its already been evaluated
+		        // No need to evaluate a formula if its already been evaluated or cannot be evaluated (for example there is no instance document)
 		        // Handy to have this test here so a break point can be assigned to the evaluate line
-				if ( ! isset( $variableSetInstance->evaluated ) )
+				if ( $this->canEvaluate && ! isset( $variableSetInstance->evaluated ) )
 				{
 					// Evaluate the variable set
 					if ( ! $this->evaluate( $variableSetInstance ) )
@@ -2117,7 +2162,7 @@ class XBRL_Formulas extends Resource
 	 */
 	private function evaluate( $variableSet )
 	{
-		if ( ! $this->canEvaluate ) return;
+		if ( ! $this->canEvaluate ) return false;
 		if ( isset( $variableSet->evaluated ) ) return true;
 
 		// Process the variables in hierarchy order
