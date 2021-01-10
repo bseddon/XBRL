@@ -1053,7 +1053,7 @@ class XBRL {
 		$data = $store['schemas'][ $namespace ];
 		$taxonomy->fromStore( $data );
 
-		// Fixup the cotext when the taxonomy extends one or more base taxonomies
+		// Fixup the context when the taxonomy extends one or more base taxonomies
 		$context =& $taxonomy->context;
 		if ( ! empty( $store['context']['calculationRoleRefs'] ) )
 		{
@@ -6581,6 +6581,82 @@ class XBRL {
 				[ $linkbase ]
 				[ $resourceName ]
 				[ $index ] = $resource;
+	}
+
+	/**
+	 * Returns a list of the concepts used in formulas defined in taxonomies
+	 * @param string|array $namespace A taxonomy namespace or an array of namespaces to restrict the query
+	 * @return QName[]
+	 */
+	function getFormulaConcepts( $namespace = null )
+	{
+		$concepts = array();
+
+		foreach( $this->context->importedSchemas as $schemaNamespace => $schema )
+		{
+			if ( $namespace )
+			{
+				if ( is_array( $namespace ) )
+				{
+					if ( array_search( $schemaNamespace, $namespace ) === false ) continue;
+				}
+				else if ( $namespace != $schemaNamespace ) continue;
+			}
+
+			if ( ! isset( $schema->genericRoles ) || ! count( $schema->genericRoles ) ) continue;
+
+			$link = $schema->genericRoles['roles'][ \XBRL_Constants::$defaultLinkRole ];
+			$variableFilters =& $link['arcroles'][ \XBRL_Constants::$arcRoleVariableFilter ];
+			$variables =& $link['arcroles'][ \XBRL_Constants::$arcRoleVariableSet ];
+			$filterArcs =& $variableFilters['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableFilterArc ]['arcs'];
+			$variableArcs =& $variables['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableArc ]['arcs'];
+
+			foreach ( $filterArcs as $variableLabel => $filters )
+			{
+				foreach ( $filters as $filter => $filterDetails )
+				{
+					foreach ( $filterDetails as $filterDetail )
+					{
+						$fromLinkbase = $filterDetail['fromlinkbase'];
+
+						$variableSets = array_reduce( $link['resources'][ $fromLinkbase ], function( $carry, $variables )
+						{
+							foreach( $variables as $variable )
+							{
+								if ( $variable['type'] == 'variableset' )
+								{
+									$carry[] = $variable;
+								}
+							}
+							return $carry;
+						}, [] );
+
+						foreach ( $link['resources'][ $fromLinkbase ][ $filter ] as $resourceFilterDetail )
+						{
+							foreach ( $resourceFilterDetail['qnames'] as $qname )
+							{
+								if ( array_search( $qname, $concepts ) !== false ) continue;
+								if ( ! isset( $concepts[ $qname ] ) )
+								{
+									$concepts[ $qname ][ 'qname' ] = qname( $qname, $schema->getDocumentNamespaces() );
+								}
+
+								foreach( $variableSets as $variableSet )
+								{
+									$variableSetLabel= $variableSet['label'];
+									if ( isset( $variableArcs[ $variableSetLabel ][ $variableLabel ] ) )
+									{
+										$concepts[ $qname ][ 'usedBy' ][] = $variableSet['test'];
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $concepts;
 	}
 
 	/**
