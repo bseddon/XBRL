@@ -223,6 +223,8 @@ EOT;
 			$context->initializeCache();
 			XBRL_Log::getInstance()->resetConformanceIssueWarning();
 
+			gc_collect_cycles();
+
 			if ( $this->isCompiled( $compiledPath, $basename ) ) continue;
 
 			if ( $this->compile( $basename, $compiledPath, $entryPointDocument ) )
