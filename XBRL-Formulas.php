@@ -458,6 +458,7 @@ class XBRL_Formulas extends Resource
 	 * @param array $additionalNamespaces		(optional) An array of namespaces indexed by prefix
 	 * 											These could be from a test cases or other document
 	 * @param array $contextParameters			A list of parameters to be added to the context
+	 * @param bool $validateTest				True (default) if the variable set tests should be checked.  This is slow.
 	 * @return void
 	 */
 	public function processFormulasForTaxonomy( $taxonomy, $additionalNamespaces = null, $contextParameters = null, $roleFilterPart = null, $validateTest = true )
