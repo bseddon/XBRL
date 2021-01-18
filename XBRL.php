@@ -41,6 +41,8 @@
 use XBRL\Formulas\Formulas;
 use lyquidity\xml\QName;
 use lyquidity\xml\schema\SchemaTypes;
+use XBRL\Formulas\Resources\Filters\ConceptName;
+use XBRL\Formulas\Resources\Variables\VariableSet;
 
 /**
  * Main XBRL control class
@@ -6453,9 +6455,10 @@ class XBRL {
 	 * @param string $searchLabel
 	 * @param string $searchLang
 	 * @param string $linkPath
+	 * @param string $linkbase
 	 * @return boolean|mixed[][]
 	 */
-	public function getGenericLabel( $searchRole, $searchLabel = null, $searchLang = null, $linkPath = null )
+	public function getGenericLabel( $searchRole, $searchLabel = null, $searchLang = null, $linkPath = null, $linkbase = null )
 	{
 		if ( ! isset( $this->genericRoles['roles'] ) ) return false;
 
@@ -6463,8 +6466,10 @@ class XBRL {
 
 		if ( ! isset( $this->genericRoles['roles'][ $searchRole ]['labels'] ) ) return $results;
 
-		foreach ( $this->genericRoles['roles'][ $searchRole ]['labels'] as $linkbase => $labels )
+		foreach ( $this->genericRoles['roles'][ $searchRole ]['labels'] as $lb => $labels )
 		{
+			if ( ! is_null( $linkbase ) && $lb != $linkbase ) continue;
+
 			foreach ( $labels as $label => $langs )
 			{
 				if ( ! is_null( $searchLabel ) && $label != $searchLabel ) continue;
@@ -6474,7 +6479,7 @@ class XBRL {
 					if ( ! is_null( $searchLang ) && $lang != $searchLang ) continue;
 
 					$results[ $label ] = array(
-						'linkbase' => $linkbase,
+						'linkbase' => $lb,
 						'label' => $label,
 						'lang' => $lang,
 						'text' => isset( $text[ $linkPath ] ) ? $text[ $linkPath] : reset( $text ),
@@ -6590,10 +6595,70 @@ class XBRL {
 	 */
 	function getFormulaConcepts( $namespace = null )
 	{
+		// This is an array with elements 'qname' and 'usedBy' indexed by the clark notation of the qname.  'usedBy' is a reference into $variableSets
 		$concepts = array();
+		/**
+		 * Is a list of elements that includes 'test', 'text' and 'label' where:
+		 *	test: the test defined on an assertion
+		 *	text: a description provided with the assertion definition
+		 *	label: the label of the respective assertion
+		 * @var array $variableSets
+		 */
+		$variableSets = array();
 
+		$formulas = new \XBRL_Formulas();
+		if ( $formulas->processFormulasForTaxonomy( $this, null, null, null, false ) )
+		{
+			$variableSetIndex = array();
+			$concepts = array();
+			foreach( $formulas->getVariableSets() as $variableSetLabel => $variableSets )
+			{
+				foreach( $variableSets as $variableSet )
+				{
+					/** @var VariableSet $variableSet */
+					$key = "{$variableSet->linkbase}/{$variableSet->id}";
+					if ( ! isset( $variableSetIndex[ $key ] ) )
+					{
+						$variableSetIndex[ $key ] = array(
+							'test' => $variableSet->test,
+							'text' => array( $variableSet->description ),
+							'label' => $variableSet->label
+						);
+					}
+
+					foreach( $variableSet->variablesByQName as $qname => $variable )
+					{
+						foreach( $variable->filters as $filter )
+						{
+							/** @var ConceptName $filter */
+							if ( ! ( $filter instanceof ConceptName ) ) continue;
+	
+							foreach( $filter->qnames as $clark )
+							{
+								if ( isset( $concepts[ $clark ] ) ) 
+								{
+									$concepts[ $clark ]['usedBy'][] = $key;
+									continue;
+								}
+								$qname = qname( $clark, $this->getDocumentNamespaces() );
+								$concepts[ $clark ] = array(
+									'qname' => $qname,
+									'usedBy' => array( $key )
+								);
+							}
+						}
+					}
+				}
+			}
+		}
+	
+		return array( $concepts, $variableSetIndex );
+
+		// The code below yields thesame results a bit quicker but is more fragile and it's less obvious what's going on.
 		foreach( $this->context->importedSchemas as $schemaNamespace => $schema )
 		{
+			/** @var \XBRL $schema */
+
 			if ( $namespace )
 			{
 				if ( is_array( $namespace ) )
@@ -6605,11 +6670,12 @@ class XBRL {
 
 			if ( ! isset( $schema->genericRoles ) || ! count( $schema->genericRoles ) ) continue;
 
-			$link = $schema->genericRoles['roles'][ \XBRL_Constants::$defaultLinkRole ];
-			$variableFilters =& $link['arcroles'][ \XBRL_Constants::$arcRoleVariableFilter ];
-			$variables =& $link['arcroles'][ \XBRL_Constants::$arcRoleVariableSet ];
-			$filterArcs =& $variableFilters['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableFilterArc ]['arcs'];
-			$variableArcs =& $variables['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableArc ]['arcs'];
+			$link =& $schema->genericRoles['roles'][ \XBRL_Constants::$defaultLinkRole ];
+			$linkArcRoles = $link['arcroles'];
+			$filterArcs =& $linkArcRoles[ \XBRL_Constants::$arcRoleVariableFilter ]['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableFilterArc ]['arcs'];
+			$variableArcs =& $linkArcRoles[ \XBRL_Constants::$arcRoleVariableSet ]['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$linkVariableArc ]['arcs'];
+			// $labels =& $schema->genericRoles['roles'][ \XBRL_Constants::$genericRoleLabel ]['labels'];
+			$labelArcs =& $linkArcRoles[ \XBRL_Constants::$genericElementLabel ]['links'][ \XBRL_Constants::$genLink ]['arcelements'][ \XBRL_Constants::$genArc ]['arcs'];
 
 			foreach ( $filterArcs as $variableLabel => $filters )
 			{
@@ -6618,45 +6684,77 @@ class XBRL {
 					foreach ( $filterDetails as $filterDetail )
 					{
 						$fromLinkbase = $filterDetail['fromlinkbase'];
+						$thisVariableSets = array();
 
-						$variableSets = array_reduce( $link['resources'][ $fromLinkbase ], function( $carry, $variables )
+						foreach( $link['resources'][ $fromLinkbase ] as $variables )
 						{
 							foreach( $variables as $variable )
 							{
 								if ( $variable['type'] == 'variableset' )
 								{
-									$carry[] = $variable;
+									$labels = array();
+									foreach( $labelArcs[ $variable['label'] ] as $variableArcLabel => $variableArcLabels )
+									{
+										/** @var string|false */
+										$variableArcPath = false;
+
+										foreach( $variableArcLabels as $varibleArc )
+										{
+											if ( $varibleArc['linkbase'] == $fromLinkbase )
+											{
+												$variableArcPath = $variable['path'];
+												break;
+											}
+										}
+										$label = $schema->getGenericLabel( XBRL_Constants::$genericRoleLabel, $variableArcLabel, 'en', $variableArcPath, $fromLinkbase );
+										$labels[] = trim( $label[ $variableArcLabel ]['text'] ?? '' );
+										unset( $label );
+									}
+
+									$key = "$fromLinkbase/{$variable['id']}";
+									$thisVariableSets[ $key ] = $variableSets[ $key ] = array(
+										'test' => $variable['test'],
+										'text' => $labels,
+										'label' => $variable['label']
+									);
+									unset( $key );
 								}
 							}
-							return $carry;
-						}, [] );
+						}
 
+						// Add the qname of any ConceptName filters to the list of $concepts
 						foreach ( $link['resources'][ $fromLinkbase ][ $filter ] as $resourceFilterDetail )
 						{
 							foreach ( $resourceFilterDetail['qnames'] as $qname )
 							{
-								if ( array_search( $qname, $concepts ) !== false ) continue;
+								// if ( array_search( $qname, $concepts ) !== false ) continue;
 								if ( ! isset( $concepts[ $qname ] ) )
 								{
-									$concepts[ $qname ][ 'qname' ] = qname( $qname, $schema->getDocumentNamespaces() );
+									$concepts[ $qname ] = array( 'qname' => qname( $qname, $schema->getDocumentNamespaces() ), 'usedBy' => array() );
 								}
 
-								foreach( $variableSets as $variableSet )
+								foreach( $thisVariableSets as $variableSetLabel => $variableSet )
 								{
-									$variableSetLabel= $variableSet['label'];
-									if ( isset( $variableArcs[ $variableSetLabel ][ $variableLabel ] ) )
+									$label = $variableSet['label'];
+									if ( isset( $variableArcs[ $label ][ $variableLabel ] ) )
 									{
-										$concepts[ $qname ][ 'usedBy' ][] = $variableSet['test'];
+										$concepts[ $qname ][ 'usedBy' ][] = $variableSetLabel;
 									}
 								}
+
+								unset( $variableSetLabel );
+								unset( $variableSet );
 							}
+							unset( $qname );
 						}
+						unset( $thisVariableSets );
+						unset( $resourceFilterDetail );
 					}
 				}
 			}
 		}
 
-		return $concepts;
+		return array( $concepts, $variableSets );
 	}
 
 	/**

@@ -1218,6 +1218,8 @@ class XBRL_DFR
 
 		if ( ! $classEquivalents ) return;
 
+		// $count = array_reduce( $classEquivalents['arcs'], function( $acc, $arcs ) { return $acc + count( $arcs ); }, 0 );
+
 		foreach ( $this->taxonomy->getImportedSchemas() as $label => $taxonomy )
 		{
 			if ( ! $taxonomy->getHasFormulas() ) continue;
@@ -1230,10 +1232,12 @@ class XBRL_DFR
 			foreach ( $classEquivalents['arcs'] as $fac => $gaaps )
 			{
 				$facTaxonomy = $this->taxonomy->getTaxonomyForXSD( $fac );
-				if ( ! $facTaxonomy ) continue;
+				if ( ! $facTaxonomy ) 
+					continue;
 
 				$facElement = $facTaxonomy->getElementById( $fac );
-				if ( ! $facElement ) continue;
+				if ( ! $facElement ) 
+					continue;
 
 				$facClark = "{{$facTaxonomy->getNamespace()}}{$facElement['name']}";
 
@@ -1243,15 +1247,18 @@ class XBRL_DFR
 
 					foreach ( $resource['filter']['qnames'] as $qnIndex => $qname )
 					{
-						if ( $qname != $facClark ) continue;
+						if ( $qname != $facClark )
+							continue;
 
 						foreach ( $gaaps as $gaapLabel => $gaap )
 						{
 							$gaapTaxonomy = $this->taxonomy->getTaxonomyForXSD( $gaapLabel );
-							if ( ! $gaapTaxonomy ) continue;
+							if ( ! $gaapTaxonomy )
+								continue;
 
 							$gaapElement = $gaapTaxonomy->getElementById( $gaapLabel );
-							if ( ! $gaapElement ) continue;
+							if ( ! $gaapElement )
+								continue;
 
 							// $gaapClark = "{{$gaapTaxonomy->getNamespace()}}{$gaapElement['name']}";
 							$gaapClark = $baseTaxonomy
@@ -1274,6 +1281,8 @@ class XBRL_DFR
 							{
 								$resource['filter']['qnames'][] = $gaapClark;
 							}
+
+							$classEquivalents['arcs'][ $fac ][ $gaapLabel ]['used'] = true;
 							$changed = true;
 						}
 					}
@@ -1285,6 +1294,19 @@ class XBRL_DFR
 				}
 			}
 		}
+
+		// For debugging to check the numbers of arcs
+		// $countUsed = array_reduce( $classEquivalents['arcs'], function( $acc, $arcs ) { return $acc + count( array_filter( $arcs, function( $arc ) { return $arc['used'] ?? false; } ) ); }, 0 );
+		// $unused = \XBRL::array_reduce_key( $classEquivalents['arcs'], function( $acc, $arcs, $key )
+		// {
+		//	foreach( $arcs as $arc )
+		//	{
+		//		if ( $arc['used'] ?? false ) continue;
+		//		$acc[ $key ][] = $arc['label'];
+		//	}
+		//	return $acc;
+		// }, [] );
+
 	}
 
 	/**
