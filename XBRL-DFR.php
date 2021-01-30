@@ -673,11 +673,15 @@ class XBRL_DFR
 
 	/**
 	 * Validate the the taxonomy against the model structure rules
-	 * @param array $formulaSummaries An evaluated formulas instance
-	 * @param string $lang a locale to use when returning the text. Defaults to null to use the default.
+	 * @param array $formulaSummaries				An evaluated formulas instance
+	 * @param bool $rebuildDefinitionsCache
+	 * @param string $lang							A locale to use when returning the text. Defaults to null to use the default.
+	 * @param bool $keepDefinitionlessPresentations This will be true if the caller wants to keep presentations 
+	 * 												for which there is no matching definition and the caller is 
+	 * 												going to handle the unmatched presentations.
 	 * @return array|null
 	 */
-	public function validateDFR( &$formulaSummaries, $rebuildDefinitionsCache = false, $lang = null )
+	public function validateDFR( &$formulaSummaries, $rebuildDefinitionsCache = false, $lang = null, $keepDefinitionlessPresentations = false )
 	{
 		global $reportModelStructureRuleViolations;
 
@@ -940,23 +944,28 @@ class XBRL_DFR
 		{
 			$this->presentationPIs[$elr] = array();
 
-			foreach ( $role['locators'] as $id => $label )
+			foreach ( $role['locators'] as $locatorId => $label )
 			{
-				$taxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
-				$element = $taxonomy->getElementById( $label );
+				$locatorTaxonomy = $this->taxonomy->getTaxonomyForXSD( $label );
+				if ( ! $locatorTaxonomy )
+					continue;
+				$locatorElement = $locatorTaxonomy->getElementById( $label );
 
-				if ( $element['abstract'] || $element['type'] == 'nonnum:domainItemType' ) continue;
+				if ( $locatorElement['abstract'] || $locatorElement['type'] == 'nonnum:domainItemType' ) continue;
 
 				// BMS 2019-03-23 TODO Check the concept is not a tuple
-				if ( $element['substitutionGroup'] == "xbrli:tuple" )
+				if ( $locatorElement['substitutionGroup'] == "xbrli:tuple" )
 				{
 					continue;
 				}
 
 				// One or more of the labels may include the preferred label role so convert all PIs back to their id
-				$this->presentationPIs[$elr][] = $taxonomy->getTaxonomyXSD() . "#{$element['id']}";
+				$this->presentationPIs[$elr][] = $locatorTaxonomy->getTaxonomyXSD() . "#{$locatorElement['id']}";
 
 			}
+			unset( $locatorElement );
+			unset( $locatorId );
+			unset( $locatorTaxonomy );
 
 			// If there were preferred label roles in any of the PIs then there will be duplicates.  This also sorts the list.
 			$this->presentationPIs[ $elr ] = array_unique( $this->presentationPIs[ $elr ] );
@@ -1110,10 +1119,10 @@ class XBRL_DFR
 					unset( $tableLabel );
 				}
 			}
-			else if ( $tables )
+			else if ( $tables && ! $keepDefinitionlessPresentations )
 			{
 				// If there are tables defined in the presentation but no tables in the definition then drop the presentation
-				unset( $this->presentationNetworks['$elr'] );
+				unset( $this->presentationNetworks[ $elr ] );
 			}
 
 			$role['axes'] = $axes;
