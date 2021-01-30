@@ -367,6 +367,8 @@ EOT;
 				} );
 
 			}
+
+			return true;
 		}
 		catch( \Exception $ex )
 		{
