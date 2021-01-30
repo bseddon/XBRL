@@ -635,6 +635,11 @@ class XBRL_Constants
 	 * @var string
 	 */
 	public static $xbrliNonZeroDecimalUnion	= "xbrli:nonZeroDecimal";
+	/**
+	 * Domaim member typenonnum:domainItemType
+	 * @var string
+	 */
+	public static $nonnumDomainItemType	= "nonnum:domainItemType";
 
 	/* -----------------------------------------------------------------------------
 	 * Instances element tuple attributes
