@@ -1215,11 +1215,10 @@ class XBRL {
 
 		unset( $tax );
 
-		// Delete the other schemas
-		// $taxonomy->context->importedSchemas = array( $namespace => $taxonomy );
-		$taxonomy->context->importedSchemas = array_diff_key( $taxonomy->context->importedSchemas, $taxonomy->previouslyImportedSchemas );
+		// Temporarily delete the other schemas
+		$typesJSON = null;
+		$previouslyImportedTaxonomies = $taxonomy->removePreviousTaxonomies( $typesJSON );
 
-		// Remove types belonging to previouslyImportedSchemas
 		$types = $taxonomy->context->types;
 
 		foreach( $taxonomy->previouslyImportedSchemas as $namespace => $tax )
@@ -1230,6 +1229,18 @@ class XBRL {
 
 		// Create and save the JSON
 		$json = $taxonomy->toJSON( $taxonomy->baseTaxonomy );
+
+		// Now the JSON store has been created restore the imported schemas 
+		// and types or the taxonomy returned will not be complete
+		foreach( $previouslyImportedTaxonomies as $namespace => $previousTaxonomy )
+		{
+			$taxonomy->context->importedSchemas[ $namespace ] = $previousTaxonomy;
+		}
+
+		$types->mergeTypes( json_decode( $typesJSON, true ) );
+
+		// Make sure this exists
+		$taxonomy->context->previouslyImportedSchemaNamespaces = array_keys( $previouslyImportedTaxonomies );
 
 		file_put_contents( "$output_path/$output_basename.json", $json );
 		$zip = new ZipArchive();
@@ -1243,6 +1254,34 @@ class XBRL {
 		}
 
 		return $taxonomy;
+	}
+
+	/**
+	 * Removes the effect of previous taxonomies by removing the taxonomies from
+	 * the list of imported taxonomies and their types from the context
+	 * @param string $typesJSON
+	 * @return \XBRL[] An array of the removed taxonomies indexed by namespaces just like the context->importedSchemas array
+	 */
+	function removePreviousTaxonomies( &$typesJSON )
+	{
+		/** @var XBRL[] */
+		$previouslyImportedTaxonomies = array_filter( $this->context->importedSchemas, function( $importedTaxonomy ) 
+		{
+			return isset( $this->previouslyImportedSchemas[ $importedTaxonomy->getNamespace() ] );
+		} );
+		$this->context->importedSchemas = array_diff_key( $this->context->importedSchemas, $this->previouslyImportedSchemas );
+
+		// Remove types belonging to previouslyImportedSchemas but make a persistent copy first
+		$types = $this->context->types;
+		$typesJSON = json_encode( $types->toArray() );
+
+		foreach( $this->previouslyImportedSchemas as $namespace => $tax )
+		{
+			$count = $types->removeElementsTaxonomy( $tax );
+			// echo "$count elements removed for {$tax->getPrefix()}\n";
+		}
+
+		return $previouslyImportedTaxonomies;
 	}
 
 	/**
@@ -2303,7 +2342,7 @@ class XBRL {
 		$languages = array();
 		foreach ( $this->context->labels as $linkRole => $linkLabels )
 		{
-			foreach ( $linkLabels['labels'] as $labelRole => $languageLabels )
+			foreach ( $linkLabels['labels'] ?? array() as $labelRole => $languageLabels )
 			{
 				$languages = array_unique( array_merge( $languages, array_keys( $languageLabels ) ) );
 			}
