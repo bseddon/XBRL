@@ -265,10 +265,11 @@ EOT;
 	 * @param string $output_basename Name of the compiled taxonomy to create
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
 	 * @param string $schemaFile
+	 * @param bool $prettyPrint
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null  )
+	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null, $prettyPrint = false )
 	{
 		$schemaNamespace = $this->schemaNamespace;
 
@@ -300,19 +301,21 @@ EOT;
 			return XBRL::compile(
 				$schemaPath,
 				$schemaNamespace,
-				$compiledPath . ( is_null( $output_basename ) ? $this->getSchemaFileBasename() : $output_basename )
+				$compiledPath . ( is_null( $output_basename ) ? $this->getSchemaFileBasename() : $output_basename ),
+				$prettyPrint
 			);
 		}
 	}
 
 	/**
-	 * If a package type supports multiple entry points this method can be overridden to Compile all entry point taxonmies
+	 * If a package type supports multiple entry points this method can be overridden to compile all entry point taxonmies
 	 * @param string $cacheLocation
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
 	 * @return array A list of compiled entry points
+	 * @param bool $prettyPrint
 	 * @throws Exception
 	 */
-	public function compileAll( $cacheLocation, $compiledPath  )
+	public function compileAll( $cacheLocation, $compiledPath, $prettyPrint = false )
 	{
 		// Do nothing here
 	}

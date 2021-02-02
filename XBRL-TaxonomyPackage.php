@@ -191,22 +191,24 @@ EOT;
 	 * @param string $output_basename Name of the compiled taxonomy to create
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
 	 * @param string $schemaFile
+	 * @param bool $prettyPrint
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null  )
+	public function compile( $output_basename = null, $compiledPath = null,  $schemaFile = null, $prettyPrint = false )
 	{
-		return parent::compile( $output_basename, $compiledPath, $schemaFile );
+		return parent::compile( $output_basename, $compiledPath, $schemaFile, $prettyPrint );
 	}
 
 	/**
 	 * Compile all entry point taxonmies
 	 * @param string $cacheLocation
 	 * @param string $compiledPath (optional) Path to the compiled taxonomies folder
+	 * @param bool $prettyPrint
 	 * @return array A list of compiled entry points
 	 * @throws Exception
 	 */
-	public function compileAll( $cacheLocation, $compiledPath  )
+	public function compileAll( $cacheLocation, $compiledPath, $prettyPrint = false )
 	{
 		$compiled = array();
 
@@ -227,7 +229,7 @@ EOT;
 
 			if ( $this->isCompiled( $compiledPath, $basename ) ) continue;
 
-			if ( $this->compile( $basename, $compiledPath, $entryPointDocument ) )
+			if ( $this->compile( $basename, $compiledPath, $entryPointDocument, $prettyPrint ) )
 			{
 				if ( XBRL_Log::getInstance()->hasConformanceIssueWarning() )
 				{

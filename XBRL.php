@@ -543,7 +543,7 @@ class XBRL {
 	}
 
 	/**
-	 * This function returns the name of the compile taxonomy to use in place of the XSD
+	 * This function returns the name of the compiled taxonomy to use in place of the XSD
 	 * @param string $xsd  The name of the XSD to be loaded
 	 * @return string The name of the corresponding compiled taxonomy
 	 */
@@ -1154,9 +1154,10 @@ class XBRL {
 	 * @param string $namespace The namespace of the extension taxonomy.
 	 * @param string $output_basename A name to use as the base for output files. 'xxx' will result in 'xxx.zip' and 'xxx.json' output files. If a name is not supplied, the basename of the schema file will be used.
 	 * @param string $compiledPath
+	 * @param bool $prettyPrint
 	 * @return boolean|XBRL <false, XBRL>
 	 */
-	public static function compileExtensionXSD( $taxonomy_file, $className, $namespace = null, $output_basename = null, $compiledPath = null )
+	public static function compileExtensionXSD( $taxonomy_file, $className, $namespace = null, $output_basename = null, $compiledPath = null, $prettyPrint = false )
 	{
 		if ( ! filter_var( $taxonomy_file, FILTER_VALIDATE_URL ) ) $taxonomy_file = str_replace( '\\', '/', $taxonomy_file );
 
@@ -1228,7 +1229,7 @@ class XBRL {
 		}
 
 		// Create and save the JSON
-		$json = $taxonomy->toJSON( $taxonomy->baseTaxonomy );
+		$json = $taxonomy->toJSON( $taxonomy->baseTaxonomy, $prettyPrint );
 
 		// Now the JSON store has been created restore the imported schemas 
 		// and types or the taxonomy returned will not be complete
@@ -1656,9 +1657,10 @@ class XBRL {
 	 * @param string $taxonomy_file The name of the taxonomy file (xsd) to load
 	 * @param string $namespace The namespace of the taxonomy imported by the one being loaded that is to be returned.
 	 * @param string $output_basename A name to use as the base for output files. 'xxx' will result in 'xxx.zip' and 'xxx.json' output files
+	 * @param bool $prettyPrint (Default: false)
 	 * @return false|XBRL <false, XBRL>
 	 */
-	public static function compile( $taxonomy_file, $namespace = null, $output_basename = null )
+	public static function compile( $taxonomy_file, $namespace = null, $output_basename = null, $prettyPrint = false )
 	{
 		$xbrl = XBRL::load_taxonomy( $taxonomy_file, true );
 		if ( $xbrl === false )
@@ -1669,7 +1671,7 @@ class XBRL {
 
 		$taxonomy = $namespace === null ? $xbrl : $xbrl->getTaxonomyForNamespace( $namespace );
 
-		$xbrl->saveTaxonomy( $namespace, $output_basename );
+		$xbrl->saveTaxonomy( $namespace, $output_basename, $prettyPrint );
 
 		return $taxonomy;
 	}
@@ -1679,8 +1681,9 @@ class XBRL {
 	 * @param XBRL $taxonomy
 	 * @param string $namespace
 	 * @param string $output_basename
+	 * @param bool $prettyPrint
 	 */
-	public function saveTaxonomy( $namespace = null, $output_basename = null  )
+	public function saveTaxonomy( $namespace = null, $output_basename = null, $prettyPrint = false  )
 	{
 		if ( $output_basename === null )
 		{
@@ -1696,7 +1699,7 @@ class XBRL {
 			// Attempt to free memory
 			gc_collect_cycles();
 
-			$json = $this->toJSON( null, false );
+			$json = $this->toJSON( null, $prettyPrint );
 
 			file_put_contents( "$output_basename.json", $json );
 			$zip = new ZipArchive();
@@ -10303,7 +10306,7 @@ class XBRL {
 
 			$this->context->calculationRoleRefs[ XBRL_Constants::$defaultLinkRole ] = array(
 				'type' => 'simple',
-				// Why is this being done?  It can lead to an invalid url as happens when compile a fac
+				// Why is this being done?  It can lead to an invalid url as happens when compiling a fac
 				// where the linkbases are in the relations folder and the schema in the reporting styles folder
 				'href' => XBRL::resolve_path( $linkbaseRef['href'], $this->getTaxonomyXSD() ), // $linkbaseRef['href'],
 				'roleUri' => $roleUri,
