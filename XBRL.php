@@ -18473,7 +18473,7 @@ class XBRL {
 		else
 		{
 			if ( XBRL::endsWith( $source, ":" ) ) $source .= "/";
-			$path = $source . "/" . $target;
+			$path = trailingslashit( $source ) . $target;
 		}
 
 		// Process the components
@@ -19344,12 +19344,15 @@ class XBRL {
 	 * @param XBRL_Global $context
 	 * @param XBRL_Log $log
 	 */
-	public static function processSchema( $xsd, $schema, $context, $log, &$loaded )
+	public static function processSchema( $xsd, $schema, $context, $log, &$loaded, $loadAllSchemas = false, $includedSchemas = false )
 	{
 		if ( ! $schema ) return;
 
+		$xsSchemaNamespace = XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA ];
+
 		// Process the linkbases
-		foreach( $schema->annotation->appinfo->children('link', true)->linkbaseRef as $x => /** @var SimpleXMLElement $element */ $element )
+		if ( $schema->children( $xsSchemaNamespace )->annotation && $schema->children( $xsSchemaNamespace )->annotation->appinfo )
+		foreach( $schema->children( $xsSchemaNamespace )->annotation->appinfo->children('link', true)->linkbaseRef as $x => /** @var SimpleXMLElement $element */ $element )
 		{
 			$location = (string)$element->attributes('xlink', true)->href;
 			$href = XBRL::resolve_path( $xsd, $location );
@@ -19358,20 +19361,28 @@ class XBRL {
 			$mapping = \XBRL::getXml( $href, $context );
 		}
 
-		// Process the imports
-		foreach( $schema->import as $x => /** @var SimpleXMLElement $element */ $element )
+		$processTag = function( $tag ) use( &$schema, &$context, &$loaded, &$log, $includedSchemas, $loadAllSchemas, $xsd, $xsSchemaNamespace )
 		{
-			$location = (string)$element->attributes()->schemaLocation;
-			$href = XBRL::resolve_path( $xsd, $location );
-			if ( array_search( $href, $loaded ) !== false ) continue;
-			if ( XBRL::startsWith( $href, 'http://www.xbrl.org' ) ) continue;
-			if ( isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) ) continue;
+			// Process the includes and redefines
+			foreach( $schema->children( $xsSchemaNamespace )->$tag as $x => /** @var SimpleXMLElement $element */ $element )
+			{
+				$location = (string)$element->attributes()->schemaLocation;
+				$href = XBRL::resolve_path( $xsd, $location );
+				if ( array_search( $href, $loaded ) !== false ) continue;
+				if ( ! $loadAllSchemas && XBRL::startsWith( $href, 'http://www.xbrl.org' ) ) continue;
+				if ( ! $loadAllSchemas && isset( XBRL_Global::$taxonomiesToIgnore[ $href ] ) ) continue;
 
-			$import = \XBRL::getXml( $href, $context );
-			$loaded[] = $href;
-			XBRL::processSchema( $href, $import, $context, $log, $loaded );
+				$import = \XBRL::getXml( $href, $context );
+				$loaded[] = $href;
+				XBRL::processSchema( $href, $import, $context, $log, $loaded, $loadAllSchemas, $includedSchemas );
+			}
+		};
+
+		$tags = array_merge( $includedSchemas ? array('include','redefine') : array(), array('import') );
+		foreach( $tags as $tag )
+		{
+			$processTag( $tag );
 		}
-
 	}
 }
 

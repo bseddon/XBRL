@@ -1,6 +1,6 @@
 <?php
 /**
- * XBRL CompareArrays
+ * CompareArrays
  *
  * @author Bill Seddon
  * @version 0.9
@@ -19,6 +19,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ * The class can be used with arrays or JSON strings that can be converted 
+ * to arrays or file names of files that contain JSON strings.
+ * 
+ * JSON strings will be converted to associative arrays. Objects within 
+ * arrays will not be compared.  This constraint could be changed but I
+ * have not real world examples to work with.
+ * 
+ * Takes about 4 seconds to process pairs of 10MB JSON strings on a 2.3GHz 
+ * dual core processor.  Appears to scale linearly with the size of the 
+ * input arrays and has been tested on real world examples of upto 125MB.
  */
 
 /**
@@ -27,12 +37,9 @@
  */
 class XBRL_CompareArrays
 {
-	// public $arrayA = array();
-	// public $arrayB = array();
 	public $differences = array();
 	public $onlyA = array();
 	public $onlyB = array();
-	// public $path = '';
 
 	/**
 	 * Static function to create an instance that compares two arrays
@@ -43,7 +50,36 @@ class XBRL_CompareArrays
 		return new XBRL_CompareArrays();
 	}
 
-	
+	/**
+	 * An example of comparing JSON files.  This will generate 4 files:
+	 * onlyA.json, onlyB.json, diffA.json, diffB.json
+	 * @return void
+	 */
+	public static function example()
+	{
+		try
+		{
+			$directory = 'c:/LyquidityWeb/XBRLQuery/';
+			// $a = "{$directory}xbrl-validate-files/temp/copy/us-gaap-entryPoint-all-wotmp-2018-01-31 - Copy.json";
+			$a = "{$directory}xbrl-validate-files/temp/copy/us-gaap-entryPoint-all-wotmp-2018-01-31.json";
+			$b = "{$directory}xbrl-validate-files/temp/copy/us-gaap-entryPoint-all-wotmp-2018-01-31.json";
+			$diff = self::createDiff()
+				->diffJSONFiles( $a, $b )
+				->save( "{$directory}xbrl-validate-files/temp/copy/", '', true );
+		}
+		catch( Exception $ex )
+		{
+			echo $ex->getMessage() . "\n";
+		}		
+	}
+
+	/**
+	 * Used as a glue to create a path
+	 *
+	 * @var string
+	 */
+	private static $separator = '/|';
+
 	/**
 	 * Compare two JSON files.  The companison will be doing by create assoc arrays not objects
 	 * @param string $jsonA
@@ -67,8 +103,10 @@ class XBRL_CompareArrays
 	function diffJSON( &$jsonA, &$jsonB )
 	{
 		if ( ! ( $a = json_decode( $jsonA, true ) ) ) throw new Exception( \XBRL::json_last_error_msg() );
+		$jsonA = '';
 		unset( $jsonA );
 		if ( ! ( $b = json_decode( $jsonB, true ) ) ) throw new Exception( \XBRL::json_last_error_msg() );
+		$jsonB = '';
 		unset( $jsonB );
 
 		return $this->diff( $a, $b );
@@ -80,8 +118,6 @@ class XBRL_CompareArrays
 	 */
 	function diff( &$currentA, &$currentB, $path = '', $depth = 0 )
 	{
-		if ( $depth === 0 ) echo "diff\n";
-
 		if ( ! is_array( $currentA ) ) throw new \Exception('The first parameter is not an array');
 		if ( ! is_array( $currentB ) ) throw new \Exception('The second parameter is not an array');
 
@@ -89,13 +125,13 @@ class XBRL_CompareArrays
 		$diffB = array_diff_key( $currentB, $currentA );
 
 		if ( $diffA ) $this->onlyA[ $path ] = array_keys( $diffA );
-		if ( $diffA ) $this->onlyB[ $path ] = array_keys( $diffB );
+		if ( $diffB ) $this->onlyB[ $path ] = array_keys( $diffB );
 
 		$intersect = array_intersect_key( $currentA, $currentB );
 		$currentDifference =& $this->differences;
 		if ( $path )
 		{
-			$parts = explode( '/|', $path );
+			$parts = explode( self::$separator, $path );
 			foreach( $parts as $part )
 			{
 				if ( ! isset( $currentDifference[ $part ] ) )
@@ -112,7 +148,7 @@ class XBRL_CompareArrays
 			$elementB = $currentB[ $key ];
 			if ( is_array( $elementA ) && is_array( $intersect[ $key ] ) )
 			{
-				$newPath = $path ? $path . "/|$key" : $key;
+				$newPath = $path ? $path . self::$separator . $key : $key;
 				$this->diff( $elementA, $elementB, $newPath, $depth + 1 );
 				if ( ! count( $currentDifference[ $key ] ) ) unset( $currentDifference[ $key ] );
 				continue;
@@ -157,17 +193,17 @@ class XBRL_CompareArrays
 		}
 
 		$filename = $dir . ( $prefix ? "$prefix-" : '' );
-		if ( file_put_contents( $filename . "onlyA.txt", $this->renderOnly( $this->onlyA ) ) === false ) throw new \Exception("Error saving file 'onlyA'");
-		if ( file_put_contents( $filename . "onlyB.txt", $this->renderOnly( $this->onlyB ) ) === false ) throw new \Exception("Error saving file 'onlyB'");
+		if ( file_put_contents( $filename . "onlyA.json", $this->renderOnly( $this->onlyA ) ) === false ) throw new \Exception("Error saving file 'onlyA'");
+		if ( file_put_contents( $filename . "onlyB.json", $this->renderOnly( $this->onlyB ) ) === false ) throw new \Exception("Error saving file 'onlyB'");
 
 		if ( $twoFiles )
 		{
-			if ( file_put_contents( $filename . "diffA.txt", $this->renderDiff('A') ) === false ) throw new \Exception("Error saving file 'diffA'");
-			if ( file_put_contents( $filename . "diffB.txt", $this->renderDiff('B') ) === false ) throw new \Exception("Error saving file 'diffB'");
+			if ( file_put_contents( $filename . "diffA.json", $this->renderDiff('A') ) === false ) throw new \Exception("Error saving file 'diffA'");
+			if ( file_put_contents( $filename . "diffB.json", $this->renderDiff('B') ) === false ) throw new \Exception("Error saving file 'diffB'");
 		}
 		else
 		{
-			if ( file_put_contents( $filename . "diff.txt", json_encode( $this->differences, JSON_PRETTY_PRINT ) ) === false ) throw new \Exception("Error saving file 'diff'");
+			if ( file_put_contents( $filename . "diff.json", self::json_encode( $this->differences ) ) === false ) throw new \Exception("Error saving file 'diff'");
 			if ( json_last_error() != JSON_ERROR_NONE ) throw new \Exception( "Error generating JSON for diff: " . \XBRL::json_last_error_msg() );
 		}
 	}
@@ -179,7 +215,7 @@ class XBRL_CompareArrays
 	 */
 	private function &renderOnly( &$only )
 	{
-		$json = json_encode( $only, JSON_PRETTY_PRINT );
+		$json = self::json_encode( $only );
 		if ( json_last_error() != JSON_ERROR_NONE ) throw new \Exception( "Error generating JSON for only" );
 		return $json;
 	}
@@ -218,6 +254,19 @@ class XBRL_CompareArrays
 		};
 
 		$changed = $change( $this->differences, $source );
-		return json_encode( $changed, JSON_PRETTY_PRINT );
+		// Use the same variable so the memory for the constucted array can be released
+		$changed = self::json_encode( $changed );
+		return $change;
+	}
+
+	/**
+	 * Create a JSON encoded string.  Removes the special 'glue' used to create paths
+	 *
+	 * @param [type] $array
+	 * @return void
+	 */
+	private static function json_encode( &$array )
+	{
+		return str_replace( self::$separator, '/', json_encode( $array, JSON_PRETTY_PRINT ) );
 	}
 }

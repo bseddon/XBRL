@@ -47,6 +47,7 @@ define( "STANDARD_PREFIX_XL", "xl" );
 // BMS 2018-04-09 Fixing the kluge
 define( "STANDARD_PREFIX_SCHEMA", "xs" );
 define( "STANDARD_PREFIX_SCHEMA_ALTERNATIVE", "xsd" );
+define( "STANDARD_PREFIX_SCHEMA_XHTML", "xhtml" );
 define( "STANDARD_PREFIX_SCHEMA_INSTANCE", "xsi" );
 define( "STANDARD_PREFIX_GENERIC", "gen" );
 define( "STANDARD_PREFIX_ISO4217", "iso4217" );
@@ -120,6 +121,9 @@ define( "STANDARD_PREFIX_DTR_NUMERIC", "num" );
 define( "STANDARD_PREFIX_DTR_NONNUMERIC", "nonnum" );
 define( "STANDARD_PREFIX_DTR_TYPES", "dtr-types" );
 
+define( "STANDARD_PREFIX_IXBRL10", "ix10" );
+define( "STANDARD_PREFIX_IXBRL11", "ix11" );
+
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
  *
@@ -182,7 +186,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_XL								=> "http://www.xbrl.org/2003/XLink",
 		STANDARD_PREFIX_SCHEMA							=> "http://www.w3.org/2001/XMLSchema",
 		STANDARD_PREFIX_SCHEMA_ALTERNATIVE				=> "http://www.w3.org/2001/XMLSchema",
-		"xhtml"											=> "http://www.w3.org/1999/xhtml",
+		STANDARD_PREFIX_SCHEMA_XHTML					=> "http://www.w3.org/1999/xhtml",
 		STANDARD_PREFIX_SCHEMA_INSTANCE					=> "http://www.w3.org/2001/XMLSchema-instance",
 		STANDARD_PREFIX_XML								=> "http://www.w3.org/XML/1998/namespace",
 		STANDARD_PREFIX_TABLE							=> "http://xbrl.org/2014/table",
@@ -241,8 +245,12 @@ class XBRL_Constants
 		STANDARD_PREFIX_DTR_NUMERIC						=> "http://www.xbrl.org/dtr/type/numeric",
 		STANDARD_PREFIX_DTR_NONNUMERIC					=> "http://www.xbrl.org/dtr/type/non-numeric",
 		STANDARD_PREFIX_DTR_TYPES						=> "http://www.xbrl.org/dtr/type/2020-01-21",
+		STANDARD_PREFIX_IXBRL10							=> "http://www.xbrl.org/2008/inlineXBRL",
+		STANDARD_PREFIX_IXBRL11							=> "http://www.xbrl.org/2013/inlineXBRL",
 	);
 
+	public static $ixbrlNamespaces = array( STANDARD_PREFIX_IXBRL10 => "http://www.xbrl.org/2008/inlineXBRL", STANDARD_PREFIX_IXBRL11 => "http://www.xbrl.org/2013/inlineXBRL" );
+	
 	/**
 	 * A list of the standard XBRL namespaces indexed by namespace.  Populated by the static constructor.
 	 */
@@ -282,7 +290,9 @@ class XBRL_Constants
 		STANDARD_PREFIX_VALIDATION_MESSAGE_ERROR	=> "http://www.xbrl.org/2010/validation-message.xsd",
 		STANDARD_PREFIX_VALIDATION					=> "http://www.xbrl.org/2008/validation.xsd",
 		STANDARD_PREFIX_MESSAGE						=> "http://www.xbrl.org/2010/generic-message.xsd",
-		STANDARD_PREFIX_ACF							=> "http://www.xbrl.org/2010/aspect-cover-filter.xsd"
+		STANDARD_PREFIX_ACF							=> "http://www.xbrl.org/2010/aspect-cover-filter.xsd",
+		STANDARD_PREFIX_IXBRL10						=> "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd",
+		STANDARD_PREFIX_IXBRL11						=> "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
 	);
 
 	/**
