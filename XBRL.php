@@ -18473,7 +18473,8 @@ class XBRL {
 		else
 		{
 			if ( XBRL::endsWith( $source, ":" ) ) $source .= "/";
-			$path = trailingslashit( $source ) . $target;
+			// $path = trailingslashit( $source ) . $target;
+			$path =  $source . ( substr( $source, -1 ) == '/' ? '' : '/' ) . $target;
 		}
 
 		// Process the components
