@@ -305,6 +305,7 @@ class XBRL_Inline
 
 		try
 		{
+			/** @var \XBRL_Inline[] */
 			$documents = [];
 			foreach( $documentSet as $documentUrl )
 			{
@@ -315,6 +316,11 @@ class XBRL_Inline
 				$document = new XBRL_Inline( $documentUrl );
 				$documents[ $documentUrl ] = $document;
 				$document->validateDocument();  // Schema validation
+				// Special case: test case FAIL-empty-class-attribute.html does not fail as expected
+				if ( ( $document->xpath->query('//*[@*=""]') )->length )
+				{
+					throw new IXBRLDocumentValidationException( 'xbrl.core.xml.SchemaValidationError.cvc-minLength-valid', 'Failed using schemaValidate' );				
+				}
 
 				$targets = $document->getTargets( $targets );
 				$idNodes = $document->getIDs( $idNodes );
@@ -405,25 +411,91 @@ class XBRL_Inline
 				}
 			}
 
-			if ( $nodesByLocalNames[ IXBRL_ELEMENT_CONTINUATION ] )
+			// Check cross-element contination validation rules
+			// Make sure continuedAt attributes don't reference the same id
+			$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
+			$atIds = array();
+			// Get the nodes for continuation, footnote and nonNumeric elements
+			foreach( $correspondents as $localName )
 			{
-				// Make sure continuedAt attribute don't reference the same id
-				// Get the nodes for continuation, footnote and nonNumeric elements
-				$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
-				$atIds = array();
-				foreach( $correspondents as $localName )
+				foreach( $nodesByLocalNames[ $localName ] as $node )
 				{
-					foreach( $nodesByLocalNames[ $localName ] as $node )
+					if ( ! $node->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) ) continue;
+					$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+					if ( array_search( $continuedAt, $atIds ) !== false )
 					{
-						if ( ! $node->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) ) continue;
-						$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-						if ( array_search( $continuedAt, $atIds ) !== false )
+						throw new IXBRLDocumentValidationException( 'ContinuationReuse', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has been used more than once' );			
+					}
+					$atIds[] = $continuedAt;
+				}
+			}
+
+			// Check cross-references validation rules (12.1.2)
+			if (  $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? false )
+			{
+				// Each attribute value should be unique across all <references> for attribute not in the IX namespace
+				$attributes = array();
+				$ixNamespaces = array( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10], \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
+				foreach( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] as $node )
+				{
+					foreach( $node->attributes as $name => $attr )
+					{
+						/** @var \DOMAttr $attr */
+						if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false ) continue;
+						if ( isset( $attributes[ $name ] ) && $attr->nodeValue )
 						{
-							throw new IXBRLDocumentValidationException( 'ContinuationReuse', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has been used more than once' );			
+							throw new IXBRLDocumentValidationException( $name == 'id' ? 'RepeatedIdAttribute' : 'RepeatedOtherAttributes', "Section 12.1.2 A <references> attribute/value pair has been used more than once ($name/{$attr->nodeValue}" );
 						}
-						$atIds[] = $continuedAt;
+						$attributes[ $name ] = $attr->nodeValue;
 					}
 				}
+
+				// Each target must have a <references>
+				foreach( $targets as $target => $nodes )
+				{
+					// Only one can have an id attribute
+					$idFound = array();
+					$referencesFound = false;
+					$defaultNamespace = null;
+					foreach( $nodes as $targetNode )
+					{
+						/** @var \DOMElement $targetNode */
+						if ( $targetNode->localName != IXBRL_ELEMENT_REFERENCES ) continue;
+						$referencesFound - true;
+						if ( $targetNode->hasAttribute(IXBRL_ATTR_ID) )
+						{
+							if ( $idFound )
+								throw new IXBRLDocumentValidationException( 'MoreThanOneID', "Section 12.1.2 Only one <references> element for a target can include an id attribute.  Found '" . join( "','", $idFound ) . "'" );
+							$idFound[] = $targetNode->getAttribute(IXBRL_ATTR_ID);
+						}
+						$document = $documents[ $targetNode->baseURI ];
+						$namespaces = array_diff( $document->getElementNamespaces( $targetNode ), $document->getElementNamespaces() );
+						if ( $namespaces )
+						{
+							$namespace = reset( $namespaces );
+							if ( $defaultNamespace && $defaultNamespace != $namespace )
+							{
+								throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and '{$namespace}'" );
+							}
+							else
+							{
+								$defaultNamespace = $namespace;
+							}
+						}
+						else if ( $defaultNamespace )
+						{
+							throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and 'default'" );
+						}
+						else
+						{
+							$defaultNamespace = 'default';
+						}
+					}
+	
+					if( ! $referencesFound )
+						throw new IXBRLDocumentValidationException( 'ReferencesAbsent', "Section 12.1.2 A <references> must exist for all targets.  Missing element for target '$target'" );
+				}
+
 			}
 		}
 		catch( \Exception $ex )
@@ -452,6 +524,8 @@ class XBRL_Inline
 	{
 		// Provides access to the raw document and initialized xpath instance
 		$document = $documents[ $node->baseURI ];
+		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
+
 		switch( strtolower( $localName ) )
 		{
 			case IXBRL_ELEMENT_CONTINUATION:
@@ -465,11 +539,9 @@ class XBRL_Inline
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				$id = $node->getAttribute( IXBRL_ATTR_ID );
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-				$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 
 				// Cannot be a descendant of <hidden>
 				// Cannot be a descendant of
-				$errorChildOfReferrer = false;
 				$parentNode = $node->parentNode;
 				while( $parentNode )
 				{
@@ -490,7 +562,6 @@ class XBRL_Inline
 				}
 
 				$foundContinuedAt = false;
-				// $foundContinuation = ! $continuedAt;
 				foreach( $correspondents as $localName )
 				{
 					foreach( $nodesByLocalNames[ $localName ] ?? array() as $lnNode )
@@ -521,9 +592,36 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_EXCLUDE:
+				// 5.1.1
+				// The node must a descendant of 'footnote', 'nonNumeric' or 'continuation'
+				$parentNode = $node->parentNode;
+				while( $parentNode )
+				{
+					// Check for an allowed ancestor
+					if ( array_search( $parentNode->localName, $correspondents ) !== false ) break;
+
+					// Up another level
+					$parentNode = $parentNode->parentNode;
+				}
+
+				if ( ! $parentNode )
+					throw new IXBRLDocumentValidationException( 'MisplacedExclude', 'Section 5.1.1 <exclude> is not a descendant of <footnote>, <nonNumeric> or <continuation>' );
+
 				break;
 
 			case IXBRL_ELEMENT_FOOTNOTE:
+
+				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
+				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+				if ( $continuedAt )
+				{
+					if ( ! isset($idNodes[ $continuedAt] ) )
+					{
+						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', 'Section 11.1.1 continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt' );
+					}
+					self::checkContinuationCycles( $node, $continuedAt, $idNodes );
+				}
+
 				break;
 
 			case IXBRL_ELEMENT_FRACTION:
@@ -550,6 +648,7 @@ class XBRL_Inline
 				{
 					throw new IXBRLDocumentValidationException( 'MoreThanOneElement', 'Section 8.1.1 <header> must have at most one <resources> element' );
 				}
+
 				break;
 
 			case IXBRL_ELEMENT_HIDDEN:
@@ -565,9 +664,9 @@ class XBRL_Inline
 				foreach( $node->childNodes as $localName => $childNode )
 				{
 					/** @var DOMNode $childNode */
-					if ( $childNode->nodeType == XML_ELEMENT_NODE ) continue;
+					if ( $childNode->nodeType != XML_ELEMENT_NODE ) continue;
 					if ( array_search( $childNode->localName, $chidElements ) === false )
-					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 8.1.1 <header> must not be a child of HTML' );
+						throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 8.1.1 <header> must not be a child of HTML' );
 				}
 
 				break;
@@ -576,15 +675,97 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_NONNUMERIC:
+
+				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
+				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+				self::checkContinuationCycles( $node, $continuedAt, $idNodes );
+
 				break;
 
 			case IXBRL_ELEMENT_NUMERATOR:
 				break;
 
 			case IXBRL_ELEMENT_REFERENCES:
+				// 12.1.1
+				if ( $node->parentNode->localName != IXBRL_ELEMENT_HEADER )
+				{
+					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 12.1.1 <references> must not be a child of <header>' );
+				}
+				$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
+				foreach( $node->attributes as $attr )
+				{
+					/** @var \DOMAttr $attr */
+					if ( $attr->namespaceURI == $xbrliNS )
+					{
+						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', 'Section 12.1.1 <references> must not include attributes in the xbrli namespace' );
+					}
+				}
 				break;
 
 			case IXBRL_ELEMENT_RELATIONSHIP:
+
+				// 13.1.1
+				$references = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_TUPLE );
+	
+				// No attributes should use the xbrli namespace
+				$attributes = array();
+				$ixNamespaces = array( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10], \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
+				foreach( $node->attributes as $name => $attr )
+				{
+					/** @var \DOMAttr $attr */
+					if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false )
+					{
+						throw new IXBRLDocumentValidationException( 'RepeatedOtherAttributes', "Section 13.1.2 A <relationship> uses an attribute from the XBRLI namespace." );
+					}
+					$attributes[ $name ] = $attr->nodeValue;
+				}
+
+				// 'fromRefs' and 'toRefs' should not overlap
+				$fromRefs = explode( ' ', $node->getAttribute( IXBRL_ATTR_FROMREFS ) );
+				$toRefs = explode( ' ', $node->getAttribute( IXBRL_ATTR_TOREFS ) );
+				if ( array_intersect( $fromRefs, $toRefs ) )
+				{
+					throw new IXBRLDocumentValidationException( 'RelationshipCrossDuplication', "Section 13.1.2 A <relationship> attributes 'fronRefs' and 'toRefs' values overlap." );
+				}
+
+				$pos = array_search( IXBRL_ELEMENT_FOOTNOTE, $references );
+				unset( $references[ $pos ] );
+
+				// Check fromRefs and toRefs are valid
+				$validateRefs = function( $refs, $refType ) use( &$idNodes, &$references )
+				{
+					$errorMessage = "Section 13.1.2 A <relationship> attributes '$refType' values overlap.";
+					$errorCode = $refType == IXBRL_ATTR_FROMREFS ? 'DanglingRelationshipFromRef' : 'DanglingRelationshipToRef';
+
+					$localNames = array();
+					foreach( $refs as $ref )
+					{
+						$idNode = $idNodes[ $ref ] ?? false;
+						if ( $idNode )
+						{
+							$localName = $idNode->localName;
+
+							// The node local name must be one of the references
+							if ( $localName != IXBRL_ELEMENT_FOOTNOTE && array_search( $localName, $references ) === false )
+							{
+								throw new IXBRLDocumentValidationException( $errorCode, $errorMessage );
+							}
+
+							$localNames[] = $localName;
+						}
+						else
+							throw new IXBRLDocumentValidationException( $errorCode, $errorMessage );
+					}
+
+					if ( array_search( IXBRL_ELEMENT_FOOTNOTE, $localNames ) !== false && array_intersect( $references, $localNames ) )
+					{
+						throw new IXBRLDocumentValidationException( 'RelationshipMixedToRefs', 'Section 13.1.2 A <relationship> to ref is to a footnote and another iXBRL element.' );
+					}
+				};
+
+				$validateRefs( $fromRefs, IXBRL_ATTR_FROMREFS );
+				$validateRefs( $toRefs, IXBRL_ATTR_TOREFS );
+
 				break;
 
 			case IXBRL_ELEMENT_RESOURCES:
@@ -609,14 +790,16 @@ class XBRL_Inline
 	{
 		if ( ! $continuedAt ) return;
 
+		$sections = array( IXBRL_ELEMENT_CONTINUATION => '4.1.1', IXBRL_ELEMENT_FOOTNOTE => '5.1.1', IXBRL_ELEMENT_NONNUMERIC => '11.1.1' );
+
 		if ( ! isset( $idNodes[ $continuedAt ] ) )
 		{
-			throw new IXBRLDocumentValidationException( 'DanglingContinuation', 'Section 4.1.1 continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt' );
+			throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section {$sections[$node->localName]} continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
 		}
 
 		if ( $node->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
 		{
-			throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', 'Section 4.1.1 The continuedAt and id attribute values are the same: \'' . $node->getNodePath() . '\'' );
+			throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section {$sections[$node->localName]} The continuedAt and id attribute values are the same: '" . $node->getNodePath() . "'" );
 		}
 
 		// Look for circular references
@@ -732,11 +915,9 @@ class ValidateInlineDocument
 
 		$ixPrefix ?? STANDARD_PREFIX_IXBRL11;
 		$schemaUrl = \XBRL_Constants::$standardNamespaceSchemaLocations[ $ixPrefix ];
-		// $schemaFile = $this->getIXBRLSchemaFile( $schemaUrl );
 
 		libxml_use_internal_errors( true );
 
-		// if ( $document->schemaValidate( $schemaFile ) )
 		if ( $document->schemaValidate( $schemaUrl ) )
 			return $this;
 
@@ -882,55 +1063,62 @@ function testCase( $dirname, $filename )
 {
 	switch( $filename  )
 	{
-		#region ./baseURIs
+		#region ./baseURIs - checked fail tests
+
 		case "FAIL-baseURI-on-ix-header.xml":
 		case "FAIL-baseURI-on-xhtml.xml":
 		case "PASS-baseURI-on-ix-references-multiRefs.xml":
+
 		#endregion
 			return;
 
-		#region ./continuation
-		// case "FAIL-continuation-duplicate-id.xml": // Checked
-		// case "FAIL-continuation-nonNumeric-circular.xml": // Checked Dangling
-		// case "FAIL-continuation-nonNumeric-circular2.xml": // Checked ContinuationReuse
-		// case "FAIL-continuation-nonNumeric-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		// case "FAIL-continuation-nonNumeric-invalid-nesting.xml": // TODO: Check this in nonNumeric
-		// case "FAIL-continuation-nonNumeric-self.xml": // TODO: Check this in nonNumeric Dangling
-		// case "FAIL-continuation-orphaned-cycle.xml": // Checked UnreferencedContinuation
-		// case "FAIL-continuation-used-twice.xml": // Checked ContinuationReuse
-		// case "FAIL-footnote-continuation-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		// case "FAIL-footnote-continuation-invalid-nesting.xml": // TODO: Check this in footnote
-		// case "FAIL-nonNumeric-dangling-continuation-2.xml": // Checked DanglingContinuation
-		// case "FAIL-nonNumeric-dangling-continuation.xml": // TODO: Check this in nonNumeric Dangling
-		// case "FAIL-orphaned-continuation.xml": // UnreferencedContinuation
-		// case "PASS-nonNumeric-continuation-multiple-documents.xml":
-		// case "PASS-nonNumeric-continuation-other-descendants-escaped.xml":
-		// case "PASS-nonNumeric-continuation-other-descendants.xml":
-		// case "PASS-nonNumeric-continuation-out-of-order.xml":
-		// case "PASS-nonNumeric-continuation-transform.xml":
-		// case "PASS-nonNumeric-continuation.xml":
+		#region ./continuation - checked fail tests
+
+		case "FAIL-continuation-duplicate-id.xml": // Checked
+		case "FAIL-continuation-nonNumeric-circular.xml": // Checked Dangling
+		case "FAIL-continuation-nonNumeric-circular2.xml": // Checked ContinuationReuse
+		case "FAIL-continuation-nonNumeric-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
+		case "FAIL-continuation-nonNumeric-invalid-nesting.xml": // TODO: Check this in nonNumeric
+		case "FAIL-continuation-nonNumeric-self.xml": // TODO: Check this in nonNumeric Dangling
+		case "FAIL-continuation-orphaned-cycle.xml": // Checked UnreferencedContinuation
+		case "FAIL-continuation-used-twice.xml": // Checked ContinuationReuse
+		case "FAIL-footnote-continuation-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
+		case "FAIL-footnote-continuation-invalid-nesting.xml": // TODO: Check this in footnote
+		case "FAIL-nonNumeric-dangling-continuation-2.xml": // Checked DanglingContinuation
+		case "FAIL-nonNumeric-dangling-continuation.xml": // TODO: Check this in nonNumeric Dangling
+		case "FAIL-orphaned-continuation.xml": // UnreferencedContinuation
+		case "PASS-nonNumeric-continuation-multiple-documents.xml":
+		case "PASS-nonNumeric-continuation-other-descendants-escaped.xml":
+		case "PASS-nonNumeric-continuation-other-descendants.xml":
+		case "PASS-nonNumeric-continuation-out-of-order.xml":
+		case "PASS-nonNumeric-continuation-transform.xml":
+		case "PASS-nonNumeric-continuation.xml":
+
 		#endregion
 			return;
 
-		#region ./exclude
-		case "FAIL-exclude-nonFraction-parent.xml":
-		case "FAIL-misplaced-exclude.xml":
+		#region ./exclude - checked fail tests
+
+		case "FAIL-exclude-nonFraction-parent.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-misplaced-exclude.xml": // Checked MisplacedExclude
 		case "PASS-element-ix-exclude-complete.xml":
 		case "PASS-exclude-nonNumeric-parent.xml":
 		case "PASS-multiple-excludes-nonNumeric-parent.xml":
+
 		#endregion
 			return;
 
-		#region ./footnotes
-		case "FAIL-element-ix-footnote-04.xml":
-		case "FAIL-footnote-any-attribute.xml":
-		case "FAIL-footnote-dangling-continuation.xml":
-		case "FAIL-footnote-dangling-fromRef.xml":
-		case "FAIL-footnote-dangling-toRef.xml":
-		case "FAIL-footnote-duplicate-footnoteIDs-different-input-docs.xml":
-		case "FAIL-footnote-duplicate-footnoteIDs.xml":
-		case "FAIL-footnote-invalid-element-content.xml":
-		case "FAIL-footnote-missing-footnoteID.xml":
+		#region ./footnotes - checked fail tests
+
+		// case "FAIL-element-ix-footnote-04.xml": // Checked DuplicateId
+		// case "FAIL-footnote-any-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2
+		// case "FAIL-footnote-dangling-continuation.xml": // Checked DanglingContinuation
+		// case "FAIL-footnote-dangling-fromRef.xml": // Checked DanglingRelationshipFromRef
+		// case "FAIL-footnote-dangling-toRef.xml": // Checked DanglingRelationshipToRef
+		// case "FAIL-footnote-duplicate-footnoteIDs-different-input-docs.xml": // Checked DuplicateId
+		// case "FAIL-footnote-duplicate-footnoteIDs.xml": // Checked DuplicateId
+		// case "FAIL-footnote-invalid-element-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		// case "FAIL-footnote-missing-footnoteID.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
 		case "PASS-element-ix-footnote-03.xml":
 		case "PASS-element-link-footnote-02.xml":
 		case "PASS-element-link-footnote-complete-role-defs.xml":
@@ -973,18 +1161,22 @@ function testCase( $dirname, $filename )
 		case "PASS-multiple-outputs-check-dont-have-empty-footnoteLinks.xml":
 		case "PASS-two-footnotes-multiple-output.xml":
 		case "PASS-unused-footnote.xml":
+
 		#endregion
-			return;
+			break;
 
 		#region ./format
+		
 		case "FAIL-format-numdash-badContent.xml":
 		case "FAIL-ix-format-undefined.xml":
 		case "PASS-element-ix-nonFraction-ixt-num-nodecimals.xml":
 		case "PASS-format-numdash.xml":
+
 		#endregion
 			return;
 
 		#region ./fraction
+
 		case "FAIL-fraction-denominator-empty.xml":
 		case "FAIL-fraction-denominator-illegal-child-node.xml":
 		case "FAIL-fraction-denominator-ix-format-expanded-name-mismatch.xml":
@@ -1048,58 +1240,70 @@ function testCase( $dirname, $filename )
 		case "PASS-ix-numerator-04.xml":
 		case "PASS-simple-fraction-with-html-children.xml":
 		case "PASS-simple-fraction.xml":
+
 		#endregion
 			return;
 
-		#region ./fullSizeTests
+		#region ./fullSizeTests - no fail tests
+
 		case "PASS-full-size-unnested-tuples.xml":
 		case "PASS-full-size-with-footnotes.xml":
 		case "PASS-largeTestNoMarkup.xml":
+
 		#endregion
 			return;
 
-		#region ./header
-		// case "FAIL-ix-header-child-of-html-header.xml": // Checked
-		// case "FAIL-misplaced-ix-element-in-context.xml": // TODO There are two errors which are ix elements in the context hierarchyies MisplacedIXElement,MisplacedIXElement
-		// case "FAIL-missing-header.xml": // Checked HeaderAbsent, ReferencesAbsent, ResourcesAbsent
+		#region ./header - checked fail tests
+
+		case "FAIL-ix-header-child-of-html-header.xml": // Checked
+		case "FAIL-misplaced-ix-element-in-context.xml": // TODO There are two errors which are ix elements in the context hierarchyies MisplacedIXElement,MisplacedIXElement
+		case "FAIL-missing-header.xml": // Checked HeaderAbsent, ReferencesAbsent, ResourcesAbsent
 		case "PASS-header-content-split-over-input-docs.xml":
 		case "PASS-header-empty.xml":
 		case "PASS-single-ix-header-muli-input.xml":
+
 		#endregion
 			return;
 
-		#region ./hidden
-		case "FAIL-empty-hidden.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b 1871
-		case "FAIL-hidden-empty-tuple-content.xml":
-		case "FAIL-hidden-illegal-content.xml":
-		case "FAIL-hidden-incorrect-order-in-header.xml":
-		case "FAIL-hidden-not-header-descendant.xml":
+		#region ./hidden - checked fail tests
+
+		case "FAIL-empty-hidden.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
+		case "FAIL-hidden-empty-tuple-content.xml": // TODO when checking tuples TupleNonEmptyValidation
+		case "FAIL-hidden-illegal-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-hidden-incorrect-order-in-header.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
+		case "FAIL-hidden-not-header-descendant.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
 		case "PASS-hidden-nonFraction-content.xml":
 		case "PASS-hidden-tuple-content.xml":
-		#endregion
-			break;
 
-		#region ./html
-		case "FAIL-a-name-attribute.xml":
-		case "FAIL-charset-on-meta.xml":
-		case "FAIL-empty-class-attribute.xml":
 		#endregion
 			return;
 
-		#region ./ids
-		case "FAIL-id-triplication.xml":
-		case "FAIL-non-unique-id-context.xml":
-		case "FAIL-non-unique-id-footnote.xml":
-		case "FAIL-non-unique-id-fraction.xml":
-		case "FAIL-non-unique-id-nonFraction.xml":
-		case "FAIL-non-unique-id-nonNumeric.xml":
-		case "FAIL-non-unique-id-references.xml":
-		case "FAIL-non-unique-id-tuple.xml":
-		case "FAIL-non-unique-id-unit.xml":
+		#region ./html - checked fail tests
+
+		case "FAIL-a-name-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866
+		case "FAIL-charset-on-meta.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1866
+		case "FAIL-empty-class-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, xbrl.core.xml.SchemaValidationError.cvc-attribute_3
+
+		#endregion
+			return;
+
+		#region ./ids - checked fail tests
+
+		case "FAIL-id-triplication.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-context.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-footnote.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-fraction.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-nonFraction.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-nonNumeric.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-references.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-tuple.xml": // Checked DuplicateId
+		case "FAIL-non-unique-id-unit.xml": // Checked DuplicateId
+
 		#endregion
 			return;
 
 		#region ./multiIO
+
 		case "FAIL-multi-input-duplicate-context-ids.xml":
 		case "FAIL-multi-input-duplicate-unit-ids.xml":
 		case "FAIL-two-inputs-each-with-error.xml":
@@ -1110,10 +1314,12 @@ function testCase( $dirname, $filename )
 		case "PASS-multiple-input-multiple-output.xml":
 		case "PASS-single-input-double-output.xml":
 		case "PASS-single-input.xml":
+
 		#endregion
 			return;
 
 		#region ./nonFraction
+
 		case "FAIL-nonFraction-IXBRLelement-content.xml":
 		case "FAIL-nonFraction-any-ix-attribute.xml":
 		case "FAIL-nonFraction-decimals-and-precision-attrs.xml":
@@ -1176,10 +1382,12 @@ function testCase( $dirname, $filename )
 		case "PASS-nonFraction-valid-sign-format-attr.xml":
 		case "PASS-nonFraction-xsi-nil-attr.xml":
 		case "PASS-simple-nonFraction.xml":
+
 		#endregion
 			return;
 
 		#region ./nonNumeric
+
 		case "FAIL-element-ix-nonNumeric-escape-01.xml":
 		case "FAIL-nonNumeric-any-ix-attribute.xml":
 		case "FAIL-nonNumeric-empty-with-format.xml":
@@ -1244,25 +1452,27 @@ function testCase( $dirname, $filename )
 		case "PASS-nonNumeric-nesting.xml":
 		case "PASS-nonNumeric-xsi-nil.xml":
 		case "PASS-nonNumeric.xml":
+
 		#endregion
 			return;
 
-		#region ./references
-		case "FAIL-empty-references.xml":
-		case "FAIL-ix-references-03.xml":
-		case "FAIL-ix-references-08.xml":
-		case "FAIL-ix-references-09.xml":
-		case "FAIL-ix-references-namespace-bindings-01.xml":
-		case "FAIL-ix-references-namespace-bindings-02.xml":
-		case "FAIL-ix-references-namespace-bindings-03.xml":
-		case "FAIL-ix-references-namespace-bindings-04.xml":
-		case "FAIL-ix-references-rule-multiple-attributes-sameValue.xml":
-		case "FAIL-ix-references-rule-multiple-id.xml":
-		case "FAIL-missing-references-for-all-target-documents.xml":
-		case "FAIL-missing-references.xml":
-		case "FAIL-references-illegal-content.xml":
-		case "FAIL-references-illegal-location.xml":
-		case "FAIL-references-illegal-order-in-header.xml":
+		#region ./references - checked fail tests
+
+		case "FAIL-empty-references.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
+		case "FAIL-ix-references-03.xml": // Checked InvalidAttributeContent
+		case "FAIL-ix-references-08.xml": // Checked RepeatedOtherAttributes
+		case "FAIL-ix-references-09.xml": // Checked DuplicateId
+		case "FAIL-ix-references-namespace-bindings-01.xml": // Checked ReferencesNamespaceClash
+		case "FAIL-ix-references-namespace-bindings-02.xml": // Checked ReferencesNamespaceClash
+		case "FAIL-ix-references-namespace-bindings-03.xml": // Checked ReferencesNamespaceClash
+		case "FAIL-ix-references-namespace-bindings-04.xml": // Checked ReferencesNamespaceClash
+		case "FAIL-ix-references-rule-multiple-attributes-sameValue.xml": // Checked RepeatedOtherAttributes
+		case "FAIL-ix-references-rule-multiple-id.xml": // Checked RepeatedIdAttribute
+		case "FAIL-missing-references-for-all-target-documents.xml": // Checked ReferencesAbsent
+		case "FAIL-missing-references.xml": // Checked ReferencesAbsent
+		case "FAIL-references-illegal-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-references-illegal-location.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-references-illegal-order-in-header.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
 		case "PASS-element-ix-references-01.xml":
 		case "PASS-ix-references-01.xml":
 		case "PASS-ix-references-02.xml":
@@ -1275,15 +1485,17 @@ function testCase( $dirname, $filename )
 		case "PASS-simple-linkbaseRef.xml":
 		case "PASS-simple-schemaRef.xml":
 		case "PASS-single-references-multi-input.xml":
+
 		#endregion
 			return;
 
-		#region ./relationships
-		case "FAIL-relationship-cross-duplication.xml":
-		case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml":
-		case "FAIL-relationship-with-no-namespace-attribute.xml":
-		case "FAIL-relationship-with-xbrli-attribute.xml":
-		case "FAIL-relationship-with-xlink-attribute.xml":
+		#region ./relationships - checked fail tests
+
+		// case "FAIL-relationship-cross-duplication.xml": // Checked RelationshipCrossDuplication
+		// case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml": // Checked RelationshipMixedToRefs
+		// case "FAIL-relationship-with-no-namespace-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		// case "FAIL-relationship-with-xbrli-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		// case "FAIL-relationship-with-xlink-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
 		case "PASS-explanatory-fact-copy-to-owner-target.xml":
 		case "PASS-explanatory-fact-cycle.xml":
 		case "PASS-explanatory-fact-not-hidden.xml":
@@ -1292,36 +1504,44 @@ function testCase( $dirname, $filename )
 		case "PASS-relationship-to-multiple-explanatory-facts.xml":
 		case "PASS-relationship-with-xml-base.xml":
 		case "PASS-tuple-footnotes.xml":
+
 		#endregion
 			return;
 
 		#region ./resources
+
 		case "FAIL-context-without-id.xml":
 		case "FAIL-missing-resources.xml":
 		case "FAIL-unit-without-id.xml":
 		case "PASS-empty-resources.xml":
 		case "PASS-simple-arcroleRef.xml":
 		case "PASS-simple-roleRef.xml":
+
 		#endregion
 			return;
 
-		#region ./specificationExamples
+		#region ./specificationExamples - no fail tests
+
 		case "PASS-section-10.3-example-1.xml":
 		case "PASS-section-11.3-example-2.xml":
 		case "PASS-section-15.1-example-3.xml":
 		case "PASS-section-15.1-example-4.xml":
+
 		#endregion
 			return;
 
 		#region ./transformations
+
 		case "FAIL-invalid-long-month.xml":
 		case "FAIL-invalid-short-month.xml":
 		case "FAIL-unrecognised-schema-type.xml":
 		case "PASS-sign-attribute-on-nonFraction-positive-input.xml":
+
 		#endregion
 			return;
 
 		#region ./tuple
+
 		case "FAIL-badly-formatted-order-attr.xml":
 		case "FAIL-badly-nested-tuples.xml":
 		case "FAIL-duplicate-order-and-value-but-not-attributes.xml":
@@ -1376,17 +1596,21 @@ function testCase( $dirname, $filename )
 		case "PASS-tuple-scope-nested-nonNumeric.xml":
 		case "PASS-tuple-scope-nonNumeric.xml":
 		case "PASS-tuple-xsi-nil.xml":
+
 		#endregion
 			return;
 
 		#region ./xmllang
+
 		case "FAIL-xml-lang-not-in-scope-for-footnote.xml":
 		case "FAIL-xml-lang-on-ix-hidden-and-on-footnote.xml":
 		case "FAIL-xml-lang-on-ix-hidden.xml":
 		case "PASS-direct-xml-lang-not-overidden.xml":
 		case "PASS-xml-lang-on-xhtml.xml":
+
 		#endregion
-				return;
+			return;
+
 
 		default:
 			return;
@@ -1447,6 +1671,7 @@ function testCase( $dirname, $filename )
 		$result = $xpath->query( 'tc:result', $variation )[0];
 		$expected = $result->getAttribute('expected');
 		$standard = ! boolval( $result->getAttribute('nonStandardErrorCodes') );
+		$errors = array();
 		if ( $expected == 'valid' )
 		{
 			$resultInstances = $getTextArray( 'tc:instance', $result );
@@ -1461,7 +1686,12 @@ function testCase( $dirname, $filename )
 				{
 					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2':
 						$extras[] = '1866';
+						$extras[] = '1867';
 						break;
+					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_4':
+						$extras[] = '1868';
+						break;
+					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d':
 					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b':
 					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a':
 						$extras[] = '1871';
