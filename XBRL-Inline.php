@@ -1,11 +1,11 @@
 <?php
 
 /**
- * XBRL Inline document loading and validatopm
+ * XBRL Inline document loading and validation
  *
  * @author Bill Seddon
  * @version 0.9
- * @Copyright (C) 2018 Lyquidity Solutions Limited
+ * @Copyright (C) 2021 Lyquidity Solutions Limited
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@
  *
  */
 
-use XBRL\Formulas\Resources\Filters\Boolean;
+namespace lyquidity\ixbrl;
+
+require __DIR__. '/IXBRL-Transforms.php';
 
 define( "IXBRL_ELEMENT_CONTINUATION", "continuation" );
 define( "IXBRL_ELEMENT_DENOMINATOR", "denominator" );
@@ -128,10 +130,12 @@ class XBRL_Inline
 	 */
 	public function __construct( $docUrl )
 	{
+		if ( ! $docUrl ) return;
+		
 		$this->document = new \DOMDocument();
 		if ( ! $this->document->load( $docUrl ) )
 		{
-			throw new \IXBRLException('Failed to load the document');
+			throw new IXBRLException('Failed to load the document');
 		}
 
 		$this->url = $docUrl;
@@ -139,13 +143,13 @@ class XBRL_Inline
 		$ns = $this->root->namespaceURI;
 		$ln = $this->root->localName;
 
-		$this->xpath = $xpath = new DOMXPath( $this->document );
+		$this->xpath = $xpath = new \DOMXPath( $this->document );
 		$xpath->registerNamespace( 'ix10', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10] );
 		$xpath->registerNamespace( 'ix11', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
 		$xpath->registerNamespace( STANDARD_PREFIX_XBRLI, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI] );
 		if ( count( $xpath->query( '//ix11:*', $this->root ) ) && count( $xpath->query( '//ix10:*', $this->root ) ) )
 		{
-			throw new \IXBRLDocumentValidationException('ix:multipleIxNamespaces', 'The document uses more than one iXBRL namespace');
+			throw new IXBRLDocumentValidationException('ix:multipleIxNamespaces', 'The document uses more than one iXBRL namespace');
 		}
 
 		$iXBRLNamespaces = array_intersect( \XBRL_Constants::$ixbrlNamespaces, $this->getElementNamespaces() );
@@ -155,7 +159,7 @@ class XBRL_Inline
 		// Any document can be IXBRL
 		$this->isIXBRL = count( $iXBRLNamespaces ) > 0;
 		if ( ! $this->isIXBRL )
-			throw new \IXBRLException('This is not an Inline XBRL document');
+			throw new IXBRLException('This is not an Inline XBRL document');
 
 		$this->isXHTML = $ns == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] && ( $ln == IXBRL_ELEMENT_HTML || $ln == IXBRL_ELEMENT_XHTML );
 	}
@@ -194,7 +198,7 @@ class XBRL_Inline
 		$result = array();
 		if ( $this->root )
 		{
-			$xpath = new DOMXPath( $this->document );
+			$xpath = new \DOMXPath( $this->document );
 			foreach( $xpath->query( $query, $element ? $element : $this->root ) as $node )
 			{
 				$result[] = $node->nodeValue;
@@ -259,7 +263,7 @@ class XBRL_Inline
 	{
 		if ( ! $this->document )
 		{
-			throw new \IXBRLException('There is no valid iXBRL document');
+			throw new IXBRLException('There is no valid iXBRL document');
 		}
 
 		// Can only validate xhtml against the schema
@@ -911,7 +915,7 @@ class ValidateInlineDocument
 	public function validateDOMDocument( $document, $ixPrefix = null)
 	{
 		if ( ! $document )
-			throw new \IXBRLException('The DOM document is not valid');
+			throw new IXBRLException('The DOM document is not valid');
 
 		$ixPrefix ?? STANDARD_PREFIX_IXBRL11;
 		$schemaUrl = \XBRL_Constants::$standardNamespaceSchemaLocations[ $ixPrefix ];
@@ -940,7 +944,7 @@ class IXBRLException extends \Exception
 /**
  * An iXBRL specific exception when validating the content of the document
  */
-class IXBRLDocumentValidationException extends \IXBRLException
+class IXBRLDocumentValidationException extends IXBRLException
 {
 	/**
 	 * The code of a specific validation error
@@ -979,7 +983,7 @@ class IXBRLDocumentValidationException extends \IXBRLException
 /**
  * An iXBRL specific exception when validating against the schema
  */
-class IXBRLSchemaValidationException extends \IXBRLException
+class IXBRLSchemaValidationException extends IXBRLException
 {
 	/**
 	 * The id of a specific validation error
@@ -1028,7 +1032,7 @@ function TestInlineXBRL()
 	$mainDoc = new \DOMDocument();
 	if ( ! $mainDoc->load( "$testCasesFolder/index.xml" ) )
 	{
-		throw new \IXBRLException('Failed to load the main test document');
+		throw new IXBRLException('Failed to load the main test document');
 	}
 
 	$documentElement = $mainDoc->documentElement;
@@ -1036,7 +1040,7 @@ function TestInlineXBRL()
 	error_log( "{$documentElement->localName}" );
 	error_log( $documentElement->getAttribute('name') );
 
-	$xpath = new DOMXPath( $mainDoc );
+	$xpath = new \DOMXPath( $mainDoc );
 
 	foreach( $xpath->query( '//testcases', $documentElement ) as $testcases )
 	{
@@ -1619,7 +1623,7 @@ function testCase( $dirname, $filename )
 	$testDoc = new \DOMDocument();
 	if ( ! $testDoc->load( "$dirname$filename" ) )
 	{
-		throw new \IXBRLException('Failed to load the test case document: $filename');
+		throw new IXBRLException('Failed to load the test case document: $filename');
 	}
 
 	$documentElement = $testDoc->documentElement;
@@ -1720,7 +1724,7 @@ function testCase( $dirname, $filename )
 				return \XBRL::resolve_path( $dirname, $document );
 			}, array_merge( $firstInstances, $otherInstances ) );
 
-			\XBRL_Inline::createInstanceDocument( $documentSet );
+			XBRL_Inline::createInstanceDocument( $documentSet );
 			if ( $expected == 'invalid' )
 			{
 				error_log( "The test result (valid) does not match the expected result (invalid)" );
@@ -1782,7 +1786,7 @@ function testCase( $dirname, $filename )
 		{
 			echo $ex;
 		}
-		catch( Exception $ex )
+		catch( \Exception $ex )
 		{
 			echo $ex;
 		}

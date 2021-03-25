@@ -19094,6 +19094,52 @@ class XBRL {
 		}
 	}
 
+	private static $cacheTRRItems = array();
+
+	/**
+	 * Get a list of transformation types 
+	 * Note: When forcing a refresh the global context will be reset when
+	 * 		 this function is called so call it before any other calls
+	 * @param boolean $forceRefresh Forces any existing file to be refreshed
+	 * @return array
+	 */
+	public static function getTRRItems( $forceRefresh = false )
+	{
+		if ( $forceRefresh || ! self::$cacheTRRItems )
+		{
+			self::$cacheTRRItems = array();
+
+			$filename =  __DIR__ . '/dtr.json';
+			if ( $forceRefresh || ! file_exists( $filename ) )
+			{
+				$urls = array(
+					'http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd' => 'General',
+					'https://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd' => 'Non-numeric',
+					'http://www.xbrl.org/dtr/2013-03-31/numeric-2013-03-31.xsd' => 'Numeric',
+					'https://www.xbrl.org/dtr/type/2020-01-21/types.xsd' => 'DTR Types'
+				);
+
+				$itemTypes = [];
+				foreach( $urls as $url => $category)
+				{
+					$taxonomy = \XBRL::load_taxonomy( $url );
+					$taxonomy->getItemTypes( $category, $itemTypes );
+					\XBRL_Global::reset();
+					unset( $taxonomy );
+				}
+
+				file_put_contents( $filename, json_encode( $itemTypes ) );
+				self::$cacheTRRItems = $itemTypes;
+			}
+			else
+			{
+				self::$cacheDTRItems = json_decode( file_get_contents( $filename ), true );
+			}
+		}
+
+		return self::$cacheDTRItems;
+	}
+
 	private static $cacheDTRItems = array();
 
 	/**

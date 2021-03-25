@@ -53,7 +53,10 @@ define( "STANDARD_PREFIX_GENERIC", "gen" );
 define( "STANDARD_PREFIX_ISO4217", "iso4217" );
 define( "STANDARD_PREFIX_IX", "ix" );
 define( "STANDARD_PREFIX_IX11", "ix11" );
-define( "STANDARD_PREFIX_IXT", "ixt" );
+define( "STANDARD_PREFIX_IXTV1", "ixtv1" );
+define( "STANDARD_PREFIX_IXTV2", "ixtv2" );
+define( "STANDARD_PREFIX_IXTV3", "ixtv3" );
+define( "STANDARD_PREFIX_IXTV4", "ixtv4" );
 define( "STANDARD_PREFIX_LABEL", "label" );
 define( "STANDARD_PREFIX_MODEL", "model" );
 define( "STANDARD_PREFIX_REFERENCE", "reference" );
@@ -168,7 +171,10 @@ class XBRL_Constants
 		STANDARD_PREFIX_ISO4217							=> "http://www.xbrl.org/2003/iso4217",
 		STANDARD_PREFIX_IX								=> "http://www.xbrl.org/2008/inlineXBRL",
 		STANDARD_PREFIX_IX11							=> "http://www.xbrl.org/2013/inlineXBRL",
-		STANDARD_PREFIX_IXT								=> "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
+		STANDARD_PREFIX_IXTV1							=> "http://www.xbrl.org/inlineXBRL/transformation/2010-04-20",
+		STANDARD_PREFIX_IXTV2							=> "http://www.xbrl.org/inlineXBRL/transformation/2011-07-31",
+		STANDARD_PREFIX_IXTV3							=> "http://www.xbrl.org/inlineXBRL/transformation/2015-02-26",
+		STANDARD_PREFIX_IXTV4							=> "http://www.xbrl.org/inlineXBRL/transformation/2020-02-12",
 		STANDARD_PREFIX_LABEL							=> "http://xbrl.org/2008/label",
 		STANDARD_PREFIX_MODEL							=> "http://www.eurofiling.info/xbrl/ext/model",
 		STANDARD_PREFIX_REFERENCE						=> "http://xbrl.org/2008/reference",
