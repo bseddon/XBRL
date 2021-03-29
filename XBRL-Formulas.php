@@ -364,7 +364,7 @@ class XBRL_Formulas extends Resource
 			$schemasWithFormulas = array_filter( $instanceTaxonomy->getImportedSchemas(), function( $taxonomy ) { return $taxonomy->getHasFormulas(); } );
 
 			// // For now, take just one of the taxonomies with formulas
-			// // $taxonomy = reset( $schemasWithFormulas );
+			// $schemasWithFormulas = array( reset( $schemasWithFormulas ) );
 
 			foreach ( $schemasWithFormulas as $namespace => $taxonomy )
 			{

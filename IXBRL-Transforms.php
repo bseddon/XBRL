@@ -83,7 +83,7 @@ class IXBRL_Transforms
 	private $daymonthBgPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]{0,6}[ \t\n\r]*$';
 	private $daymonthCsPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)\.?[ \t\n\r]*$';
 	private $daymonthDePattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]{0,6}[ \t\n\r]*$';
-	private $daymonthDkPatternI = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[ \t\n\r]*$'; //, re.IGNORECASE;
+	private $daymonthDkPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[ \t\n\r]*$'; //, re.IGNORECASE;
 	private $daymonthElPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΥΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]{0,8}[ \t\n\r]*$';
 	private $daymonthEnPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[ \t\n\r]*$';
 	private $monthdayEnPattern = '^[ \t\n\r]*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2})[A-Za-z]{0,2}[ \t\n\r]*$';
@@ -107,7 +107,7 @@ class IXBRL_Transforms
 	private $daymonthyearBgPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[A-Za-z]*[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$';
 	private $daymonthyearCsPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ledna|února|unora|března|brezna|dubna|května|kvetna|června|cervna|července|cervence|srpna|září|zari|října|rijna|listopadu|prosince|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDNA|ÚNORA|UNORA|BŘEZNA|BREZNA|DUBNA|KVĚTNA|KVETNA|ČERVNA|CERVNA|ČERVENCE|CERVENCE|SRPNA|ZÁŘÍ|ZARI|ŘÍJNA|RIJNA|LISTOPADU|PROSINCE|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Ledna|Února|Unora|Března|Brezna|Dubna|Května|Kvetna|Června|Cervna|Července|Cervence|Srpna|Září|Zari|Října|Rijna|Listopadu|Prosince|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearDePattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
-	private $daymonthyearDkPatternI = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$'; // re.IGNORECASE;
+	private $daymonthyearDkPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$'; // re.IGNORECASE;
 	private $daymonthyearElPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearEnPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$';
 	private $monthdayyearEnPattern = '^[ \t\n\r]*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]+)[^0-9]+([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$';
@@ -134,7 +134,7 @@ class IXBRL_Transforms
 	private $monthyearBgPattern = '^[ \t\n\r]*(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$';
 	private $monthyearCsPattern = '^[ \t\n\r]*(leden|ledna|lednu|únor|unor|února|unora|únoru|unoru|březen|brezen|března|brezna|březnu|breznu|duben|dubna|dubnu|květen|kveten|května|kvetna|květnu|kvetnu|červen|cerven|června|cervna|červnu|cervnu|červenec|cervenec|července|cervence|červenci|cervenci|srpen|srpna|srpnu|září|zari|říjen|rijen|října|rijna|říjnu|rijnu|listopad|listopadu|prosinec|prosince|prosinci|led|úno|uno|bře|bre|dub|kvě|kve|čvn|cvn|čvc|cvc|srp|zář|zar|říj|rij|lis|pro|LEDEN|LEDNA|LEDNU|ÚNOR|UNOR|ÚNORA|UNORA|ÚNORU|UNORU|BŘEZEN|BREZEN|BŘEZNA|BREZNA|BŘEZNU|BREZNU|DUBEN|DUBNA|DUBNU|KVĚTEN|KVETEN|KVĚTNA|KVETNA|KVĚTNU|KVETNU|ČERVEN|CERVEN|ČERVNA|CERVNA|ČERVNU|CERVNU|ČERVENEC|CERVENEC|ČERVENCE|CERVENCE|ČERVENCI|CERVENCI|SRPEN|SRPNA|SRPNU|ZÁŘÍ|ZARI|ŘÍJEN|RIJEN|ŘÍJNA|RIJNA|ŘÍJNU|RIJNU|LISTOPAD|LISTOPADU|PROSINEC|PROSINCE|PROSINCI|LED|ÚNO|UNO|BŘE|BRE|DUB|KVĚ|KVE|ČVN|CVN|ČVC|CVC|SRP|ZÁŘ|ZAR|ŘÍJ|RIJ|LIS|PRO|Leden|Ledna|Lednu|Únor|Unor|Února|Unora|Únoru|Unoru|Březen|Brezen|Března|Brezna|Březnu|Breznu|Duben|Dubna|Dubnu|Květen|Kveten|Května|Kvetna|Květnu|Kvetnu|Červen|Cerven|Června|Cervna|Červnu|Cervnu|Červenec|Cervenec|Července|Cervence|Červenci|Cervenci|Srpen|Srpna|Srpnu|Září|Zari|Říjen|Rijen|Října|Rijna|Říjnu|Rijnu|Listopad|Listopadu|Prosinec|Prosince|Prosinci|Led|Úno|Uno|Bře|Bre|Dub|Kvě|Kve|Čvn|Cvn|Čvc|Cvc|Srp|Zář|Zar|Říj|Rij|Lis|Pro)[^0-9a-zA-Z]+[^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearDePattern = '^[ \t\n\r]*(jan|jän|jaen|feb|mär|maer|mar|apr|mai|jun|jul|aug|sep|okt|nov|dez|JAN|JÄN|JAEN|FEB|MÄR|MAER|MAR|APR|MAI|JUN|JUL|AUG|SEP|OKT|NOV|DEZ|Jan|Jän|Jaen|Feb|Mär|Maer|Mar|Apr|Mai|Jun|Jul|Aug|Sep|Okt|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
-	private $monthyearDkPatternI = '^[ \t\n\r]*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$'; // re.IGNORECASE;
+	private $monthyearDkPattern = '^[ \t\n\r]*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)([A-Za-z]*)([.]*)[^0-9]*([0-9]{4}|[0-9]{1,2})[ \t\n\r]*$'; // re.IGNORECASE;
 	private $monthyearElPattern = '^[ \t\n\r]*(ιαν|ίαν|φεβ|μάρ|μαρ|απρ|άπρ|αρίλ|άρίλ|αριλ|άριλ|μαΐ|μαι|μάι|μαϊ|μάϊ|ιούν|ίούν|ίουν|ιουν|ιούλ|ίούλ|ίουλ|ίουλ|ιουλ|αύγ|αυγ|σεπ|οκτ|όκτ|νοέ|νοε|δεκ|ΙΑΝ|ΊΑΝ|IΑΝ|ΦΕΒ|ΜΆΡ|ΜΑΡ|ΑΠΡ|ΆΠΡ|AΠΡ|AΡΙΛ|ΆΡΙΛ|ΑΡΙΛ|ΜΑΪ́|ΜΑΙ|ΜΆΙ|ΜΑΪ|ΜΆΪ|ΙΟΎΝ|ΊΟΎΝ|ΊΟΥΝ|IΟΎΝ|ΙΟΥΝ|IΟΥΝ|ΙΟΎΛ|ΊΟΎΛ|ΊΟΥΛ|IΟΎΛ|ΙΟΥΛ|IΟΥΛ|ΑΎΓ|ΑΥΓ|ΣΕΠ|ΟΚΤ|ΌΚΤ|OΚΤ|ΝΟΈ|ΝΟΕ|ΔΕΚ|Ιαν|Ίαν|Iαν|Φεβ|Μάρ|Μαρ|Απρ|Άπρ|Aπρ|Αρίλ|Άρίλ|Aρίλ|Aριλ|Άριλ|Αριλ|Μαΐ|Μαι|Μάι|Μαϊ|Μάϊ|Ιούν|Ίούν|Ίουν|Iούν|Ιουν|Iουν|Ιούλ|Ίούλ|Ίουλ|Iούλ|Ιουλ|Iουλ|Αύγ|Αυγ|Σεπ|Οκτ|Όκτ|Oκτ|Νοέ|Νοε|Δεκ)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearEnPattern = '^[ \t\n\r]*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $yearmonthEnPattern = '^[ \t\n\r]*([0-9]{1,2}|[0-9]{4})[^0-9]+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)[ \t\n\r]*$';
@@ -183,11 +183,11 @@ class IXBRL_Transforms
 	private $zeroDashPattern = '^[ \t\n\r]*([-]|\u002D|\u002D|\u058A|\u05BE|\u2010|\u2011|\u2012|\u2013|\u2014|\u2015|\uFE58|\uFE63|\uFF0D)[ \t\n\r]*$';
 	private $numDotDecimalPattern = '^[ \t\n\r]*[0-9]{1,3}([, \xA0]?[0-9]{3})*(\.[0-9]+)?[ \t\n\r]*$';
 	private $numDotDecimalTR4Pattern = '^[ \t\n\r]*[, \xA00-9]*(\.[ \xA00-9]+)?[ \t\n\r]*$';
-	private $numDotDecimalInPattern = '^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([.][0-9]+)?$|^([0-9]+)([.][0-9]+)?$';
+	private $numDotDecimalInPattern = '^((([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})|([0-9]{1,3}))([.][0-9]+)?$|^([0-9]+)([.][0-9]+)?$';
 	private $numCommaDecimalPattern = '^[ \t\n\r]*[0-9]{1,3}([. \xA0]?[0-9]{3})*(,[0-9]+)?[ \t\n\r]*$';
 	private $numCommaDecimalTR4Pattern = '^[ \t\n\r]*[\. \xA00-9]*(,[ \xA00-9]+)?[ \t\n\r]*$';
 	private $numUnitDecimalPattern = '^([0]|([1-9][0-9]{0,2}([.,\uFF0C\uFF0E]?[0-9]{3})*))[^0-9,.\uFF0C\uFF0E]+([0-9]{1,2})[^0-9,.\uFF0C\uFF0E]*$';
-	private $numUnitDecimalInPattern = '^(([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})([^0-9]+)([0-9]{1,2})([^0-9]*)$|^([0-9]+)([^0-9]+)([0-9]{1,2})([^0-9]*)$';
+	private $numUnitDecimalInPattern = '^[ \t\n\r]*((([0-9]{1,2}[, \xA0])?([0-9]{2}[, \xA0])*[0-9]{3})|([0-9]{1,3}))([^0-9]+)([0-9]{1,2})([^0-9]*)$|^([0-9]+)([^0-9]+)([0-9]{1,2})([^0-9]*)[ \t\n\r]*$';
 	private $numUnitDecimalTR4Pattern = '^([0-9０-９\.,，]+)([^0-9０-９\.,，][^0-9０-９]*)([0-9０-９]{1,2})[^0-9０-９]*$';
 	private $numCommaPattern = '^[ \t\n\r]*[0-9]+(,[0-9]+)?[ \t\n\r]*$';
 	private $numCommaDotPattern = '^[ \t\n\r]*[0-9]{1,3}(,[0-9]{3,3})*([.][0-9]+)?[ \t\n\r]*$';
@@ -249,6 +249,69 @@ class IXBRL_Transforms
 		"\u{5927}" => 1911,
 		"\u{662D}\u{548C}" => 1925,
 		"\u{662D}" => 1925
+	);
+
+	private $devanagariDigitsTrTable = null;
+
+	private $gregorianHindiMonthNumber = array(
+		"\u{091C}\u{0928}\u{0935}\u{0930}\u{0940}" => "01",
+		"\u{092B}\u{0930}\u{0935}\u{0930}\u{0940}" => "02", 
+		"\u{092E}\u{093E}\u{0930}\u{094D}\u{091A}" => "03", 
+		"\u{0905}\u{092A}\u{094D}\u{0930}\u{0948}\u{0932}" => "04",
+		"\u{092E}\u{0908}" => "05", 
+		"\u{091C}\u{0942}\u{0928}" => "06",
+		"\u{091C}\u{0941}\u{0932}\u{093E}\u{0908}" => "07", 
+		"\u{0905}\u{0917}\u{0938}\u{094D}\u{0924}" => "08",
+		"\u{0938}\u{093F}\u{0924}\u{0902}\u{092C}\u{0930}" => "09",
+		"\u{0905}\u{0915}\u{094D}\u{0924}\u{0942}\u{092C}\u{0930}" => "10",
+		"\u{0928}\u{0935}\u{092E}\u{094D}\u{092C}\u{0930}" => "11",
+		"\u{0926}\u{093F}\u{0938}\u{092E}\u{094D}\u{092C}\u{0930}" => "12"
+	);
+
+	private $sakaMonthNumber = array(
+		"Chaitra" =>1, "\u{091A}\u{0948}\u{0924}\u{094D}\u{0930}" =>1,
+		"Vaisakha" =>2, "Vaishakh" =>2, "Vai\u{015B}\u{0101}kha" =>2, "\u{0935}\u{0948}\u{0936}\u{093E}\u{0916}" =>2, "\u{092C}\u{0948}\u{0938}\u{093E}\u{0916}" =>2,
+		"Jyaishta" =>3, "Jyaishtha" =>3, "Jyaistha" =>3, "Jye\u{1E63}\u{1E6D}ha" =>3, "\u{091C}\u{094D}\u{092F}\u{0947}\u{0937}\u{094D}\u{0920}" =>3,
+		"Asadha" =>4, "Ashadha" =>4, "\u{0100}\u{1E63}\u{0101}\u{1E0D}ha" =>4, "\u{0906}\u{0937}\u{093E}\u{0922}" =>4, "\u{0906}\u{0937}\u{093E}\u{0922}\u{093C}" =>4,
+		"Sravana" =>5, "Shravana" =>5, "\u{015A}r\u{0101}va\u{1E47}a" =>5, "\u{0936}\u{094D}\u{0930}\u{093E}\u{0935}\u{0923}" =>5, "\u{0938}\u{093E}\u{0935}\u{0928}" =>5,
+		"Bhadra" =>6, "Bhadrapad" =>6, "Bh\u{0101}drapada" =>6, "Bh\u{0101}dra" =>6, "Pro\u{1E63}\u{1E6D}hapada" =>6, "\u{092D}\u{093E}\u{0926}\u{094D}\u{0930}\u{092A}\u{0926}" =>6, "\u{092D}\u{093E}\u{0926}\u{094B}" =>6,
+		"Aswina" =>7, "Ashwin" =>7, "Asvina" =>7, "\u{0100}\u{015B}vina" =>7, "\u{0906}\u{0936}\u{094D}\u{0935}\u{093F}\u{0928}" =>7, 
+		"Kartiak" =>8, "Kartik" =>8, "Kartika" =>8, "K\u{0101}rtika" =>8, "\u{0915}\u{093E}\u{0930}\u{094D}\u{0924}\u{093F}\u{0915}" =>8, 
+		"Agrahayana" =>9,"Agrah\u{0101}ya\u{1E47}a" =>9,"Margashirsha" =>9, "M\u{0101}rga\u{015B}\u{012B}r\u{1E63}a" =>9, "\u{092E}\u{093E}\u{0930}\u{094D}\u{0917}\u{0936}\u{0940}\u{0930}\u{094D}\u{0937}" =>9, "\u{0905}\u{0917}\u{0939}\u{0928}" =>9,
+		"Pausa" =>10, "Pausha" =>10, "Pau\u{1E63}a" =>10, "\u{092A}\u{094C}\u{0937}" =>10,
+		"Magha" =>11, "Magh" =>11, "M\u{0101}gha" =>11, "\u{092E}\u{093E}\u{0918}" =>11,
+		"Phalguna" =>12, "Phalgun" =>12, "Ph\u{0101}lguna" =>12, "\u{092B}\u{093E}\u{0932}\u{094D}\u{0917}\u{0941}\u{0928}" =>12,
+	);
+
+	private $sakaMonthPattern = 
+		"(C\S*ait|\u{091A}\u{0948}\u{0924}\u{094D}\u{0930})|" .
+		"(Vai|\u{0935}\u{0948}\u{0936}\u{093E}\u{0916}|\u{092C}\u{0948}\u{0938}\u{093E}\u{0916})|" .
+		"(Jy|\u{091C}\u{094D}\u{092F}\u{0947}\u{0937}\u{094D}\u{0920})|" .
+		"(dha|\u{1E0D}ha|\u{0906}\u{0937}\u{093E}\u{0922}|\u{0906}\u{0937}\u{093E}\u{0922}\u{093C})|" .
+		"(vana|\u{015A}r\u{0101}va\u{1E47}a|\u{0936}\u{094D}\u{0930}\u{093E}\u{0935}\u{0923}|\u{0938}\u{093E}\u{0935}\u{0928})|" .
+		"(Bh\S+dra|Pro\u{1E63}\u{1E6D}hapada|\u{092D}\u{093E}\u{0926}\u{094D}\u{0930}\u{092A}\u{0926}|\u{092D}\u{093E}\u{0926}\u{094B})|" .
+		"(in|\u{0906}\u{0936}\u{094D}\u{0935}\u{093F}\u{0928})|" .
+		"(K\S+rti|\u{0915}\u{093E}\u{0930}\u{094D}\u{0924}\u{093F}\u{0915})|" .
+		"(M\S+rga|Agra|\u{092E}\u{093E}\u{0930}\u{094D}\u{0917}\u{0936}\u{0940}\u{0930}\u{094D}\u{0937}|\u{0905}\u{0917}\u{0939}\u{0928})|" .
+		"(Pau|\u{092A}\u{094C}\u{0937})|" .
+		"(M\S+gh|\u{092E}\u{093E}\u{0918})|" .
+		"(Ph\S+lg|\u{092B}\u{093E}\u{0932}\u{094D}\u{0917}\u{0941}\u{0928})"
+	;
+
+	private $sakaMonthLength = array(30,31,31,31,31,31,30,30,30,30,30,30); # Chaitra has 31 days in Gregorian leap year
+	private $sakaMonthOffset = array( 
+		array(3,22,0), 
+		array(4,21,0),
+		array(5,22,0),
+		array(6,22,0),
+		array(7,23,0),
+		array(8,23,0),
+		array(9,23,0),
+		array(10,23,0),
+		array(11,22,0),
+		array(12,22,0),
+		array(1,21,1),
+		array(2,20,1)
 	);
 
 	#endregion
@@ -548,10 +611,15 @@ class IXBRL_Transforms
 
 		#endregion
 
-		foreach( range(1, 10 ) as $i )
+		foreach( range(0, 9 ) as $i )
 		{
 			$this->jpDigitsTrTable[ 0xFF10 + $i ] = ord("0") + $i;
 		}
+
+		foreach( range(0, 9 ) as $i )
+		{
+			$this->devanagariDigitsTrTable[ 0x966 + $i ] = ord("0") + $i;
+		}	
 	}
 
 	#region Utility functions
@@ -682,6 +750,16 @@ class IXBRL_Transforms
 	}
 
 	/**
+	 * Translate IN digits
+	 * @param string $digit
+	 * @return string
+	 */
+	private function devanagariDigitsToNormal( $devanagariDigits )
+	{
+		return $this->translate( $devanagariDigits, $this->devanagariDigitsTrTable );
+	}
+
+	/**
 	 * Translate text using an array of codepoint mappings
 	 *
 	 * @param [type] $text
@@ -710,6 +788,85 @@ class IXBRL_Transforms
 	private function eraYear( $era, $year )
 	{
 		return $this->eraStart[ $era ] + ($year == '元' ? 1 : intval( $year ) );
+	}
+
+	/**
+	 * Concert an Indian calendar date to gregorian
+	 * @param string $sYear
+	 * @param string $sMonth
+	 * @param string $sDay
+	 * @return string[]
+	 */
+	private function sakaToGregorian( $sYear, $sMonth, $sDay)
+	{
+		$sYear = $sYear + 78;  # offset from Saka to Gregorian year
+		$sStartsInLeapYr = $sYear % 4 == 0 && ( $sYear % 100 != 0 || $sYear % 400 == 0 ); // Saka yr starts in leap year
+
+		if ( $sYear < 0 )
+			throw new \Exception( sprintf( "Saka calendar year not supported: %s %s %s ", $sYear, $sMonth, $sDay ) );
+		if ( $sMonth < 1 || $sMonth > 12 )
+			throw new \Exception( sprintf( "Saka calendar month error: %s %s %s ", $sYear, $sMonth, $sDay ) );
+
+		$sMonthLength = $this->sakaMonthLength[ $sMonth - 1 ];
+		if ( $sStartsInLeapYr && $sMonth == 1 )
+			$sMonthLength += 1; // Chaitra has 1 extra day when starting in gregorian leap years
+
+		if ( $sDay < 1 || $sDay > $sMonthLength )
+			throw new \Exception( sprintf( "Saka calendar day error: %s %s %s ", $sYear, $sMonth, $sDay ) );
+
+		list( $gMonth, $gDayOffset, $sYearOffset ) = $this->sakaMonthOffset[ $sMonth - 1 ]; // offset Saka to Gregorian by Saka month
+
+		if ( $sStartsInLeapYr && $sMonth == 1 )
+			$gDayOffset -= 1; // Chaitra starts 1 day earlier when starting in Gregorian leap years
+
+		$sYear += $sYearOffset; // later Saka months offset into next Gregorian year
+
+		$gMonthLength = $this->gLastMoDay[ $gMonth - 1 ]; // month length (days in month)
+		if ( $gMonth == 2 && $sYear % 4 == 0 && ( $sYear % 100 != 0 || $sYear % 400 == 0 ) ) // does Phalguna (Feb) end in a Gregorian leap year?
+			$gMonthLength += 1; // Phalguna (Feb) is in a Gregorian leap year (Feb has 29 days)
+
+		$gDay = $gDayOffset + $sDay - 1;
+		if ( $gDay > $gMonthLength ) // overflow from Gregorial month of start of Saka month to next Gregorian month
+		{
+			$gDay -= $gMonthLength;
+			$gMonth += 1;
+			if ( $gMonth == 13 )  // overflow from Gregorian year of start of Saka year to following Gregorian year
+			{
+				$gMonth = 1;
+				$sYear += 1;
+			}
+		}
+		return array($sYear, $gMonth, $gDay);
+	}
+
+	# zero pad to 4 digits
+	private function yearIN( $arg, $_month, $_day )
+	{
+		if ( $arg && strlen( $arg ) == 2 )
+		{
+			return ( $arg > '21' || ( $arg == '21' && $_month >= 10 && $_day >= 11 ) ? '19' : '20' ) . $arg;
+		}
+		return $arg;
+	}
+
+	/**
+	 * Core function for TR3 nd TR4 IN date functions
+	 * @param string $arg
+	 * @param string $daymonthyearInPattern
+	 * @return void
+	 */
+	private function datedaymonthyearin( $arg, $daymonthyearInPattern )
+	{
+    	$match = preg_match( "~$daymonthyearInPattern~u", $arg, $matches );
+		if ( $match )
+		{
+			$_year = $this->year4( $this->devanagariDigitsToNormal( $matches[3] ) );
+			$_month = $this->gregorianHindiMonthNumber[ $matches[2] ] ?? $this->devanagariDigitsToNormal( $matches[2] );
+			$_day = $this->devanagariDigitsToNormal( $matches[1] );
+			if ( $this->checkDate( $_year, $_month, $_day ) )
+				return sprintf( "%s-%02d-%02d", $_year, $_month, $_day );
+		}
+		throw new TransformationException( 0, 'xs:date' );	
 	}
 
 	#endregion
@@ -1348,249 +1505,813 @@ class IXBRL_Transforms
 		throw new TransformationException( 0, 'ixt:nonNegativeDecimalType' );	
 	}
 
+	/**
+	 * Transforms an Indian date based on the Indian National Calendar in the order "day month year" 
+	 * (using Hindi names for Saka months, or the equivalent Latin transliteration; e.g. "11 पौष 1921" 
+	 * or "11 Pausha 1921"; and either Arabic or Devanagari numerals; e.g. ११ पौष १९२१) into the 
+	 * Gregorian Calendar using W3C/ISO date standard "YYYY-MM-DD" format. Accepts double digits for year. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 in the Gregorian Calendar.
+	 * @param string $arg Indian date based on the Indian National Calendar in the order "day month year".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
 	private function calindaymonthyear( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->daymonthyearInIndPattern}~u", $arg, $matches );
+		if ( ! $match )
+			throw new TransformationException( 0, 'xs:date' );
+		if ( ! preg_match( "~{$this->sakaMonthPattern}~", $matches[2], $monthMatches ) )
+		{
+			throw new TransformationException( 0, 'calindaymonthyear' );
+		}
+		$_month = count( $monthMatches ) - 1;
+		$_day = intval( $this->devanagariDigitsToNormal( $matches[1] ) );
+		$_year = intval( $this->devanagariDigitsToNormal( $this->yearIN( $matches[15], $_month, $_day ) ) );
+		$gregorianDate = $this->sakaToGregorian( $_year, $_month, $_day ); 
+		return sprintf( "%s-%02d-%02d", $gregorianDate[0], $gregorianDate[1], $gregorianDate[2] );
+	}
 
+	/**
+	 * Transforms Danish date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. februar" is not permitted.
+	 * @param string $arg Danish date in the order "day month".
+	 * @return string xs:gMonthDay
+	 * @throws TransformationException
+	 */
 	private function datedaymonthdk( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->daymonthDkPattern}~i", $arg, $matches );
+		if ( $match && count( $matches ) == 4 )
+		{
+			$day = $matches[1];
+			$monthName = strtolower( $matches[2] );
+			$monEnd = $matches[3];
+			$monPer = $matches[4]; 
+			if ( ( $month = $this->monthnumber[ $monthName ] ?? false ) && 
+				 ( ! $monEnd || ! $monPer ) && 
+				 ( '01' <= $day && $day <= $this->maxDayInMo[ $month ] ?? "00" )
+			)
+			{
+				return sprintf( "--%02d-%02d", $month, $day );
+			}
+		}
+		throw new TransformationException(0, 'datedaymonthdk');
+	}
 
+	/**
+	 * Transforms Danish date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. Two-digit years 
+	 * are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. The result must be a 
+	 * valid xs:date so, for example, "30. februar 2009" is not permitted.
+	 * @param string $arg Danish date in the order "day month year".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyeardk( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->daymonthyearDkPattern}~i", $arg, $matches );
+		if ( $match && count( $matches ) == 6 )
+		{
+			$year = $matches[5];
+			$day = $matches[1];
+			$monthName = strtolower( $matches[2] );
+			$monEnd = $matches[3];
+			$monPer = $matches[4]; 
+			if ( ( $month = $this->monthnumber[ $monthName ] ?? false ) && 
+				 ( ! $monEnd || ! $monPer ) && 
+				 ( '01' <= $day && $day <= $this->maxDayInMo[ $month ] ?? "00" )
+			)
+			{
+				return sprintf( "%s-%02d-%02d", $this->year4( $year ), $month, $day );
+			}
+		}
+		throw new TransformationException(0, 'datedaymonthyeardk');
+	}
 
+	/**
+	 * Transforms Indian date based on the Gregorian Calendar in the order "day month year" (using Hindi names for Gregorian months; 
+	 * e.g. "19 सितंबर 2012"; either Arabic or Devanagari numerals for day and year; e.g. "१९ सितंबर २०१२"; or using Devanagari numerals 
+	 * throughout; e.g. "१९ ०९ २०१२") into W3C/ISO date standard "YYYY-MM-DD" format. Accepts single digits for month and double digits for year.
+	 * @param string $arg Indian date based on Gregorian Calendar in the order "day month year".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearinTR3( $arg )
-	{}
+	{
+		return $this->datedaymonthyearin( $arg, $this->daymonthyearInPatternTR3 );
+	}
 
+	/**
+	 * Transforms numeric date in the order "month year", with non-numeric separator, into W3C/ISO date standard "YYYY-MM" format.
+	 * @param string $arg Numeric date in the order "month year".
+	 * @return string xs:gMonthDay
+	 * @throws TransformationException
+	 */
 	private function datemonthyearTR3( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->monthyearPattern}~", $arg, $matches ); // "(M)M*(Y)Y(YY)", with non-numeric separator,
+		if ( $match && count( $matches ) == 3 )
+		{
+			$year = $this->year4( $matches[2] );
+			$month = $matches[1];
+			if ( "01" <= $month && $month <= "12" )
+				return sprintf( "%s-%02d", $year, $month );
+		}
+	}
 
+	/**
+	 * Transforms Danish date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. Two-digit years are 
+	 * assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Danish date in the order "month year".
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyeardk( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->monthyearDkPattern}~i", $arg, $matches );
+		if ( $match && count( $matches ) == 5 )
+		{
+			$year = $matches[4];
+			$monthName = strtolower( $matches[1] );
+			$monEnd = $matches[2];
+			$monPer = $matches[3]; 
+			if ( ( $month = $this->monthnumber[ $monthName ] ?? false ) && 
+				 ( ! $monEnd || ! $monPer )
+			)
+			{
+				return sprintf( "%s-%02d", $this->year4( $year ), $month );
+			}
+		}
+		throw new TransformationException(0, 'datedaymonthyeardk');
+	}
 
+	/**
+	 * Transforms Indian date based on the Gregorian Calendar in the order "month year" (using Hindi names for Gregorian months; 
+	 * e.g. सितंबर 2012) and either Arabic or Devanagari numerals; e.g. सितंबर २०१२) into W3C/ISO date standard "YYYY-MM" format. 
+	 * Accepts double digits for year.
+	 * @param string $arg Indian date based on the Gregorian Calendar in the order "month year".
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearin( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->monthyearInPattern}~u", $arg, $matches );
+		if ( $match && count( $matches ) == 3 )
+			return sprintf( "%s-%02d", $this->year4( $this->devanagariDigitsToNormal( $matches[2] ) ), $this->gregorianHindiMonthNumber[ $matches[1] ] );
 
-	private function dateyearmonthday( $arg ) // (Y)Y(YY)*MM*DD allowing kanji full-width numeral 
-	{}
+	   throw new TransformationException(0, 'datedaymonthyeardk');
+	}
 
+	/**
+	 * Transforms numeric date in the order "year month day", with non-numeric separators, into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. The result must be a 
+	 * valid xs:date, so for example, "09.02.30" is not permitted.
+	 * @param string $arg Numeric date in the order "year month day".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
+	private function dateyearmonthday( $arg ) 
+	{
+		$digits = $this->jpDigitsToNormal( $arg );
+		$digits = $this->devanagariDigitsToNormal( $digits );
+		$match = preg_match( "~{$this->yearmonthdayPattern}~u", $digits, $matches );
+		if ( $match && count( $matches ) == 4 )
+		{
+			$year = $this->year4( $matches[1] );
+			$month = $matches[2];
+			$day = $matches[3];
+			if ( $this->checkDate( $year, $month, $day ) )
+				return sprintf( "%s-%02d-%02d", $year, $month, $day );
+		}
+
+		throw new TransformationException(0, 'dateyearmonthday');
+	}
+
+	/**
+	 * Transforms Indian number with dot (".") fraction separator and a comma after first 3 digits (after thousand) and then comma after 
+	 * each 2 digits (e.g. "1,00,00,000") into non-negative number based on schema-defined decimal format.
+	 * @param string $arg Indian numeric value with a comma after first 3 digits (after thousand) and then comma after each 2 digits.
+	 * @return string ixt:nonNegativeDecimalType
+	 * @throws TransformationException
+	 */
 	private function numdotdecimalin( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->numDotDecimalInPattern}~", $arg, $matches ); // (Y)Y(YY)*MM*DD with kangu full-width numerals
+		if ( $match )
+		{
+			$fract = strpos( $matches[ count( $matches ) - 1 ], '.' ) === 0
+				? $matches[ count( $matches ) - 1 ]
+				: '';
+			return str_replace( "\u{a0}", '', str_replace( ' ', '', str_replace( ',', '', $matches[1] ) ) ) . $fract;
+		}
 
+		throw new TransformationException(0, 'numdotdecimalin');
+	}
+
+	/**
+	 * Transforms Indian mixed string monetary value with string unit indicators and with a comma after first 3 digits (after thousand) and 
+	 * then comma after each 2 digits (e.g. "1,000 rupees 50 paise") into non-negative number based on schema-defined decimal format.
+	 * @param string $arg Indian Monetary format with one or more unit string suffixes.
+	 * @return string ixt:nonNegativeDecimalType
+	 * @throws TransformationException
+	 */
 	private function numunitdecimalin( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->numUnitDecimalInPattern}~", $arg, $matches );
+		if ( $match )
+		{
+			return str_replace( "\u{a0}", '', str_replace( ' ', '', str_replace( ',', '', $matches[1] ) ) );
+		}
 
+		throw new TransformationException(0, 'numunitdecimalin');
+	}
+
+	/**
+	 * Transforms Bulgarian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 февруари" is not permitted.
+	 * @param string $arg Bulgarian date in the order "day month".
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthbg( $arg )
-	{}
+	{
+		
+	}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthcs( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthde( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthel( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthes( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthet( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthfi( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthfr( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthhr( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthit( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthlv( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthnl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthno( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthpl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthpt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthro( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthsk( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthsl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthroman( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearTR4( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearbg( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearcs( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearde( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearel( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyeares( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearet( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearfi( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearfr( $arg )
 	{}
 
+	/**
+	 * Transforms Indian date based on the Gregorian Calendar in the order "day month year" (using Hindi names for Gregorian months; 
+	 * e.g. "19 सितंबर 2012"; either Arabic or Devanagari numerals for day and year; e.g. "१९ सितंबर २०१२"; or using Devanagari numerals 
+	 * throughout; e.g. "१९ ०९ २०१२") into W3C/ISO date standard "YYYY-MM-DD" format. Accepts single digits for month and double digits for year.
+	 * @param string $arg Indian date based on Gregorian Calendar in the order "day month year".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearinTR4( $arg )
-	{}
+	{
+		return $this->datedaymonthyearin( $arg, $this->daymonthyearInPatternTR4 );
+	}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearhr( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearit( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearnl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearno( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearpl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearpt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearro( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearsk( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearsl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datedaymonthyearroman( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthdayhu( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthdaylt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearTR4( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearbg( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearcs( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearde( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearel( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyeares( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearet( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearfi( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearfr( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearhr( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearit( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearnl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearno( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearpl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearpt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearro( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearsk( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearsl( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function datemonthyearroman( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyeardaymonthlv( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthTR4( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthhu( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthdayhu( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthdaylt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthlt( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function dateyearmonthlv( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function fixedzero( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function numcommadecimalTR4( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function numdotdecimalTR4( $arg ) // relax requirement for 0 before decimal
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function numdotdecimalinTR4( $arg )
 	{}
 
+	/**
+	 * @param string $arg 
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
 	private function numunitdecimalTR4( $arg )
 	{}
 
@@ -1670,7 +2391,33 @@ function tests()
 	// $x = $transformInstance->transform('numcommadecimal', '300 000,12' );
 	// $x = $transformInstance->transform('numdotdecimal', '300 000.12' );
 	// $x = $transformInstance->transform('zerodash', '-' );
-	$x = $transformInstance->transform('numunitdecimal', '12 Euro 43 Cent' ); // Don't understand this one
+	// $x = $transformInstance->transform('numunitdecimal', '12 Euro 43 Cent' ); // Don't understand this one
+
+	$transformInstance->setTransformVersion(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV3 ] );
+	// $x = $transformInstance->transform('calindaymonthyear', '11 पौष 1921' );
+	// $x = $transformInstance->transform('calindaymonthyear', '११ पौष १९२१' ); 
+	// $x = $transformInstance->transform('calindaymonthyear', '11 Pausha 1921' ); 
+	// $x = $transformInstance->transform('datedaymonthdk', '28. februar' ); 
+	// $x = $transformInstance->transform('datedaymonthyeardk', '28. februar 2009' ); 
+	// $x = $transformInstance->transform('datedaymonthyearin', '19 सितंबर 2012' );
+	// $x = $transformInstance->transform('datedaymonthyearin', '१९ सितंबर २०१२' ); 
+	// $x = $transformInstance->transform('datedaymonthyearin', '१९ ०९ २०१२' ); 
+	// $x = $transformInstance->transform('datemonthyear', '03z2019' ); 
+	// $x = $transformInstance->transform('datemonthyeardk', 'Jan. 2019' ); 
+	// $x = $transformInstance->transform('datemonthyearin', 'सितंबर 2012' );
+	// $x = $transformInstance->transform('datemonthyearin', 'सितंबर २०१२' );
+	// $x = $transformInstance->transform('dateyearmonthday', '2019 09 01' );
+	// $x = $transformInstance->transform('dateyearmonthday', '2019 ०९ 01' );
+	// $x = $transformInstance->transform('numdotdecimalin', '1,00,00,000.21' );
+	// $x = $transformInstance->transform('numdotdecimalin', '1,000.21' );
+	// $x = $transformInstance->transform('numdotdecimalin', '1,000' );
+	// $x = $transformInstance->transform('numdotdecimalin', '10' );
+	// $x = $transformInstance->transform('numdotdecimalin', '10.21' );
+	// $x = $transformInstance->transform('numunitdecimalin', '1,000 rupees 50 paise' );
+	// $x = $transformInstance->transform('numunitdecimalin', '1,00,000 rupees 50 paise' );
+	// $x = $transformInstance->transform('numunitdecimalin', '10 rupees 50 paise' );
+
+	$x = $transformInstance->transform('numunitdecimalin', '10 rupees 50 paise' );
 
 	echo "$x\n";
 }
