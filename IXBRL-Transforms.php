@@ -102,6 +102,7 @@ class IXBRL_Transforms
 	private $daymonthPtPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]{0,6}[ \t\n\r]*$';
 	private $daymonthRomanPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^XVIxvi]((I?(X|V|I)I{0,3})|(i?(x|v|i)i{0,3}))[ \t\n\r]*$';
 	private $daymonthRoPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]{0,7}[ \t\n\r]*$';
+	private $daymonthSePattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]{0,6}[ \t\n\r]*$';
 	private $daymonthSkPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]{0,6}[ \t\n\r]*$';
 	private $daymonthSlPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]{0,6}[ \t\n\r]*$';
 	private $daymonthyearBgPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ян|фев|мар|апр|май|маи|юни|юли|авг|сеп|окт|ное|дек|ЯН|ФЕВ|МАР|АПР|МАЙ|МАИ|ЮНИ|ЮЛИ|АВГ|СЕП|ОКТ|НОЕ|ДЕК|Ян|Фев|Мар|Апр|Май|Маи|Юни|Юли|Авг|Сеп|Окт|Ное|Дек)[A-Za-z]*[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$';
@@ -128,6 +129,7 @@ class IXBRL_Transforms
 	private $daymonthyearPlPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^0-9a-zA-Z]+(sty|lut|mar|kwi|maj|cze|lip|sie|wrz|paź|paz|lis|gru|STY|LUT|MAR|KWI|MAJ|CZE|LIP|SIE|WRZ|PAŹ|PAZ|LIS|GRU|Sty|Lut|Mar|Kwi|Maj|Cze|Lip|Sie|Wrz|Paź|Paz|Lis|Gru)[^0-9]+([0-9]{1,2}|[0-9]{4})[^0-9]*[ \t\n\r]*$';
 	private $daymonthyearPtPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearRomanPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]*[^XVIxvi]((I?(X|V|I)I{0,3})|(i?(x|v|i)i{0,3}))[^XVIxvi][^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
+	private $daymonthyearSePattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearRoPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearSkPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $daymonthyearSlPattern = '^[ \t\n\r]*([0-9]{1,2})[^0-9]+(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
@@ -154,8 +156,10 @@ class IXBRL_Transforms
 	private $monthyearPtPattern = '^[ \t\n\r]*(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez|JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ|Jan|Fev|Mar|Abr|Mai|Jun|Jul|Ago|Set|Out|Nov|Dez)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearRomanPattern = '^[ \t\n\r]*((I?(X|V|I)I{0,3})|(i?(x|v|i)i{0,3}))[^XVIxvi][^0-9]*([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearRoPattern = '^[ \t\n\r]*(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
+	private $monthyearSePattern = '^[ \t\n\r]*(ian|feb|mar|apr|mai|iun|iul|aug|sep|oct|noi|nov|dec|IAN|FEB|MAR|APR|MAI|IUN|IUL|AUG|SEP|OCT|NOI|NOV|DEC|Ian|Feb|Mar|Apr|Mai|Iun|Iul|Aug|Sep|Oct|Noi|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearSkPattern = '^[ \t\n\r]*(jan|feb|mar|apr|máj|maj|jún|jun|júl|jul|aug|sep|okt|nov|dec|JAN|FEB|MAR|APR|MÁJ|MAJ|JÚN|JUN|JÚL|JUL|AUG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Máj|Maj|Jún|Jun|Júl|Jul|Aug|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 	private $monthyearSlPattern = '^[ \t\n\r]*(jan|feb|mar|apr|maj|jun|jul|avg|sep|okt|nov|dec|JAN|FEB|MAR|APR|MAJ|JUN|JUL|AVG|SEP|OKT|NOV|DEC|Jan|Feb|Mar|Apr|Maj|Jun|Jul|Avg|Sep|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
+	private $monthyearLvPattern = '^[ \t\n\r]*(janv|febr|marts|apr|maijs|jūn|jun|jūl|jul|aug|sept|okt|nov|dec|JANV|FEBR|MARTS|APR|MAIJS|JŪN|JUN|JŪL|JUL|AUG|SEPT|OKT|NOV|DEC|Janv|Febr|Marts|Apr|Maijs|Jūn|Jun|Jūl|Jul|Aug|Sept|Okt|Nov|Dec)[^0-9]+([0-9]{1,2}|[0-9]{4})[ \t\n\r]*$';
 
 	# TR1-only patterns, only allow space separators, no all-CAPS month name, only 2 or 4 digit years
 	private $dateLongUkTR1Pattern = '^[ \t\n\r]*(\d|\d{2,2}) (January|February|March|April|May|June|July|August|September|October|November|December) (\d{2,2}|\d{4,4})[ \t\n\r]*$';
@@ -521,6 +525,7 @@ class IXBRL_Transforms
 				'date-day-monthname-pl' => 'datedaymonthpl',
 				'date-day-monthname-pt' => 'datedaymonthpt',
 				'date-day-monthname-ro' => 'datedaymonthro',
+				'date-day-monthname-se' => 'datedaymonthse',
 				'date-day-monthname-sk' => 'datedaymonthsk',
 				'date-day-monthname-sl' => 'datedaymonthsl',
 				'date-day-monthname-sv' => 'datedaymonthdk',
@@ -544,9 +549,10 @@ class IXBRL_Transforms
 				'date-day-monthname-year-pl' => 'datedaymonthyearpl',
 				'date-day-monthname-year-pt' => 'datedaymonthyearpt',
 				'date-day-monthname-year-ro' => 'datedaymonthyearro',
+				'date-day-monthname-year-se' => 'datedaymonthyearse',
 				'date-day-monthname-year-sk' => 'datedaymonthyearsk',
 				'date-day-monthname-year-sl' => 'datedaymonthyearsl',
-				'date-day-monthname-year-sv' => 'datedaymonthyeardk',
+				'date-day-monthname-year-dk' => 'datedaymonthyeardk',
 				'date-day-monthroman-year' => 'datedaymonthyearroman',
 				'date-ind-day-monthname-year-hi' => 'calindaymonthyear',
 				'date-jpn-era-year-month-day' => 'dateerayearmonthdayjp',
@@ -576,9 +582,11 @@ class IXBRL_Transforms
 				'date-monthname-year-pl' => 'datemonthyearpl',
 				'date-monthname-year-pt' => 'datemonthyearpt',
 				'date-monthname-year-ro' => 'datemonthyearro',
+				'date-monthname-year-se' => 'datemonthyearse',
 				'date-monthname-year-sk' => 'datemonthyearsk',
 				'date-monthname-year-sl' => 'datemonthyearsl',
-				'date-monthname-year-sv' => 'datemonthyeardk',
+				'date-monthname-year-dk' => 'datemonthyeardk',
+				'date-monthname-year-lv' => 'datemonthyearlv',
 				'date-monthroman-year' => 'datemonthyearroman',
 				'date-year-day-monthname-lv' => 'dateyeardaymonthlv',
 				'date-year-month' => 'dateyearmonthTR4',
@@ -658,7 +666,7 @@ class IXBRL_Transforms
 			$_day = $matches[ $options['day'] ];
 			$_month = $matches[ $options['month'] ];
 			if ( ! $options['moTbl'] ) $options['moTbl'] = $this->monthnumber;
-			$_month = $options['moTbl'][ strtolower( $_month ) ] ?? $_month;
+			$_month = $options['moTbl'][ mb_strtolower( $_month ) ] ?? $_month;
 			if ( $this->checkDate( $_year, $_month, $_day ) )
 				return sprintf( '%s-%02d-%02d', $this->year4( $_year ), $_month, $_day );
 			}
@@ -680,16 +688,16 @@ class IXBRL_Transforms
 	 */
 	private function datedaymonth( $arg, $pattern, $options = array() )
 	{
-		$options = array_merge( array( 'day' => 1, 'month' => 2, 'count' => 3, 'moTbl' => null ), $options );
-		$match = preg_match( "~{$pattern}~", $arg, $matches );
+		$options = array_merge( array( 'day' => 1, 'month' => 2, 'count' => 3, 'moTbl' => null, 'reOption' => '' ), $options );
+		$match = preg_match( "~{$pattern}~{$options['reOption']}", $arg, $matches );
 
 		if ( $match && count( $matches ) == $options['count'] )
 		{
 			$_day = $matches[ $options['day'] ];
 			$_month = $matches[ $options['month'] ];
 			if ( ! $options['moTbl'] ) $options['moTbl'] = $this->monthnumber;
-			$_month = $options['moTbl'][ strtolower( $_month ) ] ?? $_month;
-			if ( '01' <= $this->maxDayInMo[ $_month ] ?? '00' )
+			$_month = $options['moTbl'][ mb_strtolower( $_month ) ] ?? $_month;
+			if ( $_day <= $this->maxDayInMo[ $_month ] ?? '00' )
 				return sprintf( '--%02d-%02d', $_month, $_day );
 			}
 
@@ -708,7 +716,7 @@ class IXBRL_Transforms
 	 * 		$count
 	 * @return string
 	 */
-	private function datemonthyear( $arg, $pattern, $options )
+	private function datemonthyear( $arg, $pattern, $options = array() )
 	{
 		$options = array_merge( array( 'year' => 1, 'month' => 2, 'count' => 3, 'moTbl' => null ), $options );
 		$match = preg_match( "~{$pattern}~", $arg, $matches );
@@ -718,7 +726,7 @@ class IXBRL_Transforms
 			$_year = $this->year4( $matches[ $options['year'] ] );
 			$_month = $matches[ $options['month'] ];
 			if ( ! $options['moTbl'] ) $options['moTbl'] = $this->monthnumber;
-			$_month = $options['moTbl'][ strtolower( $_month ) ] ?? $_month;
+			$_month = $options['moTbl'][ mb_strtolower( $_month ) ] ?? $_month;
 			return sprintf( '%s-%02d', $_year, $_month );
 		}
 		throw new TransformationException( 0, 'xs:gYearMonth' );	
@@ -867,6 +875,14 @@ class IXBRL_Transforms
 				return sprintf( "%s-%02d-%02d", $_year, $_month, $_day );
 		}
 		throw new TransformationException( 0, 'xs:date' );	
+	}
+
+	private function canonicalNumber( $arg )
+	{
+		$match = preg_match( $this->numCanonicalizationPattern, $arg, $matches );
+		if ( $matches )
+        	return ( $matches[1] ?? "0" ) . ( $matches[4] ?? "");
+    	return $arg;
 	}
 
 	#endregion
@@ -1729,234 +1745,361 @@ class IXBRL_Transforms
 	 * Transforms Bulgarian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
 	 * The result must be a valid xs:gMonthDay so, for example, "30 февруари" is not permitted.
 	 * @param string $arg Bulgarian date in the order "day month".
-	 * @return string xs:gYearMonth
+	 * @return string xs:gMonthDay
 	 * @throws TransformationException
 	 */
 	private function datedaymonthbg( $arg )
 	{
-		
+		return $this->datedaymonth( $arg, $this->daymonthBgPattern, array( 'reOption' => 'u' ) );
 	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Czech date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. února" is not permitted.
+	 * @param string $arg Czech date in the order "day month".
+	 * @return string xs:gMonthDay
 	 * @throws TransformationException
 	 */
 	private function datedaymonthcs( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthCsPattern, array( 'reOption' => 'u', 'moTbl' => $this->monthnumbercs ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms German date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. Februar" is not permitted.
+	 * @param string $arg German date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthde( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthDePattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Greek date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 Φεβρουαρίου" is not permitted.
+	 * @param string $arg Greek date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthel( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthElPattern, array( 'reOption' => 'u', 'moTbl' => $this->monthnumber ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Spanish date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 de febrero" is not permitted.
+	 * @param string $arg Spanish date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthes( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthEsPattern );
+	}
 
 	/**
+	 * Transforms Estonian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. veebruar" is not permitted.
 	 * @param string $arg 
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthet( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthEtPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Finnish date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. helmikuuta" is not permitted.
+	 * @param string $arg Finnish date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthfi( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthFiPattern, array( 'moTbl' => $this->monthnumberfi ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms French date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 février" is not permitted.
+	 * @param string $arg French date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthfr( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthFrPattern );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
-	 * @throws TransformationException
-	 */
-	/**
-	 * @param string $arg 
+	 * Transforms Croatian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. veljače" is not permitted.
+	 * @param string $arg Croatian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthhr( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthHrPattern, array( 'moTbl' => $this->monthnumberhr ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Italian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 febbraio" is not permitted.
+	 * @param string $arg Italian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthit( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthItPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Latvian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. februāris" is not permitted.
+	 * @param string $arg Latvian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthlv( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthLvPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Dutch date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 februari" is not permitted.
+	 * @param string $arg Dutch date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthnl( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthNlPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Norwegian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. februar" is not permitted.
+	 * @param string $arg Norwegian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthno( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthNoPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Polish date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. lutego" is not permitted.
+	 * @param string $arg Polish date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthpl( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthPlPattern, array( 'moTbl' => $this->monthnumberpl ) );		
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Portuguese date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 de fevereiro" is not permitted.
+	 * @param string $arg Portuguese date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthpt( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthPtPattern );		
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Romanian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 februarie" is not permitted.
+	 * @param string $arg Romanian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthro( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthRoPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Swedish date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 februari" is not permitted.
+	 * @param string $arg Romanian date in the order "day month".
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
+	private function datedaymonthse( $arg )
+	{
+		return $this->datedaymonth( $arg, $this->daymonthSePattern );
+	}
+
+	/**
+	 * Transforms Slovak date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. februára" is not permitted.
+	 * @param string $arg Slovak date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthsk( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthSkPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Slovenian date in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30. februar" is not permitted.
+	 * @param string $arg Slovenian date in the order "day month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthsl( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthSlPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms date using Roman numerals for month in the order "day month" into W3C/ISO recurring date standard "--MM-DD" format. 
+	 * The result must be a valid xs:gMonthDay so, for example, "30 II" is not permitted.
+	 * @param string $arg Date in the order "day month" using Roman numerals for month.
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datedaymonthroman( $arg )
-	{}
+	{
+		return $this->datedaymonth( $arg, $this->daymonthRomanPattern, array( 'count' => 5, 'moTbl' => $this->monthnumberroman ) );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms numeric date in the order "day month year", with non-numeric separators, into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. The result must be a 
+	 * valid xs:date so, for example, "30.02.09" is not permitted.
+	 * @param string $arg Numeric date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearTR4( $arg )
-	{}
+	{
+		$digits = $this->jpDigitsToNormal( $arg );
+		$digits = $this->devanagariDigitsToNormal( $digits );
+
+		return $this->datedaymonthyear( $digits, $this->daymonthyearPattern );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Bulgarian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. @REVIEW Two-digit years are 
+	 * assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. The result must be a valid xs:date so, f
+	 * or example, "30 февруари 2008 г." is not permitted.
+	 * @param string $arg Bulgarian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearbg( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearCsPattern, array( 'moTbl' => $this->monthnumbercs ) );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Czech date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 
+	 * 2000 and 2009. The result must be a valid xs:date so, for example, "30. února 2008" is not permitted.
+	 * @param string $arg Czech date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearcs( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearCsPattern, array( 'moTbl' => $this->monthnumbercs ) );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms German date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. Februar 2008" is not permitted.
+	 * @param string $arg German date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearde( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearDePattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Greek date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 
+	 * 2000 and 2009. The result must be a valid xs:date so, for example, "30 Φεβρουαρίου 2008" is not permitted.
+	 * @param string $arg Greek date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearel( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearElPattern );		
+	}
 
 	/**
+	 * Transforms Spanish date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 de febrero de 2008" is not permitted.
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyeares( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearEsPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Estonian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. veebruar 2008" is not permitted.
+	 * @param string $arg Estonian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearet( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearEtPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Finnish date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. helmikuuta 2008" is not permitted.
+	 * @param string $arg Finnish date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearfi( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearFiPattern, array( 'moTbl' => $this->monthnumberfi ) );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms French date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 février 2008" is not permitted.
+	 * @param string $arg French date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearfr( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearFrPattern );		
+	}
 
 	/**
 	 * Transforms Indian date based on the Gregorian Calendar in the order "day month year" (using Hindi names for Gregorian months; 
@@ -1972,348 +2115,591 @@ class IXBRL_Transforms
 	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Croatian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. veljače 2008" is not permitted.
+	 * @param string $arg Croatian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearhr( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearHrPattern, array( 'moTbl' => $this->monthnumberhr ) );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Italian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 febbraio 2008" is not permitted.
+	 * @param string $arg Italian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearit( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearItPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Dutch date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 februari 2008" is not permitted.
+	 * @param string $arg Dutch date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearnl( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearNlPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Norwegian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. februar 2008" is not permitted.
+	 * @param string $arg Norwegian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearno( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearNoPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Polish date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. lutego 2008 r" is not permitted.
+	 * @param string $arg Polish date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearpl( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearPlPattern, array( 'moTbl' => $this->monthnumberpl ) );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Portuguese date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 de fevereiro de 2008" is not permitted.
+	 * @param string $arg Portuguese date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearpt( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearPtPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Romanian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 februarie 2008" is not permitted.
+	 * @param string $arg Romanian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearro( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearRoPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Swedish date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 februari 2009" is not permitted.
+	 * @param string $arg Swedish date in the order "day month year".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
+	private function datedaymonthyearse( $arg )
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearSePattern );		
+	}
+
+	/**
+	 * Transforms Slovak date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. februára 2008" is not permitted.
+	 * @param string $arg Slovak date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearsk( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearSkPattern );		
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Slovenian date in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30. februar 2008" is not permitted.
+	 * @param string $arg Slovenian date in the order "day month year".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearsl( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearSlPattern );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms date using Roman numerals in the order "day month year" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "30 II 2008" is not permitted.
+	 * @param string $arg Date in the order "day month year" using Roman numerals for month.
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datedaymonthyearroman( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->daymonthyearRomanPattern, array( 'count' => 8, 'year' => 8, 'moTbl' => $this->monthnumberroman ) );		
+	}
 
 	/**
+	 * Not specified
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datemonthdayhu( $arg )
-	{}
+	{
+		throw new TransformationException(0, 'This transform is not specified');
+	}
 
 	/**
+	 * Not specified
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function datemonthdaylt( $arg )
-	{}
+	{
+		// return $this->datemonthyear( $arg, $this->daymonthyearLtPattern, array( 'moTbl' => $this->monthnumberlt ) );
+		throw new TransformationException(0, 'This transform is not specified');
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms numeric date in the order "month year", with non-numeric separator, into W3C/ISO date standard "YYYY-MM" format.
+	 * @param string $arg Numeric date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
-	private function datemonthyearTR4( $arg )
-	{}
+	private function datemonthyearTR4( $arg, $pattern = null, $table = null )
+	{
+		$digits = $this->jpDigitsToNormal( $arg );
+		$digits = $this->devanagariDigitsToNormal( $digits );
+
+		return $this->datemonthyear( $digits, $pattern ? $pattern :$this->monthyearPattern, array( 'year' => 2, 'month' => 1, 'moTbl' => $table ? $table : $this->monthnumber ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Utility funtion for TR4 month name/year transforms
+	 * @param string $arg
+	 * @param string [$pattern]
+	 * @param string [$table]
+	 * @return void
+	 */
+	private function tr4MonthnameYear( $arg, $pattern = null, $table = null )
+	{
+		return $this->datemonthyear( $arg, $pattern ? $pattern :$this->monthyearPattern, array( 'year' => 2, 'month' => 1, 'moTbl' => $table ? $table : $this->monthnumber ) );
+	}
+
+	/**
+	 * Transforms Bulgarian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Bulgarian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearbg( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearBgPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Czech date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Czech date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearcs( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearCsPattern, $this->monthnumbercs );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms German date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg German date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearde( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearDePattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Greek date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Greek date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearel( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearElPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Spanish date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Spanish date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyeares( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearEsPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Estonian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Estonian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearet( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearEtPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Finnish date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Finnish date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearfi( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearFiPattern, $this->monthnumberfi );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms French date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg French date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearfr( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearFrPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Croatian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Croation date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearhr( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearHrPattern,  $this->monthnumberhr );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Italian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Italian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearit( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearItPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Dutch date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Dutch date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearnl( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearNlPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Norwegian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Norwegian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearno( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearNoPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Polish date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Polish date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearpl( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearPlPattern, $this->monthnumberpl );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Portuguese date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Portugese date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearpt( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearPtPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Romanian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Romanian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearro( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearRoPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Swedish date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Slovakian date in the order "month year".
+	 * @return string xs:gYearMonth
+	 * @throws TransformationException
+	 */
+	private function datemonthyearse( $arg )
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearSePattern );
+	}
+
+	/**
+	 * Transforms Slovak date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Slovakian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearsk( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearSkPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Slovenian date in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Slovinian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearsl( $arg )
-	{}
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearSlPattern );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms date using Roman numerals in the order "month year" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Roman date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function datemonthyearroman( $arg )
-	{}
+	{
+		return $this->datemonthyear( $arg, $this->monthyearRomanPattern, array( 'year' => 2, 'month' => 1, 'count' => 7, 'moTbl' => $this->monthnumberroman ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Latvian date in the order "year day month" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "2008. gada 30. februāris" is not permitted.
+	 * @param string $arg Latvian date in the order "month year".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
-	private function dateyeardaymonthlv( $arg )
-	{}
+	private function datemonthyearlv( $arg )
+	{
+		return $this->tr4MonthnameYear( $arg, $this->monthyearLvPattern );
+	}
 
 	/**
+	 * 
 	 * @param string $arg 
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthTR4( $arg )
-	{}
+	{
+		$digits = $this->jpDigitsToNormal( $arg );
+		$digits = $this->devanagariDigitsToNormal( $digits );
+
+		return $this->datemonthyear( $digits, $this->yearmonthPattern );
+	}
 
 	/**
+	 * Transforms Latvian date in the order "year day month" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 
+	 * 2000 and 2009. The result must be a valid xs:date so, for example, "2008. gada 30. februāris" is not permitted.
+	 * @param string $arg Hungarian date in the order "year month".
+	 * @return string xs:date
+	 * @throws TransformationException
+	 */
+	private function dateyeardaymonthlv( $arg )
+	{
+		$this->datedaymonthyear( $arg, $this->yeardaymonthLvPattern, array( 'year' => 1, 'day' => 2, 'month' => 3, 'count' => 4 ) );
+	}
+
+	/**
+	 * Transforms Hungarian date in the order "year month" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
 	 * @param string $arg 
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthhu( $arg )
-	{}
+	{
+		return $this->datemonthyear( $arg, $this->yearmonthHuPattern );
+	}
 
 	/**
+	 * Transforms Hungarian date in the order "year month day" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "2008. február 30" is not permitted.
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthdayhu( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->yearmonthdayHuPattern, array( 'year' => 1, 'day' => 3, 'month' => 2 ) );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms Lithuanian date in the order "year month day" into W3C/ISO date standard "YYYY-MM-DD" format. 
+	 * @REVIEW Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009. 
+	 * The result must be a valid xs:date so, for example, "2008 m. Vasaris 30 d" is not permitted.
+	 * @param string $arg Lithuanian date in the order "year month day".
+	 * @return string xs:date
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthdaylt( $arg )
-	{}
+	{
+		return $this->datedaymonthyear( $arg, $this->yearmonthdayLtPattern, array( 'year' => 1, 'day' => 3, 'month' => 2, 'moTbl' => $this->monthnumberlt ) );
+	}
 
 	/**
+	 * Transforms Lithuanian date in the order "year month" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
 	 * @param string $arg 
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthlt( $arg )
-	{}
+	{
+		return $this->datemonthyear( $arg, $this->yearmonthLtPattern, array( 'year' => 1, 'month' => 2, 'moTbl' => $this->monthnumberlt ) );
+	}
 
 	/**
-	 * @param string $arg 
+	 * Transforms Latvian date in the order "year month" into W3C/ISO date standard "YYYY-MM" format. 
+	 * Two-digit years are assumed to fall between 2000 and 2099 and one-digit years to fall between 2000 and 2009.
+	 * @param string $arg Latvian date in the order "year month".
 	 * @return string xs:gYearMonth
 	 * @throws TransformationException
 	 */
 	private function dateyearmonthlv( $arg )
-	{}
+	{
+		return $this->datemonthyear( $arg, $this->yearmonthLvPattern, array( 'year' => 1, 'month' => 2 ) );
+	}
 
 	/**
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string ixt:nonNegativeDecimalType
 	 * @throws TransformationException
 	 */
 	private function fixedzero( $arg )
-	{}
+	{
+		return '0';
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms number with comma (",") fraction separator and optional thousands separators into non-negative number based on schema-defined decimal format.
+	 * @param string $arg The numeric value with comma decimal separator.
+	 * @return string ixt:nonNegativeDecimalType
 	 * @throws TransformationException
 	 */
 	private function numcommadecimalTR4( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->numCommaDecimalTR4Pattern}~", $arg );
+		if ( $match )
+			return str_replace( "\u{00A0}", '', str_replace( ' ', '', str_replace( ',', '.', str_replace( '.', '', $arg ) ) ) );
+		throw new TransformationException( 0, 'ixt:nonNegativeDecimalType (numcommadecimalTR4)' );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms number with dot (".") fraction separator and optional thousands separators into non-negative number based on schema-defined decimal format.
+	 * @param string $arg The numeric value with dot decimal separator.
+	 * @return string ixt:nonNegativeDecimalType
 	 * @throws TransformationException
 	 */
 	private function numdotdecimalTR4( $arg ) // relax requirement for 0 before decimal
-	{}
+	{
+		$match = preg_match( "~{$this->numDotDecimalTR4Pattern}~", $arg );
+		if ( $match )
+			return str_replace( "\u{00A0}", '', str_replace( ' ', '', str_replace( ',', '', $arg ) ) );
+		throw new TransformationException( 0, 'ixt:nonNegativeDecimalType (numdotdecimalTR4)' );		
+	}
 
 	/**
+	 * Transforms Indian number with dot (".") fraction separator and a comma after first 3 digits (after thousand) and 
+	 * then comma after each 2 digits (e.g. "1,00,00,000") into non-negative number based on schema-defined decimal format.
 	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * @return string ixt:nonNegativeDecimalType
 	 * @throws TransformationException
 	 */
 	private function numdotdecimalinTR4( $arg )
-	{}
+	{
+		return $this->canonicalNumber( $this->numdotdecimalin( $arg ) );
+	}
 
 	/**
-	 * @param string $arg 
-	 * @return string xs:gYearMonth
+	 * Transforms mixed string monetary value with string unit indicators and optional thousands separators 
+	 * into non-negative number based on schema-defined decimal format. Supports halfwidth and fullwidth forms.
+	 * @param string $arg Monetary format with one or more unit string suffixes, with either halfwidth and fullwidth forms.
+	 * @return string ixt:nonNegativeDecimalType
 	 * @throws TransformationException
 	 */
 	private function numunitdecimalTR4( $arg )
-	{}
+	{
+		$match = preg_match( "~{$this->numUnitDecimalTR4Pattern}~u", $this->jpDigitsToNormal( $arg ), $matches );
+		if ( $match  && count( $matches) > 1 )
+			return str_replace("\{uFF0E}",'', str_replace('\uFF0C','', str_replace(',','', str_replace('.','', $matches[1] ) ) ) ) . '.' . str_pad( $matches[ count( $matches ) - 1 ], STR_PAD_LEFT );
+		throw new TransformationException( 0, 'ixt:nonNegativeDecimalType' );		
+	}
 
 	#endregion
 
@@ -2334,6 +2720,9 @@ class IXBRL_Transforms
 function tests()
 {
 	$transformInstance = IXBRL_Transforms::getInstance();
+
+	#Region TR1
+
 	$transformInstance->setTransformVersion(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV1 ] );
 	// $x = $transformInstance->transform('dateslashus', '12/31/09');
 	// $x = $transformInstance->transform('dateslasheu', '31/12/2009');
@@ -2359,6 +2748,10 @@ function tests()
 	// $x = $transformInstance->transform('dateshortyearmonth', '2009 Feb');
 	// $x = $transformInstance->transform('datelongmonthyear', 'February 2009');
 	// $x = $transformInstance->transform('dateshortmonthyear', 'Feb 2009');
+
+	#endregion
+
+	#region TR2
 
 	$transformInstance->setTransformVersion(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV2 ] );
 	// $x = $transformInstance->transform('booleantrue', 1 );
@@ -2393,6 +2786,10 @@ function tests()
 	// $x = $transformInstance->transform('zerodash', '-' );
 	// $x = $transformInstance->transform('numunitdecimal', '12 Euro 43 Cent' ); // Don't understand this one
 
+	#endregion
+
+	#region TR3
+
 	$transformInstance->setTransformVersion(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV3 ] );
 	// $x = $transformInstance->transform('calindaymonthyear', '11 पौष 1921' );
 	// $x = $transformInstance->transform('calindaymonthyear', '११ पौष १९२१' ); 
@@ -2417,7 +2814,134 @@ function tests()
 	// $x = $transformInstance->transform('numunitdecimalin', '1,00,000 rupees 50 paise' );
 	// $x = $transformInstance->transform('numunitdecimalin', '10 rupees 50 paise' );
 
-	$x = $transformInstance->transform('numunitdecimalin', '10 rupees 50 paise' );
+	#endregion
+
+	#region TR4
+
+	$transformInstance->setTransformVersion(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV4 ] );
+	// $x = $transformInstance->transform('date-day-monthname-bg', '28 февруари' );
+	// $x = $transformInstance->transform('date-day-monthname-bg', '30 февруари' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-cs', '28. února' );
+	// $x = $transformInstance->transform('date-day-monthname-cs', '30. února' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-de', '28. Februar' ); 
+	// $x = $transformInstance->transform('date-day-monthname-de', '30. Februar' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-el', '28 Φεβρουαρίου' ); 
+	// $x = $transformInstance->transform('date-day-monthname-el', '30 Φεβρουαρίου' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-es', '28 de febrero' ); 
+	// $x = $transformInstance->transform('date-day-monthname-es', '30 de febrero' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-et', '28 veebruar' ); 
+	// $x = $transformInstance->transform('date-day-monthname-et', '30 veebruar' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-fi', '28. helmikuuta' ); 
+	// $x = $transformInstance->transform('date-day-monthname-fi', '30. helmikuuta' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-fr', '28 février' ); 
+	// $x = $transformInstance->transform('date-day-monthname-fr', '30 février' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-hr', '28. veljače' ); 
+	// $x = $transformInstance->transform('date-day-monthname-fr', '30. veljače' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-it', '28 febbraio' ); 
+	// $x = $transformInstance->transform('date-day-monthname-it', '30 febbraio' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-lv', '28. februāris' ); 
+	// $x = $transformInstance->transform('date-day-monthname-lv', '30. februāris' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-nl', '28 februari' ); 
+	// $x = $transformInstance->transform('date-day-monthname-nl', '30 februari' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-no', '28. februar' ); 
+	// $x = $transformInstance->transform('date-day-monthname-no', '30. februar' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-pl', '28. lutego' ); 
+	// $x = $transformInstance->transform('date-day-monthname-pl', '30. lutego' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-pt', '28 de fevereiro' ); 
+	// $x = $transformInstance->transform('date-day-monthname-pt', '30 de fevereiro' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-ro', '28 februarie' ); 
+	// $x = $transformInstance->transform('date-day-monthname-ro', '30 februarie' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-se', '28 februari' ); 
+	// $x = $transformInstance->transform('date-day-monthname-se', '30 februari' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-sk', '28. februára' ); 
+	// $x = $transformInstance->transform('date-day-monthname-sk', '30. februára' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-sl', '28. februar' ); 
+	// $x = $transformInstance->transform('date-day-monthname-sl', '30. februar' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthroman', '28 II' ); 
+	// $x = $transformInstance->transform('date-day-monthroman', '30 II' ); // Fail
+	// $x = $transformInstance->transform('date-day-month-year', '28.02.09' ); 
+	// $x = $transformInstance->transform('date-day-month-year', '30.02.09' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-bg', '28 февруари 2008 г.' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-bg', '30 февруари 2008 г.' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-cs', '28. února 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-cs', '30. února 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-de', '28. Februar 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-de', '30. Februar 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-el', '28 Φεβρουαρίου 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-el', '30 Φεβρουαρίου 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-es', '28 de febrero de 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-es', '30 de febrero de 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-et', '28. veebruar 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-et', '30. veebruar 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-fi', '28. helmikuuta 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-fi', '30. helmikuuta 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-fr', '28 février 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-fr', '30 février 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-hr', '28. veljače 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-hr', '30. veljače 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-it', '28 febbraio 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-it', '30 febbraio 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-nl', '28 februari 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-nl', '30 februari 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-no', '28. februar  2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-no', '30. februar  2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-pl', '28. lutego 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-pl', '30. lutego 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-pt', '28 de fevereiro de 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-pt', '30 de fevereiro de 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-ro', '28 februarie 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-ro', '30 februarie 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-se', '28 februari 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-se', '30 februari 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-sk', '28. februára 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-sk', '30. februára 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthname-year-sl', '28. februar 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthname-year-sl', '30. februar 2008' ); // Fail
+	// $x = $transformInstance->transform('date-day-monthroman-year', '28 II 2008' ); 
+	// $x = $transformInstance->transform('date-day-monthroman-year', '30 II 2008' ); // Fail
+	// $x = $transformInstance->transform('date-month-year', '02 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-bg', 'февруари 2008 г.' );
+	// $x = $transformInstance->transform('date-monthname-year-cs', 'února 2008' );
+	// $x = $transformInstance->transform('date-monthname-year-de', 'Februar 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-dk', 'Februar 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-el', 'Φεβρουαρίου 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-es', 'febrero de 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-et', 'veebruar 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-fi', 'helmikuuta 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-fr', 'février 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-hr', 'veljače 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-it', 'febbraio 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-nl', 'februari 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-no', 'februar  2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-pl', 'lutego 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-pt', 'fevereiro de 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-ro', 'februarie 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-se', 'februari 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-sk', 'februára 2008' ); 
+	// $x = $transformInstance->transform('date-monthname-year-sl', 'februar 2008' );
+	// $x = $transformInstance->transform('date-monthname-year-lv', 'februar 2008' );
+	// $x = $transformInstance->transform('date-monthroman-year', 'II 2008' ); 
+
+	// $x = $transformInstance->transform('date-year-month', '2008 02' );
+	// $x = $transformInstance->transform('date-year-day-monthname-lv', '2008. gada 28. februāris' );
+	// $x = $transformInstance->transform('date-year-day-monthname-lv', '2008. gada 30. februāris' ); // Fail
+	// $x = $transformInstance->transform('date-year-month-day', '2009 10 31' );
+	// $x = $transformInstance->transform('date-year-monthname-hu', '2009 február' );
+	// $x = $transformInstance->transform('date-year-monthname-day-hu', '2009 február 28' );
+	// $x = $transformInstance->transform('date-year-monthname-en', '2008 February' );
+	// $x = $transformInstance->transform('date-year-monthname-day-lt', '2008 m. Vasaris 28 d' );
+	// $x = $transformInstance->transform('date-year-monthname-lt', '2008 m. Vasaris' );
+	// $x = $transformInstance->transform('date-year-monthname-lv', '2008 februar' );
+	// $x = $transformInstance->transform('fixed-empty', 'xxx' );
+	// $x = $transformInstance->transform('fixed-false', 'xxxx' );
+	// $x = $transformInstance->transform('fixed-true', 'xxxx' );
+	// $x = $transformInstance->transform('fixed-zero', '' );
+	// $x = $transformInstance->transform('num-comma-decimal', '123,14' );
+	// $x = $transformInstance->transform('num-dot-decimal', '123.14' );
+	// $x = $transformInstance->transform('numdotdecimalin', '1,00,00,000.12' );
+	$x = $transformInstance->transform('num-unit-decimal', '3.000 euro 5 cent' );
+
+	#endregion
 
 	echo "$x\n";
 }
