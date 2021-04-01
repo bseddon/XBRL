@@ -56,8 +56,16 @@ class TransformationException extends \Exception
 	
 class IXBRL_Transforms
 {
+	/**
+	 * Singleton instance
+	 * @var IXBRL_Transforms
+	 */
 	private static $instance = null;
 
+	/**
+	 * Returns the singleton
+	 * @return IXBRL_Transforms
+	 */
 	public static function getInstance()
 	{
 		if ( ! self::$instance )
@@ -2719,6 +2727,9 @@ class IXBRL_Transforms
  */
 function tests()
 {
+	/**
+	 * @var IXBRL_Transforms
+	 */
 	$transformInstance = IXBRL_Transforms::getInstance();
 
 	#Region TR1

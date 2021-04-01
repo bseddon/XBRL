@@ -302,10 +302,22 @@ class XBRL_Constants
 	);
 
 	/**
+	 * The current TRR namespaces
+	 */
+	public static $ixtNamespaces = array();
+
+	/**
 	 * Initialize the static class
 	 */
 	public static function __static()
 	{
+		self::$ixtNamespaces = array( 
+			\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV1 ],
+			\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV2 ],
+			\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV3 ],
+			\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXTV4 ]
+		);
+
 		$prefixes = array( STANDARD_PREFIX_SCHEMA, STANDARD_PREFIX_XBRLI, STANDARD_PREFIX_LINK, STANDARD_PREFIX_XLINK, STANDARD_PREFIX_GENERIC, STANDARD_PREFIX_XBRLDT, STANDARD_PREFIX_XBRLDI );
 		self::$standardNamespaces = $temp = array_flip( array_intersect_key( self::$standardPrefixes, array_flip( $prefixes ) ) );
 

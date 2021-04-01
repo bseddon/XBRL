@@ -24,6 +24,8 @@
 
 namespace lyquidity\ixbrl;
 
+use lyquidity\ixt\IXBRL_Transforms;
+
 require __DIR__. '/IXBRL-Transforms.php';
 
 define( "IXBRL_ELEMENT_CONTINUATION", "continuation" );
@@ -55,6 +57,7 @@ define( "IXBRL_ATTR_FROMREFS", "fromRefs" );
 define( "IXBRL_ATTR_ID", "id" );
 define( "IXBRL_ATTR_LINKROLE", "linkRole" );
 define( "IXBRL_ATTR_NAME", "name" );
+define( "IXBRL_ATTR_NIL", "nil" );
 define( "IXBRL_ATTR_PRECISION", "precision" );
 define( "IXBRL_ATTR_ORDER", "order" );
 define( "IXBRL_ATTR_SCALE", "scale" );
@@ -153,8 +156,11 @@ class XBRL_Inline
 		}
 
 		$iXBRLNamespaces = array_intersect( \XBRL_Constants::$ixbrlNamespaces, $this->getElementNamespaces() );
-
 		$this->ixPrefix = array_flip( \XBRL_Constants::$ixbrlNamespaces )[ reset( $iXBRLNamespaces ) ];
+
+		// These are two test functions
+		// $x = $this->getTRR('ixt');
+		// $result = $this->format( 'ixt:numdash', '-' );
 
 		// Any document can be IXBRL
 		$this->isIXBRL = count( $iXBRLNamespaces ) > 0;
@@ -164,6 +170,8 @@ class XBRL_Inline
 		$this->isXHTML = $ns == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] && ( $ln == IXBRL_ELEMENT_HTML || $ln == IXBRL_ELEMENT_XHTML );
 	}
 
+	private $elementNamespaces = array();
+
 	/**
 	 * Returns an array of namespaces in the document if it is valid
 	 *
@@ -172,7 +180,10 @@ class XBRL_Inline
 	 */
 	public function getElementNamespaces( $element = null)
 	{
-		return $this->getNodeValues('namespace::*', $element );
+		$path = $element ? $element->getNodePath() : '';
+		if ( ! isset( $this->elementNamespaces[ $path ] ) )
+			$this->elementNamespaces[ $path ] = $this->getNodeValues('namespace::*', $element );
+		return $this->elementNamespaces[ $path ];
 	}
 
 	/**
@@ -183,7 +194,10 @@ class XBRL_Inline
 	 */
 	public function getAllNamespaces( $element = null )
 	{
-		return $this->getNodeValues('//namespace::*', $element );
+		$path = $element ? $element->getNodePath() : '';
+		if ( ! isset( $this->elementNamespaces[ $path ] ) )
+			$this->elementNamespaces[ $path ] = $this->getNodeValues('//namespace::*', $element );
+		return $this->elementNamespaces[ $path ];
 	}
 
 	/**
@@ -254,8 +268,55 @@ class XBRL_Inline
 	}
 
 	/**
+	 * Get the TRR for a prefix
+	 * @param string $namespace
+	 * @return IXBRL_Transforms
+	 */
+	private function getTRR( $namespace )
+	{
+		if ( ! $namespace )
+			throw new IXBRLInvalidNamespaceException("A namespace has not been provided");
+
+		if ( array_search( $namespace, \XBRL_Constants::$ixtNamespaces ) === false )
+			throw new IXBRLInvalidNamespaceException("'$namespace' is not a TRR namespace");
+
+		/**
+		 * @var IXBRL_Transforms
+		 */
+		$transformInstance = IXBRL_Transforms::getInstance();
+		$transformInstance->setTransformVersion( $namespace );
+		return $transformInstance;
+	}
+
+	/**
+	 * Format a value using the requested format
+	 * @param string $formatQname The qname of the format to use
+	 * @param string $value Thev alue to be formatted
+	 * @param \DOMElement $node
+	 * @param boolean [$validate] (default: false)
+	 * @return string
+	 */
+	private function format( $formatQname, $value, $node, $validate = false )
+	{
+		list( $prefix, $localName ) = explode( ':', $formatQname );
+		try
+		{
+			$namespace = $node->lookupNamespaceURI( $prefix );
+
+			$instance = $this->getTRR( $namespace, $node );
+			$result = $instance->transform( $localName, $value );
+			return $result;
+		}
+		catch( \Exception $ex )
+		{
+			if ( $validate ) throw $ex;
+		}
+
+		return $value;
+	}
+
+	/**
 	 * Validate the current document if there is one
-	 *
 	 * @throws \Exception If there is no valid document
 	 * @throws IXBRLSchemaValidationException If there are schema violations in the structure of the document
 	 */
@@ -402,14 +463,14 @@ class XBRL_Inline
 				throw new IXBRLDocumentValidationException( 'ResourcesAbsent', 'Section 14.1.1 A <resources> element cannot be found' );			
 			}
 
-			// Get and validate the ix:header elements (8)
-			foreach( $nodesByLocalNames as $localName => $nodes )
+			// Get and validate the ix:header and other elements
+			if ( $validate )
 			{
-				foreach( $nodes as $node )
+				foreach( $nodesByLocalNames as $localName => $nodes )
 				{
-					/** @var \DOMElement $node */
-					if ( $validate )
+					foreach( $nodes as $node )
 					{
+						/** @var \DOMElement $node */
 						self::validateConstraints( $node, $localName, $nodesByLocalNames, $documents, $idNodes );
 					}
 				}
@@ -516,6 +577,36 @@ class XBRL_Inline
 	}
 
 	/**
+	 * Get the inner HTML for a node
+	 * @param \DOMNode $node
+	 * @return void
+	 */
+	private static function innerHTML( $node )
+	{
+		if ( ! ( $node instanceof \DOMNode ) ) return '';
+		return array_reduce(
+			iterator_to_array( $node->childNodes ),
+			function ( $carry, \DOMNode $child )
+			{
+				return $carry.$child->ownerDocument->saveHTML( $child );
+			}
+		 );
+	}
+
+	/**
+	 * Check the constraints
+	 * @param \DOMElement $node
+	 * @param string $localName
+	 * @param \DOMElement[][] $nodesByLocalNames
+	 * @param XBRL_Inline[] $documents
+	 * @param \DOMElement[] $idNodes
+	 * @return void
+	 */
+	public static function validateFormat( &$node, $localName, &$nodesByLocalNames, &$documents, &$idNodes )
+	{
+	}
+
+	/**
 	 * Check the constraints
 	 * @param \DOMElement $node
 	 * @param string $localName
@@ -529,41 +620,70 @@ class XBRL_Inline
 		// Provides access to the raw document and initialized xpath instance
 		$document = $documents[ $node->baseURI ];
 		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
+		$section = '';
 
-		switch( strtolower( $localName ) )
+		/**
+		 * Check parent nodes for some criteria
+		 */
+		$checkParentNodes = function( \DOMElement $node, \Closure $test )
+		{
+			$parentNode = $node->parentNode;
+			while( $parentNode && $parentNode instanceof \DOMElement )
+			{
+				if ( $test( $parentNode ) ) return $parentNode;
+				// Up another level
+				$parentNode = $parentNode->parentNode;
+			}
+			return null;
+		};
+
+		/**
+		 * Use to check the equivalence of a <nonFraction> attribute with that of any parent
+		 */
+		$checkAttributeConsistency = function( \DOMElement $node, string $attrName, string $attrValue, string $section, $errorCode = 'NonFractionNestedAttributeMismatch' ) use( &$checkParentNodes )
+		{
+			$checkParentNodes( $node, function( \DOMElement $parentNode ) use( $attrName, $attrValue, $errorCode, $section )
+			{
+				if ( $parentNode->localName != IXBRL_ELEMENT_NONFRACTION ) return false;
+				$parentAttrValue = $parentNode->getAttribute( $attrName );
+				if ( $parentAttrValue == $attrValue ) return false;
+				{
+					throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute should be consistent in nested <nonFraction> @'$attrName'" );
+				}
+				return true; // End here.  Any other parents will be checked when the parent is validated.
+			} );	
+		};
+
+		switch( $localName )
 		{
 			case IXBRL_ELEMENT_CONTINUATION:
-				// 4.1.1
+				$section = '4.1.1';
+
 				// MUST have an id attribute
 				if ( ! $node->hasAttribute(IXBRL_ATTR_ID) )
 				{
-					throw new IXBRLDocumentValidationException( 'MissingId', 'Section 4.1.1 id does not exist' );
+					throw new IXBRLDocumentValidationException( 'MissingId', "Section $section id does not exist" );
 				}
 
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				$id = $node->getAttribute( IXBRL_ATTR_ID );
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 
-				// Cannot be a descendant of <hidden>
-				// Cannot be a descendant of
-				$parentNode = $node->parentNode;
-				while( $parentNode )
+				$checkParentNodes( $node, function( $parentNode ) use( &$correspondents, $id, $node, $section )
 				{
-					if ( $parentNode->localName == IXBRL_ELEMENT_HTML ) break;
+					if ( $parentNode->localName == IXBRL_ELEMENT_HTML ) return true;
 					if ( $parentNode->localName == IXBRL_ELEMENT_HIDDEN )
 					{
-						throw new IXBRLDocumentValidationException( 'ContinuationDescendantOfHidden', 'Section 4.1.1 <continuation> is a descendant of <hidden>' );
+						throw new IXBRLDocumentValidationException( 'ContinuationDescendantOfHidden', "Section $section <continuation> is a descendant of <hidden>" );
 					}
 					if ( array_search( $parentNode->localName, $correspondents ) !== false && 
 						$parentNode->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) &&
 						$parentNode->getAttribute( IXBRL_ATTR_CONTINUEDAT ) == $id )
 					{
-						throw new IXBRLDocumentValidationException( 'ContinuationInvalidNesting', 'Section 4.1.1 <continuation> is a descendant of the referring element: \'' . $node->getNodePath() . '\' -> \'' . $parentNode->getNodePath() . '\'' );
+						throw new IXBRLDocumentValidationException( 'ContinuationInvalidNesting', "Section $section <continuation> is a descendant of the referring element: " . $node->getNodePath() . " -> '" . $parentNode->getNodePath() . "'" );
 					}
-
-					// Up another level
-					$parentNode = $parentNode->parentNode;
-				}
+					return false;
+				} );
 
 				$foundContinuedAt = false;
 				foreach( $correspondents as $localName )
@@ -574,7 +694,7 @@ class XBRL_Inline
 						$cAt = $lnNode->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 						if ( $continuedAt && $cAt && $continuedAt == $cAt )
 						{
-							throw new IXBRLDocumentValidationException( 'ContinuedAtDuplicated', 'Section 4.1.1 continuedAt attribute value is duplicated: \'' . $node->getNodePath() . '\' -> \'' . $lnNode->getNodePath() . '\'' );
+							throw new IXBRLDocumentValidationException( 'ContinuedAtDuplicated', "Section $section continuedAt attribute value is duplicated: " . $node->getNodePath() . " -> " . $lnNode->getNodePath() . "'" );
 						}
 						if ( ! $foundContinuedAt && $cAt && $id == $cAt )
 						{
@@ -585,7 +705,7 @@ class XBRL_Inline
 
 				if ( ! $foundContinuedAt )
 				{
-					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', 'Section 4.1.1 continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt' );
+					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
 				}
 
 				self::checkContinuationCycles( $node, $continuedAt, $idNodes );
@@ -596,24 +716,22 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_EXCLUDE:
-				// 5.1.1
+				$soure = '5.1.1';
 				// The node must a descendant of 'footnote', 'nonNumeric' or 'continuation'
-				$parentNode = $node->parentNode;
-				while( $parentNode )
+				$parentNode = $checkParentNodes( $node, function( $parentNode ) use( $correspondents )
 				{
 					// Check for an allowed ancestor
-					if ( array_search( $parentNode->localName, $correspondents ) !== false ) break;
-
-					// Up another level
-					$parentNode = $parentNode->parentNode;
-				}
+					if ( array_search( $parentNode->localName, $correspondents ) !== false ) return true;
+				} );
 
 				if ( ! $parentNode )
-					throw new IXBRLDocumentValidationException( 'MisplacedExclude', 'Section 5.1.1 <exclude> is not a descendant of <footnote>, <nonNumeric> or <continuation>' );
+					throw new IXBRLDocumentValidationException( 'MisplacedExclude', "Section $section <exclude> is not a descendant of <footnote>, <nonNumeric> or <continuation>" );
 
 				break;
 
 			case IXBRL_ELEMENT_FOOTNOTE:
+
+				$section = '6.1.1';
 
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
@@ -621,7 +739,7 @@ class XBRL_Inline
 				{
 					if ( ! isset($idNodes[ $continuedAt] ) )
 					{
-						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', 'Section 11.1.1 continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt' );
+						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt" );
 					}
 					self::checkContinuationCycles( $node, $continuedAt, $idNodes );
 				}
@@ -629,38 +747,39 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_FRACTION:
+				$section = '7.1.1';
 				break;
 
 			case IXBRL_ELEMENT_HEADER:
-				// 8.1.1 
+				$section = '8.1.1'; 
 				// Must not be a child of html
 				if ( strtolower( $node->parentNode->localName ) == IXBRL_ELEMENT_HTML )
 				{
-					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 8.1.1 <header> must not be a child of <html>' );
+					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section <header> must not be a child of <html>" );
 				}
 
 				// Must have at most one <hidden> element
 				$hiddenNodes = $document->xpath->query( sprintf( "./{$document->ixPrefix}:%s", IXBRL_ELEMENT_HIDDEN ), $node );
 				if ( $hiddenNodes->count() > 1 )
 				{
-					throw new IXBRLDocumentValidationException( 'MoreThanOneElement', 'Section 8.1.1 <header> must have at most one <hidden> element' );
+					throw new IXBRLDocumentValidationException( 'MoreThanOneElement', "Section $section <header> must have at most one <hidden> element" );
 				}
 
 				// Must have at most one <resources> element
 				$resourceNodes = $document->xpath->query( sprintf( "./{$document->ixPrefix}:resources", IXBRL_ELEMENT_RESOURCES ), $node );
 				if ( $resourceNodes->count() > 1 )
 				{
-					throw new IXBRLDocumentValidationException( 'MoreThanOneElement', 'Section 8.1.1 <header> must have at most one <resources> element' );
+					throw new IXBRLDocumentValidationException( 'MoreThanOneElement', "Section $section <header> must have at most one <resources> element" );
 				}
 
 				break;
 
 			case IXBRL_ELEMENT_HIDDEN:
 
-				// 9.1.1 Must a child of header
+				$section = '9.1.1'; // Must a child of header
 				if ( $node->parentNode->localName != IXBRL_ELEMENT_HEADER )
 				{
-					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 9.1.1 <hidden> must not be a child of <header>' );
+					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section <hidden> must not be a child of <header>" );
 				}
 
 				// Children MUST be one of the allowed elements
@@ -670,15 +789,157 @@ class XBRL_Inline
 					/** @var DOMNode $childNode */
 					if ( $childNode->nodeType != XML_ELEMENT_NODE ) continue;
 					if ( array_search( $childNode->localName, $chidElements ) === false )
-						throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 8.1.1 <header> must not be a child of HTML' );
+						throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section <header> must not be a child of HTML" );
 				}
 
 				break;
 
 			case IXBRL_ELEMENT_NONFRACTION:
-				break;
+				$section = '10.1.1';
+
+				$unitRef = $node->getAttribute( IXBRL_ATTR_UNITREF );
+				$unit = $idNodes[ $unitRef ] ?? null;				
+				if ( ! $unit )
+				{
+					throw new IXBRLDocumentValidationException( 'UnknownUnit', "Section $section The unit with id '$unitRef' does not exist" );
+				}
+				$checkAttributeConsistency( $node, IXBRL_ATTR_UNITREF, $unitRef, $section );
+				$sign = $node->getAttribute( IXBRL_ATTR_SIGN );
+				if ( $sign && $sign != '-' )
+				{
+					throw new IXBRLDocumentValidationException( 'NonFractionInvalidSign', "Section $section @sign must have a value of '-'" );
+				}
+
+				$decimals = $node->getAttribute( IXBRL_ATTR_DECIMALS );
+				$precision = $node->getAttribute( IXBRL_ATTR_PRECISION );
+				$scale = $node->getAttribute( IXBRL_ATTR_SCALE );
+				$checkAttributeConsistency( $node, IXBRL_ATTR_SCALE, $scale, $section );
+
+				$nil = $node->getAttribute( 'xsi:' . IXBRL_ATTR_NIL );
+				$checkAttributeConsistency( $node, IXBRL_ATTR_NIL, $scale, $section );
+				if ( $nil && filter_var( $nil, FILTER_VALIDATE_BOOLEAN ) )
+				{
+					if ( $decimals || $precision )
+					{
+						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Nil facts should not @decimals or @precision" );
+					}
+					if ( $node->hasChildNodes() )
+					{
+						throw new IXBRLDocumentValidationException( 'InvalidNilContent', "Section $section Nil facts should not have child nodes" );
+					}
+
+					$checkAttributeConsistency( $node, 'xsi:' . IXBRL_ATTR_NIL, $nil, $section, 'NonFractionNestedNilMismatch' );
+				}
+				else
+				{
+					if ( ( ! $decimals && ! $precision ) )
+					{
+						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsAbsent', "Section $section Decimals or precision must present on <nonFraction> but neither exist." );
+					}
+	
+					if ( ( $decimals && $precision  ) )
+					{
+						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Decimals or precision must present on <nonFraction> but both exist." );
+					}
+	
+					if ( $node->childNodes->length == 0 )
+					{
+						throw new IXBRLDocumentValidationException( 'NonFractionIncompleteContent', "Section $section non fraction facts that are not nil should have exactly one child" );
+					}
+
+					if ( $node->childNodes->length > 1 )
+					{
+						throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section non fraction facts should have only one child even if some of the children are whitespace." );
+					}
+
+					/** @var \DOMNode */
+					$childNode = $node->childNodes[0];
+					if ( $childNode->nodeType == XML_TEXT_NODE )
+					{
+						if ( ! $childNode->textContent )
+						{
+							throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section A text node must not be empty" );
+						}
+					}
+					else if ( $childNode->nodeType != XML_ELEMENT_NODE || $childNode->localName != IXBRL_ELEMENT_NONFRACTION )
+					{
+						throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section non fraction child node must be a text node or <nonFraction>" );
+					}
+
+				}
+
+				// break;
 
 			case IXBRL_ELEMENT_NONNUMERIC:
+
+				$section = $section ?? '11.1.1';
+
+				// @contextRef and @name must exist - these are tested via the schema validation
+
+				// No ix attributes should appear
+				$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
+				foreach( $node->attributes as $attr )
+				{
+					/** @var \DOMAttr $attr */
+					if ( $attr->namespaceURI == $xbrliNS )
+					{
+						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', "Section $section <nonNumeric> elements must not include attributes in the xbrli namespace" );
+					}
+				}
+
+				$contextRef = $node->getAttribute('contextRef');
+				$contextNode = $idNodes[ $contextRef ] ?? null;
+				if ( ! $contextNode )
+				{
+					throw new IXBRLDocumentValidationException( 'UnknownContext', "Section $section The context with id '$contextRef' does not exist" );
+				}
+
+				$tupleRef = $node->getAttribute('tupleRef');
+				if ( $tupleRef )
+				{
+					$tupleNode = $idNodes[ $tupleRef ] ?? null;
+					if ( ! $tupleNode )
+					{
+						throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section The tuple with id '$tupleRef' does not exist " );
+					}
+				}
+
+				$escape = $node->getAttribute( IXBRL_ATTR_ESCAPE );
+				$format = $node->getAttribute( IXBRL_ATTR_FORMAT );
+				$checkAttributeConsistency( $node, IXBRL_ATTR_FORMAT, $format, $section );
+
+				$content = $escape 
+					? self::innerHTML( $node )
+					: $node->textContent;
+
+				// The content my be empty but there may be a nested node
+				if ( ! $content && ! $node->childNodes->length )
+				{
+					throw new IXBRLDocumentValidationException( 'FormatUndefined', 'Content empty' );
+				}
+
+				if ( $format )
+				{
+					try
+					{
+						$result = $document->format( $format, $content, $node, true );
+					}
+					catch( IXBRLInvalidNamespaceException $ex )
+					{
+						throw new IXBRLDocumentValidationException( 'FormatUndefined', $ex->getMessage(), 0, $ex );
+					}
+					catch( \Exception $ex )
+					{
+						throw new IXBRLDocumentValidationException( 'InvalidDataType', $ex->getMessage(), 0, $ex );
+					}
+				}
+				else
+				{
+					if ( ! is_numeric( $content ) || floatval( $content ) < 0 )
+					{
+						throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing so the content must be a positive number' );
+					}
+				}
 
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
@@ -687,13 +948,14 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_NUMERATOR:
+				$section = '7.1.1';
 				break;
 
 			case IXBRL_ELEMENT_REFERENCES:
-				// 12.1.1
+				$section = '12.1.1';
 				if ( $node->parentNode->localName != IXBRL_ELEMENT_HEADER )
 				{
-					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', 'Section 12.1.1 <references> must not be a child of <header>' );
+					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section <references> must not be a child of <header>" );
 				}
 				$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
 				foreach( $node->attributes as $attr )
@@ -701,14 +963,14 @@ class XBRL_Inline
 					/** @var \DOMAttr $attr */
 					if ( $attr->namespaceURI == $xbrliNS )
 					{
-						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', 'Section 12.1.1 <references> must not include attributes in the xbrli namespace' );
+						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', "Section $section <references> must not include attributes in the xbrli namespace" );
 					}
 				}
 				break;
 
 			case IXBRL_ELEMENT_RELATIONSHIP:
 
-				// 13.1.1
+				$section = '13.1.1';
 				$references = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_TUPLE );
 	
 				// No attributes should use the xbrli namespace
@@ -719,7 +981,7 @@ class XBRL_Inline
 					/** @var \DOMAttr $attr */
 					if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false )
 					{
-						throw new IXBRLDocumentValidationException( 'RepeatedOtherAttributes', "Section 13.1.2 A <relationship> uses an attribute from the XBRLI namespace." );
+						throw new IXBRLDocumentValidationException( 'RepeatedOtherAttributes', "Section $section A <relationship> uses an attribute from the XBRLI namespace." );
 					}
 					$attributes[ $name ] = $attr->nodeValue;
 				}
@@ -729,7 +991,7 @@ class XBRL_Inline
 				$toRefs = explode( ' ', $node->getAttribute( IXBRL_ATTR_TOREFS ) );
 				if ( array_intersect( $fromRefs, $toRefs ) )
 				{
-					throw new IXBRLDocumentValidationException( 'RelationshipCrossDuplication', "Section 13.1.2 A <relationship> attributes 'fronRefs' and 'toRefs' values overlap." );
+					throw new IXBRLDocumentValidationException( 'RelationshipCrossDuplication', "Section $section A <relationship> attributes 'fronRefs' and 'toRefs' values overlap." );
 				}
 
 				$pos = array_search( IXBRL_ELEMENT_FOOTNOTE, $references );
@@ -738,7 +1000,8 @@ class XBRL_Inline
 				// Check fromRefs and toRefs are valid
 				$validateRefs = function( $refs, $refType ) use( &$idNodes, &$references )
 				{
-					$errorMessage = "Section 13.1.2 A <relationship> attributes '$refType' values overlap.";
+					$section = '13.1.2';
+					$errorMessage = "Section $section A <relationship> attributes '$refType' values overlap.";
 					$errorCode = $refType == IXBRL_ATTR_FROMREFS ? 'DanglingRelationshipFromRef' : 'DanglingRelationshipToRef';
 
 					$localNames = array();
@@ -763,7 +1026,7 @@ class XBRL_Inline
 
 					if ( array_search( IXBRL_ELEMENT_FOOTNOTE, $localNames ) !== false && array_intersect( $references, $localNames ) )
 					{
-						throw new IXBRLDocumentValidationException( 'RelationshipMixedToRefs', 'Section 13.1.2 A <relationship> to ref is to a footnote and another iXBRL element.' );
+						throw new IXBRLDocumentValidationException( 'RelationshipMixedToRefs', "Section $section A <relationship> to ref is to a footnote and another iXBRL element." );
 					}
 				};
 
@@ -828,7 +1091,7 @@ class XBRL_Inline
 	 */
 	public static function Test()
 	{
-		if ( ! function_exists('TestInlineXBRL') ) return;
+		if ( ! function_exists('lyquidity\ixbrl\TestInlineXBRL') ) return;
 		TestInlineXBRL();
 	}
 }
@@ -938,6 +1201,13 @@ class ValidateInlineDocument
  * An iXBRL specific exception
  */
 class IXBRLException extends \Exception
+{
+}
+
+/**
+ * An iXBRL specific exception
+ */
+class IXBRLInvalidNamespaceException extends IXBRLException
 {
 }
 
@@ -1074,6 +1344,7 @@ function testCase( $dirname, $filename )
 		case "PASS-baseURI-on-ix-references-multiRefs.xml":
 
 		#endregion
+
 			return;
 
 		#region ./continuation - checked fail tests
@@ -1099,6 +1370,7 @@ function testCase( $dirname, $filename )
 		case "PASS-nonNumeric-continuation.xml":
 
 		#endregion
+
 			return;
 
 		#region ./exclude - checked fail tests
@@ -1110,6 +1382,7 @@ function testCase( $dirname, $filename )
 		case "PASS-multiple-excludes-nonNumeric-parent.xml":
 
 		#endregion
+
 			return;
 
 		#region ./footnotes - checked fail tests
@@ -1167,7 +1440,8 @@ function testCase( $dirname, $filename )
 		case "PASS-unused-footnote.xml":
 
 		#endregion
-			break;
+
+			return;
 
 		#region ./format
 		
@@ -1177,6 +1451,7 @@ function testCase( $dirname, $filename )
 		case "PASS-format-numdash.xml":
 
 		#endregion
+
 			return;
 
 		#region ./fraction
@@ -1246,6 +1521,7 @@ function testCase( $dirname, $filename )
 		case "PASS-simple-fraction.xml":
 
 		#endregion
+
 			return;
 
 		#region ./fullSizeTests - no fail tests
@@ -1255,6 +1531,7 @@ function testCase( $dirname, $filename )
 		case "PASS-largeTestNoMarkup.xml":
 
 		#endregion
+
 			return;
 
 		#region ./header - checked fail tests
@@ -1267,6 +1544,7 @@ function testCase( $dirname, $filename )
 		case "PASS-single-ix-header-muli-input.xml":
 
 		#endregion
+
 			return;
 
 		#region ./hidden - checked fail tests
@@ -1280,6 +1558,7 @@ function testCase( $dirname, $filename )
 		case "PASS-hidden-tuple-content.xml":
 
 		#endregion
+
 			return;
 
 		#region ./html - checked fail tests
@@ -1289,6 +1568,7 @@ function testCase( $dirname, $filename )
 		case "FAIL-empty-class-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, xbrl.core.xml.SchemaValidationError.cvc-attribute_3
 
 		#endregion
+
 			return;
 
 		#region ./ids - checked fail tests
@@ -1304,6 +1584,7 @@ function testCase( $dirname, $filename )
 		case "FAIL-non-unique-id-unit.xml": // Checked DuplicateId
 
 		#endregion
+
 			return;
 
 		#region ./multiIO
@@ -1320,40 +1601,41 @@ function testCase( $dirname, $filename )
 		case "PASS-single-input.xml":
 
 		#endregion
+
 			return;
 
 		#region ./nonFraction
 
-		case "FAIL-nonFraction-IXBRLelement-content.xml":
-		case "FAIL-nonFraction-any-ix-attribute.xml":
-		case "FAIL-nonFraction-decimals-and-precision-attrs.xml":
-		case "FAIL-nonFraction-double-nesting.xml":
-		case "FAIL-nonFraction-empty-content.xml":
-		case "FAIL-nonFraction-empty-without-xsi-nil.xml":
-		case "FAIL-nonFraction-invalid-sign-attr.xml":
-		case "FAIL-nonFraction-ix-format-expanded-name-mismatch.xml":
-		case "FAIL-nonFraction-ix-format-invalid-minus-sign.xml":
-		case "FAIL-nonFraction-ix-format-invalid.xml":
-		case "FAIL-nonFraction-missing-context-attr.xml":
-		case "FAIL-nonFraction-missing-name-attr.xml":
-		case "FAIL-nonFraction-missing-unit-attr.xml":
-		case "FAIL-nonFraction-mixed-nesting-2.xml":
-		case "FAIL-nonFraction-mixed-nesting-3.xml":
-		case "FAIL-nonFraction-mixed-nesting.xml":
-		case "FAIL-nonFraction-neither-decimals-nor-precision-attrs.xml":
-		case "FAIL-nonFraction-nesting-format-mismatch-2.xml":
-		case "FAIL-nonFraction-nesting-format-mismatch.xml":
-		case "FAIL-nonFraction-nesting-scale-mismatch-2.xml":
-		case "FAIL-nonFraction-nesting-scale-mismatch.xml":
-		case "FAIL-nonFraction-nesting-unitRef-mismatch.xml":
-		case "FAIL-nonFraction-nesting-xsi-nil.xml":
-		case "FAIL-nonFraction-nil-attr-false.xml":
-		case "FAIL-nonFraction-nil-decimal-conflict.xml":
-		case "FAIL-nonFraction-no-format-negative-number.xml":
-		case "FAIL-nonFraction-unresolvable-ix-tupleRef-attr.xml":
-		case "FAIL-nonfraction-rule-no-xbrli-attributes.xml":
-		case "FAIL-unresolvable-contextRef.xml":
-		case "FAIL-unresolvable-unitRef.xml":
+		// case "FAIL-nonFraction-IXBRLelement-content.xml": // Checked - NonFractionChildElementMixed
+		// case "FAIL-nonFraction-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
+		// case "FAIL-nonFraction-decimals-and-precision-attrs.xml": // Checked - PrecisionAndDecimalsPresent
+		// case "FAIL-nonFraction-double-nesting.xml": // Checked - brl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
+		// case "FAIL-nonFraction-empty-content.xml": // Checked - NonFractionIncompleteContent
+		// case "FAIL-nonFraction-empty-without-xsi-nil.xml": // Checked - NonFractionIncompleteContent
+		// case "FAIL-nonFraction-invalid-sign-attr.xml": // Checked - xml.SchemaValidationError.cvc-pattern-valid, xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1839
+		// case "FAIL-nonFraction-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
+		// case "FAIL-nonFraction-ix-format-invalid-minus-sign.xml": // Checked - InvalidDataType
+		// case "FAIL-nonFraction-ix-format-invalid.xml": // Checked - InvalidDataType
+		// case "FAIL-nonFraction-missing-context-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-nonFraction-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-nonFraction-missing-unit-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-nonFraction-mixed-nesting-2.xml": // Checked - NonFractionChildElementMixed
+		// case "FAIL-nonFraction-mixed-nesting-3.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		// case "FAIL-nonFraction-mixed-nesting.xml": // Checked - NonFractionChildElementMixed
+		// case "FAIL-nonFraction-neither-decimals-nor-precision-attrs.xml": // Checked - PrecisionAndDecimalsAbsent
+		// case "FAIL-nonFraction-nesting-format-mismatch-2.xml": // Checked - NonFractionNestedAttributeMismatch
+		// case "FAIL-nonFraction-nesting-format-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
+		// case "FAIL-nonFraction-nesting-scale-mismatch-2.xml": // Checked - NonFractionNestedAttributeMismatch
+		// case "FAIL-nonFraction-nesting-scale-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
+		// case "FAIL-nonFraction-nesting-unitRef-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
+		// case "FAIL-nonFraction-nesting-xsi-nil.xml": // Checked - NonFractionNestedNilMismatch
+		// case "FAIL-nonFraction-nil-attr-false.xml": // Checked - PrecisionAndDecimalsAbsent
+		// case "FAIL-nonFraction-nil-decimal-conflict.xml": // Checked- PrecisionAndDecimalsPresent
+		// case "FAIL-nonFraction-no-format-negative-number.xml": // Checked - FormatAbsentNegativeNumber
+		// case "FAIL-nonFraction-unresolvable-ix-tupleRef-attr.xml": // Checked - UnknownTuple
+		// case "FAIL-nonfraction-rule-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
+		// case "FAIL-unresolvable-contextRef.xml": // Checked - UnknownContext
+		// case "FAIL-unresolvable-unitRef.xml": // Checked = UnknownUnit
 		case "PASS-attribute-ix-format-nonFraction-01.xml":
 		case "PASS-attribute-ix-name-nonFraction-01.xml":
 		case "PASS-attribute-ix-scale-nonFraction-01.xml":
@@ -1388,21 +1670,22 @@ function testCase( $dirname, $filename )
 		case "PASS-simple-nonFraction.xml":
 
 		#endregion
-			return;
+	
+			break;
 
 		#region ./nonNumeric
 
-		case "FAIL-element-ix-nonNumeric-escape-01.xml":
-		case "FAIL-nonNumeric-any-ix-attribute.xml":
-		case "FAIL-nonNumeric-empty-with-format.xml":
-		case "FAIL-nonNumeric-illegal-null-namespace-attr.xml":
-		case "FAIL-nonNumeric-invalid-ix-format-attr.xml":
-		case "FAIL-nonNumeric-ix-format-attr-wrong-namespace-binding.xml":
-		case "FAIL-nonNumeric-missing-contextRef-attr.xml":
-		case "FAIL-nonNumeric-missing-name-attr.xml":
-		case "FAIL-nonNumeric-no-xbrli-attributes.xml":
-		case "FAIL-nonNumeric-unresolvable-ix-contextRef.xml":
-		case "FAIL-nonNumeric-unresolvable-ix-tupleRef-attr.xml":
+		// case "FAIL-element-ix-nonNumeric-escape-01.xml": // Checked - InvalidDataType
+		// case "FAIL-nonNumeric-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
+		// case "FAIL-nonNumeric-empty-with-format.xml": // Checked - InvalidDataType
+		// case "FAIL-nonNumeric-illegal-null-namespace-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		// case "FAIL-nonNumeric-invalid-ix-format-attr.xml": // Checked - InvalidDataType
+		// case "FAIL-nonNumeric-ix-format-attr-wrong-namespace-binding.xml": // Checked - FormatUndefined
+		// case "FAIL-nonNumeric-missing-contextRef-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-nonNumeric-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-nonNumeric-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
+		// case "FAIL-nonNumeric-unresolvable-ix-contextRef.xml": // Checked - UnknownContext
+		// case "FAIL-nonNumeric-unresolvable-ix-tupleRef-attr.xml": // Checked - UnknownTuple
 		case "PASS-attribute-ix-extension-illegalPlacement-01.xml":
 		case "PASS-attribute-ix-name-nonNumeric-01.xml":
 		case "PASS-element-ix-nonNumeric-complete.xml":
@@ -1458,9 +1741,10 @@ function testCase( $dirname, $filename )
 		case "PASS-nonNumeric.xml":
 
 		#endregion
+
 			return;
 
-		#region ./references - checked fail tests
+		#regionx ./references - checked fail tests
 
 		case "FAIL-empty-references.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
 		case "FAIL-ix-references-03.xml": // Checked InvalidAttributeContent
@@ -1491,6 +1775,7 @@ function testCase( $dirname, $filename )
 		case "PASS-single-references-multi-input.xml":
 
 		#endregion
+
 			return;
 
 		#region ./relationships - checked fail tests
@@ -1510,6 +1795,7 @@ function testCase( $dirname, $filename )
 		case "PASS-tuple-footnotes.xml":
 
 		#endregion
+
 			return;
 
 		#region ./resources
@@ -1522,6 +1808,7 @@ function testCase( $dirname, $filename )
 		case "PASS-simple-roleRef.xml":
 
 		#endregion
+
 			return;
 
 		#region ./specificationExamples - no fail tests
@@ -1532,6 +1819,7 @@ function testCase( $dirname, $filename )
 		case "PASS-section-15.1-example-4.xml":
 
 		#endregion
+
 			return;
 
 		#region ./transformations
@@ -1542,6 +1830,7 @@ function testCase( $dirname, $filename )
 		case "PASS-sign-attribute-on-nonFraction-positive-input.xml":
 
 		#endregion
+
 			return;
 
 		#region ./tuple
@@ -1602,6 +1891,7 @@ function testCase( $dirname, $filename )
 		case "PASS-tuple-xsi-nil.xml":
 
 		#endregion
+
 			return;
 
 		#region ./xmllang
@@ -1613,10 +1903,12 @@ function testCase( $dirname, $filename )
 		case "PASS-xml-lang-on-xhtml.xml":
 
 		#endregion
+
 			return;
 
 
 		default:
+
 			return;
 	}
 
@@ -1699,6 +1991,9 @@ function testCase( $dirname, $filename )
 					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b':
 					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a':
 						$extras[] = '1871';
+						break;
+					case 'xbrl.core.xml.SchemaValidationError.cvc-pattern-valid':
+						$extras[] = '1839';
 						break;
 				}
 			}
