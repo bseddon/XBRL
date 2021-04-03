@@ -27,6 +27,9 @@ namespace lyquidity\ixbrl;
 use lyquidity\ixt\IXBRL_Transforms;
 
 require __DIR__. '/IXBRL-Transforms.php';
+require __DIR__. '/IXBRL-Tests.php';
+
+#region iXBRL Elements
 
 define( "IXBRL_ELEMENT_CONTINUATION", "continuation" );
 define( "IXBRL_ELEMENT_DENOMINATOR", "denominator" );
@@ -44,6 +47,10 @@ define( "IXBRL_ELEMENT_RESOURCES", "resources" );
 define( "IXBRL_ELEMENT_TUPLE", "tuple" );
 define( "IXBRL_ELEMENT_HTML", "html" );
 define( "IXBRL_ELEMENT_XHTML", "xhtml" );
+
+#endregion
+
+#region iXBRL Attributes
 
 define( "IXBRL_ATTR_ARCROLE", "arcrole" );
 define( "IXBRL_ATTR_CONTEXTREF", "contextRef" );
@@ -68,6 +75,8 @@ define( "IXBRL_ATTR_TOREFS", "toRefs" );
 define( "IXBRL_ATTR_TUPLEID", "tupleID" );
 define( "IXBRL_ATTR_TUPLEREF", "tupleRef" );
 define( "IXBRL_ATTR_UNITREF", "unitRef" );
+
+#endregion
 
 /**
  * A class to validate and load an inline XBRL document
@@ -607,6 +616,369 @@ class XBRL_Inline
 	}
 
 	/**
+	 * Check that a node does not use ix attributes
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkIXbrlAttribute( $node, $section, $localName )
+	{
+		$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
+		foreach( $node->attributes as $attr )
+		{
+			/** @var \DOMAttr $attr */
+			if ( $attr->namespaceURI == $xbrliNS )
+			{
+				throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', "Section $section <$localName> elements must not include attributes in the xbrli namespace" );
+			}
+		}
+	}
+
+	/**
+	 * Check parent nodes for some criteria
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @return \DOMElement
+	 */
+	private static function checkParentNodes( \DOMElement $node, \Closure $test )
+	{
+		$parentNode = $node->parentNode;
+		while( $parentNode && $parentNode instanceof \DOMElement )
+		{
+			if ( $test( $parentNode ) ) return $parentNode;
+			// Up another level
+			$parentNode = $parentNode->parentNode;
+		}
+		return null;
+	}
+
+	/**
+	 * Use to check the equivalence of a <nonFraction> attribute with that of any parent
+	 * @param \DOMElement $node
+	 * @param string $attrName
+	 * @param string $attrValue
+	 * @param string $section
+	 * @param string $localName
+	 * @param string $errorCode
+	 * @return \DOMElement
+	 */
+	private static function checkAttributeConsistency( \DOMElement $node, string $attrName, string $attrValue, string $section, string $localName, $errorCode = 'NonFractionNestedAttributeMismatch' ) 
+	{
+		return self::checkParentNodes( $node, function( \DOMElement $parentNode ) use( $attrName, $attrValue, $errorCode, $localName, $section )
+		{
+			if ( $parentNode->localName != $localName ) return false;
+			$parentAttrValue = $parentNode->getAttribute( $attrName );
+			if ( $parentAttrValue == $attrValue ) return false;
+			{
+				throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute @'$attrName' should be consistent in nested <$localName>" );
+			}
+			return true; // End here.  Any other parents will be checked when the parent is validated.
+		} );	
+	}
+
+	/**
+	 * Check the contextRef is valid
+	 * @param \DOMElement $node
+	 * @param [type] $idNodes
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkContextRef( $node, &$idNodes, $section, $localName )
+	{
+		$contextRef = $node->getAttribute('contextRef');
+		$contextNode = $idNodes[ $contextRef ] ?? null;
+		if ( ! $contextNode )
+		{
+			throw new IXBRLDocumentValidationException( 'UnknownContext', "Section $section The c@ontextRef in <$localName> with id '$contextRef' does not exist" );
+		}
+}
+
+	/**
+	 * Check the unitRef is valid
+	 * @param \DOMElement $node
+	 * @param [type] $idNodes
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkUnitRef( $node, &$idNodes, $section, $localName, $errorCode = null )
+	{
+		$unitRef = $node->getAttribute( IXBRL_ATTR_UNITREF );
+		$unit = $idNodes[ $unitRef ] ?? null;				
+		if ( ! $unit )
+		{
+			throw new IXBRLDocumentValidationException( 'UnknownUnit', "Section $section The unit with id '$unitRef' does not exist" );
+		}
+		self::checkAttributeConsistency( $node, IXBRL_ATTR_UNITREF, $unitRef, $section, $localName, $errorCode );
+	}
+
+	/**
+	 * Check the sign is valid
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkSign( $node, $section, $localName )
+	{
+		$sign = $node->getAttribute( IXBRL_ATTR_SIGN );
+		if ( $sign && $sign != '-' )
+		{
+			throw new IXBRLDocumentValidationException( 'NonFractionInvalidSign', "Section $section @sign in <$localName> must have a value of '-'" );
+		}
+	}
+
+	/**
+	 * Check the scale is valid
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkScale( $node, $section, $localName )
+	{
+		$scale = $node->getAttribute( IXBRL_ATTR_SCALE );
+		self::checkAttributeConsistency( $node, IXBRL_ATTR_SCALE, $scale, $section, $localName );
+	}
+
+	/**
+	 * Check the tupleRef is valid
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkTupleRef( $node, $section, $localName )
+	{
+		$tupleRef = $node->getAttribute( IXBRL_ATTR_TUPLEREF );
+		if ( $tupleRef )
+		{
+			$tupleNode = $idNodes[ $tupleRef ] ?? null;
+			if ( ! $tupleNode )
+			{
+				throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section The tuple with id '$tupleRef' used in <$localName> does not exist " );
+			}
+		}
+	}
+
+	/**
+	 * Check the content and format is valid
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @param XBRL_Inline $document
+	 * @return void
+	 */
+	private static function checkFormat( $node, $section, $localName, $document )
+	{
+		$nil = $node->getAttribute( 'xsi:' . IXBRL_ATTR_NIL );				
+		$escape = $node->getAttribute( IXBRL_ATTR_ESCAPE );
+		$format = $node->getAttribute( IXBRL_ATTR_FORMAT );
+		self::checkAttributeConsistency( $node, IXBRL_ATTR_FORMAT, $format, $section, $localName );
+
+		$content = $escape 
+			? self::innerHTML( $node )
+			: $node->textContent;
+
+		// The content my be empty but there may be a nested node
+		if ( ! $content && ! ( $node->childNodes->length || filter_var( $nil, FILTER_VALIDATE_BOOLEAN ) ) )
+		{
+			throw new IXBRLDocumentValidationException( 'FormatUndefined', 'Content empty in <$localName>' );
+		}
+
+		if ( $format )
+		{
+			try
+			{
+				$result = $document->format( $format, $content, $node, true );
+			}
+			catch( IXBRLInvalidNamespaceException $ex )
+			{
+				throw new IXBRLDocumentValidationException( 'FormatUndefined', $ex->getMessage(), 0, $ex );
+			}
+			catch( \Exception $ex )
+			{
+				throw new IXBRLDocumentValidationException( 'InvalidDataType', $ex->getMessage(), 0, $ex );
+			}
+		}
+		else if ( $content )
+		{
+			if ( ! is_numeric( $content ) || floatval( $content ) < 0 )
+			{
+				throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing in <$localName> so the content must be a positive number' );
+			}
+		}
+	}
+
+	/**
+	 * Check the decimals and precision is valid
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return bool
+	 */
+	private static function checkDecimalsPrecision( $node, $section, $localName )
+	{
+		$decimals = $node->getAttribute( IXBRL_ATTR_DECIMALS );
+		$precision = $node->getAttribute( IXBRL_ATTR_PRECISION );
+		$nil = $node->getAttribute( 'xsi:' . IXBRL_ATTR_NIL );
+		self::checkAttributeConsistency( $node, IXBRL_ATTR_NIL, $nil, $section, $localName, 'NonFractionNestedNilMismatch' );
+		if ( $nil && filter_var( $nil, FILTER_VALIDATE_BOOLEAN ) )
+		{
+			if ( $decimals || $precision )
+			{
+				throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Nil facts should not @decimals or @precision" );
+			}
+			if ( $node->hasChildNodes() )
+			{
+				throw new IXBRLDocumentValidationException( 'InvalidNilContent', "Section $section Nil facts should not have child nodes" );
+			}
+
+			return false;
+		}
+		else
+		{
+			if ( ( ! $decimals && ! $precision ) )
+			{
+				throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsAbsent', "Section $section Decimals or precision must present on <$localName> but neither exist." );
+			}
+
+			if ( ( $decimals && $precision  ) )
+			{
+				throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Decimals or precision must present on <$localName> but both exist." );
+			}
+
+			if ( $node->childNodes->length == 0 )
+			{
+				throw new IXBRLDocumentValidationException( 'NonFractionIncompleteContent', "Section $section <$localName> facts that are not nil should have exactly one child" );
+			}
+
+			if ( $node->childNodes->length > 1 )
+			{
+				throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section <$localName> facts should have only one child even if some of the children are whitespace." );
+			}
+
+			return true;
+		}
+	}
+
+	/**
+	 * Check for loops in continuation elements
+	 *
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $continuedAt
+	 * @param \DOMElement[] $idNodes
+	 * @return void
+	 * @throws IXBRLDocumentValidationException
+	 */
+	private static function checkContinuationCycles( $node, $section, $continuedAt, &$idNodes )
+	{
+		if ( ! $continuedAt ) return;
+
+
+		if ( ! isset( $idNodes[ $continuedAt ] ) )
+		{
+			throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
+		}
+
+		if ( $node->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
+		{
+			throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section The continuedAt and id attribute values are the same: '" . $node->getNodePath() . "'" );
+		}
+
+		// Look for circular references
+		$visited = array( $node->getNodePath() );
+		while( true )
+		{
+			$nextNode = $idNodes[ $continuedAt ];
+			if ( ! $nextNode->hasAttribute(IXBRL_ATTR_CONTINUEDAT) ) break;
+			$path = $nextNode->getNodePath();
+			$exists = array_search( $path, $visited ) !== false;
+			$visited[] = $path;
+			if ( $exists ) 
+			{
+				throw new IXBRLDocumentValidationException( 'DanglingContinuation', 'Section $section continuedAt attribute value forms circular reference: \'' . join( "' -> '", $visited ) . '\'' );
+			}
+			$continuedAt = $nextNode->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+		}
+	}
+
+	/**
+	 * A list of nodes indexed by @tupleID
+	 * @var [type]
+	 */
+	private static $tupleIDs = null;
+
+	/**
+	 * Creates a list of nodes indexed by @tupleID
+	 * @param \DOMElement[] $tupleNodes
+	 * @return  \DOMElement[]
+	 */
+	private static function getTupleIds( &$tupleNodes, $section )
+	{
+		if ( is_null( self::$tupleIDs ) )
+		{
+			// Create a list of node indexed by @tupleID
+			self::$tupleIDs = array_reduce( $tupleNodes, function( $carry, $node ) use( $section )
+			{
+				$tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEID );
+				if ( $tupleId )
+				{
+					if ( isset( $carry[ $tupleId ] ) )
+					{
+						throw new IXBRLDocumentValidationException( 'DuplicateTupleId', "Section $section duplicate @tupleID value: {$node->getNodePath()}" );
+					}
+					$carry[ $tupleId ] = $node;
+				}
+				return $carry;
+			}, array() );
+		}
+
+		return self::$tupleIDs;
+	}
+
+	/**
+	 * Check for loops in continuation elements
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $tupleRef
+	 * @param \DOMElement[] $tupleNodes
+	 * @return void
+	 * @throws IXBRLDocumentValidationException
+	 */
+	private static function checkTupleCycles( $node, $section, &$tupleNodes )
+	{
+		$tupleRef = $node->getAttribute( IXBRL_ATTR_TUPLEREF );
+		if ( ! $tupleRef ) return;
+
+		$tupleIds = self::getTupleIds( $tupleNodes, $section );
+
+		if ( ! isset( $tupleIds[ $tupleRef ] ) )
+		{
+			throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section There is no <tuple> with @tupleID $tupleRef: {$node->getNodePath()}" );
+		}
+
+		// Look for circular references
+		$visited = array( $node->getNodePath() );
+		while( true )
+		{
+			$nextNode = $tupleIds[ $tupleRef ];
+			if ( ! $nextNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) ) break;
+			$path = $nextNode->getNodePath();
+			$exists = array_search( $path, $visited ) !== false;
+			$visited[] = $path;
+			if ( $exists ) 
+			{
+				throw new IXBRLDocumentValidationException( 'TupleCycle', 'Section $section @tupleRef attribute value forms circular reference: \'' . join( "' -> '", $visited ) . '\'' );
+			}
+			$tupleRef = $nextNode->getAttribute( IXBRL_ATTR_TUPLEREF );
+		}
+	}
+
+	/**
 	 * Check the constraints
 	 * @param \DOMElement $node
 	 * @param string $localName
@@ -621,38 +993,8 @@ class XBRL_Inline
 		$document = $documents[ $node->baseURI ];
 		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 		$section = '';
-
-		/**
-		 * Check parent nodes for some criteria
-		 */
-		$checkParentNodes = function( \DOMElement $node, \Closure $test )
-		{
-			$parentNode = $node->parentNode;
-			while( $parentNode && $parentNode instanceof \DOMElement )
-			{
-				if ( $test( $parentNode ) ) return $parentNode;
-				// Up another level
-				$parentNode = $parentNode->parentNode;
-			}
-			return null;
-		};
-
-		/**
-		 * Use to check the equivalence of a <nonFraction> attribute with that of any parent
-		 */
-		$checkAttributeConsistency = function( \DOMElement $node, string $attrName, string $attrValue, string $section, $errorCode = 'NonFractionNestedAttributeMismatch' ) use( &$checkParentNodes )
-		{
-			$checkParentNodes( $node, function( \DOMElement $parentNode ) use( $attrName, $attrValue, $errorCode, $section )
-			{
-				if ( $parentNode->localName != IXBRL_ELEMENT_NONFRACTION ) return false;
-				$parentAttrValue = $parentNode->getAttribute( $attrName );
-				if ( $parentAttrValue == $attrValue ) return false;
-				{
-					throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute should be consistent in nested <nonFraction> @'$attrName'" );
-				}
-				return true; // End here.  Any other parents will be checked when the parent is validated.
-			} );	
-		};
+		$checkUnitRef = true;
+		$checkContextRef = true;
 
 		switch( $localName )
 		{
@@ -669,7 +1011,7 @@ class XBRL_Inline
 				$id = $node->getAttribute( IXBRL_ATTR_ID );
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 
-				$checkParentNodes( $node, function( $parentNode ) use( &$correspondents, $id, $node, $section )
+				self::checkParentNodes( $node, function( $parentNode ) use( &$correspondents, $id, $node, $section )
 				{
 					if ( $parentNode->localName == IXBRL_ELEMENT_HTML ) return true;
 					if ( $parentNode->localName == IXBRL_ELEMENT_HIDDEN )
@@ -708,17 +1050,15 @@ class XBRL_Inline
 					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
 				}
 
-				self::checkContinuationCycles( $node, $continuedAt, $idNodes );
+				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
 
 				break;
 
-			case IXBRL_ELEMENT_DENOMINATOR:
-				break;
 
 			case IXBRL_ELEMENT_EXCLUDE:
 				$soure = '5.1.1';
 				// The node must a descendant of 'footnote', 'nonNumeric' or 'continuation'
-				$parentNode = $checkParentNodes( $node, function( $parentNode ) use( $correspondents )
+				$parentNode = self::checkParentNodes( $node, function( $parentNode ) use( $correspondents )
 				{
 					// Check for an allowed ancestor
 					if ( array_search( $parentNode->localName, $correspondents ) !== false ) return true;
@@ -741,13 +1081,9 @@ class XBRL_Inline
 					{
 						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt" );
 					}
-					self::checkContinuationCycles( $node, $continuedAt, $idNodes );
+					self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
 				}
 
-				break;
-
-			case IXBRL_ELEMENT_FRACTION:
-				$section = '7.1.1';
 				break;
 
 			case IXBRL_ELEMENT_HEADER:
@@ -794,161 +1130,122 @@ class XBRL_Inline
 
 				break;
 
-			case IXBRL_ELEMENT_NONFRACTION:
-				$section = '10.1.1';
+			case IXBRL_ELEMENT_DENOMINATOR:
+				$section = '7.1.1';
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkFormat( $node, $section, $localName, $document );
+				break;
 
-				$unitRef = $node->getAttribute( IXBRL_ATTR_UNITREF );
-				$unit = $idNodes[ $unitRef ] ?? null;				
-				if ( ! $unit )
-				{
-					throw new IXBRLDocumentValidationException( 'UnknownUnit', "Section $section The unit with id '$unitRef' does not exist" );
-				}
-				$checkAttributeConsistency( $node, IXBRL_ATTR_UNITREF, $unitRef, $section );
-				$sign = $node->getAttribute( IXBRL_ATTR_SIGN );
-				if ( $sign && $sign != '-' )
-				{
-					throw new IXBRLDocumentValidationException( 'NonFractionInvalidSign', "Section $section @sign must have a value of '-'" );
-				}
+			case IXBRL_ELEMENT_NUMERATOR:
+				$section = '7.1.1';
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkFormat( $node, $section, $localName, $document );
+				break;
 
-				$decimals = $node->getAttribute( IXBRL_ATTR_DECIMALS );
-				$precision = $node->getAttribute( IXBRL_ATTR_PRECISION );
-				$scale = $node->getAttribute( IXBRL_ATTR_SCALE );
-				$checkAttributeConsistency( $node, IXBRL_ATTR_SCALE, $scale, $section );
+			case IXBRL_ELEMENT_FRACTION:
+				$section = '7.1.1';
+
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkUnitRef( $node, $idNodes, $section, $localName, 'FractionNestedAttributeMismatch' );
+				self::checkContextRef( $node, $idNodes, $section, $localName );
+				self::checkTupleCycles( $node,$section, $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] );
 
 				$nil = $node->getAttribute( 'xsi:' . IXBRL_ATTR_NIL );
-				$checkAttributeConsistency( $node, IXBRL_ATTR_NIL, $scale, $section );
+				self::checkAttributeConsistency( $node, IXBRL_ATTR_NIL, $nil, $section, $localName, 'FractionNestedNilMismatch' );
+
 				if ( $nil && filter_var( $nil, FILTER_VALIDATE_BOOLEAN ) )
 				{
-					if ( $decimals || $precision )
+					if ( $node->childNodes->length )
 					{
-						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Nil facts should not @decimals or @precision" );
+						throw new IXBRLDocumentValidationException( 'InvalidChildren', "Section $section: When @nil of <$localName> is true there must be no child nodes." );
 					}
-					if ( $node->hasChildNodes() )
-					{
-						throw new IXBRLDocumentValidationException( 'InvalidNilContent', "Section $section Nil facts should not have child nodes" );
-					}
-
-					$checkAttributeConsistency( $node, 'xsi:' . IXBRL_ATTR_NIL, $nil, $section, 'NonFractionNestedNilMismatch' );
+					break;
 				}
-				else
+
+				// Only <fraction> <numerator> and <denominator> ix children allowed
+				$allowedChildren = array( IXBRL_ELEMENT_DENOMINATOR, IXBRL_ELEMENT_NUMERATOR, IXBRL_ELEMENT_FRACTION );
+				$childNodes = array_fill_keys( $allowedChildren, 0 );
+				$nodePath = $node->getNodePath();
+				// Only need to consider ix element as html elements will be valid parts of the layout
+				foreach( $nodesByLocalNames as $ixLocalName => $ixNodes )
 				{
-					if ( ( ! $decimals && ! $precision ) )
+					foreach( $ixNodes as $ixNode )
 					{
-						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsAbsent', "Section $section Decimals or precision must present on <nonFraction> but neither exist." );
+						$ixNodePath = $ixNode->getNodePath();
+						// ixNode will be a child if it begins with $nodePath (contains is good enough) 
+						// but only want immediate children (the children will be processed on their own)
+						if ( $ixNodePath == $nodePath || strpos( $ixNodePath, $nodePath ) === false  ) continue;
+						if ( isset( $childNodes[ $ixLocalName ] ) )
+						{
+							$childNodes[ $ixLocalName ]++;
+							continue;
+						}
+						throw new IXBRLDocumentValidationException( 'UnknownFractionChild', "Section $section: Only one <numerator> and one <denominator> allowed as children of <$localName>" );	
 					}
-	
-					if ( ( $decimals && $precision  ) )
-					{
-						throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Decimals or precision must present on <nonFraction> but both exist." );
-					}
-	
-					if ( $node->childNodes->length == 0 )
-					{
-						throw new IXBRLDocumentValidationException( 'NonFractionIncompleteContent', "Section $section non fraction facts that are not nil should have exactly one child" );
-					}
+				}
 
-					if ( $node->childNodes->length > 1 )
-					{
-						throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section non fraction facts should have only one child even if some of the children are whitespace." );
-					}
+				// If there is a <fraction> descendant then there can be zero numerartors/denominators
+				if ( ( ! $childNodes[ IXBRL_ELEMENT_DENOMINATOR ] ) || 
+					 ( ! $childNodes[ IXBRL_ELEMENT_NUMERATOR ] ) )
+					throw new IXBRLDocumentValidationException( 'IncompleteFraction', "Section $section: There must be one <numerator> and one <denominator> descendants of <$localName>. {$childNodes[ IXBRL_ELEMENT_NUMERATOR ]} found." );
 
+				if ( $childNodes[ IXBRL_ELEMENT_NUMERATOR ] != 1 )
+					throw new IXBRLDocumentValidationException( 'MultipleNumeratorDenominator', "Section $section: There must be one <numerator> descendant of <$localName>. {$childNodes[ IXBRL_ELEMENT_NUMERATOR ]} found." );
+
+				if ( $childNodes[ IXBRL_ELEMENT_DENOMINATOR ] != 1 )
+					throw new IXBRLDocumentValidationException( 'MultipleNumeratorDenominator', "Section $section: There must be one <denominator> descendant of <$localName>. {$childNodes[ IXBRL_ELEMENT_DENOMINATOR ]} found." );
+					
+				break;
+
+			case IXBRL_ELEMENT_NONFRACTION:
+				$section = $section ?? '10.1.1';
+
+				self::checkUnitRef( $node, $idNodes, $section, $localName );
+				self::checkSign( $node, $section, $localName );
+				self::checkScale( $node, $section, $localName );
+
+				if ( self::checkDecimalsPrecision( $node, $section, $localName ) )
+				{
 					/** @var \DOMNode */
 					$childNode = $node->childNodes[0];
 					if ( $childNode->nodeType == XML_TEXT_NODE )
 					{
 						if ( ! $childNode->textContent )
 						{
-							throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section A text node must not be empty" );
+							throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section A text node in <$localName> must not be empty" );
 						}
 					}
 					else if ( $childNode->nodeType != XML_ELEMENT_NODE || $childNode->localName != IXBRL_ELEMENT_NONFRACTION )
 					{
-						throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section non fraction child node must be a text node or <nonFraction>" );
-					}
-
-				}
-
-				// break;
-
-			case IXBRL_ELEMENT_NONNUMERIC:
-
-				$section = $section ?? '11.1.1';
-
-				// @contextRef and @name must exist - these are tested via the schema validation
-
-				// No ix attributes should appear
-				$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
-				foreach( $node->attributes as $attr )
-				{
-					/** @var \DOMAttr $attr */
-					if ( $attr->namespaceURI == $xbrliNS )
-					{
-						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', "Section $section <nonNumeric> elements must not include attributes in the xbrli namespace" );
+						throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section <$localName> child node must be a text node or <nonFraction>" );
 					}
 				}
 
-				$contextRef = $node->getAttribute('contextRef');
-				$contextNode = $idNodes[ $contextRef ] ?? null;
-				if ( ! $contextNode )
-				{
-					throw new IXBRLDocumentValidationException( 'UnknownContext', "Section $section The context with id '$contextRef' does not exist" );
-				}
-
-				$tupleRef = $node->getAttribute('tupleRef');
-				if ( $tupleRef )
-				{
-					$tupleNode = $idNodes[ $tupleRef ] ?? null;
-					if ( ! $tupleNode )
-					{
-						throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section The tuple with id '$tupleRef' does not exist " );
-					}
-				}
-
-				$escape = $node->getAttribute( IXBRL_ATTR_ESCAPE );
-				$format = $node->getAttribute( IXBRL_ATTR_FORMAT );
-				$checkAttributeConsistency( $node, IXBRL_ATTR_FORMAT, $format, $section );
-
-				$content = $escape 
-					? self::innerHTML( $node )
-					: $node->textContent;
-
-				// The content my be empty but there may be a nested node
-				if ( ! $content && ! $node->childNodes->length )
-				{
-					throw new IXBRLDocumentValidationException( 'FormatUndefined', 'Content empty' );
-				}
-
-				if ( $format )
-				{
-					try
-					{
-						$result = $document->format( $format, $content, $node, true );
-					}
-					catch( IXBRLInvalidNamespaceException $ex )
-					{
-						throw new IXBRLDocumentValidationException( 'FormatUndefined', $ex->getMessage(), 0, $ex );
-					}
-					catch( \Exception $ex )
-					{
-						throw new IXBRLDocumentValidationException( 'InvalidDataType', $ex->getMessage(), 0, $ex );
-					}
-				}
-				else
-				{
-					if ( ! is_numeric( $content ) || floatval( $content ) < 0 )
-					{
-						throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing so the content must be a positive number' );
-					}
-				}
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkContextRef( $node, $idNodes, $section, $localName );
+				self::checkTupleRef( $node, $section, $localName );
+				self::checkFormat( $node, $section, $localName, $document );
 
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-				self::checkContinuationCycles( $node, $continuedAt, $idNodes );
+				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
 
 				break;
 
-			case IXBRL_ELEMENT_NUMERATOR:
-				$section = '7.1.1';
+			case IXBRL_ELEMENT_NONNUMERIC:
+
+				$section = '11.1.1';
+
+				// No ix attributes should appear
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkContextRef( $node, $idNodes, $section, $localName );
+				self::checkTupleRef( $node, $section, $localName );
+				self::checkFormat( $node, $section, $localName, $document );
+
+				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
+				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
+
 				break;
 
 			case IXBRL_ELEMENT_REFERENCES:
@@ -957,15 +1254,8 @@ class XBRL_Inline
 				{
 					throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section <references> must not be a child of <header>" );
 				}
-				$xbrliNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
-				foreach( $node->attributes as $attr )
-				{
-					/** @var \DOMAttr $attr */
-					if ( $attr->namespaceURI == $xbrliNS )
-					{
-						throw new IXBRLDocumentValidationException( 'InvalidAttributeContent', "Section $section <references> must not include attributes in the xbrli namespace" );
-					}
-				}
+
+				self::checkIXbrlAttribute( $node, $section, $localName );
 				break;
 
 			case IXBRL_ELEMENT_RELATIONSHIP:
@@ -1039,50 +1329,82 @@ class XBRL_Inline
 				break;
 
 			case IXBRL_ELEMENT_TUPLE:
-				break;		
+				$section = '15.1.1';
+				self::checkIXbrlAttribute( $node, $section, $localName );
+				self::checkTupleCycles( $node, $section, $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] );
+				self::checkTupleOrders( $node, $section, $nodesByLocalNames );
 
+				break;
 		}
 	}
 
 	/**
-	 * Check for loops in continuation elements
+	 * Check the order numbers used in <tuple> are unique
 	 *
 	 * @param \DOMElement $node
-	 * @param string $continuedAt
-	 * @param \DOMElement[] $idNodes
+	 * @param string $section
+	 * @param \DOMElement[][] $nodesByLocalNames
 	 * @return void
-	 * @throws IXBRLDocumentValidationException
 	 */
-	private static function checkContinuationCycles( $node, $continuedAt, &$idNodes )
+	private static function checkTupleOrders( $node, $section, &$nodesByLocalNames )
 	{
-		if ( ! $continuedAt ) return;
-
-		$sections = array( IXBRL_ELEMENT_CONTINUATION => '4.1.1', IXBRL_ELEMENT_FOOTNOTE => '5.1.1', IXBRL_ELEMENT_NONNUMERIC => '11.1.1' );
-
-		if ( ! isset( $idNodes[ $continuedAt ] ) )
+		$elements = array( IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_TUPLE );
+		// Get the orders for each tuple.  Begin with those of any nested elements
+		// $tupleIds = self::getTupleIds( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ], $section );
+		$orderNodes = array();
+		$childNodes = array();
+		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] as $tupleRef => $tupleNode )
 		{
-			throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section {$sections[$node->localName]} continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
-		}
-
-		if ( $node->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
-		{
-			throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section {$sections[$node->localName]} The continuedAt and id attribute values are the same: '" . $node->getNodePath() . "'" );
-		}
-
-		// Look for circular references
-		$visited = array( $node->getNodePath() );
-		while( true )
-		{
-			$nextNode = $idNodes[ $continuedAt ];
-			if ( ! $nextNode->hasAttribute('continuedAt') ) break;
-			$path = $nextNode->getNodePath();
-			$exists = array_search( $path, $visited ) !== false;
-			$visited[] = $path;
-			if ( $exists ) 
+			if ( $tupleNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) )
 			{
-				throw new IXBRLDocumentValidationException( 'DanglingContinuation', 'Section 4.1.1 continuedAt attribute value forms circular reference: \'' . join( "' -> '", $visited ) . '\'' );
+				$tupleRef = $tupleNode->getAttribute( IXBRL_ATTR_TUPLEREF );
 			}
-			$continuedAt = $nextNode->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+			$nodePath = $tupleNode->getNodePath();
+			$depth = substr_count( $nodePath, IXBRL_ELEMENT_TUPLE );
+			// Only need to consider ix element as html elements will be valid parts of the layout
+			foreach( $nodesByLocalNames as $ixLocalName => $ixNodes )
+			{
+				foreach( $ixNodes as $ixNode )
+				{
+					$ixNodePath = $ixNode->getNodePath();
+					// ixNode will be a child if it begins with $nodePath (contains is good enough) 
+					// but only want immediate children (the children will be processed on their own)
+					if ( $ixNodePath == $nodePath || strpos( $ixNodePath, $nodePath ) === false  ) continue;
+					if ( substr_count( $ixNodePath, IXBRL_ELEMENT_TUPLE ) != $depth + ( $ixLocalName == IXBRL_ELEMENT_TUPLE ? 1 : 0 ) ) continue;
+					if ( array_search( $ixLocalName, $elements ) === false )
+					{
+						throw new IXBRLDocumentValidationException( 'InvalidTupleChild', "Section $section The <$ixLocalName> is not valid within a tuple: $ixNodePath" );
+					}
+					$order = $ixNode->getAttribute( IXBRL_ATTR_ORDER );
+					if ( isset( $orderNodes[ $tupleRef ][ $order ] ) )
+					{
+						throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: $ixNodePath" );
+					}
+					$orderNodes[ $tupleRef ][ $order ] = $ixNode;
+					$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
+				}
+			}
+		}
+
+		foreach( $elements as $ixLocalName )
+		{
+			foreach( $nodesByLocalNames[ $ixLocalName ] as $ixNode )
+			{
+				$ixTupleRef = $ixNode->getAttribute( IXBRL_ATTR_TUPLEREF );
+				if ( ! $ixTupleRef ) continue;
+				$order = $ixNode->getAttribute( IXBRL_ATTR_ORDER );
+				if ( isset( $orderNodes[ $tupleRef ][ $order ] ) )
+				{
+					throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: {$ixNode->getNodePath()}" );
+				}
+				$orderNodes[ $tupleRef ][ $order ] = $ixNode;
+				$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
+			}
+		}
+
+		if ( count( $childNodes ) != count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ) )
+		{
+			throw new IXBRLDocumentValidationException( 'TupleNonEmptyValidation', "Section $section A tuple must have child elements" );
 		}
 	}
 
@@ -1249,7 +1571,6 @@ class IXBRLDocumentValidationException extends IXBRLException
 	}
 }
 
-
 /**
  * An iXBRL specific exception when validating against the schema
  */
@@ -1290,803 +1611,3 @@ class IXBRLSchemaValidationException extends IXBRLException
 		return $this->validator;
 	}
 }
-
-/**
- * Run all conformance tests
- *
- * @return void
- */
-function TestInlineXBRL()
-{
-	$testCasesFolder = "D:/GitHub/xbrlquery/conformance/inlineXBRL-1.1-conformanceSuite-2020-04-08/";
-	$mainDoc = new \DOMDocument();
-	if ( ! $mainDoc->load( "$testCasesFolder/index.xml" ) )
-	{
-		throw new IXBRLException('Failed to load the main test document');
-	}
-
-	$documentElement = $mainDoc->documentElement;
-
-	error_log( "{$documentElement->localName}" );
-	error_log( $documentElement->getAttribute('name') );
-
-	$xpath = new \DOMXPath( $mainDoc );
-
-	foreach( $xpath->query( '//testcases', $documentElement ) as $testcases )
-	{
-		/** @var \DOMElement $testcases */
-		error_log( $testcases->getAttribute('title') );
-
-		foreach( $xpath->query( 'testcase', $testcases ) as $tag => $testcase )
-		{
-			/** @var \DOMElement $element */
-			$testcaseDir = trailingslashit( "{$testCasesFolder}tests/" . dirname( $testcase->getAttribute('uri') ) );
-			$testcaseFilename = basename( $testcase->getAttribute('uri') );
-			testCase( $testcaseDir, $testcaseFilename );
-		}
-	}
-}
-
-/**
- * Execute a test case
- * @param string $basename
- * @param string $filename
- * @return boolean
- */
-function testCase( $dirname, $filename )
-{
-	switch( $filename  )
-	{
-		#region ./baseURIs - checked fail tests
-
-		case "FAIL-baseURI-on-ix-header.xml":
-		case "FAIL-baseURI-on-xhtml.xml":
-		case "PASS-baseURI-on-ix-references-multiRefs.xml":
-
-		#endregion
-
-			return;
-
-		#region ./continuation - checked fail tests
-
-		case "FAIL-continuation-duplicate-id.xml": // Checked
-		case "FAIL-continuation-nonNumeric-circular.xml": // Checked Dangling
-		case "FAIL-continuation-nonNumeric-circular2.xml": // Checked ContinuationReuse
-		case "FAIL-continuation-nonNumeric-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		case "FAIL-continuation-nonNumeric-invalid-nesting.xml": // TODO: Check this in nonNumeric
-		case "FAIL-continuation-nonNumeric-self.xml": // TODO: Check this in nonNumeric Dangling
-		case "FAIL-continuation-orphaned-cycle.xml": // Checked UnreferencedContinuation
-		case "FAIL-continuation-used-twice.xml": // Checked ContinuationReuse
-		case "FAIL-footnote-continuation-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		case "FAIL-footnote-continuation-invalid-nesting.xml": // TODO: Check this in footnote
-		case "FAIL-nonNumeric-dangling-continuation-2.xml": // Checked DanglingContinuation
-		case "FAIL-nonNumeric-dangling-continuation.xml": // TODO: Check this in nonNumeric Dangling
-		case "FAIL-orphaned-continuation.xml": // UnreferencedContinuation
-		case "PASS-nonNumeric-continuation-multiple-documents.xml":
-		case "PASS-nonNumeric-continuation-other-descendants-escaped.xml":
-		case "PASS-nonNumeric-continuation-other-descendants.xml":
-		case "PASS-nonNumeric-continuation-out-of-order.xml":
-		case "PASS-nonNumeric-continuation-transform.xml":
-		case "PASS-nonNumeric-continuation.xml":
-
-		#endregion
-
-			return;
-
-		#region ./exclude - checked fail tests
-
-		case "FAIL-exclude-nonFraction-parent.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-misplaced-exclude.xml": // Checked MisplacedExclude
-		case "PASS-element-ix-exclude-complete.xml":
-		case "PASS-exclude-nonNumeric-parent.xml":
-		case "PASS-multiple-excludes-nonNumeric-parent.xml":
-
-		#endregion
-
-			return;
-
-		#region ./footnotes - checked fail tests
-
-		// case "FAIL-element-ix-footnote-04.xml": // Checked DuplicateId
-		// case "FAIL-footnote-any-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2
-		// case "FAIL-footnote-dangling-continuation.xml": // Checked DanglingContinuation
-		// case "FAIL-footnote-dangling-fromRef.xml": // Checked DanglingRelationshipFromRef
-		// case "FAIL-footnote-dangling-toRef.xml": // Checked DanglingRelationshipToRef
-		// case "FAIL-footnote-duplicate-footnoteIDs-different-input-docs.xml": // Checked DuplicateId
-		// case "FAIL-footnote-duplicate-footnoteIDs.xml": // Checked DuplicateId
-		// case "FAIL-footnote-invalid-element-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		// case "FAIL-footnote-missing-footnoteID.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		case "PASS-element-ix-footnote-03.xml":
-		case "PASS-element-link-footnote-02.xml":
-		case "PASS-element-link-footnote-complete-role-defs.xml":
-		case "PASS-element-link-footnote-complete.xml":
-		case "PASS-element-link-footnote-footnoteArcrole-2.xml":
-		case "PASS-element-link-footnote-footnoteArcrole.xml":
-		case "PASS-element-link-footnote-footnoteLinkRole-2.xml":
-		case "PASS-element-link-footnote-footnoteLinkRole.xml":
-		case "PASS-element-link-footnote-footnoteRole-2.xml":
-		case "PASS-element-link-footnote-footnoteRole.xml":
-		case "PASS-element-link-footnote-nonNumeric-escaped.xml":
-		case "PASS-element-link-footnote-nonNumeric-unescaped.xml":
-		case "PASS-element-link-footnote-nothidden.xml":
-		case "PASS-element-link-footnote-resolved-uris.xml":
-		case "PASS-element-link-footnote-xhtml-content-exclude.xml":
-		case "PASS-element-link-footnote-xhtml-content.xml":
-		case "PASS-elements-footnote-and-nonNumeric-unresolvable-uris-in-exclude.xml":
-		case "PASS-footnote-any-attribute.xml":
-		case "PASS-footnote-continuation.xml":
-		case "PASS-footnote-footnoteLinkRole-multiple-output.xml":
-		case "PASS-footnote-footnoteRole-multiple-output.xml":
-		case "PASS-footnote-ix-element-content.xml":
-		case "PASS-footnote-ix-exclude-content.xml":
-		case "PASS-footnote-nested-ix-element-content.xml":
-		case "PASS-footnote-nested-xml-base-decls.xml":
-		case "PASS-footnote-on-nonFraction.xml":
-		case "PASS-footnote-order-attribute.xml":
-		case "PASS-footnote-relative-uris-object-tag.xml":
-		case "PASS-footnote-uris-with-spaces.xml":
-		case "PASS-footnote-valid-element-content.xml":
-		case "PASS-footnote-within-footnote.xml":
-		case "PASS-footnote-xml-base-xhtml-base-no-interaction.xml":
-		case "PASS-footnoteArcrole-multiple-output.xml":
-		case "PASS-footnoteRef-on-fraction.xml":
-		case "PASS-footnoteRef-on-nonNumeric.xml":
-		case "PASS-footnoteRef-on-tuple.xml":
-		case "PASS-many-to-one-footnote-complete.xml":
-		case "PASS-many-to-one-footnote-different-arcroles.xml":
-		case "PASS-many-to-one-footnotes-multiple-outputs.xml":
-		case "PASS-multiple-outputs-check-dont-have-empty-footnoteLinks.xml":
-		case "PASS-two-footnotes-multiple-output.xml":
-		case "PASS-unused-footnote.xml":
-
-		#endregion
-
-			return;
-
-		#region ./format
-		
-		case "FAIL-format-numdash-badContent.xml":
-		case "FAIL-ix-format-undefined.xml":
-		case "PASS-element-ix-nonFraction-ixt-num-nodecimals.xml":
-		case "PASS-format-numdash.xml":
-
-		#endregion
-
-			return;
-
-		#region ./fraction
-
-		case "FAIL-fraction-denominator-empty.xml":
-		case "FAIL-fraction-denominator-illegal-child-node.xml":
-		case "FAIL-fraction-denominator-ix-format-expanded-name-mismatch.xml":
-		case "FAIL-fraction-denominator-ix-format-invalid.xml":
-		case "FAIL-fraction-denominator-ix-sign-invalid.xml":
-		case "FAIL-fraction-illegal-content.xml":
-		case "FAIL-fraction-illegal-nesting-unitRef.xml":
-		case "FAIL-fraction-illegal-nesting-xsi-nil-2.xml":
-		case "FAIL-fraction-illegal-nesting-xsi-nil.xml":
-		case "FAIL-fraction-illegal-nesting.xml":
-		case "FAIL-fraction-ix-any-attribute.xml":
-		case "FAIL-fraction-ix-contextRef-unresolvable.xml":
-		case "FAIL-fraction-ix-footnoteRef-unresolvable.xml":
-		case "FAIL-fraction-ix-tupleRef-attr-tuple-missing.xml":
-		case "FAIL-fraction-ix-unitRef-unresolvable.xml":
-		case "FAIL-fraction-missing-contextRef.xml":
-		case "FAIL-fraction-missing-denominator.xml":
-		case "FAIL-fraction-missing-numerator-and-denominator.xml":
-		case "FAIL-fraction-missing-numerator.xml":
-		case "FAIL-fraction-missing-unitRef.xml":
-		case "FAIL-fraction-multiple-denominators.xml":
-		case "FAIL-fraction-multiple-numerators.xml":
-		case "FAIL-fraction-no-format-negative-number.xml":
-		case "FAIL-fraction-numerator-denominator-non-xsi-attributes.xml":
-		case "FAIL-fraction-numerator-empty.xml":
-		case "FAIL-fraction-numerator-illegal-child-node.xml":
-		case "FAIL-fraction-numerator-ix-format-expanded-name-mismatch.xml":
-		case "FAIL-fraction-numerator-ix-format-invalid.xml":
-		case "FAIL-fraction-numerator-ix-sign-invalid.xml":
-		case "FAIL-fraction-rule-no-other-ixDescendants.xml":
-		case "FAIL-fraction-rule-no-xbrli-attributes.xml":
-		case "PASS-attribute-ix-format-denominator-01.xml":
-		case "PASS-attribute-ix-format-numerator-01.xml":
-		case "PASS-attribute-ix-name-fraction-01.xml":
-		case "PASS-attribute-ix-scale-denominator-01.xml":
-		case "PASS-attribute-ix-scale-denominator-04.xml":
-		case "PASS-attribute-ix-scale-numerator-01.xml":
-		case "PASS-attribute-ix-scale-numerator-04.xml":
-		case "PASS-attribute-ix-sign-denominator-01.xml":
-		case "PASS-attribute-ix-sign-numerator-01.xml":
-		case "PASS-fraction-denominator-ix-format-expanded-name-match.xml":
-		case "PASS-fraction-denominator-ix-format.xml":
-		case "PASS-fraction-denominator-ix-sign-scale-valid.xml":
-		case "PASS-fraction-ix-order-attr.xml":
-		case "PASS-fraction-ix-target-attr.xml":
-		case "PASS-fraction-ix-tupleRef-attr.xml":
-		case "PASS-fraction-nesting-2.xml":
-		case "PASS-fraction-nesting-3.xml":
-		case "PASS-fraction-nesting-4.xml":
-		case "PASS-fraction-nesting.xml":
-		case "PASS-fraction-non-ix-any-attribute.xml":
-		case "PASS-fraction-numerator-denominator-xsi-attributes.xml":
-		case "PASS-fraction-numerator-ix-format-expanded-name-match.xml":
-		case "PASS-fraction-numerator-ix-format.xml":
-		case "PASS-fraction-numerator-ix-sign-valid.xml":
-		case "PASS-fraction-xsi-nil.xml":
-		case "PASS-ix-denominator-01.xml":
-		case "PASS-ix-denominator-02.xml":
-		case "PASS-ix-denominator-03.xml":
-		case "PASS-ix-denominator-04.xml":
-		case "PASS-ix-numerator-04.xml":
-		case "PASS-simple-fraction-with-html-children.xml":
-		case "PASS-simple-fraction.xml":
-
-		#endregion
-
-			return;
-
-		#region ./fullSizeTests - no fail tests
-
-		case "PASS-full-size-unnested-tuples.xml":
-		case "PASS-full-size-with-footnotes.xml":
-		case "PASS-largeTestNoMarkup.xml":
-
-		#endregion
-
-			return;
-
-		#region ./header - checked fail tests
-
-		case "FAIL-ix-header-child-of-html-header.xml": // Checked
-		case "FAIL-misplaced-ix-element-in-context.xml": // TODO There are two errors which are ix elements in the context hierarchyies MisplacedIXElement,MisplacedIXElement
-		case "FAIL-missing-header.xml": // Checked HeaderAbsent, ReferencesAbsent, ResourcesAbsent
-		case "PASS-header-content-split-over-input-docs.xml":
-		case "PASS-header-empty.xml":
-		case "PASS-single-ix-header-muli-input.xml":
-
-		#endregion
-
-			return;
-
-		#region ./hidden - checked fail tests
-
-		case "FAIL-empty-hidden.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
-		case "FAIL-hidden-empty-tuple-content.xml": // TODO when checking tuples TupleNonEmptyValidation
-		case "FAIL-hidden-illegal-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-hidden-incorrect-order-in-header.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
-		case "FAIL-hidden-not-header-descendant.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "PASS-hidden-nonFraction-content.xml":
-		case "PASS-hidden-tuple-content.xml":
-
-		#endregion
-
-			return;
-
-		#region ./html - checked fail tests
-
-		case "FAIL-a-name-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866
-		case "FAIL-charset-on-meta.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1866
-		case "FAIL-empty-class-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, xbrl.core.xml.SchemaValidationError.cvc-attribute_3
-
-		#endregion
-
-			return;
-
-		#region ./ids - checked fail tests
-
-		case "FAIL-id-triplication.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-context.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-footnote.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-fraction.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-nonFraction.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-nonNumeric.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-references.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-tuple.xml": // Checked DuplicateId
-		case "FAIL-non-unique-id-unit.xml": // Checked DuplicateId
-
-		#endregion
-
-			return;
-
-		#region ./multiIO
-
-		case "FAIL-multi-input-duplicate-context-ids.xml":
-		case "FAIL-multi-input-duplicate-unit-ids.xml":
-		case "FAIL-two-inputs-each-with-error.xml":
-		case "FAIL-two-nonIXBRL-inputs.xml":
-		case "PASS-double-input-single-output.xml":
-		case "PASS-ix-references-06.xml":
-		case "PASS-ix-references-07.xml":
-		case "PASS-multiple-input-multiple-output.xml":
-		case "PASS-single-input-double-output.xml":
-		case "PASS-single-input.xml":
-
-		#endregion
-
-			return;
-
-		#region ./nonFraction
-
-		// case "FAIL-nonFraction-IXBRLelement-content.xml": // Checked - NonFractionChildElementMixed
-		// case "FAIL-nonFraction-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
-		// case "FAIL-nonFraction-decimals-and-precision-attrs.xml": // Checked - PrecisionAndDecimalsPresent
-		// case "FAIL-nonFraction-double-nesting.xml": // Checked - brl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
-		// case "FAIL-nonFraction-empty-content.xml": // Checked - NonFractionIncompleteContent
-		// case "FAIL-nonFraction-empty-without-xsi-nil.xml": // Checked - NonFractionIncompleteContent
-		// case "FAIL-nonFraction-invalid-sign-attr.xml": // Checked - xml.SchemaValidationError.cvc-pattern-valid, xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1839
-		// case "FAIL-nonFraction-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
-		// case "FAIL-nonFraction-ix-format-invalid-minus-sign.xml": // Checked - InvalidDataType
-		// case "FAIL-nonFraction-ix-format-invalid.xml": // Checked - InvalidDataType
-		// case "FAIL-nonFraction-missing-context-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-nonFraction-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-nonFraction-missing-unit-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-nonFraction-mixed-nesting-2.xml": // Checked - NonFractionChildElementMixed
-		// case "FAIL-nonFraction-mixed-nesting-3.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		// case "FAIL-nonFraction-mixed-nesting.xml": // Checked - NonFractionChildElementMixed
-		// case "FAIL-nonFraction-neither-decimals-nor-precision-attrs.xml": // Checked - PrecisionAndDecimalsAbsent
-		// case "FAIL-nonFraction-nesting-format-mismatch-2.xml": // Checked - NonFractionNestedAttributeMismatch
-		// case "FAIL-nonFraction-nesting-format-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
-		// case "FAIL-nonFraction-nesting-scale-mismatch-2.xml": // Checked - NonFractionNestedAttributeMismatch
-		// case "FAIL-nonFraction-nesting-scale-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
-		// case "FAIL-nonFraction-nesting-unitRef-mismatch.xml": // Checked - NonFractionNestedAttributeMismatch
-		// case "FAIL-nonFraction-nesting-xsi-nil.xml": // Checked - NonFractionNestedNilMismatch
-		// case "FAIL-nonFraction-nil-attr-false.xml": // Checked - PrecisionAndDecimalsAbsent
-		// case "FAIL-nonFraction-nil-decimal-conflict.xml": // Checked- PrecisionAndDecimalsPresent
-		// case "FAIL-nonFraction-no-format-negative-number.xml": // Checked - FormatAbsentNegativeNumber
-		// case "FAIL-nonFraction-unresolvable-ix-tupleRef-attr.xml": // Checked - UnknownTuple
-		// case "FAIL-nonfraction-rule-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
-		// case "FAIL-unresolvable-contextRef.xml": // Checked - UnknownContext
-		// case "FAIL-unresolvable-unitRef.xml": // Checked = UnknownUnit
-		case "PASS-attribute-ix-format-nonFraction-01.xml":
-		case "PASS-attribute-ix-name-nonFraction-01.xml":
-		case "PASS-attribute-ix-scale-nonFraction-01.xml":
-		case "PASS-attribute-ix-scale-nonFraction-04.xml":
-		case "PASS-attribute-ix-sign-nonFraction-01.xml":
-		case "PASS-element-ix-nonFraction-complete.xml":
-		case "PASS-element-ix-nonFraction-ixt-numcomma.xml":
-		case "PASS-element-ix-nonFraction-ixt-numcommadot.xml":
-		case "PASS-element-ix-nonFraction-ixt-numdash.xml":
-		case "PASS-element-ix-nonFraction-ixt-numdotcomma.xml":
-		case "PASS-element-ix-nonFraction-ixt-numspacecomma.xml":
-		case "PASS-element-ix-nonFraction-ixt-numspacedot.xml":
-		case "PASS-nonFraction-any-attribute.xml":
-		case "PASS-nonFraction-comments.xml":
-		case "PASS-nonFraction-decimals-attr.xml":
-		case "PASS-nonFraction-ix-format-expanded-name-match.xml":
-		case "PASS-nonFraction-ix-format-valid.xml":
-		case "PASS-nonFraction-ix-order-attr.xml":
-		case "PASS-nonFraction-ix-target-attr.xml":
-		case "PASS-nonFraction-ix-tupleRef-attr.xml":
-		case "PASS-nonFraction-nesting-2.xml":
-		case "PASS-nonFraction-nesting-formats-2.xml":
-		case "PASS-nonFraction-nesting-formats.xml":
-		case "PASS-nonFraction-nesting-scale.xml":
-		case "PASS-nonFraction-nesting.xml":
-		case "PASS-nonFraction-precision-attr.xml":
-		case "PASS-nonFraction-processing-instructions.xml":
-		case "PASS-nonFraction-valid-scale-attr.xml":
-		case "PASS-nonFraction-valid-sign-attr.xml":
-		case "PASS-nonFraction-valid-sign-format-attr.xml":
-		case "PASS-nonFraction-xsi-nil-attr.xml":
-		case "PASS-simple-nonFraction.xml":
-
-		#endregion
-	
-			break;
-
-		#region ./nonNumeric
-
-		// case "FAIL-element-ix-nonNumeric-escape-01.xml": // Checked - InvalidDataType
-		// case "FAIL-nonNumeric-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
-		// case "FAIL-nonNumeric-empty-with-format.xml": // Checked - InvalidDataType
-		// case "FAIL-nonNumeric-illegal-null-namespace-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
-		// case "FAIL-nonNumeric-invalid-ix-format-attr.xml": // Checked - InvalidDataType
-		// case "FAIL-nonNumeric-ix-format-attr-wrong-namespace-binding.xml": // Checked - FormatUndefined
-		// case "FAIL-nonNumeric-missing-contextRef-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-nonNumeric-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-nonNumeric-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
-		// case "FAIL-nonNumeric-unresolvable-ix-contextRef.xml": // Checked - UnknownContext
-		// case "FAIL-nonNumeric-unresolvable-ix-tupleRef-attr.xml": // Checked - UnknownTuple
-		case "PASS-attribute-ix-extension-illegalPlacement-01.xml":
-		case "PASS-attribute-ix-name-nonNumeric-01.xml":
-		case "PASS-element-ix-nonNumeric-complete.xml":
-		case "PASS-element-ix-nonNumeric-escape-02.xml":
-		case "PASS-element-ix-nonNumeric-escape-03.xml":
-		case "PASS-element-ix-nonNumeric-escape-04.xml":
-		case "PASS-element-ix-nonNumeric-escape-05.xml":
-		case "PASS-element-ix-nonNumeric-escape-06.xml":
-		case "PASS-element-ix-nonNumeric-escape-07.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datedoteu-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datedotus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datedotus-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datedotus-03.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongdaymonthuk-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongmonthdayus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongmonthyear-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelonguk-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelonguk-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongus-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-datelongyearmonth-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortdaymonthuk-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortmonthdayus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortmonthyear-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortuk-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortuk-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortus-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateshortyearmonth-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashdaymontheu-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslasheu-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslasheu-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslasheu-03.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashmonthdayus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashus-01.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashus-02.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashus-03.xml":
-		case "PASS-element-ix-nonNumeric-ixt-dateslashus-04.xml":
-		case "PASS-element-ordering.xml":
-		case "PASS-nonNumeric-any-attribute.xml":
-		case "PASS-nonNumeric-empty-not-xsi-nil.xml":
-		case "PASS-nonNumeric-escape-with-html-base.xml":
-		case "PASS-nonNumeric-ix-format-attr-expanded-name-match.xml":
-		case "PASS-nonNumeric-ix-format-attr.xml":
-		case "PASS-nonNumeric-ix-order-attr.xml":
-		case "PASS-nonNumeric-ix-target-attr.xml":
-		case "PASS-nonNumeric-ix-tupleRef-attr.xml":
-		case "PASS-nonNumeric-nesting-in-exclude.xml":
-		case "PASS-nonNumeric-nesting-numerator.xml":
-		case "PASS-nonNumeric-nesting-text-in-exclude.xml":
-		case "PASS-nonNumeric-nesting.xml":
-		case "PASS-nonNumeric-xsi-nil.xml":
-		case "PASS-nonNumeric.xml":
-
-		#endregion
-
-			return;
-
-		#regionx ./references - checked fail tests
-
-		case "FAIL-empty-references.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
-		case "FAIL-ix-references-03.xml": // Checked InvalidAttributeContent
-		case "FAIL-ix-references-08.xml": // Checked RepeatedOtherAttributes
-		case "FAIL-ix-references-09.xml": // Checked DuplicateId
-		case "FAIL-ix-references-namespace-bindings-01.xml": // Checked ReferencesNamespaceClash
-		case "FAIL-ix-references-namespace-bindings-02.xml": // Checked ReferencesNamespaceClash
-		case "FAIL-ix-references-namespace-bindings-03.xml": // Checked ReferencesNamespaceClash
-		case "FAIL-ix-references-namespace-bindings-04.xml": // Checked ReferencesNamespaceClash
-		case "FAIL-ix-references-rule-multiple-attributes-sameValue.xml": // Checked RepeatedOtherAttributes
-		case "FAIL-ix-references-rule-multiple-id.xml": // Checked RepeatedIdAttribute
-		case "FAIL-missing-references-for-all-target-documents.xml": // Checked ReferencesAbsent
-		case "FAIL-missing-references.xml": // Checked ReferencesAbsent
-		case "FAIL-references-illegal-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-references-illegal-location.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-references-illegal-order-in-header.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "PASS-element-ix-references-01.xml":
-		case "PASS-ix-references-01.xml":
-		case "PASS-ix-references-02.xml":
-		case "PASS-ix-references-04.xml":
-		case "PASS-ix-references-05.xml":
-		case "PASS-ix-references-rule-multiple-matched-target.xml":
-		case "PASS-ix-references-rule-multiple-xmlBase.xml":
-		case "PASS-references-copy-non-ix-attrs.xml":
-		case "PASS-references-ix-target-attr.xml":
-		case "PASS-simple-linkbaseRef.xml":
-		case "PASS-simple-schemaRef.xml":
-		case "PASS-single-references-multi-input.xml":
-
-		#endregion
-
-			return;
-
-		#region ./relationships - checked fail tests
-
-		// case "FAIL-relationship-cross-duplication.xml": // Checked RelationshipCrossDuplication
-		// case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml": // Checked RelationshipMixedToRefs
-		// case "FAIL-relationship-with-no-namespace-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		// case "FAIL-relationship-with-xbrli-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		// case "FAIL-relationship-with-xlink-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		case "PASS-explanatory-fact-copy-to-owner-target.xml":
-		case "PASS-explanatory-fact-cycle.xml":
-		case "PASS-explanatory-fact-not-hidden.xml":
-		case "PASS-explanatory-fact.xml":
-		case "PASS-relationship-to-multiple-explanatory-facts-multiple-outputs.xml":
-		case "PASS-relationship-to-multiple-explanatory-facts.xml":
-		case "PASS-relationship-with-xml-base.xml":
-		case "PASS-tuple-footnotes.xml":
-
-		#endregion
-
-			return;
-
-		#region ./resources
-
-		case "FAIL-context-without-id.xml":
-		case "FAIL-missing-resources.xml":
-		case "FAIL-unit-without-id.xml":
-		case "PASS-empty-resources.xml":
-		case "PASS-simple-arcroleRef.xml":
-		case "PASS-simple-roleRef.xml":
-
-		#endregion
-
-			return;
-
-		#region ./specificationExamples - no fail tests
-
-		case "PASS-section-10.3-example-1.xml":
-		case "PASS-section-11.3-example-2.xml":
-		case "PASS-section-15.1-example-3.xml":
-		case "PASS-section-15.1-example-4.xml":
-
-		#endregion
-
-			return;
-
-		#region ./transformations
-
-		case "FAIL-invalid-long-month.xml":
-		case "FAIL-invalid-short-month.xml":
-		case "FAIL-unrecognised-schema-type.xml":
-		case "PASS-sign-attribute-on-nonFraction-positive-input.xml":
-
-		#endregion
-
-			return;
-
-		#region ./tuple
-
-		case "FAIL-badly-formatted-order-attr.xml":
-		case "FAIL-badly-nested-tuples.xml":
-		case "FAIL-duplicate-order-and-value-but-not-attributes.xml":
-		case "FAIL-duplicate-tuple-id-different-input-docs.xml":
-		case "FAIL-duplicate-tuple-id.xml":
-		case "FAIL-duplicate-tuple-order-different-values.xml":
-		case "FAIL-illegal-element-nested.xml":
-		case "FAIL-illegal-element.xml":
-		case "FAIL-missing-descendants.xml":
-		case "FAIL-nested-tuple-empty.xml":
-		case "FAIL-order-attr-denominator.xml":
-		case "FAIL-order-attr-inNonTuple.xml":
-		case "FAIL-order-attr-numerator.xml":
-		case "FAIL-ordering-order-duplicate-stringUnequal.xml":
-		case "FAIL-ordering-order-duplicate.xml":
-		case "FAIL-ordering-partially-missing.xml":
-		case "FAIL-orphaned-tuple-content.xml":
-		case "FAIL-tuple-any-ix-attribute.xml":
-		case "FAIL-tuple-content-in-different-targets-tuple-not-in-default.xml":
-		case "FAIL-tuple-content-in-different-targets.xml":
-		case "FAIL-tuple-cycle-by-tupleRef.xml":
-		case "FAIL-tuple-cycle-child.xml":
-		case "FAIL-tuple-cycle-grandchildren.xml":
-		case "FAIL-tuple-empty-no-ix-tupleID.xml":
-		case "FAIL-tuple-empty.xml":
-		case "FAIL-tuple-missing-name-attr.xml":
-		case "FAIL-tuple-no-xbrli-attributes.xml":
-		case "FAIL-tuple-unresolvable-footnoteRef-attr.xml":
-		case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
-		case "PASS-attribute-ix-name-tuple-01.xml":
-		case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
-		case "PASS-duplicate-order-same-ws-normalized-value.xml":
-		case "PASS-element-ix-tuple-complete.xml":
-		case "PASS-element-tuple-reference-multiInput.xml":
-		case "PASS-element-tuple-reference.xml":
-		case "PASS-exotic-tuple-order.xml":
-		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
-		case "PASS-nested-tuple-nonEmpty.xml":
-		case "PASS-nested-tuple.xml":
-		case "PASS-nonFraction-nesting-reference-conflict.xml":
-		case "PASS-ordering-references-nesting-order.xml":
-		case "PASS-singleton-tuple.xml":
-		case "PASS-tuple-all-content-nested-noTupleID.xml":
-		case "PASS-tuple-any-attribute.xml":
-		case "PASS-tuple-ix-target-attr.xml":
-		case "PASS-tuple-nested-nonNumeric.xml":
-		case "PASS-tuple-nesting-reference-conflict.xml":
-		case "PASS-tuple-nonInteger-ordering-nested.xml":
-		case "PASS-tuple-ordering-nested.xml":
-		case "PASS-tuple-scope-inverted-siblings.xml":
-		case "PASS-tuple-scope-inverted.xml":
-		case "PASS-tuple-scope-nested-nonNumeric.xml":
-		case "PASS-tuple-scope-nonNumeric.xml":
-		case "PASS-tuple-xsi-nil.xml":
-
-		#endregion
-
-			return;
-
-		#region ./xmllang
-
-		case "FAIL-xml-lang-not-in-scope-for-footnote.xml":
-		case "FAIL-xml-lang-on-ix-hidden-and-on-footnote.xml":
-		case "FAIL-xml-lang-on-ix-hidden.xml":
-		case "PASS-direct-xml-lang-not-overidden.xml":
-		case "PASS-xml-lang-on-xhtml.xml":
-
-		#endregion
-
-			return;
-
-
-		default:
-
-			return;
-	}
-
-	$testDoc = new \DOMDocument();
-	if ( ! $testDoc->load( "$dirname$filename" ) )
-	{
-		throw new IXBRLException('Failed to load the test case document: $filename');
-	}
-
-	$documentElement = $testDoc->documentElement;
-	$xpath = new \DOMXPath( $testDoc );
-	$xpath->registerNamespace('tc', 'http://xbrl.org/2008/conformance' );
-
-	/**
-	 * Get the text for an element
-	 * @param string $elementName
-	 * @param string $node
-	 * @return string
-	 */
-	$getElementText = function( $elementName, $node ) use( $xpath )
-	{
-		/** @var \DOMNodeList $elements */
-		$elements = $xpath->query( $elementName, $node );
-		return count( $elements )
-			? $number = $elements[0]->textContent
-			: '';
-	};
-
-	/**
-	 * Get an array of text content for an element
-	 * @param string $elementName
-	 * @param string $node
-	 * @return array
-	 */
-	$getTextArray = function( $elementName, $node ) use( $xpath )
-	{
-		$elements = array();
-		foreach( $xpath->query( $elementName, $node ) as $element )
-		{
-			$elements[] = $element->textContent;
-		}
-		return $elements;
-	};
-
-	$number = $getElementText('tc:number', $documentElement );
-	$name = $getElementText('tc:name', $documentElement );
-
-	foreach( $xpath->query( 'tc:variation', $documentElement ) as $tag => $variation )
-	{
-		/** @var \DOMElement $variation */
-		$id = $variation->getAttribute(IXBRL_ATTR_ID);
-		$description = $getElementText('tc:description', $variation );
-
-		$firstInstances = $getTextArray( 'tc:data/tc:instance[@readMeFirst="true"]', $variation );
-		$otherInstances = array_diff( $getTextArray( 'tc:data/tc:instance', $variation ), $firstInstances );
-		$result = $xpath->query( 'tc:result', $variation )[0];
-		$expected = $result->getAttribute('expected');
-		$standard = ! boolval( $result->getAttribute('nonStandardErrorCodes') );
-		$errors = array();
-		if ( $expected == 'valid' )
-		{
-			$resultInstances = $getTextArray( 'tc:instance', $result );
-		}
-		else
-		{
-			$errors = $getTextArray( 'tc:error', $result );
-			$extras = array();
-			foreach( $errors as $error )
-			{
-				switch( $error )
-				{
-					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2':
-						$extras[] = '1866';
-						$extras[] = '1867';
-						break;
-					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_4':
-						$extras[] = '1868';
-						break;
-					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d':
-					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b':
-					case 'xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a':
-						$extras[] = '1871';
-						break;
-					case 'xbrl.core.xml.SchemaValidationError.cvc-pattern-valid':
-						$extras[] = '1839';
-						break;
-				}
-			}
-	
-			$errors = array_merge( $errors, $extras );
-		}
-
-		// For now ignore negative tests
-		if ( ! $errors ) return;
-
-		$message = "($id) $filename - $description ";
-		$message .= " ($expected" . ( $errors ? ": " . join( ',', $errors ) : "" ) . ")";
-		error_log( $message );
-		echo( "$message\n" );
-
-		// True if the test result agrees with the expected result
-		$success = false;
-
-		try
-		{
-			$documentSet = array_map( function( $document ) use( $dirname ) 
-			{
-				return \XBRL::resolve_path( $dirname, $document );
-			}, array_merge( $firstInstances, $otherInstances ) );
-
-			XBRL_Inline::createInstanceDocument( $documentSet );
-			if ( $expected == 'invalid' )
-			{
-				error_log( "The test result (valid) does not match the expected result (invalid)" );
-				$error = join( ',', $errors );
-				error_log( "The expected error is ($error)" );
-				return;
-			}
-
-			$success = true;
-		}
-		catch( IXBRLSchemaValidationException $ex )
-		{
-			$validator = $ex->getValidator();
-			if ( $expected == 'invalid' )
-			{
-				if ( $validator->hasErrorCode( $errors ) )
-				{
-					echo join( ', ', $errors ) . "\n";
-					$success = true;
-				}
-			}
-
-			if ( ! $success )
-			{
-				if ( $expected == 'valid' )
-					error_log( "The test result (invalid) does not match the expected result (valid)" );
-				else
-				{
-					$error = join( ',', $errors );
-					error_log( "The test result error does not match the expected error ($error)" );
-				}
-
-				$validator->displayErrors();
-			}
-
-		}
-		catch( IXBRLDocumentValidationException $ex )
-		{
-			if ( $expected == 'valid' )
-			{
-				error_log( "The test result (invalid) does not match the expected result (valid)" );
-			}
-			else if ( array_search( $ex->getErrorCode(), $errors ) === false )
-			{
-				error_log( "The test result error does not match the expected error ($error)" );
-			}
-			else
-			{
-				echo $ex->getErrorCode() . "\n";
-				$success = true;
-			}
-
-			if ( ! $success )
-			{
-				echo $ex;
-			}
-		}
-		catch( IXBRLException $ex ) 
-		{
-			echo $ex;
-		}
-		catch( \Exception $ex )
-		{
-			echo $ex;
-		}
-
-	}
-
-}
-
