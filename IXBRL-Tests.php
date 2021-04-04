@@ -577,27 +577,27 @@ function testCase( $dirname, $filename )
 		// case "FAIL-duplicate-tuple-order-different-values.xml": // Checked - OrderDuplicate
 		// case "FAIL-illegal-element-nested.xml": // Checked = InvalidTupleChild
 		// case "FAIL-illegal-element.xml": // Checked = InvalidTupleChild
-		case "FAIL-missing-descendants.xml":
-		case "FAIL-nested-tuple-empty.xml":
-		case "FAIL-order-attr-denominator.xml":
-		case "FAIL-order-attr-inNonTuple.xml":
-		case "FAIL-order-attr-numerator.xml":
-		case "FAIL-ordering-order-duplicate-stringUnequal.xml":
-		case "FAIL-ordering-order-duplicate.xml":
-		case "FAIL-ordering-partially-missing.xml":
-		case "FAIL-orphaned-tuple-content.xml":
-		case "FAIL-tuple-any-ix-attribute.xml":
-		case "FAIL-tuple-content-in-different-targets-tuple-not-in-default.xml":
-		case "FAIL-tuple-content-in-different-targets.xml":
-		case "FAIL-tuple-cycle-by-tupleRef.xml":
-		case "FAIL-tuple-cycle-child.xml":
-		case "FAIL-tuple-cycle-grandchildren.xml":
-		case "FAIL-tuple-empty-no-ix-tupleID.xml":
-		case "FAIL-tuple-empty.xml":
-		case "FAIL-tuple-missing-name-attr.xml":
-		case "FAIL-tuple-no-xbrli-attributes.xml":
-		case "FAIL-tuple-unresolvable-footnoteRef-attr.xml":
-		case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
+		// case "FAIL-missing-descendants.xml": // Checked - TupleNonEmptyValidation
+		// case "FAIL-nested-tuple-empty.xml": // Checked - TupleNonEmptyValidation
+		// case "FAIL-order-attr-denominator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-order-attr-inNonTuple.xml": // Checked - OrderOnNonTupleChild
+		// case "FAIL-order-attr-numerator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		// case "FAIL-ordering-order-duplicate-stringUnequal.xml": // Checked - OrderDuplicate
+		// case "FAIL-ordering-order-duplicate.xml": // Checked - OrderDuplicate
+		// case "FAIL-ordering-partially-missing.xml": // Checked - OrderAbsent
+		// case "FAIL-orphaned-tuple-content.xml": // Checked - UnknownTuple
+		// case "FAIL-tuple-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		// case "FAIL-tuple-content-in-different-targets-tuple-not-in-default.xml": // Checked - InconsistentTargets
+		// case "FAIL-tuple-content-in-different-targets.xml": // Checked - InconsistentTargets
+		// case "FAIL-tuple-cycle-by-tupleRef.xml": // Checked - TupleCycle
+		// case "FAIL-tuple-cycle-child.xml": // Checked - TupleCycle
+		// case "FAIL-tuple-cycle-grandchildren.xml": // Checked - TupleCycle
+		// case "FAIL-tuple-empty-no-ix-tupleID.xml": // Checked - TupleNonEmptyValidation
+		// case "FAIL-tuple-empty.xml": // Checked - TupleNonEmptyValidation
+		// case "FAIL-tuple-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		// case "FAIL-tuple-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
+		// case "FAIL-tuple-unresolvable-footnoteRef-attr.xml": // Checked - DanglingRelationshipToRef
+		// case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
 		case "PASS-attribute-ix-name-tuple-01.xml":
 		case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
 		case "PASS-duplicate-order-same-ws-normalized-value.xml":
