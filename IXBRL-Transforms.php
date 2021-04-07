@@ -27,6 +27,8 @@
 
 namespace lyquidity\ixt;
 
+use lyquidity\ixbrl\IXBRLInvalidNamespaceException;
+
 #region Exceptions
 
 class TransformationException extends \Exception
@@ -677,7 +679,7 @@ class IXBRL_Transforms
 			$_month = $options['moTbl'][ mb_strtolower( $_month ) ] ?? $_month;
 			if ( $this->checkDate( $_year, $_month, $_day ) )
 				return sprintf( '%s-%02d-%02d', $this->year4( $_year ), $_month, $_day );
-			}
+		}
 
 		throw new TransformationException( 0, 'xs:date' );	
 	}
@@ -926,7 +928,7 @@ class IXBRL_Transforms
 
 		$formatFunction = $this->transformFunctions[ $format ] ?? null;
 		if ( ! $formatFunction )
-			throw new \Exception("The format '$format' is not valid for the TRR namespace '{$this->transformNamespace}'");
+			throw new IXBRLInvalidNamespaceException("The format '$format' is not valid for the TRR namespace '{$this->transformNamespace}'");
 
 		return $this->$formatFunction( $arg );
 	}

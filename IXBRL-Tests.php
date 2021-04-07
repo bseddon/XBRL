@@ -73,30 +73,30 @@ function testCase( $dirname, $filename )
 {
 	switch( $filename  )
 	{
-		#region ./baseURIs - checked fail tests
+		#region ./baseURIs - checked fail and pass tests
 
-		case "FAIL-baseURI-on-ix-header.xml":
-		case "FAIL-baseURI-on-xhtml.xml":
+		case "FAIL-baseURI-on-ix-header.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-baseURI-on-xhtml.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
 		case "PASS-baseURI-on-ix-references-multiRefs.xml":
 
 		#endregion
 
 			return;
 
-		#region ./continuation - checked fail tests
+		#region ./continuation - checked fail and pass tests
 
 		case "FAIL-continuation-duplicate-id.xml": // Checked
 		case "FAIL-continuation-nonNumeric-circular.xml": // Checked Dangling
 		case "FAIL-continuation-nonNumeric-circular2.xml": // Checked ContinuationReuse
 		case "FAIL-continuation-nonNumeric-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		case "FAIL-continuation-nonNumeric-invalid-nesting.xml": // TODO: Check this in nonNumeric
-		case "FAIL-continuation-nonNumeric-self.xml": // TODO: Check this in nonNumeric Dangling
+		case "FAIL-continuation-nonNumeric-invalid-nesting.xml": // Checked ContinuationInvalidNesting
+		case "FAIL-continuation-nonNumeric-self.xml": // Checked - DanglingContinuation
 		case "FAIL-continuation-orphaned-cycle.xml": // Checked UnreferencedContinuation
 		case "FAIL-continuation-used-twice.xml": // Checked ContinuationReuse
 		case "FAIL-footnote-continuation-invalid-nesting-2.xml": // Checked ContinuationInvalidNesting
-		case "FAIL-footnote-continuation-invalid-nesting.xml": // TODO: Check this in footnote
+		case "FAIL-footnote-continuation-invalid-nesting.xml": // Checked - ContinuationInvalidNesting
 		case "FAIL-nonNumeric-dangling-continuation-2.xml": // Checked DanglingContinuation
-		case "FAIL-nonNumeric-dangling-continuation.xml": // TODO: Check this in nonNumeric Dangling
+		case "FAIL-nonNumeric-dangling-continuation.xml": // Checked - DanglingContinuation
 		case "FAIL-orphaned-continuation.xml": // UnreferencedContinuation
 		case "PASS-nonNumeric-continuation-multiple-documents.xml":
 		case "PASS-nonNumeric-continuation-other-descendants-escaped.xml":
@@ -109,10 +109,10 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./exclude - checked fail tests
+		#region ./exclude - checked fail and pass tests
 
-		case "FAIL-exclude-nonFraction-parent.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-misplaced-exclude.xml": // Checked MisplacedExclude
+		case "FAIL-exclude-nonFraction-parent.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-misplaced-exclude.xml": // Checked - MisplacedExclude
 		case "PASS-element-ix-exclude-complete.xml":
 		case "PASS-exclude-nonNumeric-parent.xml":
 		case "PASS-multiple-excludes-nonNumeric-parent.xml":
@@ -121,17 +121,17 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./footnotes - checked fail tests
+		#region ./footnotes - checked fail and pass tests
 
-		// case "FAIL-element-ix-footnote-04.xml": // Checked DuplicateId
-		// case "FAIL-footnote-any-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2
-		// case "FAIL-footnote-dangling-continuation.xml": // Checked DanglingContinuation
-		// case "FAIL-footnote-dangling-fromRef.xml": // Checked DanglingRelationshipFromRef
-		// case "FAIL-footnote-dangling-toRef.xml": // Checked DanglingRelationshipToRef
-		// case "FAIL-footnote-duplicate-footnoteIDs-different-input-docs.xml": // Checked DuplicateId
-		// case "FAIL-footnote-duplicate-footnoteIDs.xml": // Checked DuplicateId
-		// case "FAIL-footnote-invalid-element-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		// case "FAIL-footnote-missing-footnoteID.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		case "FAIL-element-ix-footnote-04.xml": // Checked DuplicateId
+		case "FAIL-footnote-any-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2
+		case "FAIL-footnote-dangling-continuation.xml": // Checked DanglingContinuation
+		case "FAIL-footnote-dangling-fromRef.xml": // Checked DanglingRelationshipFromRef
+		case "FAIL-footnote-dangling-toRef.xml": // Checked DanglingRelationshipToRef
+		case "FAIL-footnote-duplicate-footnoteIDs-different-input-docs.xml": // Checked DuplicateId
+		case "FAIL-footnote-duplicate-footnoteIDs.xml": // Checked DuplicateId
+		case "FAIL-footnote-invalid-element-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-footnote-missing-footnoteID.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
 		case "PASS-element-ix-footnote-03.xml":
 		case "PASS-element-link-footnote-02.xml":
 		case "PASS-element-link-footnote-complete-role-defs.xml":
@@ -179,10 +179,10 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./format
+		#region ./format - checked fail and pass tests
 		
-		case "FAIL-format-numdash-badContent.xml":
-		case "FAIL-ix-format-undefined.xml":
+		case "FAIL-format-numdash-badContent.xml": // Checked - InvalidDataType
+		case "FAIL-ix-format-undefined.xml": // Checked - FormatUndefined
 		case "PASS-element-ix-nonFraction-ixt-num-nodecimals.xml":
 		case "PASS-format-numdash.xml":
 
@@ -190,38 +190,38 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./fraction
+		#region ./fraction - checked fail and pass tests
 
-		// case "FAIL-fraction-denominator-empty.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, 1831
-		// case "FAIL-fraction-denominator-illegal-child-node.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_2, 1842
-		// case "FAIL-fraction-denominator-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
-		// case "FAIL-fraction-denominator-ix-format-invalid.xml": // Checked - InvalidDataType
-		// case "FAIL-fraction-denominator-ix-sign-invalid.xml": // Checked - UnknownFractionChild
-		// case "FAIL-fraction-illegal-content.xml": // Checked - UnknownFractionChild
-		// case "FAIL-fraction-illegal-nesting-unitRef.xml": // Checked - FractionNestedAttributeMismatch
-		// case "FAIL-fraction-illegal-nesting-xsi-nil-2.xml": // Checked - FractionNestedNilMismatch
-		// case "FAIL-fraction-illegal-nesting-xsi-nil.xml": // Checked - FractionNestedNilMismatch
-		// case "FAIL-fraction-illegal-nesting.xml": // Checked - MultipleNumeratorDenominator
-		// case "FAIL-fraction-ix-any-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		// case "FAIL-fraction-ix-contextRef-unresolvable.xml": // Checked - UnknownContext
-		// case "FAIL-fraction-ix-footnoteRef-unresolvable.xml": // Checked - DanglingRelationshipToRef
-		// case "FAIL-fraction-ix-tupleRef-attr-tuple-missing.xml": // Checked - UnknownTuple
-		// case "FAIL-fraction-ix-unitRef-unresolvable.xml": // Checked - UnknownUnit
-		// case "FAIL-fraction-missing-contextRef.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-fraction-missing-denominator.xml": // Checked - IncompleteFraction
-		// case "FAIL-fraction-missing-numerator-and-denominator.xml": // Checked - IncompleteFraction
-		// case "FAIL-fraction-missing-numerator.xml": // Checked - IncompleteFraction
-		// case "FAIL-fraction-missing-unitRef.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-fraction-multiple-denominators.xml": // Checked - MultipleNumeratorDenominator
-		// case "FAIL-fraction-multiple-numerators.xml": // Checked - MultipleNumeratorDenominator
-		// case "FAIL-fraction-numerator-denominator-non-xsi-attributes.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
-		// case "FAIL-fraction-numerator-empty.xml": // xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, 1831
-		// case "FAIL-fraction-numerator-illegal-child-node.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_2, 1842,
-		// case "FAIL-fraction-numerator-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
-		// case "FAIL-fraction-numerator-ix-format-invalid.xml": // Checked - InvalidDataType 
-		// case "FAIL-fraction-numerator-ix-sign-invalid.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-pattern-valid, 1839
-		// case "FAIL-fraction-rule-no-other-ixDescendants.xml": // Checked - UnknownFractionChild
-		// case "FAIL-fraction-rule-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
+		case "FAIL-fraction-denominator-empty.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, 1831
+		case "FAIL-fraction-denominator-illegal-child-node.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_2, 1842
+		case "FAIL-fraction-denominator-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
+		case "FAIL-fraction-denominator-ix-format-invalid.xml": // Checked - InvalidDataType
+		case "FAIL-fraction-denominator-ix-sign-invalid.xml": // Checked - UnknownFractionChild
+		case "FAIL-fraction-illegal-content.xml": // Checked - UnknownFractionChild
+		case "FAIL-fraction-illegal-nesting-unitRef.xml": // Checked - FractionNestedAttributeMismatch
+		case "FAIL-fraction-illegal-nesting-xsi-nil-2.xml": // Checked - FractionNestedNilMismatch
+		case "FAIL-fraction-illegal-nesting-xsi-nil.xml": // Checked - FractionNestedNilMismatch
+		case "FAIL-fraction-illegal-nesting.xml": // Checked - MultipleNumeratorDenominator
+		case "FAIL-fraction-ix-any-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		case "FAIL-fraction-ix-contextRef-unresolvable.xml": // Checked - UnknownContext
+		case "FAIL-fraction-ix-footnoteRef-unresolvable.xml": // Checked - DanglingRelationshipToRef
+		case "FAIL-fraction-ix-tupleRef-attr-tuple-missing.xml": // Checked - UnknownTuple
+		case "FAIL-fraction-ix-unitRef-unresolvable.xml": // Checked - UnknownUnit
+		case "FAIL-fraction-missing-contextRef.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		case "FAIL-fraction-missing-denominator.xml": // Checked - IncompleteFraction
+		case "FAIL-fraction-missing-numerator-and-denominator.xml": // Checked - IncompleteFraction
+		case "FAIL-fraction-missing-numerator.xml": // Checked - IncompleteFraction
+		case "FAIL-fraction-missing-unitRef.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		case "FAIL-fraction-multiple-denominators.xml": // Checked - MultipleNumeratorDenominator
+		case "FAIL-fraction-multiple-numerators.xml": // Checked - MultipleNumeratorDenominator
+		case "FAIL-fraction-numerator-denominator-non-xsi-attributes.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-fraction-numerator-empty.xml": // xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, 1831
+		case "FAIL-fraction-numerator-illegal-child-node.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_2, 1842,
+		case "FAIL-fraction-numerator-ix-format-expanded-name-mismatch.xml": // Checked - FormatUndefined
+		case "FAIL-fraction-numerator-ix-format-invalid.xml": // Checked - InvalidDataType 
+		case "FAIL-fraction-numerator-ix-sign-invalid.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-pattern-valid, 1839
+		case "FAIL-fraction-rule-no-other-ixDescendants.xml": // Checked - UnknownFractionChild
+		case "FAIL-fraction-rule-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
 		case "PASS-attribute-ix-format-denominator-01.xml":
 		case "PASS-attribute-ix-format-numerator-01.xml":
 		case "PASS-attribute-ix-name-fraction-01.xml":
@@ -269,10 +269,10 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./header - checked fail tests
+		#region ./header - checked fail and pass tests
 
 		case "FAIL-ix-header-child-of-html-header.xml": // Checked
-		case "FAIL-misplaced-ix-element-in-context.xml": // TODO There are two errors which are ix elements in the context hierarchyies MisplacedIXElement,MisplacedIXElement
+		case "FAIL-misplaced-ix-element-in-context.xml": // Checked - MisplacedIXElement
 		case "FAIL-missing-header.xml": // Checked HeaderAbsent, ReferencesAbsent, ResourcesAbsent
 		case "PASS-header-content-split-over-input-docs.xml":
 		case "PASS-header-empty.xml":
@@ -282,12 +282,12 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./hidden - checked fail tests
+		#region ./hidden - checked fail and pass tests
 
-		case "FAIL-empty-hidden.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
-		case "FAIL-hidden-empty-tuple-content.xml": // TODO when checking tuples TupleNonEmptyValidation
-		case "FAIL-hidden-illegal-content.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
-		case "FAIL-hidden-incorrect-order-in-header.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
+		case "FAIL-empty-hidden.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
+		case "FAIL-hidden-empty-tuple-content.xml": // Checked - TupleNonEmptyValidation
+		case "FAIL-hidden-illegal-content.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
+		case "FAIL-hidden-incorrect-order-in-header.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_d, 1871
 		case "FAIL-hidden-not-header-descendant.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
 		case "PASS-hidden-nonFraction-content.xml":
 		case "PASS-hidden-tuple-content.xml":
@@ -296,7 +296,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./html - checked fail tests
+		#region ./html - checked fail tests (no pass tests)
 
 		case "FAIL-a-name-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866
 		case "FAIL-charset-on-meta.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1866
@@ -306,7 +306,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./ids - checked fail tests
+		#region ./ids - checked fail tests (no pass tests)
 
 		case "FAIL-id-triplication.xml": // Checked DuplicateId
 		case "FAIL-non-unique-id-context.xml": // Checked DuplicateId
@@ -322,12 +322,12 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./multiIO
+		#region ./multiIO - checked fail and pass tests
 
-		case "FAIL-multi-input-duplicate-context-ids.xml":
-		case "FAIL-multi-input-duplicate-unit-ids.xml":
-		case "FAIL-two-inputs-each-with-error.xml":
-		case "FAIL-two-nonIXBRL-inputs.xml":
+		case "FAIL-multi-input-duplicate-context-ids.xml": // Checked - DuplicateId
+		case "FAIL-multi-input-duplicate-unit-ids.xml": // Checked - DuplicateId
+		case "FAIL-two-inputs-each-with-error.xml": // Checked - UnknownContext
+		case "FAIL-two-nonIXBRL-inputs.xml": // Checked - UnsupportedDocumentType
 		case "PASS-double-input-single-output.xml":
 		case "PASS-ix-references-06.xml":
 		case "PASS-ix-references-07.xml":
@@ -339,7 +339,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./nonFraction
+		#region ./nonFraction - checked fail and pass tests
 
 		case "FAIL-nonFraction-IXBRLelement-content.xml": // Checked - NonFractionChildElementMixed
 		case "FAIL-nonFraction-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
@@ -408,7 +408,8 @@ function testCase( $dirname, $filename )
 	
 			return;
 
-		#region ./nonNumeric
+		#region ./nonNumeric - checked fail and pass tests
+
 		case "FAIL-element-ix-nonNumeric-escape-01.xml": // Checked - InvalidDataType
 		case "FAIL-nonNumeric-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
 		case "FAIL-nonNumeric-empty-with-format.xml": // Checked - InvalidDataType
@@ -478,7 +479,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#regionx ./references - checked fail tests
+		#region ./references - checked fail and pass tests
 
 		case "FAIL-empty-references.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
 		case "FAIL-ix-references-03.xml": // Checked InvalidAttributeContent
@@ -512,13 +513,13 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./relationships - checked fail tests
+		#region ./relationships - checked fail and pass tests
 
-		// case "FAIL-relationship-cross-duplication.xml": // Checked RelationshipCrossDuplication
-		// case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml": // Checked RelationshipMixedToRefs
-		// case "FAIL-relationship-with-no-namespace-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		// case "FAIL-relationship-with-xbrli-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
-		// case "FAIL-relationship-with-xlink-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		case "FAIL-relationship-cross-duplication.xml": // Checked RelationshipCrossDuplication
+		case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml": // Checked RelationshipMixedToRefs
+		case "FAIL-relationship-with-no-namespace-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		case "FAIL-relationship-with-xbrli-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
+		case "FAIL-relationship-with-xlink-attribute.xml": // xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1867
 		case "PASS-explanatory-fact-copy-to-owner-target.xml":
 		case "PASS-explanatory-fact-cycle.xml":
 		case "PASS-explanatory-fact-not-hidden.xml":
@@ -532,11 +533,11 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./resources
+		#region ./resources - checked fail and pass tests
 
-		case "FAIL-context-without-id.xml":
-		case "FAIL-missing-resources.xml":
-		case "FAIL-unit-without-id.xml":
+		case "FAIL-context-without-id.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		case "FAIL-missing-resources.xml": // Checked - ResourcesAbsent
+		case "FAIL-unit-without-id.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
 		case "PASS-empty-resources.xml":
 		case "PASS-simple-arcroleRef.xml":
 		case "PASS-simple-roleRef.xml":
@@ -556,85 +557,85 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./transformations
+		#region ./transformations - checked fail and pass tests
 
-		case "FAIL-invalid-long-month.xml":
-		case "FAIL-invalid-short-month.xml":
-		case "FAIL-unrecognised-schema-type.xml":
+		case "FAIL-invalid-long-month.xml": // Checked - InvalidDataType
+		case "FAIL-invalid-short-month.xml": // Checked - InvalidDataType
+		case "FAIL-unrecognised-schema-type.xml": // Checked - FormatUndefined
 		case "PASS-sign-attribute-on-nonFraction-positive-input.xml":
 
 		#endregion
 
 			return;
 
-		#region ./tuple
+		#region ./tuple - checked fail tests
 
-		// case "FAIL-badly-formatted-order-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1824
-		// case "FAIL-badly-nested-tuples.xml": // Checked - TupleCycle
-		// case "FAIL-duplicate-order-and-value-but-not-attributes.xml": // Checked - OrderDuplicate
-		// case "FAIL-duplicate-tuple-id-different-input-docs.xml": // Checked - DuplicateTupleId
-		// case "FAIL-duplicate-tuple-id.xml": // Checked - DuplicateTupleId
-		// case "FAIL-duplicate-tuple-order-different-values.xml": // Checked - OrderDuplicate
-		// case "FAIL-illegal-element-nested.xml": // Checked = InvalidTupleChild
-		// case "FAIL-illegal-element.xml": // Checked = InvalidTupleChild
-		// case "FAIL-missing-descendants.xml": // Checked - TupleNonEmptyValidation
-		// case "FAIL-nested-tuple-empty.xml": // Checked - TupleNonEmptyValidation
-		// case "FAIL-order-attr-denominator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-badly-formatted-order-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1824
+		case "FAIL-badly-nested-tuples.xml": // Checked - TupleCycle
+		case "FAIL-duplicate-order-and-value-but-not-attributes.xml": // Checked - OrderDuplicate
+		case "FAIL-duplicate-tuple-id-different-input-docs.xml": // Checked - DuplicateTupleId
+		case "FAIL-duplicate-tuple-id.xml": // Checked - DuplicateTupleId
+		case "FAIL-duplicate-tuple-order-different-values.xml": // Checked - OrderDuplicate
+		case "FAIL-illegal-element-nested.xml": // Checked = InvalidTupleChild
+		case "FAIL-illegal-element.xml": // Checked = InvalidTupleChild
+		case "FAIL-missing-descendants.xml": // Checked - TupleNonEmptyValidation
+		case "FAIL-nested-tuple-empty.xml": // Checked - TupleNonEmptyValidation
+		case "FAIL-order-attr-denominator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
 		case "FAIL-order-attr-inNonTuple.xml": // Checked - OrderOnNonTupleChild
-		// case "FAIL-order-attr-numerator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
-		// case "FAIL-ordering-order-duplicate-stringUnequal.xml": // Checked - OrderDuplicate
-		// case "FAIL-ordering-order-duplicate.xml": // Checked - OrderDuplicate
-		// case "FAIL-ordering-partially-missing.xml": // Checked - OrderAbsent
-		// case "FAIL-orphaned-tuple-content.xml": // Checked - UnknownTuple
-		// case "FAIL-tuple-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
-		// case "FAIL-tuple-content-in-different-targets-tuple-not-in-default.xml": // Checked - InconsistentTargets
-		// case "FAIL-tuple-content-in-different-targets.xml": // Checked - InconsistentTargets
-		// case "FAIL-tuple-cycle-by-tupleRef.xml": // Checked - TupleCycle
-		// case "FAIL-tuple-cycle-child.xml": // Checked - TupleCycle
-		// case "FAIL-tuple-cycle-grandchildren.xml": // Checked - TupleCycle
-		// case "FAIL-tuple-empty-no-ix-tupleID.xml": // Checked - TupleNonEmptyValidation
-		// case "FAIL-tuple-empty.xml": // Checked - TupleNonEmptyValidation
-		// case "FAIL-tuple-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
-		// case "FAIL-tuple-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
-		// case "FAIL-tuple-unresolvable-footnoteRef-attr.xml": // Checked - DanglingRelationshipToRef
-		// case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
-		case "PASS-attribute-ix-name-tuple-01.xml":
-		case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
-		case "PASS-duplicate-order-same-ws-normalized-value.xml":
-		case "PASS-element-ix-tuple-complete.xml":
-		case "PASS-element-tuple-reference-multiInput.xml":
-		case "PASS-element-tuple-reference.xml":
-		case "PASS-exotic-tuple-order.xml":
-		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
+		case "FAIL-order-attr-numerator.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-ordering-order-duplicate-stringUnequal.xml": // Checked - OrderDuplicate
+		case "FAIL-ordering-order-duplicate.xml": // Checked - OrderDuplicate
+		case "FAIL-ordering-partially-missing.xml": // Checked - OrderAbsent
+		case "FAIL-orphaned-tuple-content.xml": // Checked - UnknownTuple
+		case "FAIL-tuple-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-tuple-content-in-different-targets-tuple-not-in-default.xml": // Checked - InconsistentTargets
+		case "FAIL-tuple-content-in-different-targets.xml": // Checked - InconsistentTargets
+		case "FAIL-tuple-cycle-by-tupleRef.xml": // Checked - TupleCycle
+		case "FAIL-tuple-cycle-child.xml": // Checked - TupleCycle
+		case "FAIL-tuple-cycle-grandchildren.xml": // Checked - TupleCycle
+		case "FAIL-tuple-empty-no-ix-tupleID.xml": // Checked - TupleNonEmptyValidation
+		case "FAIL-tuple-empty.xml": // Checked - TupleNonEmptyValidation
+		case "FAIL-tuple-missing-name-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
+		case "FAIL-tuple-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
+		case "FAIL-tuple-unresolvable-footnoteRef-attr.xml": // Checked - DanglingRelationshipToRef
+		case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
+		// case "PASS-attribute-ix-name-tuple-01.xml":
+		// case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
+		// case "PASS-duplicate-order-same-ws-normalized-value.xml":
+		// case "PASS-element-ix-tuple-complete.xml":
+		// case "PASS-element-tuple-reference-multiInput.xml":
+		// case "PASS-element-tuple-reference.xml":
+		// case "PASS-exotic-tuple-order.xml":
+		// case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
 		case "PASS-nested-tuple-nonEmpty.xml":
-		case "PASS-nested-tuple.xml":
-		case "PASS-nonFraction-nesting-reference-conflict.xml":
-		case "PASS-ordering-references-nesting-order.xml":
-		case "PASS-singleton-tuple.xml":
-		case "PASS-tuple-all-content-nested-noTupleID.xml":
-		case "PASS-tuple-any-attribute.xml":
-		case "PASS-tuple-ix-target-attr.xml":
-		case "PASS-tuple-nested-nonNumeric.xml":
-		case "PASS-tuple-nesting-reference-conflict.xml":
-		case "PASS-tuple-nonInteger-ordering-nested.xml":
-		case "PASS-tuple-ordering-nested.xml":
-		case "PASS-tuple-scope-inverted-siblings.xml":
-		case "PASS-tuple-scope-inverted.xml":
-		case "PASS-tuple-scope-nested-nonNumeric.xml":
-		case "PASS-tuple-scope-nonNumeric.xml":
-		case "PASS-tuple-xsi-nil.xml":
+		// case "PASS-nested-tuple.xml":
+		// case "PASS-nonFraction-nesting-reference-conflict.xml":
+		// case "PASS-ordering-references-nesting-order.xml":
+		// case "PASS-singleton-tuple.xml":
+		// case "PASS-tuple-all-content-nested-noTupleID.xml":
+		// case "PASS-tuple-any-attribute.xml":
+		// case "PASS-tuple-ix-target-attr.xml":
+		// case "PASS-tuple-nested-nonNumeric.xml":
+		// case "PASS-tuple-nesting-reference-conflict.xml":
+		// case "PASS-tuple-nonInteger-ordering-nested.xml":
+		// case "PASS-tuple-ordering-nested.xml":
+		// case "PASS-tuple-scope-inverted-siblings.xml":
+		// case "PASS-tuple-scope-inverted.xml":
+		// case "PASS-tuple-scope-nested-nonNumeric.xml":
+		// case "PASS-tuple-scope-nonNumeric.xml":
+		// case "PASS-tuple-xsi-nil.xml":
 
 		#endregion
 
 			break;
 
-		#region ./xmllang
+		#region ./xmllang - checked fail and pass tests
 
-		case "FAIL-xml-lang-not-in-scope-for-footnote.xml":
-		case "FAIL-xml-lang-on-ix-hidden-and-on-footnote.xml":
-		case "FAIL-xml-lang-on-ix-hidden.xml":
-		case "PASS-direct-xml-lang-not-overidden.xml":
-		case "PASS-xml-lang-on-xhtml.xml":
+		case "FAIL-xml-lang-not-in-scope-for-footnote.xml": // Checked - FootnoteWithoutXmlLangInScope
+		case "FAIL-xml-lang-on-ix-hidden-and-on-footnote.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "FAIL-xml-lang-on-ix-hidden.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
+		case "PASS-direct-xml-lang-not-overidden.xml": // Checked
+		case "PASS-xml-lang-on-xhtml.xml": // Checked
 
 		#endregion
 
@@ -745,7 +746,7 @@ function testCase( $dirname, $filename )
 		}
 
 		// For now ignore negative tests
-		if ( ! $errors ) return;
+		if ( $errors ) return;
 
 		$message = "($id) $filename - $description ";
 		$message .= " ($expected" . ( $errors ? ": " . join( ',', $errors ) : "" ) . ")";

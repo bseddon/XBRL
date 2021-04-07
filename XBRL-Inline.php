@@ -31,6 +31,7 @@ require __DIR__. '/IXBRL-Tests.php';
 
 #region iXBRL Elements
 
+define( "IXBRL_ELEMENT_CONTEXT", "context" );
 define( "IXBRL_ELEMENT_CONTINUATION", "continuation" );
 define( "IXBRL_ELEMENT_DENOMINATOR", "denominator" );
 define( "IXBRL_ELEMENT_EXCLUDE", "exclude" );
@@ -53,6 +54,7 @@ define( "IXBRL_ELEMENT_XHTML", "xhtml" );
 #region iXBRL Attributes
 
 define( "IXBRL_ATTR_ARCROLE", "arcrole" );
+define( "IXBRL_ATTR_BASE", "base" );
 define( "IXBRL_ATTR_CONTEXTREF", "contextRef" );
 define( "IXBRL_ATTR_CONTINUATIONFROM", "continuationFrom" );
 define( "IXBRL_ATTR_CONTINUEDAT", "continuedAt" );
@@ -75,6 +77,7 @@ define( "IXBRL_ATTR_TOREFS", "toRefs" );
 define( "IXBRL_ATTR_TUPLEID", "tupleID" );
 define( "IXBRL_ATTR_TUPLEREF", "tupleRef" );
 define( "IXBRL_ATTR_UNITREF", "unitRef" );
+define( "IXBRL_ATTR_LANG", "xml:lang" );
 
 #endregion
 
@@ -234,26 +237,32 @@ class XBRL_Inline
 	/**
 	 * Returns a list of all the targets defined in the document
 	 * The list is indexed by target name and the elements are nodes that declare that target
-	 * @param array? $targets
-	 * @return \DOMElement[]
+	 * @param \DOMElement[][] $targets
+	 * @return \DOMElement[][]
 	 */
 	private function getTargets( $targets = array() )
 	{
+		/** @var \DOMElement[][] */
 		$targets[null] = $targets[null] ?? array();
 
 		// Get all ix nodes that DO NOT have a 'target' attribute (these are for the default document)
 		$nodes = $this->xpath->query( sprintf("//{$this->ixPrefix}:*[not(@%s)]", IXBRL_ATTR_TARGET ), $this->root );
+
+		/** @var \DOMElement[][] */
 		$targets[null] = array_merge( $targets[null], iterator_to_array( $nodes ) );
 
 		// Get all ix nodes that have a 'target' attribute
 		$nodes = $this->xpath->query( sprintf("//{$this->ixPrefix}:*[@%s]", IXBRL_ATTR_TARGET ), $this->root );
+
+		/** @var \DOMElement[][] */
 		$targets = array_reduce( iterator_to_array( $nodes ), function( $carry, $node )
 		{
 			/** @var \DOMElement $node */
 			$target = $node->getAttribute( IXBRL_ATTR_TARGET );
 			$carry[ $target ][] = $node;
 			return $carry;
-		},$targets );
+		}, $targets );
+		/** @var \DOMElement[][] $targets */
 		return $targets;
 	}
 
@@ -351,6 +360,9 @@ class XBRL_Inline
 	 */
 	private static $outputs = null;
 
+	/** @var \XBRL_Inline[] */
+	private static $documents = [];
+
 	/**
 	 * Create an instance document from in input iXBRL document set
 	 *
@@ -373,6 +385,9 @@ class XBRL_Inline
 			$context->initializeCache();
 		}
 
+		/**
+		 * @var \DOMElement[][]
+		 */
 		$targets = array();
 		$idNodes = array();
 		self::$outputs = array();
@@ -380,8 +395,6 @@ class XBRL_Inline
 
 		try
 		{
-			/** @var \XBRL_Inline[] */
-			$documents = [];
 			foreach( $documentSet as $documentUrl )
 			{
 				// Use the entity loader to make sure libxml uses files from the local.
@@ -389,14 +402,19 @@ class XBRL_Inline
 				$context->setEntityLoader( dirname( $documentUrl ) );
 
 				$document = new XBRL_Inline( $documentUrl );
-				$documents[ $documentUrl ] = $document;
+				self::$documents[ $documentUrl ] = $document;
+				if ( $document->document->documentElement->localName != IXBRL_ELEMENT_HTML || $document->document->documentElement->namespaceURI != \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ])
+				{
+					throw new IXBRLDocumentValidationException( 'UnsupportedDocumentType', "The url does not reference a valid iXBRL document: $documentUrl" );
+				}
 				$document->validateDocument();  // Schema validation
 				// Special case: test case FAIL-empty-class-attribute.html does not fail as expected
-				if ( ( $document->xpath->query('//*[@*=""]') )->length )
+				if ( ( $document->xpath->query('//*[@class=""]') )->length )
 				{
 					throw new IXBRLDocumentValidationException( 'xbrl.core.xml.SchemaValidationError.cvc-minLength-valid', 'Failed using schemaValidate' );				
 				}
 
+				/** @var \DOMElement[][] */
 				$targets = $document->getTargets( $targets );
 				$idNodes = $document->getIDs( $idNodes );
 
@@ -407,7 +425,17 @@ class XBRL_Inline
 			unset( $documentUrl );
 
 			// There will be an output document for every target found
-			$putputs = array_fill_keys( array_keys( $targets ), array() );
+			$outputNodes = array_filter( 
+				$targets, 
+				function( $nodes ) 
+				{
+					return array_filter( 
+						$nodes, 
+						function( $node ) { /** @var \DOMElement $node */ return array_search( $node->localName, array( IXBRL_ELEMENT_HEADER, IXBRL_ELEMENT_RESOURCES ) ) === false; }
+					);
+				}
+			);
+			self::$outputs = array_fill_keys( array_keys( $outputNodes ), array() );
 	
 			// Create list of the idNodes indexed by the id string.  The element value is the index into 
 			$ids = \XBRL::array_reduce_key( $idNodes, function( $carry, $node, $index )
@@ -481,12 +509,12 @@ class XBRL_Inline
 					foreach( $nodes as $node )
 					{
 						/** @var \DOMElement $node */
-						self::validateConstraints( $node, $localName, $nodesByLocalNames, $documents, $idNodes );
+						self::validateConstraints( $node, $localName, $nodesByLocalNames, $idNodes );
 					}
 				}
 			}
 
-			// Check cross-element contination validation rules
+			// Check cross-element continuation validation rules
 			// Make sure continuedAt attributes don't reference the same id
 			$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 			$atIds = array();
@@ -501,6 +529,13 @@ class XBRL_Inline
 					{
 						throw new IXBRLDocumentValidationException( 'ContinuationReuse', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has been used more than once' );			
 					}
+
+					$parentNode = self::checkParentNodes( $node, function( $parentNode ) { return $parentNode->localName== IXBRL_ELEMENT_CONTINUATION; } );
+					if ( $parentNode && $parentNode->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
+					{
+						throw new IXBRLDocumentValidationException( 'ContinuationInvalidNesting', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has @id in it parenmt' );			
+					}
+
 					$atIds[] = $continuedAt;
 				}
 			}
@@ -513,20 +548,29 @@ class XBRL_Inline
 				$ixNamespaces = array( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10], \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
 				foreach( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] as $node )
 				{
+					$target = $node->hasAttribute( IXBRL_ATTR_TARGET )
+						? $node->getAttribute( IXBRL_ATTR_TARGET )
+						: '';
+
 					foreach( $node->attributes as $name => $attr )
 					{
+						if ( $name == IXBRL_ATTR_TARGET ) continue;
+						if ( $name == IXBRL_ATTR_BASE ) continue;
+
 						/** @var \DOMAttr $attr */
 						if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false ) continue;
-						if ( isset( $attributes[ $name ] ) && $attr->nodeValue )
+						if ( isset( $attributes[ $target ][ $name ] ) && $attr->nodeValue )
 						{
 							throw new IXBRLDocumentValidationException( $name == 'id' ? 'RepeatedIdAttribute' : 'RepeatedOtherAttributes', "Section 12.1.2 A <references> attribute/value pair has been used more than once ($name/{$attr->nodeValue}" );
 						}
-						$attributes[ $name ] = $attr->nodeValue;
+						$attributes[ $target ][ $name ] = $attr->nodeValue;
 					}
 				}
 
 				// Each target must have a <references>
-				foreach( $targets as $target => $nodes )
+				// Test PASS-ix-references-rule-multiple-matched-target.html shows that a target can be valid without references if its the default
+				// Filter nodes to remove ix elements that do not have a target attribute
+				foreach( array_intersect_key( $targets, self::$outputs ) as $target => $nodes )
 				{
 					// Only one can have an id attribute
 					$idFound = array();
@@ -536,14 +580,15 @@ class XBRL_Inline
 					{
 						/** @var \DOMElement $targetNode */
 						if ( $targetNode->localName != IXBRL_ELEMENT_REFERENCES ) continue;
-						$referencesFound - true;
-						if ( $targetNode->hasAttribute(IXBRL_ATTR_ID) )
+						$referencesFound = true;
+						if ( $targetNode->hasAttribute( IXBRL_ATTR_ID ) )
 						{
 							if ( $idFound )
 								throw new IXBRLDocumentValidationException( 'MoreThanOneID', "Section 12.1.2 Only one <references> element for a target can include an id attribute.  Found '" . join( "','", $idFound ) . "'" );
-							$idFound[] = $targetNode->getAttribute(IXBRL_ATTR_ID);
+							$idFound[] = $targetNode->getAttribute( IXBRL_ATTR_ID );
 						}
-						$document = $documents[ $targetNode->baseURI ];
+						// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
+						$document = self::$documents[ $targetNode->ownerDocument->documentElement->baseURI ];
 						$namespaces = array_diff( $document->getElementNamespaces( $targetNode ), $document->getElementNamespaces() );
 						if ( $namespaces )
 						{
@@ -557,7 +602,7 @@ class XBRL_Inline
 								$defaultNamespace = $namespace;
 							}
 						}
-						else if ( $defaultNamespace )
+						else if ( $defaultNamespace && $defaultNamespace != 'default' )
 						{
 							throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and 'default'" );
 						}
@@ -601,19 +646,6 @@ class XBRL_Inline
 				return $carry.$child->ownerDocument->saveHTML( $child );
 			}
 		 );
-	}
-
-	/**
-	 * Check the constraints
-	 * @param \DOMElement $node
-	 * @param string $localName
-	 * @param \DOMElement[][] $nodesByLocalNames
-	 * @param XBRL_Inline[] $documents
-	 * @param \DOMElement[] $idNodes
-	 * @return void
-	 */
-	public static function validateFormat( &$node, $localName, &$nodesByLocalNames, &$documents, &$idNodes )
-	{
 	}
 
 	/**
@@ -664,12 +696,27 @@ class XBRL_Inline
 	 * @param string $errorCode
 	 * @return \DOMElement
 	 */
-	private static function checkAttributeConsistency( \DOMElement $node, string $attrName, string $attrValue, string $section, string $localName, $errorCode = 'NonFractionNestedAttributeMismatch' ) 
+	private static function checkAttributeConsistency( \DOMElement $node, string $attrName, string $attrValue, string $section, string $localName, $errorCode = null ) 
 	{
+		if ( strpos( $attrValue, ':') !== false )
+		{
+			list( $prefix, $name ) = explode( ':', $attrValue );
+			$attrValue = '{' . $node->lookupNamespaceURI( $prefix ) . '}' . ":$name";
+		}
+
+		if ( is_null( $errorCode ) ) $errorCode = 'NonFractionNestedAttributeMismatch';
 		return self::checkParentNodes( $node, function( \DOMElement $parentNode ) use( $attrName, $attrValue, $errorCode, $localName, $section )
 		{
 			if ( $parentNode->localName != $localName ) return false;
-			$parentAttrValue = $parentNode->getAttribute( $attrName );
+			$parentAttr = $parentNode->getAttributeNode( $attrName );
+			$parentAttrValue = trim( $parentAttr->nodeValue );
+
+			if ( strpos( $parentAttrValue, ':') !== false )
+			{
+				list( $prefix, $name ) = explode( ':', $parentAttrValue );
+				$parentAttrValue = '{' . $parentNode->lookupNamespaceURI( $prefix ) . '}' . ":$name";
+			}
+
 			if ( $parentAttrValue == $attrValue ) return false;
 			{
 				throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute @'$attrName' should be consistent in nested <$localName>" );
@@ -706,7 +753,7 @@ class XBRL_Inline
 	 */
 	private static function checkUnitRef( $node, &$idNodes, $section, $localName, $errorCode = null )
 	{
-		$unitRef = $node->getAttribute( IXBRL_ATTR_UNITREF );
+		$unitRef = trim( $node->getAttribute( IXBRL_ATTR_UNITREF ) );
 		$unit = $idNodes[ $unitRef ] ?? null;				
 		if ( ! $unit )
 		{
@@ -779,30 +826,38 @@ class XBRL_Inline
 	 * @param string $section
 	 * @param string $localName
 	 * @param XBRL_Inline $document
+	 * @param \DOMElement[] $idNodes
 	 * @return void
 	 */
-	private static function checkFormat( $node, $section, $localName, $document )
+	private static function checkFormat( $node, $section, $localName, $document, $idNodes )
 	{
-		$nil = $node->getAttribute( IXBRL_ATTR_NIL );				
-		$escape = $node->getAttribute( IXBRL_ATTR_ESCAPE );
+		$nil = filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN );				
+		$escape = filter_var( $node->getAttribute( IXBRL_ATTR_ESCAPE ), FILTER_VALIDATE_BOOLEAN );
 		$format = $node->getAttribute( IXBRL_ATTR_FORMAT );
 		self::checkAttributeConsistency( $node, IXBRL_ATTR_FORMAT, $format, $section, $localName );
 
+		// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
+		$cloneNode = $node->cloneNode( true );
+		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		self::removeNestedExcludes( $cloneNode, $document->xpath );
+		$nodes = self::checkContinuationCycles( $cloneNode, $section, $idNodes );
+
 		$content = $escape 
-			? self::innerHTML( $node )
-			: $node->textContent;
+			? join( '', array_map( function( $node ) { return self::innerHTML( $node ); }, $nodes ) )
+			: join( '', array_map( function( $node ) { return trim( $node->textContent ); }, $nodes ) );
 
 		// The content my be empty but there may be a nested node
-		if ( ! $content && ! ( $node->childNodes->length || filter_var( $nil, FILTER_VALIDATE_BOOLEAN ) ) )
+		if ( ! $content && ! ( $node->childNodes->length || $nil ) )
 		{
-			throw new IXBRLDocumentValidationException( 'FormatUndefined', 'Content empty in <$localName>' );
+			// Doesn't seem to be used
+			// throw new IXBRLDocumentValidationException( 'FormatUndefined', 'Content empty in <$localName>' );
 		}
 
 		if ( $format )
 		{
 			try
 			{
-				$result = $document->format( $format, $content, $node, true );
+				return $document->format( $format, $content, $node, true );
 			}
 			catch( IXBRLInvalidNamespaceException $ex )
 			{
@@ -815,11 +870,13 @@ class XBRL_Inline
 		}
 		else if ( $content )
 		{
-			if ( ! is_numeric( $content ) || floatval( $content ) < 0 )
+			if ( $localName != IXBRL_ELEMENT_NONNUMERIC && ( ! is_numeric( trim( $content ) ) || floatval( $content ) < 0 ) )
 			{
 				throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing in <$localName> so the content must be a positive number' );
 			}
 		}
+
+		return $content;
 	}
 
 	/**
@@ -850,7 +907,7 @@ class XBRL_Inline
 		}
 		else
 		{
-			if ( ( ! $decimals && ! $precision ) )
+			if ( ( ! $decimals && strlen( $decimals ) == 0 && ! $precision && strlen( $precision ) == 0 ) )
 			{
 				throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsAbsent', "Section $section Decimals or precision must present on <$localName> but neither exist." );
 			}
@@ -860,12 +917,14 @@ class XBRL_Inline
 				throw new IXBRLDocumentValidationException( 'PrecisionAndDecimalsPresent', "Section $section Decimals or precision must present on <$localName> but both exist." );
 			}
 
-			if ( $node->childNodes->length == 0 )
+			// Exclude comments and processing instructions
+			$childNodes = array_filter( iterator_to_array( $node->childNodes ), function( $node ) { return $node->nodeType != XML_COMMENT_NODE && $node->nodeType != XML_PI_NODE; } );
+			if ( ! $childNodes )
 			{
 				throw new IXBRLDocumentValidationException( 'NonFractionIncompleteContent', "Section $section <$localName> facts that are not nil should have exactly one child" );
 			}
 
-			if ( $node->childNodes->length > 1 )
+			if ( count( $childNodes ) > 1 )
 			{
 				throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section <$localName> facts should have only one child even if some of the children are whitespace." );
 			}
@@ -879,32 +938,34 @@ class XBRL_Inline
 	 *
 	 * @param \DOMElement $node
 	 * @param string $section
-	 * @param string $continuedAt
 	 * @param \DOMElement[] $idNodes
-	 * @return void
+	 * @return \DOMElement[]
 	 * @throws IXBRLDocumentValidationException
 	 */
-	private static function checkContinuationCycles( $node, $section, $continuedAt, &$idNodes )
+	private static function checkContinuationCycles( $node, $section, &$idNodes )
 	{
-		if ( ! $continuedAt ) return;
-
-
-		if ( ! isset( $idNodes[ $continuedAt ] ) )
-		{
-			throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
-		}
+		$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+		$result = array( $node );
+		if ( ! $continuedAt ) return $result;
 
 		if ( $node->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
 		{
-			throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section The continuedAt and id attribute values are the same: '" . $node->getNodePath() . "'" );
+			throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section $section The continuedAt and id attribute values are the same: '" . $node->getNodePath() . "'" );
 		}
 
 		// Look for circular references
 		$visited = array( $node->getNodePath() );
 		while( true )
 		{
-			$nextNode = $idNodes[ $continuedAt ];
-			if ( ! $nextNode->hasAttribute(IXBRL_ATTR_CONTINUEDAT) ) break;
+			if ( ! isset( $idNodes[ $continuedAt ] ) )
+			{
+				throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
+			}
+	
+			$nextNode = $idNodes[ $continuedAt ] ?? false;
+			if ( ! $nextNode ) break;
+			$result[] = $nextNode;
+			if ( ! $nextNode->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) ) break;
 			$path = $nextNode->getNodePath();
 			$exists = array_search( $path, $visited ) !== false;
 			$visited[] = $path;
@@ -914,6 +975,26 @@ class XBRL_Inline
 			}
 			$continuedAt = $nextNode->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 		}
+
+		return $result;
+	}
+
+	/**
+	 * Returns true if the parents include @context
+	 * @param \DOMElement $node
+	 * @param string $section
+	 * @param string $localName
+	 * @return void
+	 */
+	private static function checkParentIsNotElement( $node, $section, $localName )
+	{
+		if ( ! self::checkParentNodes( $node, function( $parentNode ) use( $localName )
+		{
+			/** @var \DOMElement $parentNode */
+			return $parentNode->localName == $localName;
+		} ) ) return;
+
+		throw new IXBRLDocumentValidationException( 'MisplacedIXElement', "Section $section The element <{$node->localName}> is not valid with <$localName>" );
 	}
 
 	/**
@@ -1047,9 +1128,10 @@ class XBRL_Inline
 				: 'tuple-' . spl_object_id( $tupleNode );
 			$nodePath = $tupleNode->getNodePath();
 			$depth = substr_count( $nodePath, IXBRL_ELEMENT_TUPLE );
-			// Only need to consider ix element as html elements will be valid parts of the layout
+			// Only need to consider ix elements as html elements will be valid parts of the layout
 			foreach( $nodesByLocalNames as $ixLocalName => $ixNodes )
 			{
+				if ( array_search( $ixLocalName, array( IXBRL_ELEMENT_DENOMINATOR, IXBRL_ELEMENT_NUMERATOR, IXBRL_ELEMENT_EXCLUDE ) ) !== false ) continue;
 				foreach( $ixNodes as $ixNode )
 				{
 					$ixNodePath = $ixNode->getNodePath();
@@ -1074,6 +1156,11 @@ class XBRL_Inline
 	
 					if ( isset( $orderNodes[ $tupleRef ][ $order ] ) )
 					{
+						// 15.1.2 Each element in the {tuple content} property with the same {tuple order} property MUST have the same Whitespace Normalized Value.
+						$text = trim( preg_replace('/\s+/', ' ', $orderNodes[ $tupleRef ][ $order ]->textContent ) );
+						$ixText = trim( preg_replace('/\s+/', ' ', $ixNode->textContent ) );
+						if ( $text == $ixText ) continue;
+
 						throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: $ixNodePath" );
 					}
 					$orderNodes[ $tupleRef ][ $order ] = $ixNode;
@@ -1092,6 +1179,7 @@ class XBRL_Inline
 
 				$ixTupleRef = $ixNode->getAttribute( IXBRL_ATTR_TUPLEREF );
 				if ( ! $ixTupleRef ) continue;
+				$order = null;
 				if ( $orderNodes[ $ixTupleRef ] ?? false )
 				{
 					$order = floatval( $ixNode->getAttribute( IXBRL_ATTR_ORDER ) );
@@ -1106,7 +1194,10 @@ class XBRL_Inline
 					if ( ! isset( $tupleIds[ $tupleRef ] ) )
 						throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section There is no <tuple> with @tupleID $tupleRef: {$ixNode->getNodePath()}" );
 				}
-				$orderNodes[ $tupleRef ][ $order ] = $ixNode;
+				if ( $order )
+				{
+					$orderNodes[ $tupleRef ][ $order ] = $ixNode;
+				}
 				$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
 			}
 		}
@@ -1127,19 +1218,22 @@ class XBRL_Inline
 	 * @param \DOMElement[] $idNodes
 	 * @return void
 	 */
-	public static function validateConstraints( &$node, $localName, &$nodesByLocalNames, &$documents, &$idNodes )
+	public static function validateConstraints( &$node, $localName, &$nodesByLocalNames, &$idNodes )
 	{
 		// Provides access to the raw document and initialized xpath instance
-		$document = $documents[ $node->baseURI ];
+		// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
+		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
 		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 		$section = '';
-		$checkUnitRef = true;
-		$checkContextRef = true;
+
+		if ( ! isset( $nodesByLocalNames[ $localName ] ) ) return;
 
 		switch( $localName )
 		{
 			case IXBRL_ELEMENT_CONTINUATION:
 				$section = '4.1.1';
+
+				// self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
 
 				// MUST have an id attribute
 				if ( ! $node->hasAttribute(IXBRL_ATTR_ID) )
@@ -1185,12 +1279,13 @@ class XBRL_Inline
 					}
 				}
 
-				if ( ! $foundContinuedAt )
+				// In test (V-1705) FAIL-misplaced-ix-element-in-context.xml there is a case where the continuation @id exists but has no @continuedAt
+				if (  $continuedAt && ! $foundContinuedAt )
 				{
-					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with 'continuedAt' attribute value: $continuedAt" );
+					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no @id with 'continuedAt' attribute value: $continuedAt" );
 				}
 
-				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
+				self::checkContinuationCycles( $node, $section, $idNodes );
 
 				break;
 
@@ -1221,7 +1316,17 @@ class XBRL_Inline
 					{
 						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt" );
 					}
-					self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
+					self::checkContinuationCycles( $node, $section, $idNodes );
+				}
+
+				// Make sure there is a @xml:lang in scope
+				if ( ! $node->hasAttribute( IXBRL_ATTR_LANG ) &&
+					 ! self::checkParentNodes( $node, function( $parentNode ) 
+					{
+						return $parentNode->hasAttribute( IXBRL_ATTR_LANG );
+					} ) )
+				{
+					throw new IXBRLDocumentValidationException( 'FootnoteWithoutXmlLangInScope', "Section $section A footnote must has a @xml:lang in scopes" );
 				}
 
 				break;
@@ -1273,18 +1378,19 @@ class XBRL_Inline
 			case IXBRL_ELEMENT_DENOMINATOR:
 				$section = '7.1.1';
 				self::checkIXbrlAttribute( $node, $section, $localName );
-				self::checkFormat( $node, $section, $localName, $document );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes );
 				break;
 
 			case IXBRL_ELEMENT_NUMERATOR:
 				$section = '7.1.1';
 				self::checkIXbrlAttribute( $node, $section, $localName );
-				self::checkFormat( $node, $section, $localName, $document );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes );
 				break;
 
 			case IXBRL_ELEMENT_FRACTION:
 				$section = '7.1.1';
 
+				self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
 				self::checkIXbrlAttribute( $node, $section, $localName );
 				self::checkUnitRef( $node, $idNodes, $section, $localName, 'FractionNestedAttributeMismatch' );
 				self::checkContextRef( $node, $idNodes, $section, $localName );
@@ -1342,6 +1448,7 @@ class XBRL_Inline
 			case IXBRL_ELEMENT_NONFRACTION:
 				$section = $section ?? '10.1.1';
 
+				self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
 				self::checkUnitRef( $node, $idNodes, $section, $localName );
 				self::checkSign( $node, $section, $localName );
 				self::checkScale( $node, $section, $localName );
@@ -1349,11 +1456,13 @@ class XBRL_Inline
 
 				if ( self::checkDecimalsPrecision( $node, $section, $localName ) )
 				{
+					// Exclude comments
+					$childNodes = array_filter( iterator_to_array( $node->childNodes ), function( $node ) { return $node->nodeType != XML_COMMENT_NODE && $node->nodeType != XML_PI_NODE; } );
 					/** @var \DOMNode */
-					$childNode = $node->childNodes[0];
+					$childNode = reset( $childNodes );
 					if ( $childNode->nodeType == XML_TEXT_NODE )
 					{
-						if ( ! $childNode->textContent )
+						if ( strlen( $childNode->textContent ) == 0 )
 						{
 							throw new IXBRLDocumentValidationException( 'NonFractionChildElementMixed', "Section $section A text node in <$localName> must not be empty" );
 						}
@@ -1368,11 +1477,11 @@ class XBRL_Inline
 				self::checkContextRef( $node, $idNodes, $section, $localName );
 				$tupleNodes =  $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array();
 				self::checkTupleRef( $node, $section, $localName, $tupleNodes );
-				self::checkFormat( $node, $section, $localName, $document );
 
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
-				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
+				// $continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+				// self::checkContinuationCycles( $node, $section, $idNodes );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes );
 
 				break;
 
@@ -1381,16 +1490,14 @@ class XBRL_Inline
 				$section = '11.1.1';
 
 				// No ix attributes should appear
+				self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
 				self::checkIXbrlAttribute( $node, $section, $localName );
 				self::checkContextRef( $node, $idNodes, $section, $localName );
 				$tupleNodes =  $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array();
 				self::checkTupleRef( $node, $section, $localName, $tupleNodes );
-				self::checkFormat( $node, $section, $localName, $document );
 				self::checkOrderIsAppropriate( $node, $section );
 
-				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
-				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-				self::checkContinuationCycles( $node, $section, $continuedAt, $idNodes );
+				$formattedValue = self::checkFormat( $node, $section, $localName, $document, $idNodes );
 
 				break;
 
@@ -1483,6 +1590,20 @@ class XBRL_Inline
 				self::checkTupleOrders( $node, $section, $nodesByLocalNames );
 
 				break;
+		}
+	}
+
+	/**
+	 * Removes any excludes that are descendants of $node
+	 * @param \DOMElement $node
+	 * @param \DOMXPath $xpath
+	 * @return void
+	 */
+	private static function removeNestedExcludes( $node, $xpath ) 
+	{
+		foreach( $xpath->query('./ix:exclude', $node ) as $excludeNode )
+		{
+			$excludeNode->parentNode->removeChild( $excludeNode );
 		}
 	}
 
