@@ -512,6 +512,7 @@ class XBRL_Inline
 						self::validateConstraints( $node, $localName, $nodesByLocalNames, $idNodes );
 					}
 				}
+				self::checkTupleOrders( $node, "15.1.1", $nodesByLocalNames );
 			}
 
 			// Check cross-element continuation validation rules
@@ -1075,14 +1076,19 @@ class XBRL_Inline
 	/**
 	 * Check to determine if the node has a <tuple> parent
 	 * @param \DOMElement $node
+	 * @param boolean $immediate (optional: false)
 	 * @return void
 	 */
-	private static function checkTupleParent( $node )
+	private static function checkTupleParent( $node, $immediate = false )
 	{
-		return self::checkParentNodes( $node, function( $parentNode ) 
+		$parentNode = self::checkParentNodes( $node, function( $parentNode ) use( $immediate )
 		{
-			return $parentNode->localName == IXBRL_ELEMENT_TUPLE;
+			if ( $parentNode->localName == IXBRL_ELEMENT_TUPLE ) return true;
+			if ( ! $immediate ) return false;
+			return array_search( $parentNode->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false;
 		} );
+
+		return $parentNode->localName == IXBRL_ELEMENT_TUPLE;
 	}
 
 	/**
@@ -1102,14 +1108,13 @@ class XBRL_Inline
 		}
 		else
 		{
-			if ( $node->hasAttribute( IXBRL_ATTR_TUPLEREF ) || ! self::checkTupleParent( $node ) ) return;
+			if ( $node->hasAttribute( IXBRL_ATTR_TUPLEREF ) || ! self::checkTupleParent( $node, true ) ) return;
 			throw new IXBRLDocumentValidationException( 'OrderAbsent', "Section $section @order must be used on valid descendants of <tuple>" );
 		}
 	}
 
 	/**
 	 * Check the order numbers used in <tuple> are unique
-	 *
 	 * @param \DOMElement $node
 	 * @param string $section
 	 * @param \DOMElement[][] $nodesByLocalNames
@@ -1117,7 +1122,8 @@ class XBRL_Inline
 	 */
 	private static function checkTupleOrders( $node, $section, &$nodesByLocalNames )
 	{
-		$elements = array( IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_TUPLE );
+		$elements = array( IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_FRACTION );
+		$elementsWithuple = array_merge( $elements, array( IXBRL_ELEMENT_TUPLE ) );
 		$orderNodes = array();
 		$childNodes = array();
 		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] as $tupleNode )
@@ -1135,36 +1141,43 @@ class XBRL_Inline
 				foreach( $ixNodes as $ixNode )
 				{
 					$ixNodePath = $ixNode->getNodePath();
+					$ixTupleRef = $tupleRef;
+
 					// ixNode will be a child if it begins with $nodePath (contains is good enough) 
 					// but only want immediate children (the children will be processed on their own)
-					if ( $ixNodePath == $nodePath || strpos( $ixNodePath, $nodePath ) === false  ) continue;
-					if ( substr_count( $ixNodePath, IXBRL_ELEMENT_TUPLE ) != $depth + ( $ixLocalName == IXBRL_ELEMENT_TUPLE ? 1 : 0 ) ) continue;
+					if ( strpos( $ixNodePath, $nodePath ) === false  ) continue;
+					if ( $ixNodePath == $nodePath ) 
+					{
+						if ( ! $tupleNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) ) continue;
+						$childNodes[ $ixTupleRef ][ $ixLocalName ][] = $ixNode;
+					}
+					else if ( substr_count( $ixNodePath, IXBRL_ELEMENT_TUPLE ) != $depth + ( $ixLocalName == IXBRL_ELEMENT_TUPLE ? 1 : 0 ) ) continue;
 					$ixTarget = $ixNode->getAttribute( IXBRL_ATTR_TARGET );
 					if ( $ixTarget != $target )
 					{
 						throw new IXBRLDocumentValidationException( 'InconsistentTargets', "Section $section The target  of <$ixLocalName> is not the same as the parent <tuple>: $ixNodePath" );
 					}
-					if ( array_search( $ixLocalName, $elements ) === false )
+					if ( array_search( $ixLocalName, $elementsWithuple ) === false )
 					{
 						throw new IXBRLDocumentValidationException( 'InvalidTupleChild', "Section $section The <$ixLocalName> is not valid within a tuple: $ixNodePath" );
 					}
 					$order = floatval( $ixNode->getAttribute( IXBRL_ATTR_ORDER ) );
 					if ( $ixNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) )
 					{
-						$tupleRef = $ixNode->getAttribute( IXBRL_ATTR_TUPLEREF );
+						$ixTupleRef = $ixNode->getAttribute( IXBRL_ATTR_TUPLEREF );
 					}
 	
-					if ( isset( $orderNodes[ $tupleRef ][ $order ] ) )
+					if ( isset( $orderNodes[ $ixTupleRef ][ "~$order" ] ) )
 					{
 						// 15.1.2 Each element in the {tuple content} property with the same {tuple order} property MUST have the same Whitespace Normalized Value.
-						$text = trim( preg_replace('/\s+/', ' ', $orderNodes[ $tupleRef ][ $order ]->textContent ) );
+						$text = trim( preg_replace('/\s+/', ' ', $orderNodes[ $ixTupleRef ][ "~$order" ]->textContent ) );
 						$ixText = trim( preg_replace('/\s+/', ' ', $ixNode->textContent ) );
 						if ( $text == $ixText ) continue;
 
 						throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: $ixNodePath" );
 					}
-					$orderNodes[ $tupleRef ][ $order ] = $ixNode;
-					$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
+					$orderNodes[ $ixTupleRef ][ "~$order" ] = $ixNode;
+					$childNodes[ $ixTupleRef ][ $ixLocalName ][] = $ixNode;
 				}
 			}
 		}
@@ -1183,7 +1196,7 @@ class XBRL_Inline
 				if ( $orderNodes[ $ixTupleRef ] ?? false )
 				{
 					$order = floatval( $ixNode->getAttribute( IXBRL_ATTR_ORDER ) );
-					if ( isset( $orderNodes[ $ixTupleRef ][ $order ] ) )
+					if ( isset( $orderNodes[ $ixTupleRef ][ "~$order" ] ) )
 					{
 						throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: {$ixNode->getNodePath()}" );
 					}
@@ -1196,13 +1209,14 @@ class XBRL_Inline
 				}
 				if ( $order )
 				{
-					$orderNodes[ $tupleRef ][ $order ] = $ixNode;
+					$orderNodes[ $tupleRef ][ "~$order" ] = $ixNode;
 				}
 				$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
 			}
 		}
 
-		if ( count( $childNodes ) != count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ) )
+		$nonNilTuples = array_filter( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ], function( $node ) { return ! filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN ); } );
+		if ( count( $childNodes ) != count( $nonNilTuples ) )
 		{
 			$diff = count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ) - count( $childNodes );
 			throw new IXBRLDocumentValidationException( 'TupleNonEmptyValidation', "Section $section $diff empty <tuple> elements" );
@@ -1587,7 +1601,7 @@ class XBRL_Inline
 				// Checks for unique ids
 				self::getTupleIds( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ], $section );
 				self::checkTupleCycles( $node, $section, $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] );
-				self::checkTupleOrders( $node, $section, $nodesByLocalNames );
+				// self::checkTupleOrders( $node, $section, $nodesByLocalNames );
 
 				break;
 		}

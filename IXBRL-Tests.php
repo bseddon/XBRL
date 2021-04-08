@@ -262,12 +262,12 @@ function testCase( $dirname, $filename )
 		#region ./fullSizeTests - no fail tests
 
 		case "PASS-full-size-unnested-tuples.xml":
-		case "PASS-full-size-with-footnotes.xml":
-		case "PASS-largeTestNoMarkup.xml":
+		// case "PASS-full-size-with-footnotes.xml":
+		// case "PASS-largeTestNoMarkup.xml":
 
 		#endregion
 
-			return;
+			break;
 
 		#region ./header - checked fail and pass tests
 
@@ -568,7 +568,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./tuple - checked fail tests
+		#region ./tuple - checked fail and pass tests
 
 		case "FAIL-badly-formatted-order-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1824
 		case "FAIL-badly-nested-tuples.xml": // Checked - TupleCycle
@@ -599,35 +599,35 @@ function testCase( $dirname, $filename )
 		case "FAIL-tuple-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
 		case "FAIL-tuple-unresolvable-footnoteRef-attr.xml": // Checked - DanglingRelationshipToRef
 		case "FAIL-tuple-xsi-nil-with-tuple-ref.xml":
-		// case "PASS-attribute-ix-name-tuple-01.xml":
-		// case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
-		// case "PASS-duplicate-order-same-ws-normalized-value.xml":
-		// case "PASS-element-ix-tuple-complete.xml":
-		// case "PASS-element-tuple-reference-multiInput.xml":
-		// case "PASS-element-tuple-reference.xml":
-		// case "PASS-exotic-tuple-order.xml":
-		// case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
+		case "PASS-attribute-ix-name-tuple-01.xml":
+		case "PASS-duplicate-order-same-ws-normalized-value-with-html.xml":
+		case "PASS-duplicate-order-same-ws-normalized-value.xml":
+		case "PASS-element-ix-tuple-complete.xml":
+		case "PASS-element-tuple-reference-multiInput.xml":
+		case "PASS-element-tuple-reference.xml":
+		case "PASS-exotic-tuple-order.xml":
+		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
 		case "PASS-nested-tuple-nonEmpty.xml":
-		// case "PASS-nested-tuple.xml":
-		// case "PASS-nonFraction-nesting-reference-conflict.xml":
-		// case "PASS-ordering-references-nesting-order.xml":
-		// case "PASS-singleton-tuple.xml":
-		// case "PASS-tuple-all-content-nested-noTupleID.xml":
-		// case "PASS-tuple-any-attribute.xml":
-		// case "PASS-tuple-ix-target-attr.xml":
-		// case "PASS-tuple-nested-nonNumeric.xml":
-		// case "PASS-tuple-nesting-reference-conflict.xml":
-		// case "PASS-tuple-nonInteger-ordering-nested.xml":
-		// case "PASS-tuple-ordering-nested.xml":
-		// case "PASS-tuple-scope-inverted-siblings.xml":
-		// case "PASS-tuple-scope-inverted.xml":
-		// case "PASS-tuple-scope-nested-nonNumeric.xml":
-		// case "PASS-tuple-scope-nonNumeric.xml":
-		// case "PASS-tuple-xsi-nil.xml":
+		case "PASS-nested-tuple.xml":
+		case "PASS-nonFraction-nesting-reference-conflict.xml":
+		case "PASS-ordering-references-nesting-order.xml":
+		case "PASS-singleton-tuple.xml":
+		case "PASS-tuple-all-content-nested-noTupleID.xml":
+		case "PASS-tuple-any-attribute.xml":
+		case "PASS-tuple-ix-target-attr.xml":
+		case "PASS-tuple-nested-nonNumeric.xml":
+		case "PASS-tuple-nesting-reference-conflict.xml":
+		case "PASS-tuple-nonInteger-ordering-nested.xml":
+		case "PASS-tuple-ordering-nested.xml":
+		case "PASS-tuple-scope-inverted-siblings.xml":
+		case "PASS-tuple-scope-inverted.xml":
+		case "PASS-tuple-scope-nested-nonNumeric.xml":
+		case "PASS-tuple-scope-nonNumeric.xml":
+		case "PASS-tuple-xsi-nil.xml":
 
 		#endregion
 
-			break;
+			return;
 
 		#region ./xmllang - checked fail and pass tests
 
