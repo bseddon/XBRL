@@ -28,6 +28,7 @@ use lyquidity\ixt\IXBRL_Transforms;
 
 require __DIR__. '/IXBRL-Transforms.php';
 require __DIR__. '/IXBRL-Tests.php';
+require __DIR__. '/IXBRL-CreateInstance.php';
 
 #region iXBRL Elements
 
@@ -93,6 +94,18 @@ class XBRL_Inline
 	private static $context = null;
 
 	/**
+	 * A holder for the documents being created
+	 * @var array
+	 */
+	private static $outputs = null;
+
+	/**
+	 * The set of source documents
+	 * @var XBRL_Inline[] 
+	 */
+	public static $documents = [];
+
+	/**
 	 * @var \DOMDocument 
 	 */
 	public $document = null;
@@ -116,7 +129,7 @@ class XBRL_Inline
 	 *
 	 * @var \DOMXPath
 	 */
-	protected $xpath = null;
+	public $xpath = null;
 
 	/**
 	 * True if the document is IXBRL
@@ -138,6 +151,12 @@ class XBRL_Inline
 	 * @var boolean
 	 */
 	public $isXHTML = false;
+
+	/**
+	 * Capture the format status
+	 * @var boolean
+	 */
+	private static $formatOutput = true;
 
 	/**
 	 * Inline XBRL class constructor instantiating DOMDocument
@@ -354,24 +373,14 @@ class XBRL_Inline
 	}
 
 	/**
-	 * A holder for the documents being created
-	 *
-	 * @var array
-	 */
-	private static $outputs = null;
-
-	/** @var \XBRL_Inline[] */
-	private static $documents = [];
-
-	/**
 	 * Create an instance document from in input iXBRL document set
-	 *
+	 * @param string $name
 	 * @param string[] $documentSet
 	 * @param boolean? $validate
 	 * @param callable? $fn This is a dummy parameter to get around the intelliphense type checking which insists that the arg to libxml_set_external_entity_loader cannot be null.
 	 * @return void
 	 */
-	public static function createInstanceDocument( $documentSet, $validate = true, $fn = null )
+	public static function createInstanceDocument( $name, $documentSet, $validate = true, $fn = null )
 	{
 		if ( ! self::$context )
 		{
@@ -516,107 +525,15 @@ class XBRL_Inline
 			}
 
 			// Check cross-element continuation validation rules
-			// Make sure continuedAt attributes don't reference the same id
-			$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
-			$atIds = array();
-			// Get the nodes for continuation, footnote and nonNumeric elements
-			foreach( $correspondents as $localName )
-			{
-				foreach( $nodesByLocalNames[ $localName ] ?? array() as $node )
-				{
-					if ( ! $node->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) ) continue;
-					$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
-					if ( array_search( $continuedAt, $atIds ) !== false )
-					{
-						throw new IXBRLDocumentValidationException( 'ContinuationReuse', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has been used more than once' );			
-					}
-
-					$parentNode = self::checkParentNodes( $node, function( $parentNode ) { return $parentNode->localName== IXBRL_ELEMENT_CONTINUATION; } );
-					if ( $parentNode && $parentNode->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
-					{
-						throw new IXBRLDocumentValidationException( 'ContinuationInvalidNesting', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has @id in it parenmt' );			
-					}
-
-					$atIds[] = $continuedAt;
-				}
-			}
+			self::checkCrossElementContinuations( $nodesByLocalNames );
 
 			// Check cross-references validation rules (12.1.2)
-			if (  $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? false )
+			self::checkCrossReferencesRules( $nodesByLocalNames, $targets );
+
+			$documents = IXBRL_CreateInstance::createInstanceDocuments( array_keys( self::$outputs ), $name, $nodesByLocalNames, $idNodes, $targets );
+			foreach( $documents as $target => $document )
 			{
-				// Each attribute value should be unique across all <references> for attribute not in the IX namespace
-				$attributes = array();
-				$ixNamespaces = array( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10], \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
-				foreach( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] as $node )
-				{
-					$target = $node->hasAttribute( IXBRL_ATTR_TARGET )
-						? $node->getAttribute( IXBRL_ATTR_TARGET )
-						: '';
-
-					foreach( $node->attributes as $name => $attr )
-					{
-						if ( $name == IXBRL_ATTR_TARGET ) continue;
-						if ( $name == IXBRL_ATTR_BASE ) continue;
-
-						/** @var \DOMAttr $attr */
-						if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false ) continue;
-						if ( isset( $attributes[ $target ][ $name ] ) && $attr->nodeValue )
-						{
-							throw new IXBRLDocumentValidationException( $name == 'id' ? 'RepeatedIdAttribute' : 'RepeatedOtherAttributes', "Section 12.1.2 A <references> attribute/value pair has been used more than once ($name/{$attr->nodeValue}" );
-						}
-						$attributes[ $target ][ $name ] = $attr->nodeValue;
-					}
-				}
-
-				// Each target must have a <references>
-				// Test PASS-ix-references-rule-multiple-matched-target.html shows that a target can be valid without references if its the default
-				// Filter nodes to remove ix elements that do not have a target attribute
-				foreach( array_intersect_key( $targets, self::$outputs ) as $target => $nodes )
-				{
-					// Only one can have an id attribute
-					$idFound = array();
-					$referencesFound = false;
-					$defaultNamespace = null;
-					foreach( $nodes as $targetNode )
-					{
-						/** @var \DOMElement $targetNode */
-						if ( $targetNode->localName != IXBRL_ELEMENT_REFERENCES ) continue;
-						$referencesFound = true;
-						if ( $targetNode->hasAttribute( IXBRL_ATTR_ID ) )
-						{
-							if ( $idFound )
-								throw new IXBRLDocumentValidationException( 'MoreThanOneID', "Section 12.1.2 Only one <references> element for a target can include an id attribute.  Found '" . join( "','", $idFound ) . "'" );
-							$idFound[] = $targetNode->getAttribute( IXBRL_ATTR_ID );
-						}
-						// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
-						$document = self::$documents[ $targetNode->ownerDocument->documentElement->baseURI ];
-						$namespaces = array_diff( $document->getElementNamespaces( $targetNode ), $document->getElementNamespaces() );
-						if ( $namespaces )
-						{
-							$namespace = reset( $namespaces );
-							if ( $defaultNamespace && $defaultNamespace != $namespace )
-							{
-								throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and '{$namespace}'" );
-							}
-							else
-							{
-								$defaultNamespace = $namespace;
-							}
-						}
-						else if ( $defaultNamespace && $defaultNamespace != 'default' )
-						{
-							throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and 'default'" );
-						}
-						else
-						{
-							$defaultNamespace = 'default';
-						}
-					}
-	
-					if( ! $referencesFound )
-						throw new IXBRLDocumentValidationException( 'ReferencesAbsent', "Section 12.1.2 A <references> must exist for all targets.  Missing element for target '$target'" );
-				}
-
+				echo self::saveXML( $document, self::$formatOutput );
 			}
 		}
 		catch( \Exception $ex )
@@ -647,6 +564,152 @@ class XBRL_Inline
 				return $carry.$child->ownerDocument->saveHTML( $child );
 			}
 		 );
+	}
+
+	/**
+	 * Outputs the XML for the generated document
+	 * @param \DOMNode $node
+	 * @param mixed $options
+	 * @param \DOMDocument $document
+	 * @return string
+	 */
+	public static function saveXML( $document, $formatOutput, $options = null )
+	{
+		$document->formatOutput = $formatOutput;
+
+		if ( ! $formatOutput ) return $document->saveXML( null, $options );
+
+		// Expand all xmlns declarations so they appear on separate lines
+		$xml = str_replace( array('xmlns', 'xsi:schemaLocation'), array("\n\txmlns", "\n\txsi:schemaLocation"), $document->saveXML( null, $options ) );
+		// Expand the schema location entries so that appear on separate lines
+		$xml = preg_replace_callback( '/(xsi:schemaLocation=")(.*)(")/', function( $matches )
+		{
+			return $matches[1] . "\n\t\t" . str_replace( '.xsd', ".xsd\n\t\t", $matches[2] ) . $matches[3];
+		}, $xml );
+		// Find elements with attributes and put the second and subsequent attributes on separate lines
+		// $xml = preg_replace_callback( '|\s*<[a-z]+:.*? .*?" .*|', function( $matches )
+		// {
+		// 	return str_replace('" ', "\"\n\t\t", $matches[0] );
+		// }, $xml );
+
+		return $xml;
+	}
+
+	/**
+	 * Check cross-element continuation validation rules
+	 * @param [type] $nodesByLocalNames
+	 * @return void
+	 */
+	private static function checkCrossElementContinuations( &$nodesByLocalNames )
+	{
+		// Make sure continuedAt attributes don't reference the same id
+		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
+		$atIds = array();
+		// Get the nodes for continuation, footnote and nonNumeric elements
+		foreach( $correspondents as $localName )
+		{
+			foreach( $nodesByLocalNames[ $localName ] ?? array() as $node )
+			{
+				if ( ! $node->hasAttribute( IXBRL_ATTR_CONTINUEDAT ) ) continue;
+				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
+				if ( array_search( $continuedAt, $atIds ) !== false )
+				{
+					throw new IXBRLDocumentValidationException( 'ContinuationReuse', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has been used more than once' );			
+				}
+
+				$parentNode = self::checkParentNodes( $node, function( $parentNode ) { return $parentNode->localName== IXBRL_ELEMENT_CONTINUATION; } );
+				if ( $parentNode && $parentNode->getAttribute( IXBRL_ATTR_ID ) == $continuedAt )
+				{
+					throw new IXBRLDocumentValidationException( 'ContinuationInvalidNesting', 'Section 4.1.1 A \'continuationAt\' attribute with value \'$continuedAt\' has @id in it parenmt' );			
+				}
+
+				$atIds[] = $continuedAt;
+			}
+		}
+	}
+
+	/**
+	 * Check cross-references validation rules (12.1.2)
+	 * @param \DOMElement[][] $nodesByLocalNames
+	 * @param \DOMElement[][] $targets
+	 * @return void
+	 */
+	private static function checkCrossReferencesRules( &$nodesByLocalNames, &$targets )
+	{
+		if ( ( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? false ) ) return;
+
+		// Each attribute value should be unique across all <references> for attribute not in the IX namespace
+		$attributes = array();
+		$ixNamespaces = array( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10], \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
+		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? array() as $node )
+		{
+			$target = $node->hasAttribute( IXBRL_ATTR_TARGET )
+				? $node->getAttribute( IXBRL_ATTR_TARGET )
+				: '';
+
+			foreach( $node->attributes as $name => $attr )
+			{
+				if ( $name == IXBRL_ATTR_TARGET ) continue;
+				if ( $name == IXBRL_ATTR_BASE ) continue;
+
+				/** @var \DOMAttr $attr */
+				if ( array_search( $attr->namespaceURI, $ixNamespaces ) !== false ) continue;
+				if ( isset( $attributes[ $target ][ $name ] ) && $attr->nodeValue )
+				{
+					throw new IXBRLDocumentValidationException( $name == 'id' ? 'RepeatedIdAttribute' : 'RepeatedOtherAttributes', "Section 12.1.2 A <references> attribute/value pair has been used more than once ($name/{$attr->nodeValue}" );
+				}
+				$attributes[ $target ][ $name ] = $attr->nodeValue;
+			}
+		}
+
+		// Each target must have a <references>
+		// Test PASS-ix-references-rule-multiple-matched-target.html shows that a target can be valid without references if its the default
+		// Filter nodes to remove ix elements that do not have a target attribute
+		foreach( array_intersect_key( $targets, self::$outputs ) as $target => $nodes )
+		{
+			// Only one can have an id attribute
+			$idFound = array();
+			$referencesFound = false;
+			$defaultNamespace = null;
+			foreach( $nodes as $targetNode )
+			{
+				/** @var \DOMElement $targetNode */
+				if ( $targetNode->localName != IXBRL_ELEMENT_REFERENCES ) continue;
+				$referencesFound = true;
+				if ( $targetNode->hasAttribute( IXBRL_ATTR_ID ) )
+				{
+					if ( $idFound )
+						throw new IXBRLDocumentValidationException( 'MoreThanOneID', "Section 12.1.2 Only one <references> element for a target can include an id attribute.  Found '" . join( "','", $idFound ) . "'" );
+					$idFound[] = $targetNode->getAttribute( IXBRL_ATTR_ID );
+				}
+				// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
+				$document = self::$documents[ $targetNode->ownerDocument->documentElement->baseURI ];
+				$namespaces = array_diff( $document->getElementNamespaces( $targetNode ), $document->getElementNamespaces() );
+				if ( $namespaces )
+				{
+					$namespace = reset( $namespaces );
+					if ( $defaultNamespace && $defaultNamespace != $namespace )
+					{
+						throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and '{$namespace}'" );
+					}
+					else
+					{
+						$defaultNamespace = $namespace;
+					}
+				}
+				else if ( $defaultNamespace && $defaultNamespace != 'default' )
+				{
+					throw new IXBRLDocumentValidationException( 'ReferencesNamespaceClash', "Section 12.1.2 Only one default namespace can be used across all <references>. Two or more detected: '$defaultNamespace' and 'default'" );
+				}
+				else
+				{
+					$defaultNamespace = 'default';
+				}
+			}
+
+			if( ! $referencesFound )
+				throw new IXBRLDocumentValidationException( 'ReferencesAbsent', "Section 12.1.2 A <references> must exist for all targets.  Missing element for target '$target'" );
+		}
 	}
 
 	/**
@@ -1062,7 +1125,7 @@ class XBRL_Inline
 			$nextNode = $tupleIds[ $tupleRef ];
 			if ( ! $nextNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) ) break;
 			$path = $nextNode->getNodePath();
-			$exists = array_search( $path, $visited ) !== false || $nextNode == $node;
+			$exists = array_search( $path, $visited ) !== false || spl_object_id( $nextNode ) == spl_object_id( $node );
 			$visited[] = $path;
 			if ( $exists ) 
 			{
@@ -1088,7 +1151,9 @@ class XBRL_Inline
 			return array_search( $parentNode->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false;
 		} );
 
-		return $parentNode->localName == IXBRL_ELEMENT_TUPLE;
+		return  $parentNode 
+			? $parentNode->localName == IXBRL_ELEMENT_TUPLE
+			: null;
 	}
 
 	/**
@@ -1126,7 +1191,7 @@ class XBRL_Inline
 		$elementsWithuple = array_merge( $elements, array( IXBRL_ELEMENT_TUPLE ) );
 		$orderNodes = array();
 		$childNodes = array();
-		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] as $tupleNode )
+		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array() as $tupleNode )
 		{
 			$target = $tupleNode->getAttribute( IXBRL_ATTR_TARGET );
 			$tupleRef = $tupleNode->hasAttribute( IXBRL_ATTR_TUPLEID ) 
@@ -1146,7 +1211,7 @@ class XBRL_Inline
 					// ixNode will be a child if it begins with $nodePath (contains is good enough) 
 					// but only want immediate children (the children will be processed on their own)
 					if ( strpos( $ixNodePath, $nodePath ) === false  ) continue;
-					if ( $ixNodePath == $nodePath ) 
+					if ( $ixNodePath == $nodePath )
 					{
 						if ( ! $tupleNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) ) continue;
 						$childNodes[ $ixTupleRef ][ $ixLocalName ][] = $ixNode;
@@ -1215,10 +1280,10 @@ class XBRL_Inline
 			}
 		}
 
-		$nonNilTuples = array_filter( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ], function( $node ) { return ! filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN ); } );
+		$nonNilTuples = array_filter( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array(), function( $node ) { return ! filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN ); } );
 		if ( count( $childNodes ) != count( $nonNilTuples ) )
 		{
-			$diff = count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ) - count( $childNodes );
+			$diff = count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array() ) - count( $childNodes );
 			throw new IXBRLDocumentValidationException( 'TupleNonEmptyValidation', "Section $section $diff empty <tuple> elements" );
 		}
 	}
@@ -1228,7 +1293,6 @@ class XBRL_Inline
 	 * @param \DOMElement $node
 	 * @param string $localName
 	 * @param \DOMElement[][] $nodesByLocalNames
-	 * @param XBRL_Inline[] $documents
 	 * @param \DOMElement[] $idNodes
 	 * @return void
 	 */

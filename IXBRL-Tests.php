@@ -262,12 +262,12 @@ function testCase( $dirname, $filename )
 		#region ./fullSizeTests - no fail tests
 
 		case "PASS-full-size-unnested-tuples.xml":
-		// case "PASS-full-size-with-footnotes.xml":
-		// case "PASS-largeTestNoMarkup.xml":
+		case "PASS-full-size-with-footnotes.xml":
+		case "PASS-largeTestNoMarkup.xml":
 
 		#endregion
 
-			break;
+			return;
 
 		#region ./header - checked fail and pass tests
 
@@ -372,6 +372,8 @@ function testCase( $dirname, $filename )
 		case "FAIL-unresolvable-contextRef.xml": // Checked - UnknownContext
 		case "FAIL-unresolvable-unitRef.xml": // Checked = UnknownUnit
 		case "PASS-attribute-ix-format-nonFraction-01.xml":
+
+			break;
 		case "PASS-attribute-ix-name-nonFraction-01.xml":
 		case "PASS-attribute-ix-scale-nonFraction-01.xml":
 		case "PASS-attribute-ix-scale-nonFraction-04.xml":
@@ -763,7 +765,7 @@ function testCase( $dirname, $filename )
 				return \XBRL::resolve_path( $dirname, $document );
 			}, array_merge( $firstInstances, $otherInstances ) );
 
-			XBRL_Inline::createInstanceDocument( $documentSet );
+			XBRL_Inline::createInstanceDocument( $name, $documentSet );
 			if ( $expected == 'invalid' )
 			{
 				error_log( "The test result (valid) does not match the expected result (invalid)" );

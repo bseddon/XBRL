@@ -255,6 +255,10 @@ class XBRL_Constants
 		STANDARD_PREFIX_IXBRL11							=> "http://www.xbrl.org/2013/inlineXBRL",
 	);
 
+	/**
+	 * The supported iXBRL namespaces indexed by the canonical prefixes
+	 * @var string[]
+	 */
 	public static $ixbrlNamespaces = array( STANDARD_PREFIX_IXBRL10 => "http://www.xbrl.org/2008/inlineXBRL", STANDARD_PREFIX_IXBRL11 => "http://www.xbrl.org/2013/inlineXBRL" );
 	
 	/**
