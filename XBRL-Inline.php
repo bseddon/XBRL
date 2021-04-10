@@ -738,7 +738,7 @@ class XBRL_Inline
 	 * @param string $section
 	 * @return \DOMElement
 	 */
-	private static function checkParentNodes( \DOMElement $node, \Closure $test )
+	public static function checkParentNodes( \DOMElement $node, \Closure $test )
 	{
 		$parentNode = $node->parentNode;
 		while( $parentNode && $parentNode instanceof \DOMElement )
@@ -773,7 +773,7 @@ class XBRL_Inline
 		{
 			if ( $parentNode->localName != $localName ) return false;
 			$parentAttr = $parentNode->getAttributeNode( $attrName );
-			$parentAttrValue = trim( $parentAttr->nodeValue );
+			$parentAttrValue = $parentAttr ? trim( $parentAttr->nodeValue ) : '';
 
 			if ( strpos( $parentAttrValue, ':') !== false )
 			{
@@ -782,10 +782,9 @@ class XBRL_Inline
 			}
 
 			if ( $parentAttrValue == $attrValue ) return false;
-			{
-				throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute @'$attrName' should be consistent in nested <$localName>" );
-			}
-			return true; // End here.  Any other parents will be checked when the parent is validated.
+			throw new IXBRLDocumentValidationException( $errorCode, "Section $section Attribute @'$attrName' should be consistent in nested <$localName>" );
+
+			// return true; // End here.  Any other parents will be checked when the parent is validated.
 		} );	
 	}
 
@@ -893,7 +892,7 @@ class XBRL_Inline
 	 * @param \DOMElement[] $idNodes
 	 * @return void
 	 */
-	private static function checkFormat( $node, $section, $localName, $document, $idNodes )
+	public static function checkFormat( $node, $section, $localName, $document, $idNodes )
 	{
 		$nil = filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN );				
 		$escape = filter_var( $node->getAttribute( IXBRL_ATTR_ESCAPE ), FILTER_VALIDATE_BOOLEAN );
@@ -921,7 +920,7 @@ class XBRL_Inline
 		{
 			try
 			{
-				return $document->format( $format, $content, $node, true );
+				$content = $document->format( $format, $content, $node, true );
 			}
 			catch( IXBRLInvalidNamespaceException $ex )
 			{
@@ -938,6 +937,16 @@ class XBRL_Inline
 			{
 				throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing in <$localName> so the content must be a positive number' );
 			}
+		}
+
+		if ( is_numeric( $content ) )
+		{
+			$scale = $node->getAttribute( IXBRL_ATTR_SCALE );
+			if (  $scale )
+				$content = $content * pow( 10, $scale );
+			$sign = $node->getAttribute( IXBRL_ATTR_SIGN );
+			if (  $sign )
+				$content = "-$content";
 		}
 
 		return $content;
@@ -1140,9 +1149,9 @@ class XBRL_Inline
 	 * Check to determine if the node has a <tuple> parent
 	 * @param \DOMElement $node
 	 * @param boolean $immediate (optional: false)
-	 * @return void
+	 * @return \DOMElement
 	 */
-	private static function checkTupleParent( $node, $immediate = false )
+	public static function checkTupleParent( $node, $immediate = false )
 	{
 		$parentNode = self::checkParentNodes( $node, function( $parentNode ) use( $immediate )
 		{

@@ -251,9 +251,15 @@ function testCase( $dirname, $filename )
 		case "PASS-ix-denominator-02.xml":
 		case "PASS-ix-denominator-03.xml":
 		case "PASS-ix-denominator-04.xml":
+				
+			return;
+
+		case "PASS-simple-fraction.xml":
+
+			break;
+
 		case "PASS-ix-numerator-04.xml":
 		case "PASS-simple-fraction-with-html-children.xml":
-		case "PASS-simple-fraction.xml":
 
 		#endregion
 
@@ -371,18 +377,22 @@ function testCase( $dirname, $filename )
 		case "FAIL-nonfraction-rule-no-xbrli-attributes.xml": // Checked - InvalidAttributeContent
 		case "FAIL-unresolvable-contextRef.xml": // Checked - UnknownContext
 		case "FAIL-unresolvable-unitRef.xml": // Checked = UnknownUnit
-		case "PASS-attribute-ix-format-nonFraction-01.xml":
-
-			break;
-		case "PASS-attribute-ix-name-nonFraction-01.xml":
-		case "PASS-attribute-ix-scale-nonFraction-01.xml":
-		case "PASS-attribute-ix-scale-nonFraction-04.xml":
+		case "PASS-attribute-ix-format-nonFraction-01.xml": // Simple value 1234
+		case "PASS-attribute-ix-name-nonFraction-01.xml": // Value 12..345 scale 3
+		case "PASS-attribute-ix-scale-nonFraction-01.xml": // Value 12345 scale -3
+		case "PASS-attribute-ix-scale-nonFraction-04.xml": // Value 12345 scale 10
 		case "PASS-attribute-ix-sign-nonFraction-01.xml":
 		case "PASS-element-ix-nonFraction-complete.xml":
 		case "PASS-element-ix-nonFraction-ixt-numcomma.xml":
 		case "PASS-element-ix-nonFraction-ixt-numcommadot.xml":
 		case "PASS-element-ix-nonFraction-ixt-numdash.xml":
 		case "PASS-element-ix-nonFraction-ixt-numdotcomma.xml":
+
+			return;
+
+
+			break;
+
 		case "PASS-element-ix-nonFraction-ixt-numspacecomma.xml":
 		case "PASS-element-ix-nonFraction-ixt-numspacedot.xml":
 		case "PASS-nonFraction-any-attribute.xml":

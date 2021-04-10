@@ -26,6 +26,19 @@ namespace lyquidity\ixbrl;
 
 use lyquidity\ixbrl\XBRL_Inline;
 
+define( 'INSTANCE_ATTR_ID', 'id' );
+define( 'INSTANCE_ATTR_CONTEXTREF', 'contextRef' );
+define( 'INSTANCE_ATTR_UNITREF', 'unitRef' );
+define( 'INSTANCE_ATTR_NAME', 'name' );
+define( 'INSTANCE_ATTR_FORMAT', 'format' );
+define( 'INSTANCE_ATTR_SCALE', 'scale' );
+
+define( 'INSTANCE_ELEMENT_CONTEXT', 'context' );
+define( 'INSTANCE_ELEMENT_UNIT', 'unit' );
+
+define( 'ARRAY_CONTEXTS', 'contexts' );
+define( 'ARRAY_UNITS', 'units' );
+
 /**
  * Utility class used to create one or more XBRL instance documents from an iXBRL document set
  */
@@ -108,14 +121,35 @@ class IXBRL_CreateInstance
 			}
 		}
 
+		// Remove unwanted prefixes
 		$prefixes = array_flip( $namespaces );
-		$xhtmlPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] ];
+		$xhtmlPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] ] ?? null;
 		unset( $namespaces[ $xhtmlPrefix ] );
+		$ixPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10 ] ] ?? null;
+		unset( $namespaces[ $ixPrefix ] );
+		$ixPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11 ] ] ?? null;
+		unset( $namespaces[ $ixPrefix ] );
 
 		// Make sure the standard namespaces are added
-		$this->addPrefix( $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] ], \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] );
-		$this->addPrefix( $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] ], \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] );
-		$this->addPrefix( $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] ], \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] );
+		if ( ( $prefix = $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] ] ?? false ) )
+			$this->addPrefix( $prefix, \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] );
+		if ( ( $prefix = $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] ] ?? false ) )
+			$this->addPrefix( $prefix, \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] );
+		if ( ( $prefix = $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] ] ?? false ) )
+			$this->addPrefix( $prefix, \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] );
+
+		// Set up the xbrli prefix
+		$xbrliPrefix = STANDARD_PREFIX_XBRLI;
+
+		if ( isset( $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ] ) )
+		{
+			$xbrliPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ];
+		}
+		else
+		{
+			$namespaces[ STANDARD_PREFIX_XBRLI ] = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ];
+			$prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI ] ] = STANDARD_PREFIX_XBRLI;
+		}
 
 		// Add references
 		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_REFERENCES ] ?? array() as $reference )
@@ -154,34 +188,196 @@ class IXBRL_CreateInstance
 			}
 		}
 
+		$ixFactElements = array( IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_NONNUMERIC );
+
 		// Add contexts
 		// First need to remove contexts and units that are not used
-		$usedRefs = array_reduce( array( IXBRL_ELEMENT_FRACTION, IXBRL_ELEMENT_NONFRACTION, IXBRL_ELEMENT_NONNUMERIC ), function( $carry, $ixElement ) use( &$nodesByTarget, $target )
+		$usedRefs = array_reduce( $ixFactElements, function( $carry, $ixElement ) use( &$nodesByTarget, $target )
 		{
-			foreach( $nodesByTarget[ $target ][ $ixElement ] as $node )
+			foreach( $nodesByTarget[ $target ][ $ixElement ] ?? array() as $node )
 			{
 				/** @var \DOMElement $node */
 				if ( $node->nodeType != XML_ELEMENT_NODE ) continue;
-				if ( ( $value = $node->getAttribute('contextRef') ) )
+				if ( ( $value = $node->getAttribute(INSTANCE_ATTR_CONTEXTREF) ) )
 				{
-					$carry['contexts'][] = $value;
+					$carry[ARRAY_CONTEXTS][] = $value;
 				}
-				if ( ( $value = $node->getAttribute('unitRef') ) )
+				if ( ( $value = $node->getAttribute(INSTANCE_ATTR_UNITREF) ) )
 				{
-					$carry['units'][] = $value;
+					$carry[ARRAY_UNITS][] = $value;
 				}
 			}
 			return $carry;
-		}, array('contexts' => array(), 'units' => array() ) );
-		$this->copyNodes( $nodesByTarget[ $target ][ IXBRL_ELEMENT_RESOURCES ] ?? array(), $xbrl, 
-			function( $node ) use( $usedRefs )
+		}, array(ARRAY_CONTEXTS => array(), ARRAY_UNITS => array() ) );
+
+		// There's only one set of resources and they will be in the default target collection
+		$this->copyNodes( $nodesByTarget[''][ IXBRL_ELEMENT_RESOURCES ] ?? array(), $xbrl, 
+			function( $node ) use( $usedRefs, $nodesById )
 			{
-				if ( $node->localName == 'context' && array_search( $node->getAttribute('id'), $usedRefs['contexts'] ) !== false ) return true;
-				if ( $node->localName == 'unit' && array_search( $node->getAttribute('id'), $usedRefs['units'] ) !== false ) return true;
+				$id = $node->getAttribute(INSTANCE_ATTR_ID);
+				switch( $node->localName )
+				{
+					case INSTANCE_ELEMENT_CONTEXT: return array_search( $id, $usedRefs[ARRAY_CONTEXTS] ) !== false;
+					case INSTANCE_ELEMENT_UNIT: return array_search( $id, $usedRefs[ARRAY_UNITS] ) !== false;
+				}
 				return false; 
 			} );
 
+		// Time to add non-tuple facts.  If a fact has a tuple reference, it will be recorded to be added to the correct tuple later.
+		$tupleFacts = array();
+		$tupleChildren = array();
+		foreach( $ixFactElements as $ixElement )
+		{
+			foreach( $nodesByTarget[ $target ][ $ixElement ] ?? array() as $node  )
+			{
+				/** @var \DOMElement $node */
+				if ( ( $tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEREF ) ) )
+				{
+					$tupleFacts[ $tupleId ][] = $node;
+					continue;
+				}
+
+				// Elements within a tuple will be handled later
+				if ( $tuple = XBRL_Inline::checkTupleParent( $node ) )
+				{
+					$tupleChildren[ $tuple->getNodePath() ][] = $node;
+					continue;
+				}
+
+				$this->addIXElment( $node, $xbrl, $nodesByTarget, $xbrliPrefix );
+			}
+		}
+
+		// Now process tuples
+		// Create a list indexed by path and a hierachy of paths
+		$tuples = array();
+		$tupleHierarchy = array();
+		$tupleNodes = array();
+		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_TUPLE ] ?? array() as $node  )
+		{
+			/** @var \DOMElement $node */
+			$path = $node->getNodePath();
+			$tuples[ $path ] = $node;
+			if ( ! isset( $tupleNodes[ $path ] ) )
+			{
+				$tupleHierarchy[ $path ] = array();
+				$tupleNodes[ $path ] = &$tupleHierarchy[ $path ];
+			}
+
+			// Check to see if there are any parents
+			$parentNode = XBRL_Inline::checkTupleParent( $node, true );
+			if ( ! $parentNode ) continue;
+
+			$parentPath = $parentNode->getNodePath();
+			
+		}
+
 		return $this->document;
+	}
+
+	/**
+	 * Add an IX element
+	 * @param \DOMElement $node
+	 * @param \DOMElement $parent
+	 * @param \DOMElement[][] $nodesByTarget
+	 * @param string $xbrliPrefix
+	 * @return void
+	 */
+	private function addIXElment( $node, $parent, $nodesByTarget, $xbrliPrefix )
+	{
+		// Create the element and core attributes
+		$name = $node->getAttribute(INSTANCE_ATTR_NAME); // Should always be a name
+		$element = $this->addElement( $name, $parent );
+			if ( ( $value = $node->getAttribute(INSTANCE_ATTR_CONTEXTREF) ) )
+				$this->addAttr( INSTANCE_ATTR_CONTEXTREF, trim( $value ), $element );
+			if ( ( $value = $node->getAttribute(INSTANCE_ATTR_UNITREF) ) )
+				$this->addAttr( INSTANCE_ATTR_UNITREF, trim( $value ), $element );
+
+		// Handle the value
+		switch ( $node->localName )
+		{
+			case IXBRL_ELEMENT_NONFRACTION:
+				$this->addContent( $this->getFormattedValue( $node, $nodesById ), $element );
+				break;
+
+			case IXBRL_ELEMENT_FRACTION:
+				// Need to find and add the numerator and denomninator.  These are always in the default target.
+				$this->addFraction( $node, $element, $nodesById, $nodesByTarget[''], $xbrliPrefix );
+				break;
+		}
+
+		// Copy other attributes
+		$this->copyAttributes( $node, $element );
+	}
+
+	/**
+	 * Adds the fraction components for a node
+	 * @param \DOMElement $node
+	 * @param \DOMElement $parent
+	 * @param \DOMElement[][] $nodesById
+	 * @param \DOMElement[] $nodesByTarget
+	 * @param string $xbrliPrefix
+	 * @return void
+	 */
+	private function addFraction( $node, $parent, &$nodesById, &$nodesByTarget, $xbrliPrefix )
+	{
+		$numerators = $nodesByTarget[ IXBRL_ELEMENT_NUMERATOR ] ?? array();
+		$numerator = $this->findElement( $node, $numerators );
+		if ( ! $numerator ) return null;
+
+		$denominators = $nodesByTarget[ IXBRL_ELEMENT_DENOMINATOR ] ?? array();
+		$denominator = $this->findElement( $node, $denominators );
+		if ( ! $denominator ) return null;
+
+		$element = $this->addElement( IXBRL_ELEMENT_NUMERATOR, $parent, $xbrliPrefix );
+			$content = $this->getFormattedValue( $numerator, $nodesById );
+			$this->addContent( $content, $element );
+			$this->copyAttributes( $numerator, $element );
+
+		$element = $this->addElement( IXBRL_ELEMENT_DENOMINATOR, $parent, $xbrliPrefix );
+			$content = $this->getFormattedValue( $denominator, $nodesById );
+			$this->addContent( $content, $element );
+			$this->copyAttributes( $denominator, $element );
+	}
+
+	/**
+	 * Find a candidate child node - the nearest one
+	 *
+	 * @param [type] $node
+	 * @param [type] $candidates
+	 * @return void
+	 */
+	private function findElement( $node, &$candidates )
+	{
+		foreach( $candidates as $candidate )
+		{
+			$found = 0;
+			$parentNode = XBRL_Inline::checkParentNodes( $candidate, function( $parentNode ) use( $node, &$found )
+			{
+				if ( $parentNode->localName != IXBRL_ELEMENT_FRACTION ) return false;
+				$found++;
+				return spl_object_id( $node ) == spl_object_id( $parentNode );
+			} );
+
+			if ( ! $parentNode ) continue;
+
+			// Got a valid parent so numerator is a good'un
+			return $candidate;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the content for a node
+	 * @param \DOMElement $node
+	 * @param \DOMElement[][] $nodesById
+	 * @return string
+	 */
+	private function getFormattedValue( $node, &$nodesById )
+	{
+		$document = XBRL_Inline::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		return XBRL_Inline::checkFormat( $node, 'instance generation', $node->localName, $document, $nodesById );
 	}
 
 	/**
@@ -208,16 +404,30 @@ class IXBRL_CreateInstance
 				if ( $callback && ! $callback( $from ) ) continue;
 
 				$element = $this->addElement( $from->localName, $target, $from->namespaceURI == $target->namespaceURI ? null : $from->prefix, $from->namespaceURI == $target->namespaceURI ? $from->namespaceURI : $from->namespaceURI );
-				foreach( $from->attributes as $attr )
-				{
-					/** @var \DOMAttr $attr */
-					// Don't copy any ix attributes
-					if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
-					$this->addAttr( $attr->name, $attr->nodeValue, $element, $attr->namespaceURI == $target->namespaceURI ? null : $attr->prefix, $attr->namespaceURI == $target->namespaceURI ? null : $attr->namespaceURI );
-				}
+				$this->copyAttributes( $from, $element );
 
 				$this->copyNodes( array( $from ), $element );
 			}
+	}
+
+	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET );
+
+	/**
+	 * Copy the attributes of source to target exluding ix attributes
+	 * @param \DOMElement $source
+	 * @param \DOMElement $target
+	 * @return void
+	 */
+	private function copyAttributes( $source, $target )
+	{
+		foreach( $source->attributes as $attr )
+		{
+			/** @var \DOMAttr $attr */
+			// Don't copy any ix attributes
+			if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
+			if ( array_search( $attr->name, $this->attrsToExclude ) !== false ) continue;
+			$this->addAttr( $attr->name, $attr->nodeValue, $target, $attr->namespaceURI == $target->namespaceURI ? null : $attr->prefix, $attr->namespaceURI == $target->namespaceURI ? null : $attr->namespaceURI );
+		}
 	}
 
 	/**
