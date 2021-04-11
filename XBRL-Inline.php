@@ -1160,8 +1160,8 @@ class XBRL_Inline
 			return array_search( $parentNode->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false;
 		} );
 
-		return  $parentNode 
-			? $parentNode->localName == IXBRL_ELEMENT_TUPLE
+		return  $parentNode && $parentNode->localName == IXBRL_ELEMENT_TUPLE
+			? $parentNode
 			: null;
 	}
 

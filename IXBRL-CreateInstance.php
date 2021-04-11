@@ -233,14 +233,14 @@ class IXBRL_CreateInstance
 				/** @var \DOMElement $node */
 				if ( ( $tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEREF ) ) )
 				{
-					$tupleFacts[ $tupleId ][] = $node;
+					$tupleFacts[ $tupleId ][] = array( 'node' => $node );
 					continue;
 				}
 
 				// Elements within a tuple will be handled later
 				if ( $tuple = XBRL_Inline::checkTupleParent( $node ) )
 				{
-					$tupleChildren[ $tuple->getNodePath() ][] = $node;
+					$tupleChildren[ $tuple->getNodePath() ][] = array( 'node' => $node );
 					continue;
 				}
 
@@ -250,27 +250,98 @@ class IXBRL_CreateInstance
 
 		// Now process tuples
 		// Create a list indexed by path and a hierachy of paths
-		$tuples = array();
 		$tupleHierarchy = array();
 		$tupleNodes = array();
 		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_TUPLE ] ?? array() as $node  )
 		{
 			/** @var \DOMElement $node */
 			$path = $node->getNodePath();
-			$tuples[ $path ] = $node;
 			if ( ! isset( $tupleNodes[ $path ] ) )
 			{
-				$tupleHierarchy[ $path ] = array();
+				$tupleHierarchy[ $path ] = array( 'node' => $node, 'children' => array() );
 				$tupleNodes[ $path ] = &$tupleHierarchy[ $path ];
 			}
+
+			$tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEID );
+			// If there's an id there should be one or more nodes in $tupleFacts
+			if ( $tupleId )
+			{
+				if ( isset( $tupleFacts[ $tupleId ] ) )
+				{
+					$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleFacts[ $tupleId ] );
+				}
+				else
+				{
+					$tupleFacts[ $tupleId ] = array( 'node' => $node );
+				}
+			}
+
+			if ( isset( $tupleChildren[ $path ] ) )
+			{
+				$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleChildren[ $path ] );
+			}
+
+			if ( $tupleRef = $node->getAttribute( IXBRL_ATTR_TUPLEREF ))
+			{
+				if ( isset( $tupleFacts[ $tupleId ] ) )
+				{
+					$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleFacts[ $tupleId ] );
+					unset( $tupleHierarchy[ $path ] );
+				}
+			}			
 
 			// Check to see if there are any parents
 			$parentNode = XBRL_Inline::checkTupleParent( $node, true );
 			if ( ! $parentNode ) continue;
 
 			$parentPath = $parentNode->getNodePath();
-			
+			if ( ! isset( $tupleNodes[ $parentPath ] ) )
+			{
+				// $tupleNodes[ $parentPath ]['children'][] = array( 'node' => $node, 'children' => array() );
+			}
+			else
+			{
+				$tupleHierarchy[ $parentPath ]['children'][] = $tupleHierarchy[ $path ];
+				unset( $tupleHierarchy[ $path ] );
+				$tupleNodes[ $parentPath ] = &$tupleHierarchy[ $parentPath ];
+			}
 		}
+
+		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tuples, &$tupleNodes, &$nodesByTarget, $xbrliPrefix )
+		{
+			// First sort the nodes in the designated order
+			usort( $paths, function( $a, $b )
+			{
+				$aOrder = $a['node']->getAttribute(IXBRL_ATTR_ORDER);
+				$bOrder = $b['node']->getAttribute(IXBRL_ATTR_ORDER);
+				return ( $aOrder ?? 0 ) - ( $bOrder ?? 0 );
+			} );
+
+			// Drop duplicated orders
+			$orderContents = array();
+			$paths = array_filter( $paths, function( $child ) use( &$orderContents )
+			{
+				$order = $child['node']->getAttribute(IXBRL_ATTR_ORDER);
+				$value = trim( $child['node']->textContent );
+				if ( isset( $orderContents[ $order ] ) && $orderContents[ $order ] == $value ) return false;
+				$orderContents[ $order ] = $value;
+				return true;
+			} );
+			unset( $orderContents );
+
+			foreach( $paths as $child )
+			{
+				/** @var \DOMElement $node */
+				$node = $child['node'];
+
+				$element = $this->addIXElment( $node, $parent, $nodesByTarget,$xbrliPrefix );
+
+				if ( ! isset( $child['children'] )  ) continue;
+				$processHierarchy( $child['children'], $element );
+			}
+		};
+
+		$processHierarchy( $tupleHierarchy, $xbrl );
 
 		return $this->document;
 	}
@@ -296,7 +367,8 @@ class IXBRL_CreateInstance
 		// Handle the value
 		switch ( $node->localName )
 		{
-			case IXBRL_ELEMENT_NONFRACTION:
+				case IXBRL_ELEMENT_NONNUMERIC:
+				case IXBRL_ELEMENT_NONFRACTION:
 				$this->addContent( $this->getFormattedValue( $node, $nodesById ), $element );
 				break;
 
@@ -308,6 +380,8 @@ class IXBRL_CreateInstance
 
 		// Copy other attributes
 		$this->copyAttributes( $node, $element );
+
+		return $element;
 	}
 
 	/**
@@ -410,7 +484,7 @@ class IXBRL_CreateInstance
 			}
 	}
 
-	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET );
+	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
 
 	/**
 	 * Copy the attributes of source to target exluding ix attributes
@@ -419,7 +493,7 @@ class IXBRL_CreateInstance
 	 * @return void
 	 */
 	private function copyAttributes( $source, $target )
-	{
+	{		 
 		foreach( $source->attributes as $attr )
 		{
 			/** @var \DOMAttr $attr */

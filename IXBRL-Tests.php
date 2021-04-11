@@ -251,13 +251,7 @@ function testCase( $dirname, $filename )
 		case "PASS-ix-denominator-02.xml":
 		case "PASS-ix-denominator-03.xml":
 		case "PASS-ix-denominator-04.xml":
-				
-			return;
-
 		case "PASS-simple-fraction.xml":
-
-			break;
-
 		case "PASS-ix-numerator-04.xml":
 		case "PASS-simple-fraction-with-html-children.xml":
 
@@ -619,7 +613,13 @@ function testCase( $dirname, $filename )
 		case "PASS-element-tuple-reference.xml":
 		case "PASS-exotic-tuple-order.xml":
 		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
+
+			return;
+
 		case "PASS-nested-tuple-nonEmpty.xml":
+
+			break;
+
 		case "PASS-nested-tuple.xml":
 		case "PASS-nonFraction-nesting-reference-conflict.xml":
 		case "PASS-ordering-references-nesting-order.xml":
