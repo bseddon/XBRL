@@ -331,7 +331,9 @@ function testCase( $dirname, $filename )
 		case "PASS-double-input-single-output.xml":
 		case "PASS-ix-references-06.xml":
 		case "PASS-ix-references-07.xml":
+			return;
 		case "PASS-multiple-input-multiple-output.xml":
+			break;
 		case "PASS-single-input-double-output.xml":
 		case "PASS-single-input.xml":
 
@@ -612,14 +614,8 @@ function testCase( $dirname, $filename )
 		case "PASS-element-tuple-reference-multiInput.xml":
 		case "PASS-element-tuple-reference.xml":
 		case "PASS-exotic-tuple-order.xml":
-		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
-
-			return;
-
 		case "PASS-nested-tuple-nonEmpty.xml":
-
-			break;
-
+		case "PASS-nested-tuple-ix-order-no-tupleRef.xml":
 		case "PASS-nested-tuple.xml":
 		case "PASS-nonFraction-nesting-reference-conflict.xml":
 		case "PASS-ordering-references-nesting-order.xml":
@@ -635,7 +631,13 @@ function testCase( $dirname, $filename )
 		case "PASS-tuple-scope-inverted.xml":
 		case "PASS-tuple-scope-nested-nonNumeric.xml":
 		case "PASS-tuple-scope-nonNumeric.xml":
+
+			return;
+
 		case "PASS-tuple-xsi-nil.xml":
+
+			break;
+
 
 		#endregion
 
@@ -688,14 +690,23 @@ function testCase( $dirname, $filename )
 	 * Get an array of text content for an element
 	 * @param string $elementName
 	 * @param string $node
+	 * @param bool $groupByTarget (optional: false) When true the array will be indexed by the named target
 	 * @return array
 	 */
-	$getTextArray = function( $elementName, $node ) use( $xpath )
+	$getTextArray = function( $elementName, $node, $groupByTarget = false ) use( $xpath )
 	{
 		$elements = array();
 		foreach( $xpath->query( $elementName, $node ) as $element )
 		{
-			$elements[] = $element->textContent;
+			if ( $groupByTarget )
+			{
+				$target = $element->getAttribute(IXBRL_ATTR_TARGET);
+				$elements[ $target ] = $element->textContent;
+			}
+			else
+			{
+				$elements[] = $element->textContent;
+			}
 		}
 		return $elements;
 	};
@@ -717,7 +728,7 @@ function testCase( $dirname, $filename )
 		$errors = array();
 		if ( $expected == 'valid' )
 		{
-			$resultInstances = $getTextArray( 'tc:instance', $result );
+			$resultInstances = $getTextArray( 'tc:instance', $result, true );
 		}
 		else
 		{
@@ -775,7 +786,12 @@ function testCase( $dirname, $filename )
 				return \XBRL::resolve_path( $dirname, $document );
 			}, array_merge( $firstInstances, $otherInstances ) );
 
-			XBRL_Inline::createInstanceDocument( $name, $documentSet );
+			$predictedSet = array_map( function( $document ) use( $dirname ) 
+			{
+				return \XBRL::resolve_path( $dirname, $document );
+			}, $resultInstances );
+
+			XBRL_Inline::createInstanceDocument( $name, $documentSet, $predictedSet );
 			if ( $expected == 'invalid' )
 			{
 				error_log( "The test result (valid) does not match the expected result (invalid)" );

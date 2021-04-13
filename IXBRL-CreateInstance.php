@@ -81,10 +81,11 @@ class IXBRL_CreateInstance
 			}, array() );
 		}, $nodesByTarget );
 
-		return array_map( function( $target ) use( $name, &$nodesByLocalName, &$nodesById, &$targetNodesByLocalName ) 
+		return array_reduce( $targets, function( $carry, $target ) use( $name, &$nodesByLocalName, &$nodesById, &$targetNodesByLocalName ) 
 		{
-			return (new IXBRL_CreateInstance())->createDocument( $target, $name, $nodesByLocalName, $nodesById, $targetNodesByLocalName );
-		}, $targets );
+			$carry[ $target ] = (new IXBRL_CreateInstance())->createDocument( $target, $name, $nodesByLocalName, $nodesById, $targetNodesByLocalName );
+			return $carry;
+		}, array() );
 	}
 
 	/**
@@ -115,22 +116,21 @@ class IXBRL_CreateInstance
 			/** @var \lyquidity\ixbrl\XBRL_Inline $document */
 			foreach( $document->getElementNamespaces() as $namespace )
 			{
+				switch( $namespace )
+				{
+					case \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ]:
+					case \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10 ]:
+					case \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11 ]:
+						continue 2;
+				}
 				$prefix = $document->document->lookupPrefix( $namespace );
 				$this->addPrefix( $prefix, $namespace );
 				$namespaces[ $prefix ] = $namespace;
 			}
 		}
 
-		// Remove unwanted prefixes
-		$prefixes = array_flip( $namespaces );
-		$xhtmlPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] ] ?? null;
-		unset( $namespaces[ $xhtmlPrefix ] );
-		$ixPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10 ] ] ?? null;
-		unset( $namespaces[ $ixPrefix ] );
-		$ixPrefix = $prefixes[ \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11 ] ] ?? null;
-		unset( $namespaces[ $ixPrefix ] );
-
 		// Make sure the standard namespaces are added
+		$prefixes = array_flip( $namespaces );
 		if ( ( $prefix = $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] ] ?? false ) )
 			$this->addPrefix( $prefix, \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XBRLDI] );
 		if ( ( $prefix = $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] ] ?? false ) )
@@ -164,11 +164,11 @@ class IXBRL_CreateInstance
 				switch( $node->localName )
 				{
 					case 'schemaRef':
-						$link = $this->addElement( 'schemaRef', $xbrl, $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] ] );
+						$link = $this->addElement( 'schemaRef', $xbrl, $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] ] );
 						break;
 
 					case 'linkbaseRef':
-						$link = $this->addElement( 'linkbaseRef', $xbrl, $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_XLINK] ] );
+						$link = $this->addElement( 'linkbaseRef', $xbrl, $prefixes[ \XBRL_Constants::$standardPrefixes[STANDARD_PREFIX_LINK] ] );
 						break;
 				}
 
@@ -224,23 +224,27 @@ class IXBRL_CreateInstance
 			} );
 
 		// Time to add non-tuple facts.  If a fact has a tuple reference, it will be recorded to be added to the correct tuple later.
-		$tupleFacts = array();
-		$tupleChildren = array();
+		$tupleRefs = array(); // The index is the id of the parent tuple
+		$nodePaths = array(); // Nodes indexed by their tuple parent path
+		$tupleParentChild = array(); // Node paths indexed by their parent path
 		foreach( $ixFactElements as $ixElement )
 		{
 			foreach( $nodesByTarget[ $target ][ $ixElement ] ?? array() as $node  )
 			{
 				/** @var \DOMElement $node */
-				if ( ( $tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEREF ) ) )
+				$nodePath = $node->getNodePath();
+				$nodePaths[ $nodePath ] = $node;
+
+				if ( $tupleRef = $node->getAttribute( IXBRL_ATTR_TUPLEREF ) )
 				{
-					$tupleFacts[ $tupleId ][] = array( 'node' => $node );
+					$tupleRefs[ $tupleRef ][] = $nodePath;
 					continue;
 				}
 
 				// Elements within a tuple will be handled later
-				if ( $tuple = XBRL_Inline::checkTupleParent( $node ) )
+				if ( $tuple = XBRL_Inline::checkTupleParent( $node, true ) )
 				{
-					$tupleChildren[ $tuple->getNodePath() ][] = array( 'node' => $node );
+					$tupleParentChild[ $tuple->getNodePath() ][] = $nodePath;
 					continue;
 				}
 
@@ -250,98 +254,86 @@ class IXBRL_CreateInstance
 
 		// Now process tuples
 		// Create a list indexed by path and a hierachy of paths
-		$tupleHierarchy = array();
-		$tupleNodes = array();
+		$tupleIds = array();
 		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_TUPLE ] ?? array() as $node  )
 		{
 			/** @var \DOMElement $node */
 			$path = $node->getNodePath();
-			if ( ! isset( $tupleNodes[ $path ] ) )
-			{
-				$tupleHierarchy[ $path ] = array( 'node' => $node, 'children' => array() );
-				$tupleNodes[ $path ] = &$tupleHierarchy[ $path ];
-			}
+			$nodePaths[ $path ] = $node;
 
-			$tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEID );
-			// If there's an id there should be one or more nodes in $tupleFacts
-			if ( $tupleId )
+			if ( $tupleId = $node->getAttribute( IXBRL_ATTR_TUPLEID ) )
 			{
-				if ( isset( $tupleFacts[ $tupleId ] ) )
-				{
-					$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleFacts[ $tupleId ] );
-				}
-				else
-				{
-					$tupleFacts[ $tupleId ] = array( 'node' => $node );
-				}
-			}
-
-			if ( isset( $tupleChildren[ $path ] ) )
-			{
-				$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleChildren[ $path ] );
+				$tupleIds[ $tupleId ] = $node->getNodePath();
 			}
 
 			if ( $tupleRef = $node->getAttribute( IXBRL_ATTR_TUPLEREF ))
 			{
-				if ( isset( $tupleFacts[ $tupleId ] ) )
-				{
-					$tupleNodes[ $path ]['children'] = array_merge( $tupleNodes[ $path ]['children'], $tupleFacts[ $tupleId ] );
-					unset( $tupleHierarchy[ $path ] );
-				}
-			}			
-
-			// Check to see if there are any parents
-			$parentNode = XBRL_Inline::checkTupleParent( $node, true );
-			if ( ! $parentNode ) continue;
-
-			$parentPath = $parentNode->getNodePath();
-			if ( ! isset( $tupleNodes[ $parentPath ] ) )
-			{
-				// $tupleNodes[ $parentPath ]['children'][] = array( 'node' => $node, 'children' => array() );
+				$tupleRefs[ $tupleRef ][] = $path;
+				continue;
 			}
-			else
+
+			$parentPath = null;
+			if ( $parentNode = XBRL_Inline::checkTupleParent( $node, true )) 
 			{
-				$tupleHierarchy[ $parentPath ]['children'][] = $tupleHierarchy[ $path ];
-				unset( $tupleHierarchy[ $path ] );
-				$tupleNodes[ $parentPath ] = &$tupleHierarchy[ $parentPath ];
+				$parentPath = $parentNode->getNodePath();
 			}
+
+			$tupleParentChild[ $parentPath ][] = $path;
 		}
 
-		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tuples, &$tupleNodes, &$nodesByTarget, $xbrliPrefix )
+		// Now resolve tuple refs
+		foreach( $tupleRefs as $tupleId => $paths )
+		{
+			$tupleParentChild[ $tupleIds[ $tupleId ] ] = array_merge( $tupleParentChild[ $tupleIds[ $tupleId ] ] ?? array(), $paths );
+		}
+		unset( $tupleId );
+		unset( $tupleIds );
+		unset( $tupleRefs );
+
+		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tupleParentChild, &$nodePaths, &$nodesByTarget, $xbrliPrefix )
 		{
 			// First sort the nodes in the designated order
-			usort( $paths, function( $a, $b )
+			$nodes = array_reduce( $paths, function( $carry, $path ) use( &$nodePaths ) { $carry[ $path ] = $nodePaths[ $path ]; return $carry; }, array() );
+			uasort( $nodes, function( $a, $b )
 			{
-				$aOrder = $a['node']->getAttribute(IXBRL_ATTR_ORDER);
-				$bOrder = $b['node']->getAttribute(IXBRL_ATTR_ORDER);
-				return ( $aOrder ?? 0 ) - ( $bOrder ?? 0 );
+				$aOrder = $a->getAttribute(IXBRL_ATTR_ORDER);
+				$bOrder = $b->getAttribute(IXBRL_ATTR_ORDER);
+				$diff = floatval( $aOrder ?? 0 ) - floatval( $bOrder ?? 0 );
+				return $diff == 0
+					? 0
+					: ( $diff > 0 ? 1 : -1 );
 			} );
 
 			// Drop duplicated orders
 			$orderContents = array();
-			$paths = array_filter( $paths, function( $child ) use( &$orderContents )
+			$nodes = array_filter( $nodes, function( $child ) use( &$orderContents )
 			{
-				$order = $child['node']->getAttribute(IXBRL_ATTR_ORDER);
-				$value = trim( $child['node']->textContent );
+				$nil = filter_var( $child->getAttribute(IXBRL_ATTR_NIL), FILTER_VALIDATE_BOOLEAN );
+				if ( $nil ) return true;
+
+				$order = $child->getAttribute(IXBRL_ATTR_ORDER);
+				$value = trim( preg_replace( '/\s+/', ' ', $child->textContent ) );
 				if ( isset( $orderContents[ $order ] ) && $orderContents[ $order ] == $value ) return false;
 				$orderContents[ $order ] = $value;
 				return true;
 			} );
 			unset( $orderContents );
 
-			foreach( $paths as $child )
+			foreach( $nodes as $path => $node )
 			{
 				/** @var \DOMElement $node */
-				$node = $child['node'];
 
 				$element = $this->addIXElment( $node, $parent, $nodesByTarget,$xbrliPrefix );
 
-				if ( ! isset( $child['children'] )  ) continue;
-				$processHierarchy( $child['children'], $element );
+				if ( isset( $tupleParentChild[ $path ] ) )
+				{
+					$processHierarchy( $tupleParentChild[ $path ], $element );
+				}
 			}
 		};
 
-		$processHierarchy( $tupleHierarchy, $xbrl );
+		if ( isset( $tupleParentChild[null] ) )
+			$processHierarchy( $tupleParentChild[null], $xbrl );
 
 		return $this->document;
 	}
@@ -484,7 +476,7 @@ class IXBRL_CreateInstance
 			}
 	}
 
-	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
+	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET, /* IXBRL_ATTR_ORDER, */ IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
 
 	/**
 	 * Copy the attributes of source to target exluding ix attributes
@@ -686,8 +678,10 @@ class IXBRL_CreateInstance
 	function addPrefix( $prefix, $namespace )
 	{
 		if ( ! $this->document ) return;
-
+		$this->document->documentElement->setAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns:$prefix", $namespace );
+		return;
 		$attr = $this->document->createAttribute( "xmlns:$prefix" );
+
 		$attr->value = $namespace;
 		$schema = $this->document->documentElement;
 		$schema->appendChild( $attr );

@@ -24,7 +24,11 @@
 
 namespace lyquidity\ixbrl;
 
+use DOMDocument;
 use lyquidity\ixt\IXBRL_Transforms;
+use lyquidity\XPath2\DOM\DOMXPathNavigator;
+use lyquidity\XPath2\TreeComparer;
+use XBRL\Formulas\ContextComparer;
 
 require __DIR__. '/IXBRL-Transforms.php';
 require __DIR__. '/IXBRL-Tests.php';
@@ -380,7 +384,7 @@ class XBRL_Inline
 	 * @param callable? $fn This is a dummy parameter to get around the intelliphense type checking which insists that the arg to libxml_set_external_entity_loader cannot be null.
 	 * @return void
 	 */
-	public static function createInstanceDocument( $name, $documentSet, $validate = true, $fn = null )
+	public static function createInstanceDocument( $name, $documentSet, $predictedSet, $validate = true, $fn = null )
 	{
 		if ( ! self::$context )
 		{
@@ -531,10 +535,38 @@ class XBRL_Inline
 			self::checkCrossReferencesRules( $nodesByLocalNames, $targets );
 
 			$documents = IXBRL_CreateInstance::createInstanceDocuments( array_keys( self::$outputs ), $name, $nodesByLocalNames, $idNodes, $targets );
+			$x = array_diff_key( $documents, $predictedSet );
+			$y = array_diff_key( $predictedSet, $documents );
+			if ( $x || $y )
+			{
+				$missingTargets = "'" . join( ', ', array_keys( array_merge( $x, $y ) ) ) . "'";
+				throw new IXBRLDocumentValidationException( 'UnmatchedTraget', "There are unmatched targets in the generated instance documents: $missingTargets" );
+			}
+
+			/**
+			 * @var TreeComparer $comparer
+			 */
+			$comparer = new ContextComparer( null );
+			$comparer->excludeWhitespace = true;
+
 			foreach( $documents as $target => $document )
 			{
 				echo self::saveXML( $document, self::$formatOutput );
+
+				// Replace the handler because the status test handler traps any error and terminates the session
+				$previousHandler = set_error_handler(null);
+				libxml_clear_errors();
+				$predicted = new \DOMDocument();
+				$res = $predicted->load( $predictedSet[ $target ] );
+				set_error_handler( $previousHandler );
+				if ( ! $res )
+				{
+					throw new IXBRLDocumentValidationException( '', "" );
+				}
+
+				$res = $comparer->DeepEqualByNavigator( new IXBRLNavigator( $predicted ), new IXBRLNavigator( $document ) );
 			}
+
 		}
 		catch( \Exception $ex )
 		{
@@ -580,7 +612,8 @@ class XBRL_Inline
 		if ( ! $formatOutput ) return $document->saveXML( null, $options );
 
 		// Expand all xmlns declarations so they appear on separate lines
-		$xml = str_replace( array('xmlns', 'xsi:schemaLocation'), array("\n\txmlns", "\n\txsi:schemaLocation"), $document->saveXML( null, $options ) );
+		$xml = $document->saveXML( null, $options );
+		// $xml = str_replace( array('xmlns', 'xsi:schemaLocation'), array("\n\txmlns", "\n\txsi:schemaLocation"), $xml );
 		// Expand the schema location entries so that appear on separate lines
 		$xml = preg_replace_callback( '/(xsi:schemaLocation=")(.*)(")/', function( $matches )
 		{
@@ -1895,5 +1928,17 @@ class IXBRLSchemaValidationException extends IXBRLException
 	function getValidator()
 	{
 		return $this->validator;
+	}
+}
+
+class IXBRLNavigator extends DOMXPathNavigator
+{
+	/**
+	 * returns the raw value
+	 * @return string
+	 */
+	function getValue()
+	{
+		return parent::getValue();
 	}
 }
