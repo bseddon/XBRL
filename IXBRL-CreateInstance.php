@@ -107,6 +107,9 @@ class IXBRL_CreateInstance
 		// Root node
 		$node = $this->document->createElementNS( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI], 'xbrl' );
 		$xbrl = $this->document->appendChild( $node );
+		// Valid attributes on the <references> are added to <xbrl> in the target document
+		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_REFERENCES ] ?? array() as $reference )
+			$this->copyAttributes( $reference, $node );
 		unset( $node );
 
 		// Add namespaces for all input documents
@@ -222,6 +225,14 @@ class IXBRL_CreateInstance
 				}
 				return false; 
 			} );
+
+		// Remove excluded elememts
+		foreach( $nodesByTarget[ $target ][ IXBRL_ELEMENT_EXCLUDE ] ?? array() as $index => $node  )
+		{
+			/** @var \DOMElement $node */
+			$parentNode = $node->parentNode;
+			$parentNode->removeChild( $node );
+		}
 
 		// Time to add non-tuple facts.  If a fact has a tuple reference, it will be recorded to be added to the correct tuple later.
 		$tupleRefs = array(); // The index is the id of the parent tuple
@@ -469,14 +480,16 @@ class IXBRL_CreateInstance
 
 				if ( $callback && ! $callback( $from ) ) continue;
 
-				$element = $this->addElement( $from->localName, $target, $from->namespaceURI == $target->namespaceURI ? null : $from->prefix, $from->namespaceURI == $target->namespaceURI ? $from->namespaceURI : $from->namespaceURI );
+				$element = $this->addElement( $from->localName, $target, $from->namespaceURI == $target->namespaceURI ? $from->prefix : $from->prefix, $from->namespaceURI == $target->namespaceURI ? $from->namespaceURI : $from->namespaceURI );
 				$this->copyAttributes( $from, $element );
 
 				$this->copyNodes( array( $from ), $element );
 			}
 	}
 
-	private $attrsToExclude = array( INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, IXBRL_ATTR_TARGET, /* IXBRL_ATTR_ORDER, */ IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
+	private $attrsToExclude = array( 
+		INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, IXBRL_ATTR_ESCAPE, INSTANCE_ATTR_FORMAT, 
+		INSTANCE_ATTR_SCALE, IXBRL_ATTR_SIGN, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
 
 	/**
 	 * Copy the attributes of source to target exluding ix attributes
@@ -553,7 +566,11 @@ class IXBRL_CreateInstance
 			$this->addPrefix( $prefix, $namespace );
 		}
 
-		$attr = $this->document->createAttribute( $prefix ? "$prefix:$name" : $name );
+		if ( ! $namespace && $prefix ) $namespace = $parentNode->lookupNamespaceURI( $prefix );
+
+		$attr = $namespace
+			? $this->document->createAttributeNS( $namespace, $prefix ? "$prefix:$name" : $name )
+			: $this->document->createAttribute( $name );
 
 		$attr->value = $value;
 		$parentNode->appendChild( $attr );
@@ -602,9 +619,13 @@ class IXBRL_CreateInstance
 			$this->addPrefix( $prefix, $namespace );
 		}
 
-		$node = $namespace
-			? $this->document->createElementNS( $namespace, $prefix ? "$prefix:$name" : $name )
-			:  $this->document->createElement( $prefix ? "$prefix:$name" : $name );
+		if ( ! $namespace && $prefix ) $namespace = $parentNode->lookupNamespaceURI( $prefix );
+		if ( $namespace && ! $prefix ) $prefix = $parentNode->lookupPrefix( $namespace );
+
+		// $node = $namespace || false
+		// 	? $this->document->createElementNS( $namespace, $prefix ? "$prefix:$name" : $name )
+		// 	:  $this->document->createElement( $prefix ? "$prefix:$name" : $name );
+		$node = $this->document->createElement( $prefix ? "$prefix:$name" : $name );
 
 		return $parentNode->appendChild( $node );
 	}
@@ -679,12 +700,6 @@ class IXBRL_CreateInstance
 	{
 		if ( ! $this->document ) return;
 		$this->document->documentElement->setAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns:$prefix", $namespace );
-		return;
-		$attr = $this->document->createAttribute( "xmlns:$prefix" );
-
-		$attr->value = $namespace;
-		$schema = $this->document->documentElement;
-		$schema->appendChild( $attr );
 	}
 
 	/**

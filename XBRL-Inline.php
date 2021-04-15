@@ -31,7 +31,6 @@ use lyquidity\XPath2\TreeComparer;
 use XBRL\Formulas\ContextComparer;
 
 require __DIR__. '/IXBRL-Transforms.php';
-require __DIR__. '/IXBRL-Tests.php';
 require __DIR__. '/IXBRL-CreateInstance.php';
 
 #region iXBRL Elements
@@ -169,7 +168,7 @@ class XBRL_Inline
 	public function __construct( $docUrl )
 	{
 		if ( ! $docUrl ) return;
-		
+
 		$this->document = new \DOMDocument();
 		if ( ! $this->document->load( $docUrl ) )
 		{
@@ -185,6 +184,7 @@ class XBRL_Inline
 		$xpath->registerNamespace( 'ix10', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL10] );
 		$xpath->registerNamespace( 'ix11', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_IXBRL11] );
 		$xpath->registerNamespace( STANDARD_PREFIX_XBRLI, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI] );
+		$xpath->registerNamespace( STANDARD_PREFIX_SCHEMA_XHTML, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] );
 		if ( count( $xpath->query( '//ix11:*', $this->root ) ) && count( $xpath->query( '//ix10:*', $this->root ) ) )
 		{
 			throw new IXBRLDocumentValidationException('ix:multipleIxNamespaces', 'The document uses more than one iXBRL namespace');
@@ -203,6 +203,12 @@ class XBRL_Inline
 			throw new IXBRLException('This is not an Inline XBRL document');
 
 		$this->isXHTML = $ns == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ] && ( $ln == IXBRL_ELEMENT_HTML || $ln == IXBRL_ELEMENT_XHTML );
+
+		$base = $xpath->query('//xhtml:html/xhtml:head/xhtml:base[@href]');
+		if ( $base->length )
+		{
+			$this->url = \XBRL::resolve_path( $this->url, $base[0]->getAttribute('href') );
+		}
 	}
 
 	private $elementNamespaces = array();
@@ -382,9 +388,9 @@ class XBRL_Inline
 	 * @param string[] $documentSet
 	 * @param boolean? $validate
 	 * @param callable? $fn This is a dummy parameter to get around the intelliphense type checking which insists that the arg to libxml_set_external_entity_loader cannot be null.
-	 * @return void
+	 * @return \DOMDocument[] An array of the generated documents
 	 */
-	public static function createInstanceDocument( $name, $documentSet, $predictedSet, $validate = true, $fn = null )
+	public static function createInstanceDocument( $name, $documentSet,$validate = true, $fn = null )
 	{
 		if ( ! self::$context )
 		{
@@ -535,37 +541,8 @@ class XBRL_Inline
 			self::checkCrossReferencesRules( $nodesByLocalNames, $targets );
 
 			$documents = IXBRL_CreateInstance::createInstanceDocuments( array_keys( self::$outputs ), $name, $nodesByLocalNames, $idNodes, $targets );
-			$x = array_diff_key( $documents, $predictedSet );
-			$y = array_diff_key( $predictedSet, $documents );
-			if ( $x || $y )
-			{
-				$missingTargets = "'" . join( ', ', array_keys( array_merge( $x, $y ) ) ) . "'";
-				throw new IXBRLDocumentValidationException( 'UnmatchedTraget', "There are unmatched targets in the generated instance documents: $missingTargets" );
-			}
 
-			/**
-			 * @var TreeComparer $comparer
-			 */
-			$comparer = new ContextComparer( null );
-			$comparer->excludeWhitespace = true;
-
-			foreach( $documents as $target => $document )
-			{
-				echo self::saveXML( $document, self::$formatOutput );
-
-				// Replace the handler because the status test handler traps any error and terminates the session
-				$previousHandler = set_error_handler(null);
-				libxml_clear_errors();
-				$predicted = new \DOMDocument();
-				$res = $predicted->load( $predictedSet[ $target ] );
-				set_error_handler( $previousHandler );
-				if ( ! $res )
-				{
-					throw new IXBRLDocumentValidationException( '', "" );
-				}
-
-				$res = $comparer->DeepEqualByNavigator( new IXBRLNavigator( $predicted ), new IXBRLNavigator( $document ) );
-			}
+			return $documents;
 
 		}
 		catch( \Exception $ex )
@@ -593,8 +570,12 @@ class XBRL_Inline
 			iterator_to_array( $node->childNodes ),
 			function ( $carry, \DOMNode $child )
 			{
-				return $carry.$child->ownerDocument->saveHTML( $child );
-			}
+				$text = $child instanceof \DOMElement && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false
+					? self::innerHTML( $child )
+					: $child->ownerDocument->saveHTML( $child );
+
+				return $carry.$text;
+			}, ''
 		 );
 	}
 
@@ -1732,6 +1713,8 @@ class XBRL_Inline
 	 */
 	public static function Test()
 	{
+		require_once __DIR__. '/IXBRL-Tests.php';
+
 		if ( ! function_exists('lyquidity\ixbrl\TestInlineXBRL') ) return;
 		TestInlineXBRL();
 	}
@@ -1928,17 +1911,5 @@ class IXBRLSchemaValidationException extends IXBRLException
 	function getValidator()
 	{
 		return $this->validator;
-	}
-}
-
-class IXBRLNavigator extends DOMXPathNavigator
-{
-	/**
-	 * returns the raw value
-	 * @return string
-	 */
-	function getValue()
-	{
-		return parent::getValue();
 	}
 }

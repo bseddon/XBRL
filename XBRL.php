@@ -248,7 +248,7 @@ class XBRL {
 
 	/**
 	 * A list of role ref details for roles that are maintained in another taxonomy
-	 * These willl be saved with a compiled taxonomy or removed.
+	 * These will be saved with a compiled taxonomy or removed.
 	 * @var array
 	 */
 	protected $foreignDefinitionRoleRefs		= array();
@@ -1180,7 +1180,7 @@ class XBRL {
 			return isset( $tax->labels[ XBRL_Constants::$defaultLinkRole ] );
 		} );
 
-		// Now remove the existng labels, arcs and locators so the saved file only contains the extension components
+		// Now remove the existing labels, arcs and locators so the saved file only contains the extension components
 		if ( count( $labelTaxonomies ) == 0 )
 		{
 			XBRL_Log::getInstance()->err( "There are no labels in the extension taxonomy" );

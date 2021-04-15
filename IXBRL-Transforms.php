@@ -1171,7 +1171,7 @@ class IXBRL_Transforms
 	{
 		$match = preg_match( "~{$this->daymonthslashPattern}~", $arg, $matches );
 		if ( $match && count( $matches ) == 3 )
-			return sprintf( '%02d-%02d', $matches[2], $matches[1] );
+			return sprintf( '--%02d-%02d', $matches[2], $matches[1] );
 		throw new TransformationException( 0, 'xs:gMonthDay' );
 	}
 
@@ -1185,7 +1185,7 @@ class IXBRL_Transforms
 	{
 		$match = preg_match( "~{$this->monthdayslashPattern}~", $arg, $matches );
 		if ( $match && count( $matches ) == 3 )
-			return sprintf( '%02d-%02d', $matches[1], $matches[2] );
+			return sprintf( '--%02d-%02d', $matches[1], $matches[2] );
 		throw new TransformationException( 0, 'xs:gMonthDay' );
 	}
 

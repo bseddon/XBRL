@@ -27,6 +27,8 @@
 
 namespace lyquidity\ixbrl;
 
+use XBRL_Dictionary;
+
 /**
  * Run all conformance tests
  *
@@ -46,7 +48,18 @@ function TestInlineXBRL()
 	error_log( "{$documentElement->localName}" );
 	error_log( $documentElement->getAttribute('name') );
 
+	$outputFolder = "$testCasesFolder/output";
 	$xpath = new \DOMXPath( $mainDoc );
+	if ( is_dir( rtrim( $outputFolder,"/").'/' ) ) 
+	{
+		\XBRL_Global::removeFiles( $outputFolder );
+	}
+
+	if ( ! is_dir( rtrim( $outputFolder,"/").'/' ) ) 
+	if ( ! mkdir( $outputFolder ) )
+	{
+		throw new IXBRLTestCompareException("Unable to create folder '$outputFolder'");
+	}
 
 	foreach( $xpath->query( '//testcases', $documentElement ) as $testcases )
 	{
@@ -58,7 +71,7 @@ function TestInlineXBRL()
 			/** @var \DOMElement $element */
 			$testcaseDir = trailingslashit( "{$testCasesFolder}tests/" . dirname( $testcase->getAttribute('uri') ) );
 			$testcaseFilename = basename( $testcase->getAttribute('uri') );
-			testCase( $testcaseDir, $testcaseFilename );
+			testCase( $testcaseDir, $testcaseFilename, $outputFolder );
 		}
 	}
 }
@@ -67,9 +80,10 @@ function TestInlineXBRL()
  * Execute a test case
  * @param string $basename
  * @param string $filename
+ * @param string $outputFolder
  * @return boolean
  */
-function testCase( $dirname, $filename )
+function testCase( $dirname, $filename, $outputFolder )
 {
 	switch( $filename  )
 	{
@@ -296,7 +310,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./html - checked fail tests (no pass tests)
+		#region ./html - checked fail tests (no pass/compare tests)
 
 		case "FAIL-a-name-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866
 		case "FAIL-charset-on-meta.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1866
@@ -306,7 +320,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./ids - checked fail tests (no pass tests)
+		#region ./ids - checked fail tests (no pass/compare tests)
 
 		case "FAIL-id-triplication.xml": // Checked DuplicateId
 		case "FAIL-non-unique-id-context.xml": // Checked DuplicateId
@@ -322,7 +336,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./multiIO - checked fail and pass tests
+		#region ./multiIO - checked fail and pass tests and compares
 
 		case "FAIL-multi-input-duplicate-context-ids.xml": // Checked - DuplicateId
 		case "FAIL-multi-input-duplicate-unit-ids.xml": // Checked - DuplicateId
@@ -331,9 +345,7 @@ function testCase( $dirname, $filename )
 		case "PASS-double-input-single-output.xml":
 		case "PASS-ix-references-06.xml":
 		case "PASS-ix-references-07.xml":
-			return;
 		case "PASS-multiple-input-multiple-output.xml":
-			break;
 		case "PASS-single-input-double-output.xml":
 		case "PASS-single-input.xml":
 
@@ -341,7 +353,7 @@ function testCase( $dirname, $filename )
 
 			return;
 
-		#region ./nonFraction - checked fail and pass tests
+		#region ./nonFraction - checked fail and pass tests and compares
 
 		case "FAIL-nonFraction-IXBRLelement-content.xml": // Checked - NonFractionChildElementMixed
 		case "FAIL-nonFraction-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
@@ -383,12 +395,6 @@ function testCase( $dirname, $filename )
 		case "PASS-element-ix-nonFraction-ixt-numcommadot.xml":
 		case "PASS-element-ix-nonFraction-ixt-numdash.xml":
 		case "PASS-element-ix-nonFraction-ixt-numdotcomma.xml":
-
-			return;
-
-
-			break;
-
 		case "PASS-element-ix-nonFraction-ixt-numspacecomma.xml":
 		case "PASS-element-ix-nonFraction-ixt-numspacedot.xml":
 		case "PASS-nonFraction-any-attribute.xml":
@@ -470,6 +476,7 @@ function testCase( $dirname, $filename )
 		case "PASS-element-ordering.xml":
 		case "PASS-nonNumeric-any-attribute.xml":
 		case "PASS-nonNumeric-empty-not-xsi-nil.xml":
+			return;
 		case "PASS-nonNumeric-escape-with-html-base.xml":
 		case "PASS-nonNumeric-ix-format-attr-expanded-name-match.xml":
 		case "PASS-nonNumeric-ix-format-attr.xml":
@@ -485,7 +492,7 @@ function testCase( $dirname, $filename )
 
 		#endregion
 
-			return;
+			break;
 
 		#region ./references - checked fail and pass tests
 
@@ -791,13 +798,44 @@ function testCase( $dirname, $filename )
 				return \XBRL::resolve_path( $dirname, $document );
 			}, $resultInstances );
 
-			XBRL_Inline::createInstanceDocument( $name, $documentSet, $predictedSet );
+			/** @var \DOMElement[] */
+			$documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $predictedSet );
 			if ( $expected == 'invalid' )
 			{
 				error_log( "The test result (valid) does not match the expected result (invalid)" );
 				$error = join( ',', $errors );
 				error_log( "The expected error is ($error)" );
 				return;
+			}
+
+			// Check there are documents for each target
+			$x = array_diff_key( $documents, $predictedSet );
+			$y = array_diff_key( $predictedSet, $documents );
+			if ( $x || $y )
+			{
+				$missingTargets = "'" . join( ', ', array_keys( array_merge( $x, $y ) ) ) . "'";
+				throw new IXBRLDocumentValidationException( 'UnmatchedTarget', "There are unmatched targets in the generated instance documents: $missingTargets" );
+			}
+
+			// Save the instance documents
+			foreach( $documents as $target => $document )
+			{
+				/** @var \DOMDocument $document */
+				$predictedFilename = str_replace( 'predicted', 'generated', basename( $predictedSet[ $target ] ) );
+				$xml = $document->saveXML();
+				if ( ! file_put_contents( "$outputFolder/$predictedFilename", $xml ) )
+				{
+					throw new IXBRLDocumentValidationException("Unable to saved instance document '$predictedFilename'");
+				}
+			}
+
+			// Compare the generated documents with the predicted documents
+			foreach( $documents as $target => $document )
+			{
+				/** @var \DOMDocument $document */
+				$predictedFilename = $predictedSet[ $target ];
+				$outputFilename = str_replace( 'predicted', 'generated', basename( $predictedFilename ) );
+				compare( "$outputFolder/$outputFilename", $predictedFilename );
 			}
 
 			$success = true;
@@ -849,6 +887,10 @@ function testCase( $dirname, $filename )
 				echo $ex;
 			}
 		}
+		catch( IXBRLTestCompareException $ex )
+		{
+			echo $ex;
+		}
 		catch( IXBRLException $ex ) 
 		{
 			echo $ex;
@@ -859,6 +901,188 @@ function testCase( $dirname, $filename )
 		}
 
 	}
+}
+
+/**
+ * Compares two documents. 
+ * This function grabs each element from the document and confirms:
+ * - the same element exists in both
+ * - they have equivalent paraents
+ * - the same attribute sequence with the same attribute values
+ * - the same whitespace normalized content
+ *
+ * @param \DOMDocument $generated
+ * @param string $predictedFilename
+ * @return 
+ * @throws IXBRLTestCompareException
+ */
+function compare( $generatedFilename, $predictedFilename )
+{
+	$basename = basename( $predictedFilename );
+	libxml_clear_errors();
+
+	// Begin by opening the predicted file
+	if ( ! file_exists( $predictedFilename ) )
+	{
+		throw new IXBRLTestCompareException("The predicted output instance document '$predictedFilename' does not exist.");
+	}
+
+	$predicted = new \DOMDocument();
+	if ( ! $predicted->load( $predictedFilename ) )
+	{
+		throw new IXBRLTestCompareException("The predicted output instance document '$predictedFilename' failed to open.", libxml_get_errors() );
+	}
+
+	// Next by open the generated file
+	if ( ! file_exists( $generatedFilename ) )
+	{
+		throw new IXBRLTestCompareException("The predicted output instance document '$generatedFilename' does not exist.");
+	}
+
+	$generated = new \DOMDocument();
+	if ( ! $generated->load( $generatedFilename ) )
+	{
+		throw new IXBRLTestCompareException("The predicted output instance document '$generatedFilename' failed to open.", libxml_get_errors() );
+	}
+
+	$dictionary = new \XBRL_Dictionary();
+
+	// Get the generated elements and create hashes for each
+	$generatedHashes = createHashes( $dictionary, $generated, false );
+	// echo print_r( $generatedHashes, true );
+	
+	// Get the generated elements
+	$predictedHashes = createHashes( $dictionary, $predicted, true );
+	// echo print_r( $predictedHashes, true );
+
+	$missingPredicted = array_diff_key( $generatedHashes, $predictedHashes );
+	$missingGenerated = array_diff_key( $predictedHashes, $generatedHashes );
+
+	if ( $missingGenerated )
+	{
+		throw new IXBRLTestCompareException('MismatchedElements');
+	}
+
+	if ( $missingPredicted )
+	{
+		throw new IXBRLTestCompareException('MismatchedElements');
+	}
 
 }
 
+/**
+ * Returns an array of elements indexed by their hashes
+ * @param XBRL_Dictionary $dictionary
+ * @param \DOMDocument $doc
+ * @return \DOMElement[]
+ * @param b0ol $predicted (optional: false)
+ */
+function createHashes( $dictionary, $doc, $predicted )
+{
+	$xpath = new \DOMXPath( $doc );
+	$xpath->registerNamespace( STANDARD_PREFIX_XBRLI, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XBRLI] );
+
+	// Get the generated elements and create hashes for each
+	$elements = $xpath->query('//*');
+
+	$hashes = array();
+	foreach( $elements as $element )
+	{
+		list( $hash, $elements ) = createHash( $dictionary, $element, $predicted );
+		$hashes[ $hash['hash'] ] = $elements;
+	}
+
+	return $hashes;
+}
+
+/**
+ * Returns a hash for an element generated from an array of:
+ * - clark name for the element
+ * - clark names for all parents
+ * - whitespace eliminated content
+ * - attribute values indexed and sorted by clark name
+ * @param XBRL_Dictionary $dictionary
+ * @param \DOMElement $element
+ * @param bool $predicted (optional: false)
+ * @return array
+ */
+function createHash( $dictionary, $element, $predicted = false )
+{
+	$elements = array( 'e' => createClarkname( $element ) );
+
+	$parent = $element->parentNode;
+	$parents = array();
+	while( $parent )
+	{
+		if ( $parent instanceof \DOMDocument ) break;
+
+		$parents[] = createClarkname( $parent );
+		$parent = $parent->parentNode;
+	}
+
+	$elements['p'] = $parents;
+
+	switch( $element->localName )
+	{
+		case 'context':
+		case 'period':
+		case 'xbrl':
+			$elements['c'] = '';
+			break;
+		default:
+
+			$value = trim( preg_replace( '/\s+/', ' ', $element->nodeValue ) ) ;
+			// Remove the xhtml default namespace added to the predicted output
+			// Also remove any @href and @src because they may be different between 
+			// predicted and generated because of @xml:base values
+			$value = preg_replace('/\s+(xmlns|href|src)=".*"/U', '', $value );
+			$elements['c'] = $value;
+			break;
+		}
+
+	$attrs = array();
+	foreach( $element->attributes as $name => $attr )
+	{
+		/** @var \DOMAttr $attr */
+		$attrs[createClarkname( $attr )] = trim( $attr->nodeValue );
+	}
+
+	ksort( $attrs );
+	$elements['a'] = $attrs;
+
+	return array( $dictionary->hashArray( $elements ), $elements );
+}
+
+/**
+ * Returns a clark name for a DOMNode
+ *
+ * @param \DOMNode $node
+ * @return string
+ */	
+function createClarkname( $node )
+{
+	return $node->namespaceURI ? "{{$node->namespaceURI}}{$node->localName}" : $node->localName;
+}
+
+/**
+ * A specific exception to report issues comparing generated with predicted results
+ */
+class IXBRLTestCompareException extends IXBRLException
+{
+	/**
+	 * An array of libxml errors
+	 */
+	public $errors = array();
+
+	/**
+	 * Constructor
+	 *
+	 * @param string $message
+	 * @param array $errors (optional: empty array)
+	 */
+	public function __construct( $message, $errors = array() )
+	{
+		$this->errors = $errors;
+		parent::__construct( $message );
+	}
+}
