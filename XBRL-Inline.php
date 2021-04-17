@@ -162,6 +162,12 @@ class XBRL_Inline
 	private static $formatOutput = true;
 
 	/**
+	 * The base url to be used.  Will be empty unless there is @base in <head>
+	 * @var string
+	 */
+	private $base = '';
+
+	/**
 	 * Inline XBRL class constructor instantiating DOMDocument
 	 * @throws \Exception When the document is not an IXBRL document
 	 */
@@ -207,7 +213,7 @@ class XBRL_Inline
 		$base = $xpath->query('//xhtml:html/xhtml:head/xhtml:base[@href]');
 		if ( $base->length )
 		{
-			$this->url = \XBRL::resolve_path( $this->url, $base[0]->getAttribute('href') );
+			$this->base = $base[0]->getAttribute('href');
 		}
 	}
 
@@ -563,15 +569,43 @@ class XBRL_Inline
 	 * @param \DOMNode $node
 	 * @return void
 	 */
-	private static function innerHTML( $node )
+	private static function innerHTML( $node, $first = true )
 	{
 		if ( ! ( $node instanceof \DOMNode ) ) return '';
+		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
 		return array_reduce(
 			iterator_to_array( $node->childNodes ),
-			function ( $carry, \DOMNode $child )
+			function ( $carry, \DOMNode $child ) use( $document, $first )
 			{
+				if ( $child instanceof \DOMElement )
+				{
+					if ( $document->base )
+					{
+						$base = \XBRL::endswith( $document->base, '/' ) || pathinfo( $document->base, PATHINFO_EXTENSION ) ? $document->base : $document->base . '/../';
+						if ( $href = $child->getAttribute('href') )
+						{
+							$child->setAttribute( 'href', \XBRL::resolve_path( $base, $href ) );
+						}
+
+						if ( $src = $child->getAttribute('src') )
+						{
+							$child->setAttribute( 'src', \XBRL::resolve_path( $base, $src ) );						
+						}
+					}
+
+					// Add xmlns:xhtml to any new child nodes thatare not an xbrli node
+					if ( $first && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) === false )
+					{
+						$child->setAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns", \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] );
+					}
+				}
+
+				// $text = $child->ownerDocument->saveHTML( $child );
+				// return $carry.$text;
+
 				$text = $child instanceof \DOMElement && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false
-					? self::innerHTML( $child )
+				// $text = $child->hasChildNodes()
+					? self::innerHTML( $child, $child instanceof \DOMElement && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false )
 					: $child->ownerDocument->saveHTML( $child );
 
 				return $carry.$text;

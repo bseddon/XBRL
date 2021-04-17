@@ -648,9 +648,11 @@ class IXBRL_CreateInstance
 
 		$this->checkParentNode( $parentNode );
 
-		$textNode = $this->document->createTextNode( $content );
-
-		$parentNode->appendChild( $textNode );
+		$fragment = $this->document->createDocumentFragment();
+		$fragment->appendXML( $content );
+		$parentNode->appendChild( $fragment );
+		// $textNode = $this->document->createTextNode( $content );
+		// $parentNode->appendChild( $textNode );
 
 		return $parentNode;
 	}

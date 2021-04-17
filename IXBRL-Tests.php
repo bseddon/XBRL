@@ -439,7 +439,9 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-attribute-ix-name-nonNumeric-01.xml":
 		case "PASS-element-ix-nonNumeric-complete.xml":
 		case "PASS-element-ix-nonNumeric-escape-02.xml":
+			return;
 		case "PASS-element-ix-nonNumeric-escape-03.xml":
+			break;
 		case "PASS-element-ix-nonNumeric-escape-04.xml":
 		case "PASS-element-ix-nonNumeric-escape-05.xml":
 		case "PASS-element-ix-nonNumeric-escape-06.xml":
@@ -476,7 +478,6 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-element-ordering.xml":
 		case "PASS-nonNumeric-any-attribute.xml":
 		case "PASS-nonNumeric-empty-not-xsi-nil.xml":
-			return;
 		case "PASS-nonNumeric-escape-with-html-base.xml":
 		case "PASS-nonNumeric-ix-format-attr-expanded-name-match.xml":
 		case "PASS-nonNumeric-ix-format-attr.xml":
@@ -492,7 +493,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			break;
+			return;
 
 		#region ./references - checked fail and pass tests
 
@@ -928,7 +929,9 @@ function compare( $generatedFilename, $predictedFilename )
 	}
 
 	$predicted = new \DOMDocument();
-	if ( ! $predicted->load( $predictedFilename ) )
+	$predictedXml = html_entity_decode( file_get_contents($predictedFilename ), ENT_XHTML );
+
+	if ( ! $predicted->loadXML( $predictedXml ) )
 	{
 		throw new IXBRLTestCompareException("The predicted output instance document '$predictedFilename' failed to open.", libxml_get_errors() );
 	}
@@ -1029,16 +1032,14 @@ function createHash( $dictionary, $element, $predicted = false )
 		case 'xbrl':
 			$elements['c'] = '';
 			break;
-		default:
 
+		default:
 			$value = trim( preg_replace( '/\s+/', ' ', $element->nodeValue ) ) ;
 			// Remove the xhtml default namespace added to the predicted output
-			// Also remove any @href and @src because they may be different between 
-			// predicted and generated because of @xml:base values
-			$value = preg_replace('/\s+(xmlns|href|src)=".*"/U', '', $value );
+			// $value = preg_replace('/\s+xmlns=".*"/U', '', $value );
 			$elements['c'] = $value;
 			break;
-		}
+	}
 
 	$attrs = array();
 	foreach( $element->attributes as $name => $attr )
