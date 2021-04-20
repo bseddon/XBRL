@@ -569,48 +569,87 @@ class XBRL_Inline
 	 * @param \DOMNode $node
 	 * @return void
 	 */
-	private static function innerHTML( $node, $first = true )
+	private static function innerHTML( $node )
 	{
 		if ( ! ( $node instanceof \DOMNode ) ) return '';
 		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
-		return array_reduce(
-			iterator_to_array( $node->childNodes ),
-			function ( $carry, \DOMNode $child ) use( $document, $first )
+		$updateChildren = function( \DOMNodeList $nodes, \DOMNode $parentNode = null ) use( &$updateChildren, $document )
+		{
+			$result = '';
+
+			foreach( $nodes as $child )
 			{
+				/** @var \DOMNode $child */
 				if ( $child instanceof \DOMElement )
 				{
+					if ( array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) )
+					{
+						$result .= $updateChildren( $child->childNodes, $parentNode );
+						continue;
+					}
+	
+					$result .= "<{$child->tagName}";
+
 					if ( $document->base )
 					{
 						$base = \XBRL::endswith( $document->base, '/' ) || pathinfo( $document->base, PATHINFO_EXTENSION ) ? $document->base : $document->base . '/../';
 						if ( $href = $child->getAttribute('href') )
 						{
-							$child->setAttribute( 'href', \XBRL::resolve_path( $base, $href ) );
+							@list( $url, $fragment ) = explode( '#', $href );
+							$child->setAttribute( 'href', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );
 						}
 
 						if ( $src = $child->getAttribute('src') )
 						{
-							$child->setAttribute( 'src', \XBRL::resolve_path( $base, $src ) );						
+							@list( $url, $fragment ) = explode( '#', $src );
+							$child->setAttribute( 'src', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );						
 						}
 					}
 
-					// Add xmlns:xhtml to any new child nodes thatare not an xbrli node
-					if ( $first && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) === false )
+					// Add xmlns:xhtml to any new child nodes that are not an xbrli node
+					if ( ! $parentNode && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) === false && ! $child->hasAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns" ) )
 					{
-						$child->setAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns", \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] );
+						$result .= " xmlns=\"" . \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] . "\"";
 					}
+	
+					foreach( $child->attributes as $attr )
+					{
+						/** @var \DOMAttr $attr */
+						$result .= " " . $attr->nodeName . '="' . $attr->nodeValue . '"';
+					}
+
+					if ( $child->nodeValue || $child->hasChildNodes() )
+					{
+						$result .= ">";
+
+						if ( $child->hasChildNodes() )
+						{
+							$result .= $updateChildren( $child->childNodes, $child );
+						}
+
+						$result .= "</{$child->tagName}>";
+					}
+					else
+					{
+						$result .= "/>";
+					}
+
 				}
+				else
+				{
+					$result .= htmlentities( $child->nodeValue, ENT_NOQUOTES );
+					// $result .= preg_replace( '/\s+/', ' ',  htmlentities( $child->nodeValue, ENT_NOQUOTES ) );
+				}
+			}
 
-				// $text = $child->ownerDocument->saveHTML( $child );
-				// return $carry.$text;
+			return $result;
+		};
 
-				$text = $child instanceof \DOMElement && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false
-				// $text = $child->hasChildNodes()
-					? self::innerHTML( $child, $child instanceof \DOMElement && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false )
-					: $child->ownerDocument->saveHTML( $child );
+		$result = $node->hasChildNodes()
+			? $updateChildren( $node->childNodes )
+			: $node->textContent;
 
-				return $carry.$text;
-			}, ''
-		 );
+		return $result;
 	}
 
 	/**
@@ -954,8 +993,8 @@ class XBRL_Inline
 		$nodes = self::checkContinuationCycles( $cloneNode, $section, $idNodes );
 
 		$content = $escape 
-			? join( '', array_map( function( $node ) { return self::innerHTML( $node ); }, $nodes ) )
-			: join( '', array_map( function( $node ) { return trim( $node->textContent ); }, $nodes ) );
+			? join( ' ', array_map( function( $node ) { return self::innerHTML( $node ); }, $nodes ) )
+			: join( ' ', array_map( function( $node ) { return trim( $node->textContent ); }, $nodes ) );
 
 		// The content my be empty but there may be a nested node
 		if ( ! $content && ! ( $node->childNodes->length || $nil ) )
@@ -1423,7 +1462,6 @@ class XBRL_Inline
 				self::checkContinuationCycles( $node, $section, $idNodes );
 
 				break;
-
 
 			case IXBRL_ELEMENT_EXCLUDE:
 				$soure = '5.1.1';

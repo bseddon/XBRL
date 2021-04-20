@@ -97,7 +97,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./continuation - checked fail and pass tests
+		#region ./continuation - checked fail and pass tests and compares
 
 		case "FAIL-continuation-duplicate-id.xml": // Checked
 		case "FAIL-continuation-nonNumeric-circular.xml": // Checked Dangling
@@ -166,6 +166,7 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-footnote-any-attribute.xml":
 		case "PASS-footnote-continuation.xml":
 		case "PASS-footnote-footnoteLinkRole-multiple-output.xml":
+			break;
 		case "PASS-footnote-footnoteRole-multiple-output.xml":
 		case "PASS-footnote-ix-element-content.xml":
 		case "PASS-footnote-ix-exclude-content.xml":
@@ -204,7 +205,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./fraction - checked fail and pass tests
+		#region ./fraction - checked fail and pass tests and compares
 
 		case "FAIL-fraction-denominator-empty.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-minLength-valid, 1831
 		case "FAIL-fraction-denominator-illegal-child-node.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_2, 1842
@@ -283,7 +284,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./header - checked fail and pass tests
+		#region ./header - checked fail and pass tests and compares
 
 		case "FAIL-ix-header-child-of-html-header.xml": // Checked
 		case "FAIL-misplaced-ix-element-in-context.xml": // Checked - MisplacedIXElement
@@ -422,7 +423,7 @@ function testCase( $dirname, $filename, $outputFolder )
 	
 			return;
 
-		#region ./nonNumeric - checked fail and pass tests
+		#region ./nonNumeric - checked fail and pass tests and compares
 
 		case "FAIL-element-ix-nonNumeric-escape-01.xml": // Checked - InvalidDataType
 		case "FAIL-nonNumeric-any-ix-attribute.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867, 1866, 1867
@@ -439,9 +440,7 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-attribute-ix-name-nonNumeric-01.xml":
 		case "PASS-element-ix-nonNumeric-complete.xml":
 		case "PASS-element-ix-nonNumeric-escape-02.xml":
-			return;
 		case "PASS-element-ix-nonNumeric-escape-03.xml":
-			break;
 		case "PASS-element-ix-nonNumeric-escape-04.xml":
 		case "PASS-element-ix-nonNumeric-escape-05.xml":
 		case "PASS-element-ix-nonNumeric-escape-06.xml":
@@ -639,13 +638,7 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-tuple-scope-inverted.xml":
 		case "PASS-tuple-scope-nested-nonNumeric.xml":
 		case "PASS-tuple-scope-nonNumeric.xml":
-
-			return;
-
 		case "PASS-tuple-xsi-nil.xml":
-
-			break;
-
 
 		#endregion
 
@@ -823,6 +816,8 @@ function testCase( $dirname, $filename, $outputFolder )
 			{
 				/** @var \DOMDocument $document */
 				$predictedFilename = str_replace( 'predicted', 'generated', basename( $predictedSet[ $target ] ) );
+				// Create formatted output so 
+				$document->formatOutput = true;
 				$xml = $document->saveXML();
 				if ( ! file_put_contents( "$outputFolder/$predictedFilename", $xml ) )
 				{
@@ -929,7 +924,8 @@ function compare( $generatedFilename, $predictedFilename )
 	}
 
 	$predicted = new \DOMDocument();
-	$predictedXml = html_entity_decode( file_get_contents($predictedFilename ), ENT_XHTML );
+	// $predictedXml = html_entity_decode( file_get_contents( $predictedFilename ), ENT_XHTML );
+	$predictedXml = file_get_contents( $predictedFilename );
 
 	if ( ! $predicted->loadXML( $predictedXml ) )
 	{
@@ -1035,8 +1031,6 @@ function createHash( $dictionary, $element, $predicted = false )
 
 		default:
 			$value = trim( preg_replace( '/\s+/', ' ', $element->nodeValue ) ) ;
-			// Remove the xhtml default namespace added to the predicted output
-			// $value = preg_replace('/\s+xmlns=".*"/U', '', $value );
 			$elements['c'] = $value;
 			break;
 	}

@@ -205,7 +205,7 @@ class IXBRL_CreateInstance
 				{
 					$carry[ARRAY_CONTEXTS][] = $value;
 				}
-				if ( ( $value = $node->getAttribute(INSTANCE_ATTR_UNITREF) ) )
+				if ( ( $value = trim( $node->getAttribute(INSTANCE_ATTR_UNITREF) ) ) )
 				{
 					$carry[ARRAY_UNITS][] = $value;
 				}
@@ -259,7 +259,7 @@ class IXBRL_CreateInstance
 					continue;
 				}
 
-				$this->addIXElment( $node, $xbrl, $nodesByTarget, $xbrliPrefix );
+				$this->addIXElement( $node, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById );
 			}
 		}
 
@@ -301,7 +301,7 @@ class IXBRL_CreateInstance
 		unset( $tupleIds );
 		unset( $tupleRefs );
 
-		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tupleParentChild, &$nodePaths, &$nodesByTarget, $xbrliPrefix )
+		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tupleParentChild, &$nodePaths, &$nodesByTarget, $xbrliPrefix, &$nodesById )
 		{
 			// First sort the nodes in the designated order
 			$nodes = array_reduce( $paths, function( $carry, $path ) use( &$nodePaths ) { $carry[ $path ] = $nodePaths[ $path ]; return $carry; }, array() );
@@ -334,7 +334,7 @@ class IXBRL_CreateInstance
 			{
 				/** @var \DOMElement $node */
 
-				$element = $this->addIXElment( $node, $parent, $nodesByTarget,$xbrliPrefix );
+				$element = $this->addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, $nodesById );
 
 				if ( isset( $tupleParentChild[ $path ] ) )
 				{
@@ -346,6 +346,25 @@ class IXBRL_CreateInstance
 		if ( isset( $tupleParentChild[null] ) )
 			$processHierarchy( $tupleParentChild[null], $xbrl );
 
+		// Now references and footnotes
+		// If there are any footnotes add a <link>
+		$footnotes = $nodesByLocalName[ $target ][ IXBRL_ELEMENT_FOOTNOTE ] ?? array();
+		if ( $footnotes )
+		{
+			$relationships = $nodesByLocalName[ $target ][ IXBRL_ELEMENT_RELATIONSHIP ] ?? array();
+			// Group target relationships by link role
+			$linkRoles = array_reduce( $relationships, function( $carry, $relationship )
+			{
+				$linkRole = $relationship->getAttribute( IXBRL_ATTR_LINKROLE )?? \XBRL_Constants::$defaultLinkRole;
+				$carry[ $linkRole ] = $relationship;
+				return $carry;
+			}, array() );
+
+			foreach( $linkRoles as $linkRole => $relationship )
+			{
+				
+			}
+		}
 		return $this->document;
 	}
 
@@ -355,9 +374,10 @@ class IXBRL_CreateInstance
 	 * @param \DOMElement $parent
 	 * @param \DOMElement[][] $nodesByTarget
 	 * @param string $xbrliPrefix
+	 * @param \DOMElement[][] $nodesById
 	 * @return void
 	 */
-	private function addIXElment( $node, $parent, $nodesByTarget, $xbrliPrefix )
+	private function addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, &$nodesById )
 	{
 		// Create the element and core attributes
 		$name = $node->getAttribute(INSTANCE_ATTR_NAME); // Should always be a name
@@ -471,11 +491,16 @@ class IXBRL_CreateInstance
 			foreach( $elements->childNodes as $from )
 			{
 				/** @var \DOMElement $from */
-				if ( $from->nodeType != XML_ELEMENT_NODE ) 
+				switch( $from->nodeType ) 
 				{
-					$trimmed = $trim ? trim( $from->textContent ) : $from->textContent;
-					if ( $trimmed ) $this->addContent( $from->textContent, $target );
-					continue;
+					case \XML_ELEMENT_NODE:
+						break;
+					case \XML_COMMENT_NODE:
+						continue 2;
+					default:
+						$trimmed = $trim ? trim( $from->textContent ) : $from->textContent;
+						if ( $trimmed ) $this->addContent( $from->textContent, $target );
+						continue 2;
 				}
 
 				if ( $callback && ! $callback( $from ) ) continue;
@@ -488,8 +513,8 @@ class IXBRL_CreateInstance
 	}
 
 	private $attrsToExclude = array( 
-		INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, IXBRL_ATTR_ESCAPE, INSTANCE_ATTR_FORMAT, 
-		INSTANCE_ATTR_SCALE, IXBRL_ATTR_SIGN, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF );
+		INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, IXBRL_ATTR_ESCAPE, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, 
+		IXBRL_ATTR_SIGN, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF, IXBRL_ATTR_CONTINUEDAT );
 
 	/**
 	 * Copy the attributes of source to target exluding ix attributes
@@ -648,11 +673,8 @@ class IXBRL_CreateInstance
 
 		$this->checkParentNode( $parentNode );
 
-		$fragment = $this->document->createDocumentFragment();
-		$fragment->appendXML( $content );
-		$parentNode->appendChild( $fragment );
-		// $textNode = $this->document->createTextNode( $content );
-		// $parentNode->appendChild( $textNode );
+		$textNode = $this->document->createTextNode( $content );
+		$parentNode->appendChild( $textNode );
 
 		return $parentNode;
 	}
@@ -688,7 +710,7 @@ class IXBRL_CreateInstance
 					break;
 			}
 
-			$node = $this->document->createComment( $comment );
+			$node = $this->document->createComment( ' ' . $comment );
 			$this->document->appendChild( $node );
 		}
 	}

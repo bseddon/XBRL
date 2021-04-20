@@ -18460,7 +18460,7 @@ class XBRL {
 		$targetIsUrl = filter_var( $target, FILTER_VALIDATE_URL );
 
 		// Absolute
-		if ( $target && ( filter_var( $target, FILTER_VALIDATE_URL ) || ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' && ( $target[1] === ':' || substr( $target, 0, 2 ) === '\\\\' ) ) ) )
+		if ( $target && ( filter_var( $target, FILTER_VALIDATE_URL ) || ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' && strlen( $target ) > 1 && ( $target[1] === ':' || substr( $target, 0, 2 ) === '\\\\' ) ) ) )
 			$path = $target;
 
 		// Relative to root
