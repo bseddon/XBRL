@@ -6147,7 +6147,6 @@ class XBRL {
 
 		// TODO Change this to use SchemaTypes::resolve_path
 		$path = XBRL::resolve_path( $linkbaseRef['href'], $linkbaseRef['base'] . $xml_basename );
-		// $path = str_replace( "//", "/", pathinfo( $linkbaseRef['href'], PATHINFO_DIRNAME ) . "/" . $linkbaseRef['base'] . $xml_basename );
 		$xml = XBRL::getXml( $path, $this->context );
 		if ( $xml === null )
 		{
@@ -18456,9 +18455,8 @@ class XBRL {
 			? $source
 			: pathinfo( $source, PATHINFO_DIRNAME );
 
-		$sourceIsUrl = filter_var( $source, FILTER_VALIDATE_URL );
-		$target = preg_replace( '/ /','%20',$target );
-		$targetIsUrl = filter_var( $target, FILTER_VALIDATE_URL );
+		$sourceIsUrl = filter_var( rawurlencode( $source ), FILTER_VALIDATE_URL );
+		$targetIsUrl = filter_var( rawurlencode( $target ), FILTER_VALIDATE_URL );
 
 		// Absolute
 		if ( $target && ( filter_var( $target, FILTER_VALIDATE_URL ) || ( strtoupper( substr( PHP_OS, 0, 3 ) ) === 'WIN' && strlen( $target ) > 1 && ( $target[1] === ':' || substr( $target, 0, 2 ) === '\\\\' ) ) ) )
