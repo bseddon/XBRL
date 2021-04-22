@@ -35,6 +35,8 @@ define( 'INSTANCE_ATTR_SCALE', 'scale' );
 
 define( 'INSTANCE_ELEMENT_CONTEXT', 'context' );
 define( 'INSTANCE_ELEMENT_UNIT', 'unit' );
+define( 'INSTANCE_ELEMENT_ROLEREF', 'roleRef' );
+define( 'INSTANCE_ELEMENT_ARCROLEREF', 'arcroleRef' );
 
 define( 'ARRAY_CONTEXTS', 'contexts' );
 define( 'ARRAY_UNITS', 'units' );
@@ -93,7 +95,7 @@ class IXBRL_CreateInstance
 	 * @param string $target
 	 * @param string $name
 	 * @param \DOMElement[][] $nodesByLocalName
-	 * @param \DOMElement[][] $nodesById
+	 * @param \DOMElement[] $nodesById
 	 * @param \DOMElement[][][] $nodesByTarget
 	 * @return \DOMDocument
 	 */
@@ -181,10 +183,10 @@ class IXBRL_CreateInstance
 					/** @var \DOMAttr $attr */
 					// Don't copy any ix attributes
 					if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
-
+					if ( $attr->namespaceURI == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML] && $attr->name == IXBRL_ATTR_BASE ) continue;
 					// Copy the attribute.  If it'a href merge with the baseuri if appropriate
 					$value = $attr->name == 'href'&& $baseURI
-						? \XBRL::resolve_path( $attr->nodeValue, $baseURI )
+						? \XBRL::resolve_path( $baseURI, $attr->nodeValue )
 						: $attr->nodeValue;
 					$this->addAttr( $attr->name, $value, $link, $prefixes[ $attr->namespaceURI ] ?? null );
 				}
@@ -222,6 +224,9 @@ class IXBRL_CreateInstance
 				{
 					case INSTANCE_ELEMENT_CONTEXT: return array_search( $id, $usedRefs[ARRAY_CONTEXTS] ) !== false;
 					case INSTANCE_ELEMENT_UNIT: return array_search( $id, $usedRefs[ARRAY_UNITS] ) !== false;
+					case INSTANCE_ELEMENT_ROLEREF:
+					case INSTANCE_ELEMENT_ARCROLEREF:
+						return true;
 				}
 				return false; 
 			} );
@@ -348,21 +353,173 @@ class IXBRL_CreateInstance
 
 		// Now references and footnotes
 		// If there are any footnotes add a <link>
-		$footnotes = $nodesByLocalName[ $target ][ IXBRL_ELEMENT_FOOTNOTE ] ?? array();
-		if ( $footnotes )
+		// $footnotes = $nodesByLocalName[ IXBRL_ELEMENT_FOOTNOTE ] ?? array();
+		// if ( $footnotes )
+		$relationships = $nodesByLocalName[ IXBRL_ELEMENT_RELATIONSHIP ] ?? array();
+		if ( $relationships )
 		{
-			$relationships = $nodesByLocalName[ $target ][ IXBRL_ELEMENT_RELATIONSHIP ] ?? array();
-			// Group target relationships by link role
-			$linkRoles = array_reduce( $relationships, function( $carry, $relationship )
+			// Group target relationships by link role and arcrole
+			 /** @var \DOMElement[][][] */ 
+			$relationshipGroups = array_reduce( $relationships, function( $carry, $relationship )
 			{
-				$linkRole = $relationship->getAttribute( IXBRL_ATTR_LINKROLE )?? \XBRL_Constants::$defaultLinkRole;
-				$carry[ $linkRole ] = $relationship;
+				$linkRole = $relationship->getAttribute( IXBRL_ATTR_LINKROLE );
+				if ( ! $linkRole ) $linkRole =  \XBRL_Constants::$defaultLinkRole;
+				$arcRole = $relationship->getAttribute( IXBRL_ATTR_ARCROLE );
+				if ( ! $arcRole ) $arcRole = \XBRL_Constants::$arcRoleFactFootnote;
+			$carry[ $linkRole ][ $arcRole ][] = $relationship;
 				return $carry;
 			}, array() );
 
-			foreach( $linkRoles as $linkRole => $relationship )
+			foreach( $relationshipGroups as $linkRole => $relationshipGroup )
 			{
-				
+				$footnotes = array();
+
+				foreach( $relationshipGroup as $arcRole => $relationships )
+				{
+					foreach( $relationships as $relationship )
+					{
+						// Add a <loc> for every element in the 'fromRefs' attribute
+						$fromRefs = preg_replace( '/\s+/', ' ', $relationship->getAttribute( IXBRL_ATTR_FROMREFS ) );
+						if ( ! $fromRefs ) continue;
+
+						// Add a <footnote> for every element in the 'toRefs' attribute
+						$toRefs = preg_replace( '/\s+/', ' ', $relationship->getAttribute( IXBRL_ATTR_TOREFS ) );
+						if ( ! $toRefs ) continue;
+
+						// There's going to be an extended link for every footnote (toRef)
+						$toRefs = explode( ' ', $toRefs );
+						foreach( $toRefs as $toRef )
+						{
+							if ( ! isset( $footnotes[ $toRef ][ $arcRole ] ) )
+								$footnotes[ $toRef ][ $arcRole ] = array( 
+									'order' => $relationship->hasAttribute( IXBRL_ATTR_ORDER ) ? $relationship->getAttribute( IXBRL_ATTR_ORDER ) : null,
+									'fromRefs' => array()
+								);
+
+							$footnotes[ $toRef ][ $arcRole ]['fromRefs'] = array_merge( 
+								$footnotes[ $toRef ][ $arcRole ]['fromRefs'],
+								array_filter(
+									explode( ' ', $fromRefs ),
+									// Check the validity of the fromRef
+									function( $fromRef ) use( &$nodesById, $target )
+									{
+										// The ix element with @id value $fromRef must have target $target
+										$ixElement = $nodesById[ $fromRef ];
+										return $ixElement->getAttribute( IXBRL_ATTR_TARGET ) == $target;
+									}
+								)
+							);
+						}
+					}
+				}
+
+				// There's going to be an extended link for every footnote (toRef)
+				foreach( $footnotes as $toRef => $arcs )
+				{
+					// Look ahead to see if there are fromRefs
+					$count = array_reduce( $arcs,function( $carry, $details ) 
+					{
+						return $carry + count( $details['fromRefs']);
+					}, 0 );
+
+					if ( ! $count ) continue;
+
+					// Each footnote can have its own extended link
+					$footnoteLinkElement = $this->addElement('footnoteLink', $xbrl, STANDARD_PREFIX_LINK, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK ] );
+						$this->addAttr( 'role', $linkRole, $footnoteLinkElement, STANDARD_PREFIX_XLINK, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XLINK ] );
+						$this->addAttr( 'type','extended', $footnoteLinkElement, STANDARD_PREFIX_XLINK );
+
+					$ixFootnote = $nodesById[ $toRef ];
+					if ( ! $ixFootnote ) continue;
+
+					// If the 'footnote' is another element then copy it regardless of its target
+					if ( $ixFootnote->localName != IXBRL_ELEMENT_FOOTNOTE )
+					{
+						// If the 'footnote' element is in the same target then it already exists
+						$ixTarget = $ixFootnote->getAttribute( IXBRL_ATTR_TARGET );
+						if ( $ixTarget != $target )
+						{
+							$this->addIXElement( $ixFootnote, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById );
+						}
+						$ixId = $ixFootnote->getAttribute( IXBRL_ATTR_ID );
+						// Create the locator.
+						$locElement = $this->addElement( 'loc', $footnoteLinkElement, 'link' );
+							$this->addAttr( 'href', "#$ixId", $locElement, 'xlink' );
+							$this->addAttr( 'label', 'footnote', $locElement, 'xlink' );
+							$this->addAttr( 'type', 'locator', $locElement, 'xlink' );	
+					}
+					else
+					{
+						$footnoteRole = $ixFootnote->getAttribute( IXBRL_ATTR_FOOTNOTEROLE );
+
+						// Add the footnote resource implied by the <ix:footnote>
+						/** @var \DOMElement */
+						$footnoteElement = $this->addElement( 'footnote', $footnoteLinkElement, STANDARD_PREFIX_LINK );
+							$this->copyAttributes( $ixFootnote, $footnoteElement );
+
+							// Add the xlink attributes
+							$this->addAttr( 'role', $footnoteRole ? $footnoteRole : \XBRL_Constants::$footnote, $footnoteElement, STANDARD_PREFIX_XLINK );
+							$this->addAttr( 'label', 'footnote', $footnoteElement, STANDARD_PREFIX_XLINK );
+							$this->addAttr( 'type', 'resource', $footnoteElement, STANDARD_PREFIX_XLINK );
+							// @title will be copied across but it should be in the xlink namespace
+							if ( $footnoteElement->hasAttribute( IXBRL_ATTR_TITLE ) )
+								$this->addAttr( IXBRL_ATTR_TITLE, $footnoteElement->getAttribute( IXBRL_ATTR_TITLE ), $footnoteElement, STANDARD_PREFIX_XLINK );
+							$footnoteElement->removeAttribute( IXBRL_ATTR_TITLE );
+							// $footnoteElement->removeAttribute( IXBRL_ATTR_FOOTNOTEROLE );
+
+							// getFormattedValue() returns a fragment that can be appended to the footnote element
+							$hasElements = false; // This is used as reference variable passed to checkFformat
+							$fragment = $this->document->createDocumentFragment();
+							$fragment->appendXml( $this->getFormattedValue( $ixFootnote, $nodesById, $hasElements ) );
+							$added = $footnoteElement->appendChild( $fragment );
+							if ( $hasElements )
+								$this->addAttr( 'xmlns', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML], $footnoteElement, STANDARD_PREFIX_XMLNS );
+							$xmlNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ];
+							if ( ! $footnoteElement->hasAttributeNS( $xmlNS, IXBRL_ATTR_LANG ) )
+							{
+								// Find one further up the DOM
+								XBRL_Inline::checkParentNodes( $ixFootnote, function( $parentNode ) use ( $xmlNS, $footnoteElement )
+								{
+									/** @var \DOMElement $parentNode */
+									if ( ! $parentNode->hasAttributeNS( $xmlNS, IXBRL_ATTR_LANG ) ) return false;
+									$this->addAttr( 'lang', $parentNode->getAttributeNodeNS( $xmlNS, IXBRL_ATTR_LANG )->value, $footnoteElement, STANDARD_PREFIX_XML );
+									return true;
+								} );
+							}
+					}
+
+					$fromLabel = 'fact';
+					$index = 1;
+
+					foreach( $arcs as $arcRole => $details )
+					{
+						if ( ! $details['fromRefs'] ) continue;
+
+						if ( count( $arcs ) > 1 )
+						{
+							$fromLabel = 'fact' . $index++;
+						}
+
+						foreach( $details['fromRefs'] as $fromRef )
+						{
+							// Create the locator.
+							$locElement = $this->addElement( 'loc', $footnoteLinkElement, 'link' );
+								$this->addAttr( 'href', "#$fromRef", $locElement, 'xlink' );
+								$this->addAttr( 'label', $fromLabel, $locElement, 'xlink' );
+								$this->addAttr( 'type', 'locator', $locElement, 'xlink' );	
+						}
+
+						// Add the footnote arc from the fact to the <ix:footnote>
+						$footnoteArcElement = $this->addElement( 'footnoteArc', $footnoteLinkElement, 'link' );
+							$this->addAttr( 'arcrole', $arcRole, $footnoteArcElement, 'xlink' );
+							$this->addAttr( 'from', $fromLabel, $footnoteArcElement, 'xlink' );
+							$this->addAttr( 'to', 'footnote', $footnoteArcElement, 'xlink' );
+							$this->addAttr( 'type','arc', $footnoteArcElement, 'xlink' );
+						// If @order exists, copy it
+						if ( $details['order'] )
+							$this->addAttr( IXBRL_ATTR_ORDER, $details['order'], $footnoteArcElement );
+					}
+				}
 			}
 		}
 		return $this->document;
@@ -380,6 +537,7 @@ class IXBRL_CreateInstance
 	private function addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, &$nodesById )
 	{
 		// Create the element and core attributes
+		$hasElements = false; // This is used as reference variable passed to checkFformat
 		$name = $node->getAttribute(INSTANCE_ATTR_NAME); // Should always be a name
 		$element = $this->addElement( $name, $parent );
 			if ( ( $value = $node->getAttribute(INSTANCE_ATTR_CONTEXTREF) ) )
@@ -392,7 +550,7 @@ class IXBRL_CreateInstance
 		{
 				case IXBRL_ELEMENT_NONNUMERIC:
 				case IXBRL_ELEMENT_NONFRACTION:
-				$this->addContent( $this->getFormattedValue( $node, $nodesById ), $element );
+				$this->addContent( $this->getFormattedValue( $node, $nodesById, $hasElements ), $element );
 				break;
 
 			case IXBRL_ELEMENT_FRACTION:
@@ -418,6 +576,7 @@ class IXBRL_CreateInstance
 	 */
 	private function addFraction( $node, $parent, &$nodesById, &$nodesByTarget, $xbrliPrefix )
 	{
+		$hasElements = false; // This is used as reference variable passed to checkFformat
 		$numerators = $nodesByTarget[ IXBRL_ELEMENT_NUMERATOR ] ?? array();
 		$numerator = $this->findElement( $node, $numerators );
 		if ( ! $numerator ) return null;
@@ -427,12 +586,12 @@ class IXBRL_CreateInstance
 		if ( ! $denominator ) return null;
 
 		$element = $this->addElement( IXBRL_ELEMENT_NUMERATOR, $parent, $xbrliPrefix );
-			$content = $this->getFormattedValue( $numerator, $nodesById );
+			$content = $this->getFormattedValue( $numerator, $nodesById, $hasElements );
 			$this->addContent( $content, $element );
 			$this->copyAttributes( $numerator, $element );
 
 		$element = $this->addElement( IXBRL_ELEMENT_DENOMINATOR, $parent, $xbrliPrefix );
-			$content = $this->getFormattedValue( $denominator, $nodesById );
+			$content = $this->getFormattedValue( $denominator, $nodesById, $hasElements );
 			$this->addContent( $content, $element );
 			$this->copyAttributes( $denominator, $element );
 	}
@@ -469,12 +628,13 @@ class IXBRL_CreateInstance
 	 * Returns the content for a node
 	 * @param \DOMElement $node
 	 * @param \DOMElement[][] $nodesById
+	 * @param bool $hasElements Will be true if any of the content are elements such as <i> <b> etc.
 	 * @return string
 	 */
-	private function getFormattedValue( $node, &$nodesById )
+	private function getFormattedValue( $node, &$nodesById, &$hasElements )
 	{
 		$document = XBRL_Inline::$documents[ $node->ownerDocument->documentElement->baseURI ];
-		return XBRL_Inline::checkFormat( $node, 'instance generation', $node->localName, $document, $nodesById );
+		return XBRL_Inline::checkFormat( $node, 'instance generation', $node->localName, $document, $nodesById, $hasElements );
 	}
 
 	/**
@@ -513,8 +673,8 @@ class IXBRL_CreateInstance
 	}
 
 	private $attrsToExclude = array( 
-		INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, IXBRL_ATTR_ESCAPE, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, 
-		IXBRL_ATTR_SIGN, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF, IXBRL_ATTR_CONTINUEDAT );
+		INSTANCE_ATTR_CONTEXTREF, INSTANCE_ATTR_NAME, INSTANCE_ATTR_UNITREF, IXBRL_ATTR_ESCAPE, INSTANCE_ATTR_FORMAT, INSTANCE_ATTR_SCALE, 'xml:base',
+		IXBRL_ATTR_SIGN, IXBRL_ATTR_TARGET, IXBRL_ATTR_ORDER, IXBRL_ATTR_TUPLEID, IXBRL_ATTR_TUPLEREF, IXBRL_ATTR_CONTINUEDAT, IXBRL_ATTR_FOOTNOTEROLE );
 
 	/**
 	 * Copy the attributes of source to target exluding ix attributes
@@ -530,6 +690,7 @@ class IXBRL_CreateInstance
 			// Don't copy any ix attributes
 			if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
 			if ( array_search( $attr->name, $this->attrsToExclude ) !== false ) continue;
+			if ( array_search( "{$attr->prefix}:{$attr->name}", $this->attrsToExclude ) !== false ) continue;
 			$this->addAttr( $attr->name, $attr->nodeValue, $target, $attr->namespaceURI == $target->namespaceURI ? null : $attr->prefix, $attr->namespaceURI == $target->namespaceURI ? null : $attr->namespaceURI );
 		}
 	}
@@ -626,7 +787,7 @@ class IXBRL_CreateInstance
 	 * @param string $prefix
 	 * @param string $namespace
 	 * @throws TaxonomyException
-	 * @return \DOMNode
+	 * @return \DOMElement
 	 */
 	function addElement( $name, $parentNode = null, $prefix = null, $namespace = null )
 	{

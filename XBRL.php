@@ -18457,6 +18457,7 @@ class XBRL {
 			: pathinfo( $source, PATHINFO_DIRNAME );
 
 		$sourceIsUrl = filter_var( $source, FILTER_VALIDATE_URL );
+		$target = preg_replace( '/ /','%20',$target );
 		$targetIsUrl = filter_var( $target, FILTER_VALIDATE_URL );
 
 		// Absolute

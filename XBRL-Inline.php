@@ -81,7 +81,7 @@ define( "IXBRL_ATTR_TOREFS", "toRefs" );
 define( "IXBRL_ATTR_TUPLEID", "tupleID" );
 define( "IXBRL_ATTR_TUPLEREF", "tupleRef" );
 define( "IXBRL_ATTR_UNITREF", "unitRef" );
-define( "IXBRL_ATTR_LANG", "xml:lang" );
+define( "IXBRL_ATTR_LANG", "lang" );
 
 #endregion
 
@@ -567,13 +567,15 @@ class XBRL_Inline
 	/**
 	 * Get the inner HTML for a node
 	 * @param \DOMNode $node
+	 * @param bool $hasElements Will be true if any of the content are elements such as <i> <b> etc.
+	 * @param bool $first Will be true to signal the node should be processed as a top level node
 	 * @return void
 	 */
-	private static function innerHTML( $node )
+	private static function innerHTML( $node, &$hasElements, $first = true)
 	{
 		if ( ! ( $node instanceof \DOMNode ) ) return '';
 		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
-		$updateChildren = function( \DOMNodeList $nodes, \DOMNode $parentNode = null ) use( &$updateChildren, $document )
+		$updateChildren = function( \DOMNodeList $nodes, bool &$hasElements, bool $first = true ) use( &$updateChildren, $document )
 		{
 			$result = '';
 
@@ -584,7 +586,7 @@ class XBRL_Inline
 				{
 					if ( array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) )
 					{
-						$result .= $updateChildren( $child->childNodes, $parentNode );
+						$result .= $updateChildren( $child->childNodes, $hasElements, $first );
 						continue;
 					}
 	
@@ -593,23 +595,51 @@ class XBRL_Inline
 					if ( $document->base )
 					{
 						$base = \XBRL::endswith( $document->base, '/' ) || pathinfo( $document->base, PATHINFO_EXTENSION ) ? $document->base : $document->base . '/../';
-						if ( $href = $child->getAttribute('href') )
+						foreach( array( 'href', 'src', 'archive', 'classid', 'data', 'codebase' ) as $name )
 						{
-							@list( $url, $fragment ) = explode( '#', $href );
-							$child->setAttribute( 'href', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );
-						}
+							if ( ! $value = $child->getAttribute( $name ) ) continue;
+							switch( $name )
+							{
+								case 'href':
+								case 'src':
+									$urls = array( $value );
+									break;
 
-						if ( $src = $child->getAttribute('src') )
-						{
-							@list( $url, $fragment ) = explode( '#', $src );
-							$child->setAttribute( 'src', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );						
+								case 'data':
+									if ( $child->hasAttribute('codebase') ) continue 2;
+									// break;
+
+								default:
+									$urls = explode( ' ', $value );
+									break;
+							}
+
+							$url = join( ' ', array_map( function( $url ) use( $base )
+							{
+								@list( $url, $fragment ) = explode( '#', $url );
+								return ( $url ? ( /* absolute? */preg_match( "!^https?://!", $url ) ? $url : \XBRL::resolve_path( $base, $url ) ) : $base ) . ( $fragment ? "#$fragment" : '' );
+							}, $urls ) );
+							$child->setAttribute( $name, $url );
 						}
+						// if ( $href = $child->getAttribute('href') )
+						// {
+						// 	@list( $url, $fragment ) = explode( '#', $href );
+						// 	$child->setAttribute( 'href', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );
+						// }
+
+						// if ( $src = $child->getAttribute('src') )
+						// {
+						// 	@list( $url, $fragment ) = explode( '#', $src );
+						// 	$child->setAttribute( 'src', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );						
+						// }
 					}
 
 					// Add xmlns:xhtml to any new child nodes that are not an xbrli node
-					if ( ! $parentNode && array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) === false && ! $child->hasAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns" ) )
+					if ( array_search( $child->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) === false && ! $child->hasAttributeNS( 'http://www.w3.org/2000/xmlns/', "xmlns" ) )
 					{
-						$result .= " xmlns=\"" . \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] . "\"";
+						$hasElements = true;
+						if ( $first )
+							$result .= " xmlns=\"" . \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML] . "\"";
 					}
 	
 					foreach( $child->attributes as $attr )
@@ -624,7 +654,7 @@ class XBRL_Inline
 
 						if ( $child->hasChildNodes() )
 						{
-							$result .= $updateChildren( $child->childNodes, $child );
+							$result .= $updateChildren( $child->childNodes, $hasElements, $first );
 						}
 
 						$result .= "</{$child->tagName}>";
@@ -646,7 +676,7 @@ class XBRL_Inline
 		};
 
 		$result = $node->hasChildNodes()
-			? $updateChildren( $node->childNodes )
+			? $updateChildren( $node->childNodes, $hasElements, $first )
 			: $node->textContent;
 
 		return $result;
@@ -977,11 +1007,13 @@ class XBRL_Inline
 	 * @param string $localName
 	 * @param XBRL_Inline $document
 	 * @param \DOMElement[] $idNodes
+	 * @param bool $hasElements Will be true if any of the content are elements such as <i> <b> etc.
 	 * @return void
 	 */
-	public static function checkFormat( $node, $section, $localName, $document, $idNodes )
+	public static function checkFormat( $node, $section, $localName, $document, $idNodes, &$hasElements )
 	{
-		$nil = filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN );				
+		$nil = filter_var( $node->getAttribute( IXBRL_ATTR_NIL ), FILTER_VALIDATE_BOOLEAN );
+		$footnote = $node->localName == IXBRL_ELEMENT_FOOTNOTE;
 		$escape = filter_var( $node->getAttribute( IXBRL_ATTR_ESCAPE ), FILTER_VALIDATE_BOOLEAN );
 		$format = $node->getAttribute( IXBRL_ATTR_FORMAT );
 		self::checkAttributeConsistency( $node, IXBRL_ATTR_FORMAT, $format, $section, $localName );
@@ -992,8 +1024,8 @@ class XBRL_Inline
 		self::removeNestedExcludes( $cloneNode, $document->xpath );
 		$nodes = self::checkContinuationCycles( $cloneNode, $section, $idNodes );
 
-		$content = $escape 
-			? join( ' ', array_map( function( $node ) { return self::innerHTML( $node ); }, $nodes ) )
+		$content = $footnote || $escape 
+			? join( ' ', array_map( function( $node ) use( $footnote, &$hasElements ) { return self::innerHTML( $node, $hasElements, ! $footnote  ); }, $nodes ) )
 			: join( ' ', array_map( function( $node ) { return trim( $node->textContent ); }, $nodes ) );
 
 		// The content my be empty but there may be a nested node
@@ -1020,10 +1052,11 @@ class XBRL_Inline
 		}
 		else if ( $content )
 		{
-			if ( $localName != IXBRL_ELEMENT_NONNUMERIC && ( ! is_numeric( trim( $content ) ) || floatval( $content ) < 0 ) )
-			{
-				throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing in <$localName> so the content must be a positive number' );
-			}
+			if ( array_search( $localName, array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC ) ) === false )
+				if ( ! is_numeric( trim( $content ) ) || floatval( $content ) < 0 )
+				{
+					throw new IXBRLDocumentValidationException( 'FormatAbsentNegativeNumber', '@format is missing in <$localName> so the content must be a positive number' );
+				}
 		}
 
 		if ( is_numeric( $content ) )
@@ -1399,6 +1432,7 @@ class XBRL_Inline
 		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
 		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 		$section = '';
+		$hasElements = false; // This is used as reference variable passed to checkFformat
 
 		if ( ! isset( $nodesByLocalNames[ $localName ] ) ) return;
 
@@ -1493,10 +1527,10 @@ class XBRL_Inline
 				}
 
 				// Make sure there is a @xml:lang in scope
-				if ( ! $node->hasAttribute( IXBRL_ATTR_LANG ) &&
+				if ( ! $node->hasAttributeNS( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ], IXBRL_ATTR_LANG ) &&
 					 ! self::checkParentNodes( $node, function( $parentNode ) 
 					{
-						return $parentNode->hasAttribute( IXBRL_ATTR_LANG );
+						return $parentNode->hasAttributeNS( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ], IXBRL_ATTR_LANG );
 					} ) )
 				{
 					throw new IXBRLDocumentValidationException( 'FootnoteWithoutXmlLangInScope', "Section $section A footnote must has a @xml:lang in scopes" );
@@ -1551,13 +1585,13 @@ class XBRL_Inline
 			case IXBRL_ELEMENT_DENOMINATOR:
 				$section = '7.1.1';
 				self::checkIXbrlAttribute( $node, $section, $localName );
-				self::checkFormat( $node, $section, $localName, $document, $idNodes );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes, $hasElements );
 				break;
 
 			case IXBRL_ELEMENT_NUMERATOR:
 				$section = '7.1.1';
 				self::checkIXbrlAttribute( $node, $section, $localName );
-				self::checkFormat( $node, $section, $localName, $document, $idNodes );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes, $hasElements );
 				break;
 
 			case IXBRL_ELEMENT_FRACTION:
@@ -1654,7 +1688,7 @@ class XBRL_Inline
 				// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 				// $continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 				// self::checkContinuationCycles( $node, $section, $idNodes );
-				self::checkFormat( $node, $section, $localName, $document, $idNodes );
+				self::checkFormat( $node, $section, $localName, $document, $idNodes, $hasElements );
 
 				break;
 
@@ -1670,7 +1704,7 @@ class XBRL_Inline
 				self::checkTupleRef( $node, $section, $localName, $tupleNodes );
 				self::checkOrderIsAppropriate( $node, $section );
 
-				$formattedValue = self::checkFormat( $node, $section, $localName, $document, $idNodes );
+				$formattedValue = self::checkFormat( $node, $section, $localName, $document, $idNodes, $hasElements );
 
 				break;
 

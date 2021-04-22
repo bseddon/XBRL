@@ -87,7 +87,7 @@ function testCase( $dirname, $filename, $outputFolder )
 {
 	switch( $filename  )
 	{
-		#region ./baseURIs - checked fail and pass tests
+		#region ./baseURIs - checked fail and pass tests and compares
 
 		case "FAIL-baseURI-on-ix-header.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
 		case "FAIL-baseURI-on-xhtml.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
@@ -123,7 +123,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./exclude - checked fail and pass tests
+		#region ./exclude - checked fail and pass tests and compares
 
 		case "FAIL-exclude-nonFraction-parent.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_a, 1871
 		case "FAIL-misplaced-exclude.xml": // Checked - MisplacedExclude
@@ -135,7 +135,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./footnotes - checked fail and pass tests
+		#region ./footnotes - checked fail and pass tests and compares
 
 		case "FAIL-element-ix-footnote-04.xml": // Checked DuplicateId
 		case "FAIL-footnote-any-attribute.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2
@@ -166,7 +166,6 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-footnote-any-attribute.xml":
 		case "PASS-footnote-continuation.xml":
 		case "PASS-footnote-footnoteLinkRole-multiple-output.xml":
-			break;
 		case "PASS-footnote-footnoteRole-multiple-output.xml":
 		case "PASS-footnote-ix-element-content.xml":
 		case "PASS-footnote-ix-exclude-content.xml":
@@ -194,7 +193,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./format - checked fail and pass tests
+		#region ./format - checked fail and pass tests compares
 		
 		case "FAIL-format-numdash-badContent.xml": // Checked - InvalidDataType
 		case "FAIL-ix-format-undefined.xml": // Checked - FormatUndefined
@@ -297,7 +296,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./hidden - checked fail and pass tests
+		#region ./hidden - checked fail and pass tests and compares
 
 		case "FAIL-empty-hidden.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
 		case "FAIL-hidden-empty-tuple-content.xml": // Checked - TupleNonEmptyValidation
@@ -494,7 +493,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./references - checked fail and pass tests
+		#region ./references - checked fail and pass tests and compares
 
 		case "FAIL-empty-references.xml": // Checked xbrl.core.xml.SchemaValidationError.cvc-complex-type_2_4_b, 1871
 		case "FAIL-ix-references-03.xml": // Checked InvalidAttributeContent
@@ -543,7 +542,7 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-relationship-to-multiple-explanatory-facts.xml":
 		case "PASS-relationship-with-xml-base.xml":
 		case "PASS-tuple-footnotes.xml":
-
+break;
 		#endregion
 
 			return;
@@ -956,6 +955,8 @@ function compare( $generatedFilename, $predictedFilename )
 
 	$missingPredicted = array_diff_key( $generatedHashes, $predictedHashes );
 	$missingGenerated = array_diff_key( $predictedHashes, $generatedHashes );
+	// Ignore excess units and contexts in the predicted output
+	$missingGenerated = array_filter( $missingGenerated, function( $hash ) { return $hash['e'] != "{http://www.xbrl.org/2003/instance}unit" && $hash['e'] != "{http://www.xbrl.org/2003/instance}context"; } );
 
 	if ( $missingGenerated )
 	{
@@ -1039,7 +1040,7 @@ function createHash( $dictionary, $element, $predicted = false )
 	foreach( $element->attributes as $name => $attr )
 	{
 		/** @var \DOMAttr $attr */
-		$attrs[createClarkname( $attr )] = trim( $attr->nodeValue );
+		$attrs[createClarkname( $attr )] = trim( $attr->name == 'href' ? preg_replace( '/%20/', ' ', $attr->nodeValue ) : $attr->nodeValue );
 	}
 
 	ksort( $attrs );

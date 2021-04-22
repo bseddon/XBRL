@@ -64,6 +64,7 @@ define( "STANDARD_PREFIX_REFERENCE_ERROR", "xbrlre" );
 define( "STANDARD_PREFIX_LABEL_ERROR", "xbrlle" );
 define( "STANDARD_PREFIX_GENERIC_ERROR", "xbrlgene" );
 define( "STANDARD_PREFIX_XML", "xml" );
+define( "STANDARD_PREFIX_XMLNS", "xmlns" );
 define( "STANDARD_PREFIX_TABLE", "table" );
 define( "STANDARD_PREFIX_TABLE_ERROR", "xbrlte" );
 define( "STANDARD_PREFIX_TABLE_MODEL", "tablemodel" );
