@@ -273,7 +273,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./fullSizeTests - no fail tests
+		#region ./fullSizeTests - no fail tests passes compares
 
 		case "PASS-full-size-unnested-tuples.xml":
 		case "PASS-full-size-with-footnotes.xml":
@@ -419,7 +419,7 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-simple-nonFraction.xml":
 
 		#endregion
-	
+
 			return;
 
 		#region ./nonNumeric - checked fail and pass tests and compares
@@ -527,7 +527,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			return;
 
-		#region ./relationships - checked fail and pass tests
+		#region ./relationships - checked fail and pass tests and compares
 
 		case "FAIL-relationship-cross-duplication.xml": // Checked RelationshipCrossDuplication
 		case "FAIL-relationship-mixes-footnote-with-explanatory-fact.xml": // Checked RelationshipMixedToRefs
@@ -542,12 +542,12 @@ function testCase( $dirname, $filename, $outputFolder )
 		case "PASS-relationship-to-multiple-explanatory-facts.xml":
 		case "PASS-relationship-with-xml-base.xml":
 		case "PASS-tuple-footnotes.xml":
-break;
+
 		#endregion
 
 			return;
 
-		#region ./resources - checked fail and pass tests
+		#region ./resources - checked fail and pass tests and compares
 
 		case "FAIL-context-without-id.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_4, 1868
 		case "FAIL-missing-resources.xml": // Checked - ResourcesAbsent
@@ -560,7 +560,7 @@ break;
 
 			return;
 
-		#region ./specificationExamples - no fail tests
+		#region ./specificationExamples - no fail tests passes compares
 
 		case "PASS-section-10.3-example-1.xml":
 		case "PASS-section-11.3-example-2.xml":
@@ -571,7 +571,7 @@ break;
 
 			return;
 
-		#region ./transformations - checked fail and pass tests
+		#region ./transformations - checked fail and pass tests and compares
 
 		case "FAIL-invalid-long-month.xml": // Checked - InvalidDataType
 		case "FAIL-invalid-short-month.xml": // Checked - InvalidDataType
@@ -582,7 +582,7 @@ break;
 
 			return;
 
-		#region ./tuple - checked fail and pass tests
+		#region ./tuple - checked fail and pass tests and compares
 
 		case "FAIL-badly-formatted-order-attr.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-attribute_3, 1824
 		case "FAIL-badly-nested-tuples.xml": // Checked - TupleCycle
@@ -643,7 +643,7 @@ break;
 
 			return;
 
-		#region ./xmllang - checked fail and pass tests
+		#region ./xmllang - checked fail and pass tests and compares
 
 		case "FAIL-xml-lang-not-in-scope-for-footnote.xml": // Checked - FootnoteWithoutXmlLangInScope
 		case "FAIL-xml-lang-on-ix-hidden-and-on-footnote.xml": // Checked - xbrl.core.xml.SchemaValidationError.cvc-complex-type_3_2_2, 1866, 1867
@@ -1032,6 +1032,10 @@ function createHash( $dictionary, $element, $predicted = false )
 
 		default:
 			$value = trim( preg_replace( '/\s+/', ' ', $element->nodeValue ) ) ;
+			if ( is_numeric( $value ) )
+			{
+				$value = floatval( $value );
+			}
 			$elements['c'] = $value;
 			break;
 	}

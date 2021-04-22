@@ -621,17 +621,6 @@ class XBRL_Inline
 							}, $urls ) );
 							$child->setAttribute( $name, $url );
 						}
-						// if ( $href = $child->getAttribute('href') )
-						// {
-						// 	@list( $url, $fragment ) = explode( '#', $href );
-						// 	$child->setAttribute( 'href', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );
-						// }
-
-						// if ( $src = $child->getAttribute('src') )
-						// {
-						// 	@list( $url, $fragment ) = explode( '#', $src );
-						// 	$child->setAttribute( 'src', ( $url ? \XBRL::resolve_path( $base, $url ) : $base ) . ( $fragment ? "#$fragment" : '' ) );						
-						// }
 					}
 
 					// Add xmlns:xhtml to any new child nodes that are not an xbrli node
@@ -654,7 +643,7 @@ class XBRL_Inline
 
 						if ( $child->hasChildNodes() )
 						{
-							$result .= $updateChildren( $child->childNodes, $hasElements, $first );
+							$result .= $updateChildren( $child->childNodes, $hasElements, false );
 						}
 
 						$result .= "</{$child->tagName}>";

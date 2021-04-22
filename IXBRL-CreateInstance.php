@@ -190,6 +190,24 @@ class IXBRL_CreateInstance
 						: $attr->nodeValue;
 					$this->addAttr( $attr->name, $value, $link, $prefixes[ $attr->namespaceURI ] ?? null );
 				}
+
+				$excludedNamespaces = array_merge(
+					\XBRL_Constants::$ixbrlNamespaces,
+					array( 
+						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ],
+						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XMLNS ],
+						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ],
+						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_INSTANCE ],
+					)
+				);
+				foreach( $document->xpath->query( 'namespace::*', $node ) as $namespaceNode )
+				{
+					if ( isset( $namespaces[ $namespaceNode->prefix ] ) ) continue;
+					if ( array_search( $namespaceNode->nodeValue, $excludedNamespaces ) !== false ) continue;
+					$this->addPrefix( $namespaceNode->prefix, $namespaceNode->nodeValue );
+					$namespaces[ $namespaceNode->prefix ] = $namespaceNode->nodeValue;
+					$prefixes[ $namespaceNode->nodeValue ] = $namespaceNode->prefix;
+				}
 			}
 		}
 
