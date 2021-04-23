@@ -392,16 +392,17 @@ class XBRL_Inline
 	 * Create an instance document from in input iXBRL document set
 	 * @param string $name
 	 * @param string[] $documentSet
+	 * @param string $cacheLocation
 	 * @param boolean? $validate
 	 * @param callable? $fn This is a dummy parameter to get around the intelliphense type checking which insists that the arg to libxml_set_external_entity_loader cannot be null.
 	 * @return \DOMDocument[] An array of the generated documents
 	 */
-	public static function createInstanceDocument( $name, $documentSet,$validate = true, $fn = null )
+	public static function createInstanceDocument( $name, $documentSet, $cacheLocation, $validate = true, $fn = null )
 	{
 		if ( ! self::$context )
 		{
 			// Only do this once
-			$cacheLocation = \lyquidity\xbrl_validate\get_taxonomy_cache_location();
+			// $cacheLocation = \lyquidity\xbrl_validate\get_taxonomy_cache_location();
 
 			\XBRL_Global::reset();
 			self::$context = $context = \XBRL_Global::getInstance();
@@ -1805,13 +1806,17 @@ class XBRL_Inline
 
 	/**
 	 * Run all conformance tests
+	 * @param string $cacheLocation
+	 * @param string $testCasesFolder
+	 * @param array $testCategory
+	 * @param bool  $testClass
 	 */
-	public static function Test()
+	public static function Test( $cacheLocation, $testCasesFolder, $testCategory, $testClass = 'all' )
 	{
 		require_once __DIR__. '/IXBRL-Tests.php';
 
 		if ( ! function_exists('lyquidity\ixbrl\TestInlineXBRL') ) return;
-		TestInlineXBRL();
+		TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testClass );
 	}
 }
 

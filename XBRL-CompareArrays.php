@@ -186,7 +186,8 @@ class XBRL_CompareArrays
 	 */
 	function save( $dir, $prefix = '', $twoFiles = true )
 	{
-		$dir = trailingslashit( $dir );
+		// Make sure there is trailing slash
+		$dir = rtrim( $dir, '/' ) . '/';
 		if ( ! is_dir( $dir ) )
 		{
 			if ( mkdir( $dir ) ) throw new \Exception("Failed to created folder: '$dir'");

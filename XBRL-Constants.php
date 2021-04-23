@@ -254,6 +254,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_DTR_TYPES						=> "http://www.xbrl.org/dtr/type/2020-01-21",
 		STANDARD_PREFIX_IXBRL10							=> "http://www.xbrl.org/2008/inlineXBRL",
 		STANDARD_PREFIX_IXBRL11							=> "http://www.xbrl.org/2013/inlineXBRL",
+		STANDARD_PREFIX_XMLNS							=> "http://www.w3.org/2000/xmlns",
 	);
 
 	/**
@@ -303,7 +304,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_MESSAGE						=> "http://www.xbrl.org/2010/generic-message.xsd",
 		STANDARD_PREFIX_ACF							=> "http://www.xbrl.org/2010/aspect-cover-filter.xsd",
 		STANDARD_PREFIX_IXBRL10						=> "http://www.xbrl.org/2008/inlineXBRL/xhtml-inlinexbrl-1_0.xsd",
-		STANDARD_PREFIX_IXBRL11						=> "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd"
+		STANDARD_PREFIX_IXBRL11						=> "http://www.xbrl.org/2013/inlineXBRL/xhtml-inlinexbrl-1_1.xsd",
 	);
 
 	/**

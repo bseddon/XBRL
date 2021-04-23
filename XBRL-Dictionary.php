@@ -30,7 +30,7 @@ require_once "$utiltiesPath/tuple-dictionary.php";
 /**
  * Load the Log class
  */
-require 'XBRL-Log.php';
+require_once 'XBRL-Log.php';
 
 /**
  * Class implementation

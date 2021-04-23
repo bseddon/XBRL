@@ -29,14 +29,20 @@ namespace lyquidity\ixbrl;
 
 use XBRL_Dictionary;
 
+define( 'IXBRL_TEST_ALL', 'all' );
+define( 'IXBRL_TEST_ERRORS', 'errors' );
+define( 'IXBRL_TEST_COMPARES', 'compares' );
+
 /**
  * Run all conformance tests
- *
+ * @param  string $cacheLocation
+ * @param string $$testCasesFolder
+ * @param array $testCategory
+ * @param bool  $testClass
  * @return void
  */
-function TestInlineXBRL()
+function TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testClass = IXBRL_TEST_ALL )
 {
-	$testCasesFolder = "D:/GitHub/xbrlquery/conformance/inlineXBRL-1.1-conformanceSuite-2020-04-08/";
 	$mainDoc = new \DOMDocument();
 	if ( ! $mainDoc->load( "$testCasesFolder/index.xml" ) )
 	{
@@ -69,9 +75,9 @@ function TestInlineXBRL()
 		foreach( $xpath->query( 'testcase', $testcases ) as $tag => $testcase )
 		{
 			/** @var \DOMElement $element */
-			$testcaseDir = trailingslashit( "{$testCasesFolder}tests/" . dirname( $testcase->getAttribute('uri') ) );
+			$testcaseDir = rtrim( "{$testCasesFolder}tests/" . dirname( $testcase->getAttribute('uri') ), '/' ). '/';
 			$testcaseFilename = basename( $testcase->getAttribute('uri') );
-			testCase( $testcaseDir, $testcaseFilename, $outputFolder );
+			testCase( $testcaseDir, $testcaseFilename, $outputFolder, $cacheLocation, $testCategory, $testClass );
 		}
 	}
 }
@@ -81,10 +87,19 @@ function TestInlineXBRL()
  * @param string $basename
  * @param string $filename
  * @param string $outputFolder
+ * @param string $cacheLocation
+ * @param array $testCategory
+ * @param bool  $testClass
  * @return boolean
  */
-function testCase( $dirname, $filename, $outputFolder )
+function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCategory, $testClass = IXBRL_TEST_ALL )
 {
+	list(
+		$baseURIs, $continuation, $exclude, $footnotes, $format, $fraction, 
+		$fullSizeTests, $header, $hidden, $html, $ids, $multiIO, $nonFraction, 
+		$nonNumeric, $references, $relationships, $resources, $specificationExamples,
+		$transformations, $tuple, $xmllang ) = array_values( $testCategory );
+
 	switch( $filename  )
 	{
 		#region ./baseURIs - checked fail and pass tests and compares
@@ -95,7 +110,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $baseURIs ) break; else return;
 
 		#region ./continuation - checked fail and pass tests and compares
 
@@ -121,7 +136,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $continuation ) break; else return;
 
 		#region ./exclude - checked fail and pass tests and compares
 
@@ -133,7 +148,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $exclude ) break; else return;
 
 		#region ./footnotes - checked fail and pass tests and compares
 
@@ -191,7 +206,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $footnotes ) break; else return;
 
 		#region ./format - checked fail and pass tests compares
 		
@@ -202,7 +217,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $format ) break; else return;
 
 		#region ./fraction - checked fail and pass tests and compares
 
@@ -271,7 +286,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $fraction ) break; else return;
 
 		#region ./fullSizeTests - no fail tests passes compares
 
@@ -281,7 +296,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $fullSizeTests ) break; else return;
 
 		#region ./header - checked fail and pass tests and compares
 
@@ -294,7 +309,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $header ) break; else return;
 
 		#region ./hidden - checked fail and pass tests and compares
 
@@ -308,7 +323,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $hidden ) break; else return;
 
 		#region ./html - checked fail tests (no pass/compare tests)
 
@@ -318,7 +333,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $html ) break; else return;
 
 		#region ./ids - checked fail tests (no pass/compare tests)
 
@@ -334,7 +349,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $ids ) break; else return;
 
 		#region ./multiIO - checked fail and pass tests and compares
 
@@ -351,7 +366,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $multiIO ) break; else return;
 
 		#region ./nonFraction - checked fail and pass tests and compares
 
@@ -420,7 +435,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $nonFraction ) break; else return;
 
 		#region ./nonNumeric - checked fail and pass tests and compares
 
@@ -491,7 +506,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $nonNumeric ) break; else return;
 
 		#region ./references - checked fail and pass tests and compares
 
@@ -525,7 +540,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $references ) break; else return;
 
 		#region ./relationships - checked fail and pass tests and compares
 
@@ -545,7 +560,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $relationships ) break; else return;
 
 		#region ./resources - checked fail and pass tests and compares
 
@@ -558,7 +573,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $resources ) break; else return;
 
 		#region ./specificationExamples - no fail tests passes compares
 
@@ -569,7 +584,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $specificationExamples ) break; else return;
 
 		#region ./transformations - checked fail and pass tests and compares
 
@@ -580,7 +595,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $transformations ) break; else return;
 
 		#region ./tuple - checked fail and pass tests and compares
 
@@ -641,7 +656,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $tuple ) break; else return;
 
 		#region ./xmllang - checked fail and pass tests and compares
 
@@ -653,7 +668,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		#endregion
 
-			return;
+		if ( $xmllang ) break; else return;
 
 
 		default:
@@ -768,9 +783,21 @@ function testCase( $dirname, $filename, $outputFolder )
 			$errors = array_merge( $errors, $extras );
 		}
 
-		// For now ignore negative tests
-		if ( $errors ) return;
+		// Select the correct set of tests
+		switch( $testClass )
+		{
+			case IXBRL_TEST_COMPARES:
+				if ( $errors ) return;
+				break;
 
+			case IXBRL_TEST_ERRORS:
+				if ( ! $errors ) return;
+				break;
+
+			default:
+				break;
+		}
+	
 		$message = "($id) $filename - $description ";
 		$message .= " ($expected" . ( $errors ? ": " . join( ',', $errors ) : "" ) . ")";
 		error_log( $message );
@@ -778,6 +805,7 @@ function testCase( $dirname, $filename, $outputFolder )
 
 		// True if the test result agrees with the expected result
 		$success = false;
+		global $issues;
 
 		try
 		{
@@ -792,13 +820,24 @@ function testCase( $dirname, $filename, $outputFolder )
 			}, $resultInstances );
 
 			/** @var \DOMElement[] */
-			$documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $predictedSet );
+			$documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $cacheLocation, true );
 			if ( $expected == 'invalid' )
 			{
 				error_log( "The test result (valid) does not match the expected result (invalid)" );
 				$error = join( ',', $errors );
 				error_log( "The expected error is ($error)" );
-				return;
+
+				$issues[] = array(
+					'id' => $id,
+					'filename' => $filename,
+					'variation' => $number,
+					'type' => 'Expected invalid result',
+					'expected error' => join( ', ', $errors ),
+					'actual error' => 'createInstanceDocument returns false',
+					'message' => "The test result (valid) does not match the expected result (invalid)",
+				);
+
+				continue;
 			}
 
 			// Check there are documents for each target
@@ -850,11 +889,30 @@ function testCase( $dirname, $filename, $outputFolder )
 			if ( ! $success )
 			{
 				if ( $expected == 'valid' )
+				{
 					error_log( "The test result (invalid) does not match the expected result (valid)" );
+					$issues[] = array(
+						'id' => $id,
+						'filename' => $filename,
+						'variation' => $number,
+						'type' => 'Expected valid result',
+						'expected error' => 'none',
+						'actual error' => join( ', ', $validator->errors ),
+						'message' => $ex->getMessage(),
+					);
+				}
 				else
 				{
-					$error = join( ',', $errors );
 					error_log( "The test result error does not match the expected error ($error)" );
+					$issues[] = array(
+						'id' => $id,
+						'filename' => $filename,
+						'variation' => $number,
+						'type' => 'Expected invalid result',
+						'expected error' => join( ', ', $errors ),
+						'actual error' => join( ', ', $validator->errors ),
+						'message' => $ex->getMessage(),
+					);
 				}
 
 				$validator->displayErrors();
@@ -866,10 +924,28 @@ function testCase( $dirname, $filename, $outputFolder )
 			if ( $expected == 'valid' )
 			{
 				error_log( "The test result (invalid) does not match the expected result (valid)" );
+				$issues[] = array(
+					'id' => $id,
+					'filename' => $filename,
+					'variation' => $number,
+					'type' => 'Expected valid result',
+					'expected error' => 'none',
+					'actual error' => join( ', ', $validator->errors ),
+					'message' => $ex->getMessage(),
+				);
 			}
 			else if ( array_search( $ex->getErrorCode(), $errors ) === false )
 			{
 				error_log( "The test result error does not match the expected error ($error)" );
+				$issues[] = array(
+					'id' => $id,
+					'filename' => $filename,
+					'variation' => $number,
+					'type' => 'Expected invalid result',
+					'expected error' => join( ', ', $errors ),
+					'actual error' => $ex->getErrorCode(),
+					'message' => $ex->getMessage(),
+				);
 			}
 			else
 			{
@@ -879,20 +955,46 @@ function testCase( $dirname, $filename, $outputFolder )
 
 			if ( ! $success )
 			{
-				echo $ex;
+				// echo $ex;
 			}
 		}
 		catch( IXBRLTestCompareException $ex )
 		{
 			echo $ex;
+			$issues[] = array(
+				'id' => $id,
+				'filename' => $filename,
+				'variation' => $number,
+				'type' => 'Expected valid instance document',
+				'actual error' => 'IXBRLTestCompareException',
+				'message' => $ex->getMessage(),
+			);
 		}
 		catch( IXBRLException $ex ) 
 		{
 			echo $ex;
+			$issues[] = array(
+				'id' => $id,
+				'filename' => $filename,
+				'variation' => $number,
+				'type' => 'Expected invalid result',
+				'expected error' => join( ', ', $errors ),
+				'actual error' => 'IXBRLException',
+				'message' => $ex->getMessage(),
+			);
 		}
 		catch( \Exception $ex )
 		{
 			echo $ex;
+			$issues[] = array(
+				'id' => $id,
+				'filename' => $filename,
+				'variation' => $number,
+				'type' => 'Expected invalid result',
+				'expected error' => join( ', ', $errors ),
+				'actual error' => '\Exception',
+				'message' => $ex->getMessage(),
+			);
 		}
 
 	}
@@ -960,12 +1062,12 @@ function compare( $generatedFilename, $predictedFilename )
 
 	if ( $missingGenerated )
 	{
-		throw new IXBRLTestCompareException('MismatchedElements');
+		throw new IXBRLTestCompareException('MismatchedGeneratedElements');
 	}
 
 	if ( $missingPredicted )
 	{
-		throw new IXBRLTestCompareException('MismatchedElements');
+		throw new IXBRLTestCompareException('MismatchedPredictedElements');
 	}
 
 }
