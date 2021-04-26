@@ -43,6 +43,8 @@ define( 'IXBRL_TEST_COMPARES', 'compares' );
  */
 function TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testClass = IXBRL_TEST_ALL )
 {
+	$log = \XBRL_Log::getInstance();
+
 	$mainDoc = new \DOMDocument();
 	if ( ! $mainDoc->load( "$testCasesFolder/index.xml" ) )
 	{
@@ -51,8 +53,8 @@ function TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testC
 
 	$documentElement = $mainDoc->documentElement;
 
-	error_log( "{$documentElement->localName}" );
-	error_log( $documentElement->getAttribute('name') );
+	$log->info( "{$documentElement->localName}" );
+	$log->info( $documentElement->getAttribute('name') );
 
 	$outputFolder = "$testCasesFolder/output";
 	$xpath = new \DOMXPath( $mainDoc );
@@ -70,7 +72,7 @@ function TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testC
 	foreach( $xpath->query( '//testcases', $documentElement ) as $testcases )
 	{
 		/** @var \DOMElement $testcases */
-		error_log( $testcases->getAttribute('title') );
+		$log->info( $testcases->getAttribute('title') );
 
 		foreach( $xpath->query( 'testcase', $testcases ) as $tag => $testcase )
 		{
@@ -94,6 +96,8 @@ function TestInlineXBRL( $cacheLocation, $testCasesFolder, $testCategory, $testC
  */
 function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCategory, $testClass = IXBRL_TEST_ALL )
 {
+	$log = \XBRL_Log::getInstance();
+
 	list(
 		$baseURIs, $continuation, $exclude, $footnotes, $format, $fraction, 
 		$fullSizeTests, $header, $hidden, $html, $ids, $multiIO, $nonFraction, 
@@ -582,7 +586,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		case "PASS-section-15.1-example-3.xml":
 		case "PASS-section-15.1-example-4.xml":
 
-		#endregion
+			#endregion
 
 		if ( $specificationExamples ) break; else return;
 
@@ -747,6 +751,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		}
 		else
 		{
+			$resultInstances = array();
 			$errors = $getTextArray( 'tc:error', $result );
 			$extras = array();
 			foreach( $errors as $error )
@@ -800,8 +805,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 	
 		$message = "($id) $filename - $description ";
 		$message .= " ($expected" . ( $errors ? ": " . join( ',', $errors ) : "" ) . ")";
-		error_log( $message );
-		echo( "$message\n" );
+		$log->info( $message );
 
 		// True if the test result agrees with the expected result
 		$success = false;
@@ -823,9 +827,9 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 			$documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $cacheLocation, true );
 			if ( $expected == 'invalid' )
 			{
-				error_log( "The test result (valid) does not match the expected result (invalid)" );
+				$log->warning( "The test result (valid) does not match the expected result (invalid)" );
 				$error = join( ',', $errors );
-				error_log( "The expected error is ($error)" );
+				$log->warning( "The expected error is ($error)" );
 
 				$issues[] = array(
 					'id' => $id,
@@ -881,7 +885,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 			{
 				if ( $validator->hasErrorCode( $errors ) )
 				{
-					echo join( ', ', $errors ) . "\n";
+					// echo join( ', ', $errors ) . "\n";
 					$success = true;
 				}
 			}
@@ -890,27 +894,27 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 			{
 				if ( $expected == 'valid' )
 				{
-					error_log( "The test result (invalid) does not match the expected result (valid)" );
+					$log->warning( "The test result (invalid) does not match the expected result (valid)" );
 					$issues[] = array(
 						'id' => $id,
 						'filename' => $filename,
 						'variation' => $number,
 						'type' => 'Expected valid result',
 						'expected error' => 'none',
-						'actual error' => join( ', ', $validator->errors ),
+						'actual error' => join( ",\n", array_map( function( $error ) use( $validator ) { return $validator->formatError( $error ); }, $validator->errors ) ),
 						'message' => $ex->getMessage(),
 					);
 				}
 				else
 				{
-					error_log( "The test result error does not match the expected error ($error)" );
+					$log->warning( "The test result error does not match the expected error ($error)" );
 					$issues[] = array(
 						'id' => $id,
 						'filename' => $filename,
 						'variation' => $number,
 						'type' => 'Expected invalid result',
-						'expected error' => join( ', ', $errors ),
-						'actual error' => join( ', ', $validator->errors ),
+						'expected error' => join( ",\n", $errors ),
+						'actual error' => join( ",\n", array_map( function( $error ) use( $validator ) { return $validator->formatError( $error ); }, $validator->errors ) ),
 						'message' => $ex->getMessage(),
 					);
 				}
@@ -923,33 +927,33 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		{
 			if ( $expected == 'valid' )
 			{
-				error_log( "The test result (invalid) does not match the expected result (valid)" );
+				$log->warning( "The test result (invalid) does not match the expected result (valid)" );
 				$issues[] = array(
 					'id' => $id,
 					'filename' => $filename,
 					'variation' => $number,
 					'type' => 'Expected valid result',
 					'expected error' => 'none',
-					'actual error' => join( ', ', $validator->errors ),
+					'actual error' => $ex->getErrorCode(),
 					'message' => $ex->getMessage(),
 				);
 			}
 			else if ( array_search( $ex->getErrorCode(), $errors ) === false )
 			{
-				error_log( "The test result error does not match the expected error ($error)" );
+				$log->warning( "The test result error does not match the expected error ($error)" );
 				$issues[] = array(
 					'id' => $id,
 					'filename' => $filename,
 					'variation' => $number,
 					'type' => 'Expected invalid result',
-					'expected error' => join( ', ', $errors ),
+					'expected error' => join( ",\n", $errors ),
 					'actual error' => $ex->getErrorCode(),
 					'message' => $ex->getMessage(),
 				);
 			}
 			else
 			{
-				echo $ex->getErrorCode() . "\n";
+				// echo $ex->getErrorCode() . "\n";
 				$success = true;
 			}
 
@@ -960,7 +964,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		}
 		catch( IXBRLTestCompareException $ex )
 		{
-			echo $ex;
+			$log->err( $ex );
 			$issues[] = array(
 				'id' => $id,
 				'filename' => $filename,
@@ -972,7 +976,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		}
 		catch( IXBRLException $ex ) 
 		{
-			echo $ex;
+			$log->err( $ex );
 			$issues[] = array(
 				'id' => $id,
 				'filename' => $filename,
@@ -985,7 +989,7 @@ function testCase( $dirname, $filename, $outputFolder, $cacheLocation, $testCate
 		}
 		catch( \Exception $ex )
 		{
-			echo $ex;
+			$log->err( $ex );
 			$issues[] = array(
 				'id' => $id,
 				'filename' => $filename,
@@ -1069,7 +1073,6 @@ function compare( $generatedFilename, $predictedFilename )
 	{
 		throw new IXBRLTestCompareException('MismatchedPredictedElements');
 	}
-
 }
 
 /**
@@ -1110,7 +1113,7 @@ function createHashes( $dictionary, $doc, $predicted )
  */
 function createHash( $dictionary, $element, $predicted = false )
 {
-	$elements = array( 'e' => createClarkname( $element ) );
+	$elements = array( 'e' => XBRL_Inline::createClarkname( $element ) );
 
 	$parent = $element->parentNode;
 	$parents = array();
@@ -1118,7 +1121,7 @@ function createHash( $dictionary, $element, $predicted = false )
 	{
 		if ( $parent instanceof \DOMDocument ) break;
 
-		$parents[] = createClarkname( $parent );
+		$parents[] = XBRL_Inline::createClarkname( $parent );
 		$parent = $parent->parentNode;
 	}
 
@@ -1142,28 +1145,9 @@ function createHash( $dictionary, $element, $predicted = false )
 			break;
 	}
 
-	$attrs = array();
-	foreach( $element->attributes as $name => $attr )
-	{
-		/** @var \DOMAttr $attr */
-		$attrs[createClarkname( $attr )] = trim( $attr->name == 'href' ? preg_replace( '/%20/', ' ', $attr->nodeValue ) : $attr->nodeValue );
-	}
-
-	ksort( $attrs );
-	$elements['a'] = $attrs;
+	$elements['a'] = XBRL_Inline::createSortedAttributesList( $element );
 
 	return array( $dictionary->hashArray( $elements ), $elements );
-}
-
-/**
- * Returns a clark name for a DOMNode
- *
- * @param \DOMNode $node
- * @return string
- */	
-function createClarkname( $node )
-{
-	return $node->namespaceURI ? "{{$node->namespaceURI}}{$node->localName}" : $node->localName;
 }
 
 /**

@@ -176,10 +176,21 @@ class XBRL_Inline
 		if ( ! $docUrl ) return;
 
 		$this->document = new \DOMDocument();
-		if ( ! $this->document->load( $docUrl ) )
+		// A bug in libxml2 used in PHP means that whitespace collapse is only respected 
+		// on an attribute if the whitespace comes after the attribute value.  So need to
+		// explicitly remove whitespace from instances of @format.
+		$xml = file_get_contents( $docUrl );
+		$xml = preg_replace( '/(\s+format\s*=\s*["\'])\s*(\S+)\s*(["\'])/', "$1$2$3", $xml );
+		$xml = preg_replace( '/(measure>)\s*(\S+)\s*(<\/)/', "$1$2$3", $xml );
+
+		// if ( ! $this->document->load( $docUrl ) )
+		if ( ! $this->document->loadXML( $xml ) )
 		{
 			throw new IXBRLException('Failed to load the document');
 		}
+
+		// The baseURI has been lost so add this variable to hold the docUrl
+		$this->document->docUrl = $docUrl;
 
 		$this->url = $docUrl;
 		$this->root = $this->document->documentElement;
@@ -245,6 +256,38 @@ class XBRL_Inline
 		if ( ! isset( $this->elementNamespaces[ $path ] ) )
 			$this->elementNamespaces[ $path ] = $this->getNodeValues('//namespace::*', $element );
 		return $this->elementNamespaces[ $path ];
+	}
+
+	/**
+	 * Get the base URI in scope for an element by working up the node hierarchy until an absolute uri is found or one is not found
+	 * @param \DOMElement $node
+	 * @return string
+	 */
+	public function getBaseURI( $node )
+	{
+		$baseURI = '';
+		while( $node && $node->nodeType == XML_ELEMENT_NODE )
+		{
+			if( $node->hasAttributeNS( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ], IXBRL_ATTR_BASE ) )
+			{
+				$base = $node->getAttributeNodeNS( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ], IXBRL_ATTR_BASE )->value;
+				$baseURI = \XBRL::resolve_path( $base, $baseURI );
+			}
+
+			$node = $node->parentNode;
+		}
+
+		if ( $this->base )
+		{
+			\XBRL::resolve_path( $baseURI, $this->base );
+		}
+		// $node is now the ownerDocument
+		else if (  substr( ( $node->nodeType == XML_DOCUMENT_NODE ? $node : $node->ownerDocument )->docUrl, -1 ) =='/' )
+		{
+			$baseURI = \XBRL::resolve_path( $baseURI, $node->ownerDocument->docUrl );
+		}
+
+		return $baseURI;
 	}
 
 	/**
@@ -575,7 +618,7 @@ class XBRL_Inline
 	private static function innerHTML( $node, &$hasElements, $first = true)
 	{
 		if ( ! ( $node instanceof \DOMNode ) ) return '';
-		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		$document = self::$documents[ $node->ownerDocument->docUrl ];
 		$updateChildren = function( \DOMNodeList $nodes, bool &$hasElements, bool $first = true ) use( &$updateChildren, $document )
 		{
 			$result = '';
@@ -743,7 +786,7 @@ class XBRL_Inline
 	 */
 	private static function checkCrossReferencesRules( &$nodesByLocalNames, &$targets )
 	{
-		if ( ( $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? false ) ) return;
+		if ( ( ! $nodesByLocalNames[ IXBRL_ELEMENT_REFERENCES ] ?? false ) ) return;
 
 		// Each attribute value should be unique across all <references> for attribute not in the IX namespace
 		$attributes = array();
@@ -790,7 +833,7 @@ class XBRL_Inline
 					$idFound[] = $targetNode->getAttribute( IXBRL_ATTR_ID );
 				}
 				// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
-				$document = self::$documents[ $targetNode->ownerDocument->documentElement->baseURI ];
+				$document = self::$documents[ $targetNode->ownerDocument->docUrl ];
 				$namespaces = array_diff( $document->getElementNamespaces( $targetNode ), $document->getElementNamespaces() );
 				if ( $namespaces )
 				{
@@ -893,6 +936,18 @@ class XBRL_Inline
 
 			// return true; // End here.  Any other parents will be checked when the parent is validated.
 		} );	
+	}
+
+	/**
+	 * Check the attributes of two nodes (usually children of a <tuple> instance) are thesame
+	 *
+	 * @param \DOMElement $nodeA
+	 * @param \DOMElement $nodeB
+	 * @return boolean
+	 */
+	private static function checkSameAttributes( $nodeA, $nodeB )
+	{
+
 	}
 
 	/**
@@ -1010,7 +1065,7 @@ class XBRL_Inline
 
 		// id must be a reference to a 'continuedAt' attribute value in 'footnote', 'nonNumeric' or 'continuation'
 		$cloneNode = $node->cloneNode( true );
-		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		$document = self::$documents[ $node->ownerDocument->docUrl ];
 		self::removeNestedExcludes( $cloneNode, $document->xpath );
 		$nodes = self::checkContinuationCycles( $cloneNode, $section, $idNodes );
 
@@ -1310,6 +1365,8 @@ class XBRL_Inline
 		$elementsWithuple = array_merge( $elements, array( IXBRL_ELEMENT_TUPLE ) );
 		$orderNodes = array();
 		$childNodes = array();
+
+		// Go through all <tuple> instances so children can be reviewed
 		foreach( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array() as $tupleNode )
 		{
 			$target = $tupleNode->getAttribute( IXBRL_ATTR_TARGET );
@@ -1321,7 +1378,6 @@ class XBRL_Inline
 			// Only need to consider ix elements as html elements will be valid parts of the layout
 			foreach( $nodesByLocalNames as $ixLocalName => $ixNodes )
 			{
-				if ( array_search( $ixLocalName, array( IXBRL_ELEMENT_DENOMINATOR, IXBRL_ELEMENT_NUMERATOR, IXBRL_ELEMENT_EXCLUDE ) ) !== false ) continue;
 				foreach( $ixNodes as $ixNode )
 				{
 					$ixNodePath = $ixNode->getNodePath();
@@ -1335,16 +1391,21 @@ class XBRL_Inline
 						if ( ! $tupleNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) ) continue;
 						$childNodes[ $ixTupleRef ][ $ixLocalName ][] = $ixNode;
 					}
+					// Is the ancestor <tuple> at the same depth?
 					else if ( substr_count( $ixNodePath, IXBRL_ELEMENT_TUPLE ) != $depth + ( $ixLocalName == IXBRL_ELEMENT_TUPLE ? 1 : 0 ) ) continue;
 					$ixTarget = $ixNode->getAttribute( IXBRL_ATTR_TARGET );
 					if ( $ixTarget != $target )
 					{
 						throw new IXBRLDocumentValidationException( 'InconsistentTargets', "Section $section The target  of <$ixLocalName> is not the same as the parent <tuple>: $ixNodePath" );
 					}
-					if ( array_search( $ixLocalName, $elementsWithuple ) === false )
+					if ( array_search( $ixLocalName, $elementsWithuple ) === false && self::checkTupleParent( $ixNode, true ) )
 					{
 						throw new IXBRLDocumentValidationException( 'InvalidTupleChild', "Section $section The <$ixLocalName> is not valid within a tuple: $ixNodePath" );
 					}
+
+					// <demoninator> <numerator> and <exclude> do not impact the ordering
+					if ( array_search( $ixLocalName, array( IXBRL_ELEMENT_DENOMINATOR, IXBRL_ELEMENT_NUMERATOR, IXBRL_ELEMENT_EXCLUDE ) ) !== false ) continue;
+
 					$order = floatval( $ixNode->getAttribute( IXBRL_ATTR_ORDER ) );
 					if ( $ixNode->hasAttribute( IXBRL_ATTR_TUPLEREF ) )
 					{
@@ -1356,7 +1417,13 @@ class XBRL_Inline
 						// 15.1.2 Each element in the {tuple content} property with the same {tuple order} property MUST have the same Whitespace Normalized Value.
 						$text = trim( preg_replace('/\s+/', ' ', $orderNodes[ $ixTupleRef ][ "~$order" ]->textContent ) );
 						$ixText = trim( preg_replace('/\s+/', ' ', $ixNode->textContent ) );
-						if ( $text == $ixText ) continue;
+						if ( $text === $ixText ) 
+						{
+							// If the order and the text content are the same, the attributes must be the same
+							$hashA = self::createAttributesHash( $orderNodes[ $ixTupleRef ][ "~$order" ] );
+							$hashB = self::createAttributesHash( $ixNode );
+							if ( $hashA == $hashB ) continue;
+						}
 
 						throw new IXBRLDocumentValidationException( 'OrderDuplicate', "Section $section The order of an element within a tuple must be unique: $ixNodePath" );
 					}
@@ -1388,14 +1455,14 @@ class XBRL_Inline
 				else
 				{
 					$tupleIds = self::getTupleIds( $tupleNodes, $section );
-					if ( ! isset( $tupleIds[ $tupleRef ] ) )
-						throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section There is no <tuple> with @tupleID $tupleRef: {$ixNode->getNodePath()}" );
+					if ( ! isset( $tupleIds[ $ixTupleRef ] ) )
+						throw new IXBRLDocumentValidationException( 'UnknownTuple', "Section $section There is no <tuple> with @tupleID $ixTupleRef: {$ixNode->getNodePath()}" );
 				}
 				if ( $order )
 				{
-					$orderNodes[ $tupleRef ][ "~$order" ] = $ixNode;
+					$orderNodes[ $ixTupleRef ][ "~$order" ] = $ixNode;
 				}
-				$childNodes[ $tupleRef ][ $ixLocalName ][] = $ixNode;
+				$childNodes[ $ixTupleRef ][ $ixLocalName ][] = $ixNode;
 			}
 		}
 
@@ -1405,6 +1472,55 @@ class XBRL_Inline
 			$diff = count( $nodesByLocalNames[ IXBRL_ELEMENT_TUPLE ] ?? array() ) - count( $childNodes );
 			throw new IXBRLDocumentValidationException( 'TupleNonEmptyValidation', "Section $section $diff empty <tuple> elements" );
 		}
+	}
+
+	/**
+	 * Returns a clark name for a DOMNode
+	 * @param \DOMNode $node
+	 * @return string
+	 */	
+	public static function createClarkname( $node )
+	{
+		return $node->namespaceURI ? "{{$node->namespaceURI}}{$node->localName}" : $node->localName;
+	}
+
+	/**
+	 * Creates a list of attributes sorted by name
+	 * @param \DOMNodeList $element
+	 * @return string[]
+	 */
+	public static function createSortedAttributesList( $element )
+	{
+		$attrs = array();
+		foreach( $element->attributes as $name => $attr )
+		{
+			/** @var \DOMAttr $attr */
+			$index = $attr->namespaceURI == $element->namespaceURI
+				? $attr->name
+				: self::createClarkname( $attr );
+			$attrs[ $index ] = trim( $attr->name == 'href' ? preg_replace( '/%20/', ' ', $attr->nodeValue ) : $attr->nodeValue );
+		}
+
+		ksort( $attrs );
+
+		return $attrs;
+	}
+
+	/**
+	 * Check the attributes of two nodes (usually children of a <tuple> instance) are thesame
+	 *
+	 * @param \DOMElement $node
+	 * @param \XBRL_Dictionary $dictionary
+	 * @return string
+	 */
+	private static function createAttributesHash( $node, $dictionary = null )
+	{
+		$attrs = self::createSortedAttributesList( $node );
+
+		if ( ! $dictionary ) $dictionary = new \XBRL_Dictionary();
+		$hash = $dictionary->hashArray( $attrs );
+
+		return $hash ? $hash['hash'] : '';
 	}
 
 	/**
@@ -1419,7 +1535,7 @@ class XBRL_Inline
 	{
 		// Provides access to the raw document and initialized xpath instance
 		// Go to the document and then to the root element so the base uri is not affected by local xml:base definitions
-		$document = self::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		$document = self::$documents[ $node->ownerDocument->docUrl ];
 		$correspondents = array( IXBRL_ELEMENT_FOOTNOTE, IXBRL_ELEMENT_NONNUMERIC, IXBRL_ELEMENT_CONTINUATION );
 		$section = '';
 		$hasElements = false; // This is used as reference variable passed to checkFformat
@@ -1431,7 +1547,7 @@ class XBRL_Inline
 			case IXBRL_ELEMENT_CONTINUATION:
 				$section = '4.1.1';
 
-				// self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
+				self::checkParentIsNotElement( $node, $section, IXBRL_ELEMENT_CONTEXT );
 
 				// MUST have an id attribute
 				if ( ! $node->hasAttribute(IXBRL_ATTR_ID) )
@@ -1478,7 +1594,8 @@ class XBRL_Inline
 				}
 
 				// In test (V-1705) FAIL-misplaced-ix-element-in-context.xml there is a case where the continuation @id exists but has no @continuedAt
-				if (  $continuedAt && ! $foundContinuedAt )
+				if ( ! $foundContinuedAt )
+				// if ( $continuedAt && ! $foundContinuedAt )
 				{
 					throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no @id with 'continuedAt' attribute value: $continuedAt" );
 				}
@@ -1509,9 +1626,9 @@ class XBRL_Inline
 				$continuedAt = $node->getAttribute( IXBRL_ATTR_CONTINUEDAT );
 				if ( $continuedAt )
 				{
-					if ( ! isset($idNodes[ $continuedAt] ) )
+					if ( ! isset( $idNodes[ $continuedAt] ) )
 					{
-						throw new IXBRLDocumentValidationException( 'UnreferencedContinuation', "Section $section continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt" );
+						throw new IXBRLDocumentValidationException( 'DanglingContinuation', "Section $section continuedAt there is no id with \'continuedAt\' attribute value: $continuedAt" );
 					}
 					self::checkContinuationCycles( $node, $section, $idNodes );
 				}

@@ -165,7 +165,8 @@ class IXBRL_CreateInstance
 				/** @var \DOMElement $node */
 				if ( $node->nodeType != XML_ELEMENT_NODE ) continue;
 				// Look for a base uri
-				$baseURI = substr( $node->baseURI, -1 ) =='/' ? $node->baseURI : '';
+				// $baseURI = substr( $node->ownerDocument->docUrl, -1 ) =='/' ? $node->ownerDocument->docUrl : '';
+				$baseURI = $document->getBaseURI( $node );
 				switch( $node->localName )
 				{
 					case 'schemaRef':
@@ -177,7 +178,6 @@ class IXBRL_CreateInstance
 						break;
 				}
 
-				// $document = XBRL_Inline::$documents[ $node->ownerDocument->documentElement->baseURI ];
 				foreach( $node->attributes as $index => $attr )
 				{
 					/** @var \DOMAttr $attr */
@@ -185,7 +185,7 @@ class IXBRL_CreateInstance
 					if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
 					if ( $attr->namespaceURI == \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML] && $attr->name == IXBRL_ATTR_BASE ) continue;
 					// Copy the attribute.  If it'a href merge with the baseuri if appropriate
-					$value = $attr->name == 'href'&& $baseURI
+					$value = $attr->name == 'href' && $baseURI
 						? \XBRL::resolve_path( $baseURI, $attr->nodeValue )
 						: $attr->nodeValue;
 					$this->addAttr( $attr->name, $value, $link, $prefixes[ $attr->namespaceURI ] ?? null );
@@ -200,7 +200,10 @@ class IXBRL_CreateInstance
 						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_INSTANCE ],
 					)
 				);
-				foreach( $document->xpath->query( 'namespace::*', $node ) as $namespaceNode )
+
+				// If $target is not the default then $node will not be from $document
+				$schemaRefDocument = \lyquidity\ixbrl\XBRL_Inline::$documents[ $node->ownerDocument->docUrl ];
+				foreach( $schemaRefDocument->xpath->query( 'namespace::*', $node ) as $namespaceNode )
 				{
 					if ( isset( $namespaces[ $namespaceNode->prefix ] ) ) continue;
 					if ( array_search( $namespaceNode->nodeValue, $excludedNamespaces ) !== false ) continue;
@@ -282,7 +285,7 @@ class IXBRL_CreateInstance
 					continue;
 				}
 
-				$this->addIXElement( $node, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById );
+				$this->addIXElement( $node, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById, $namespaces );
 			}
 		}
 
@@ -324,7 +327,7 @@ class IXBRL_CreateInstance
 		unset( $tupleIds );
 		unset( $tupleRefs );
 
-		$processHierarchy = function( $paths, $parent ) use( &$processHierarchy, &$tupleParentChild, &$nodePaths, &$nodesByTarget, $xbrliPrefix, &$nodesById )
+		$processHierarchy = function( $paths, \DOMElement $parent ) use( &$processHierarchy, &$tupleParentChild, &$nodePaths, &$nodesByTarget, $xbrliPrefix, &$nodesById, $namespaces )
 		{
 			// First sort the nodes in the designated order
 			$nodes = array_reduce( $paths, function( $carry, $path ) use( &$nodePaths ) { $carry[ $path ] = $nodePaths[ $path ]; return $carry; }, array() );
@@ -338,26 +341,29 @@ class IXBRL_CreateInstance
 					: ( $diff > 0 ? 1 : -1 );
 			} );
 
-			// Drop duplicated orders
-			$orderContents = array();
-			$nodes = array_filter( $nodes, function( $child ) use( &$orderContents )
+			if ( $parent->localName == IXBRL_ELEMENT_TUPLE )
 			{
-				$nil = filter_var( $child->getAttribute(IXBRL_ATTR_NIL), FILTER_VALIDATE_BOOLEAN );
-				if ( $nil ) return true;
+				// Drop duplicated orders
+				$orderContents = array();
+				$nodes = array_filter( $nodes, function( $child ) use( &$orderContents, $parent )
+				{
+					$nil = filter_var( $child->getAttribute(IXBRL_ATTR_NIL), FILTER_VALIDATE_BOOLEAN );
+					if ( $nil ) return true;
 
-				$order = $child->getAttribute(IXBRL_ATTR_ORDER);
-				$value = trim( preg_replace( '/\s+/', ' ', $child->textContent ) );
-				if ( isset( $orderContents[ $order ] ) && $orderContents[ $order ] == $value ) return false;
-				$orderContents[ $order ] = $value;
-				return true;
-			} );
-			unset( $orderContents );
+					$order = $child->getAttribute(IXBRL_ATTR_ORDER);
+					$value = trim( preg_replace( '/\s+/', ' ', $child->textContent ) );
+					if ( isset( $orderContents[ $order ] ) && $orderContents[ $order ] == $value ) return false;
+					$orderContents[ $order ] = $value;
+					return true;
+				} );
+				unset( $orderContents );
+			}
 
 			foreach( $nodes as $path => $node )
 			{
 				/** @var \DOMElement $node */
 
-				$element = $this->addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, $nodesById );
+				$element = $this->addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, $nodesById, $namespaces );
 
 				if ( isset( $tupleParentChild[ $path ] ) )
 				{
@@ -457,7 +463,7 @@ class IXBRL_CreateInstance
 						$ixTarget = $ixFootnote->getAttribute( IXBRL_ATTR_TARGET );
 						if ( $ixTarget != $target )
 						{
-							$this->addIXElement( $ixFootnote, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById );
+							$this->addIXElement( $ixFootnote, $xbrl, $nodesByTarget, $xbrliPrefix, $nodesById, $namespaces );
 						}
 						$ixId = $ixFootnote->getAttribute( IXBRL_ATTR_ID );
 						// Create the locator.
@@ -550,14 +556,20 @@ class IXBRL_CreateInstance
 	 * @param \DOMElement[][] $nodesByTarget
 	 * @param string $xbrliPrefix
 	 * @param \DOMElement[][] $nodesById
+	 * @param string $namespace
 	 * @return void
 	 */
-	private function addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, &$nodesById )
+	private function addIXElement( $node, $parent, $nodesByTarget, $xbrliPrefix, &$nodesById, $namespaces )
 	{
 		// Create the element and core attributes
 		$hasElements = false; // This is used as reference variable passed to checkFformat
 		$name = $node->getAttribute(INSTANCE_ATTR_NAME); // Should always be a name
-		$element = $this->addElement( $name, $parent );
+		$qname = qname( $name, $namespaces );
+		$element = $qname
+			? $this->addElement( $qname->localName, $parent, $qname->prefix, $qname->namespaceURI )
+			: $this->addElement( $name, $parent );
+
+		// $element = $this->addElement( $name, $parent );
 			if ( ( $value = $node->getAttribute(INSTANCE_ATTR_CONTEXTREF) ) )
 				$this->addAttr( INSTANCE_ATTR_CONTEXTREF, trim( $value ), $element );
 			if ( ( $value = $node->getAttribute(INSTANCE_ATTR_UNITREF) ) )
@@ -651,7 +663,7 @@ class IXBRL_CreateInstance
 	 */
 	private function getFormattedValue( $node, &$nodesById, &$hasElements )
 	{
-		$document = XBRL_Inline::$documents[ $node->ownerDocument->documentElement->baseURI ];
+		$document = XBRL_Inline::$documents[ $node->ownerDocument->docUrl ];
 		return XBRL_Inline::checkFormat( $node, 'instance generation', $node->localName, $document, $nodesById, $hasElements );
 	}
 
@@ -709,24 +721,9 @@ class IXBRL_CreateInstance
 			if ( array_search( $attr->namespaceURI, \XBRL_Constants::$ixbrlNamespaces ) !== false ) continue;
 			if ( array_search( $attr->name, $this->attrsToExclude ) !== false ) continue;
 			if ( array_search( "{$attr->prefix}:{$attr->name}", $this->attrsToExclude ) !== false ) continue;
+			// $this->addAttr( $attr->name, $attr->nodeValue, $target, $attr->namespaceURI == $target->namespaceURI ? null : $attr->prefix, $attr->namespaceURI == $target->namespaceURI ? null : $attr->namespaceURI );
 			$this->addAttr( $attr->name, $attr->nodeValue, $target, $attr->namespaceURI == $target->namespaceURI ? null : $attr->prefix, $attr->namespaceURI == $target->namespaceURI ? null : $attr->namespaceURI );
 		}
-	}
-
-	/**
-	 * Get the base URI in scope for an element by working up the node hierarchy until an absolute uri is found or one is not found
-	 * @param \DOMElement $node
-	 * @return string
-	 */
-	private function getBaseURI( $node )
-	{
-		$baseURI = '';
-		while( $node )
-		{
-
-		}
-
-		return $baseURI;
 	}
 
 	/**
@@ -826,10 +823,10 @@ class IXBRL_CreateInstance
 		if ( ! $namespace && $prefix ) $namespace = $parentNode->lookupNamespaceURI( $prefix );
 		if ( $namespace && ! $prefix ) $prefix = $parentNode->lookupPrefix( $namespace );
 
-		// $node = $namespace || false
-		// 	? $this->document->createElementNS( $namespace, $prefix ? "$prefix:$name" : $name )
-		// 	:  $this->document->createElement( $prefix ? "$prefix:$name" : $name );
-		$node = $this->document->createElement( $prefix ? "$prefix:$name" : $name );
+		$node = $namespace || false
+		 	? $this->document->createElementNS( $namespace, $prefix ? "$prefix:$name" : $name )
+		 	:  $this->document->createElement( $prefix ? "$prefix:$name" : $name );
+		// $node = $this->document->createElement( $prefix ? "$prefix:$name" : $name );
 
 		return $parentNode->appendChild( $node );
 	}
