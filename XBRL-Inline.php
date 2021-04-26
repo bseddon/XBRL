@@ -440,7 +440,7 @@ class XBRL_Inline
 	 * @param callable? $fn This is a dummy parameter to get around the intelliphense type checking which insists that the arg to libxml_set_external_entity_loader cannot be null.
 	 * @return \DOMDocument[] An array of the generated documents
 	 */
-	public static function createInstanceDocument( $name, $documentSet, $cacheLocation, $validate = true, $fn = null )
+	public static function createInstanceDocument( $name, $documentSet, $cacheLocation, $validate = true )
 	{
 		if ( ! self::$context )
 		{
