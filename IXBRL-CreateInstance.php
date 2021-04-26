@@ -195,7 +195,7 @@ class IXBRL_CreateInstance
 					\XBRL_Constants::$ixbrlNamespaces,
 					array( 
 						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ],
-						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XMLNS ],
+						\XBRL_Constants::$xmlns,
 						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML ],
 						\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_INSTANCE ],
 					)
@@ -497,7 +497,7 @@ class IXBRL_CreateInstance
 							$fragment->appendXml( $this->getFormattedValue( $ixFootnote, $nodesById, $hasElements ) );
 							$added = $footnoteElement->appendChild( $fragment );
 							if ( $hasElements )
-								$this->addAttr( 'xmlns', \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML], $footnoteElement, STANDARD_PREFIX_XMLNS );
+								$this->addAttr( STANDARD_PREFIX_XMLNS, \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_SCHEMA_XHTML], $footnoteElement, STANDARD_PREFIX_XMLNS );
 							$xmlNS = \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XML ];
 							if ( ! $footnoteElement->hasAttributeNS( $xmlNS, IXBRL_ATTR_LANG ) )
 							{
