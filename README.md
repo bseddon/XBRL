@@ -10,6 +10,7 @@
 * [Contributing](#contributing)
 * [Install](#install)
 * [Getting started](#getting-started)
+* [In-line XBRL](#In-line XBRL transforms)
 * [Links](#links)
 * [Case Study](../../wiki/Case-Study)
 
@@ -32,6 +33,7 @@ Conformance suite tests
 ![XBRL Formulas conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_formulas&x=y "XBRL Formulas conformance suite tests")
 ![XBRL Enumerations conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_enumerations&x=y "XBRL Enumerations conformance suite tests")
 ![XBRL Generics conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_generics&x=y "XBRL Generics conformance suite tests")
+![iXBRL conformance](https://www.xbrlquery.com/tests/status.php?test=conformance_ixbrl&x=y "iXBRL conformance suite tests")
 
 ![Build status last run date](https://www.xbrlquery.com/tests/status.php?test=date "The date of the last run")
 
@@ -67,6 +69,7 @@ the processor just processes and assumes you know the schemas and instance docum
 * XBRL Formulas.
 * XBRL Taxonomy Packages (including support for the various legacy SEC packages).
 * XBRL Extensible Enumerations 1.0 and 2.0 PWD.
+* In-line XBRL 1.1 and tranformations to TRR 4
 
 XBRL Formulas includes support for:
 
@@ -327,6 +330,40 @@ include __DIR__ . "/vendor/lyquidity/xbrl/examples/examples.php";
 
 Read the getting started section in the [Wiki](../../wiki) where you will find more examples showing how the source can be used to query taxonomies 
 instance documents and present their contents.
+
+## In-line XBRL transforms
+
+The in-line XBRL specification describes how to embed XBRL instance data in an xHTML document.  This project provides a validating iXBRL processor 
+that can tvalidate and transform an iXBRL docment into an XBRL instance document.  With an XBRL instance document it can be processes like any other.
+
+Assuming you've been able to successfully run the code in [Getting started](#getting-started) then the following line will transform an input iXBRL document:
+
+```php
+$documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $cacheLocation, $validate );
+```
+
+|variable|comment|
+|--|--|
+|$name|Your name for the document(s) to include as headers in the generated.  It is not necessarily the name of the document.|
+|$documentSet|An array of the path and file name of the iXBRL documents in the document set. Very often there is just one item in the array.|
+|$cacheLocation|A path to a folder to be used to cachee downloaded Xml files, such as XBRL taxonomies.|
+|$validate|True if the input document(s) in the document set to be transformed should also be validated|
+
+If the documents are validated successfully, the createInstanceDocument() function will return an array of of DOMDocument instances, one for each 
+document in the input document set. The array will be indexed by the relevant targets. For more about targets, review the iXBRL specification.
+
+The returned documents then be saved.  The example below assumes there is a suitable output folder in $outputFolder and that $name used above is a useful filename.
+
+```php
+foreach( $documents as $target => $document )
+{
+    $document->formatOutput = true;
+    $xml = $document->saveXML();
+    file_put_contents( "$outputFolder/$name-$target.xbrl", $xml );
+}
+
+```
+
 
 ## Links
 
