@@ -6850,10 +6850,10 @@ class XBRL {
 
 	/**
 	 * Process custom links and populate the $this->context->customRoleRefs variable with locators, arcs and links
-	 * @param array[QName] $links A list of QName values that are valid link names
-	 * @param array[QName] $roleTypes
-	 * @param array[QName] $arcroleTypes
-	 * @param array[string] $roleRefs
+	 * @param QName[] $links A list of QName values that are valid link names
+	 * @param QName[] $roleTypes
+	 * @param QName[] $arcroleTypes
+	 * @param string[] $roleRefs
 	 * @param string[] $arcroleRefs
 	 * @param SimpleXMLElement $linkbase // The linkbase root element
 	 * @param array $linkbaseRef
