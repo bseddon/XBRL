@@ -10,7 +10,7 @@
 * [Contributing](#contributing)
 * [Install](#install)
 * [Getting started](#getting-started)
-* [In-line XBRL](#In-line XBRL transforms)
+* [Inline XBRL](#inline-xbrl-transforms)
 * [Links](#links)
 * [Case Study](../../wiki/Case-Study)
 
@@ -331,7 +331,7 @@ include __DIR__ . "/vendor/lyquidity/xbrl/examples/examples.php";
 Read the getting started section in the [Wiki](../../wiki) where you will find more examples showing how the source can be used to query taxonomies 
 instance documents and present their contents.
 
-## In-line XBRL transforms
+## Inline XBRL transforms
 
 The in-line XBRL specification describes how to embed XBRL instance data in an xHTML document.  This project provides a validating iXBRL processor 
 that can tvalidate and transform an iXBRL docment into an XBRL instance document.  With an XBRL instance document it can be processes like any other.
