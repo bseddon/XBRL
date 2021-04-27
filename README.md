@@ -42,7 +42,7 @@ This project does not support HHVM.
 
 ### Statistics
 
-This project comprises 80629 lines in 250 files
+This project comprises 102535 lines in 251 files
 
 ## About the project
 
