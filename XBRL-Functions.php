@@ -33,6 +33,8 @@ use lyquidity\XPath2\FunctionTable;
 use lyquidity\XPath2\XPath2ResultType;
 use lyquidity\XPath2\Value\QNameValue;
 use lyquidity;
+use lyquidity\XPath2\CoreFuncs;
+use lyquidity\XPath2\MathsFuncs;
 
 $functionTable = FunctionTable::getInstance();
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "context", 1, XPath2ResultType::NodeSet, function( $context, $provider, $args )
@@ -604,6 +606,65 @@ $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFI
 	require_once __DIR__ . "/XPathFunctions/lyquidity/minimizedDateString.php";
 	return \XBRL\functions\lyquidity\getMinimizedDateString( $context, $provider, $args );
 });
+
+/** Math functions */
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "pi", 0, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::pi();
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "pow", 2, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::pow( CoreFuncs::Atomize( $args[0] ), CoreFuncs::Atomize( $args[1] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "exp", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::exp( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "exp10", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::exp10( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "log", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::log( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "log10", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::log10( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "sqrt", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::pow( CoreFuncs::Atomize( $args[0] ), -2 );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "sin", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::sin( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "cos", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::cos( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "tan", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::tan( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "asin", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::asin( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "acos", 1, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::acos( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "atan", 1, XPath2ResultType::Number,function( $context, $provider, $args ) {
+	return MathsFuncs::atan( CoreFuncs::Atomize( $args[0] ) );
+});
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_XFM ], "atan2", 2, XPath2ResultType::Number, function( $context, $provider, $args ) {
+	return MathsFuncs::atan2( CoreFuncs::Atomize( $args[0] ), CoreFuncs::Atomize( $args[0] ) );
+});
+
 
 /**
  * A class to convey relationship information
