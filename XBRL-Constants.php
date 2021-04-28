@@ -127,6 +127,7 @@ define( "STANDARD_PREFIX_DTR_TYPES", "dtr-types" );
 
 define( "STANDARD_PREFIX_IXBRL10", "ix10" );
 define( "STANDARD_PREFIX_IXBRL11", "ix11" );
+define( "STANDARD_PREFIX_XFM", "xfm" );
 
 /**
  * A collection of constants from the XBRL 2.1, XBRL Dimensions 1.0 and XBRL Formula specifications
@@ -254,6 +255,7 @@ class XBRL_Constants
 		STANDARD_PREFIX_DTR_TYPES						=> "http://www.xbrl.org/dtr/type/2020-01-21",
 		STANDARD_PREFIX_IXBRL10							=> "http://www.xbrl.org/2008/inlineXBRL",
 		STANDARD_PREFIX_IXBRL11							=> "http://www.xbrl.org/2013/inlineXBRL",
+		STANDARD_PREFIX_XFM								=> "http://www.xbrl.org/2008/function/math",
 	);
 
 	/**
