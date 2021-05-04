@@ -1056,13 +1056,137 @@ $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTIO
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "positive-filing-indicators", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
 	/** @var XPath2Context $context */
-	$expression = '/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false")]';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
-	$count = count( $result );
-	return $result;
+	try
+	{
+		$expression = '/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false")]';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array() );
+		$count = count( $result );
+		return $result;
+	}
+	catch( \Exception $ex )
+	{
+		// Do nothing
+	}
+	try
+	{
+		$expression = 'for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array() );
+		$count = count( $result );
+		return $result;
+	}
+	catch( \Exception $ex )
+	{
+		return EmptyIterator::$Shared;
+	}
+} );
+
+$functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "negative-filing-indicators", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
+{
+	/** @var XPath2Context $context */
+	try
+	{
+		$expression = '/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false"]';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array() );
+		$count = count( $result );
+		return $result;
+	}
+	catch( \Exception $ex )
+	{
+		// Do nothing
+	}
+	try
+	{
+		$expression = 'for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array() );
+		$count = count( $result );
+		return $result;
+	}
+	catch( \Exception $ex )
+	{
+		return EmptyIterator::$Shared;
+	}
+} );
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "positive-filing-indicator", 1, XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
+{
+	$template = $args[0];
+	if ( ! is_string( $template ) && ! ( $template instanceof XPath2Item && $template->getSchemaType()->TypeCode == XmlTypeCode::String ) )
+		return EmptyIterator::$Shared;
+
+	/** @var XPath2Context $context */
+	try
+	{
+		$expression = 'count(/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false") and text() = $template])';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
+		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+	}
+	catch( \Exception $ex )
+	{
+		// Do nothing
+	}
+	try
+	{
+		$expression = 'count(for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
+		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+	}
+	catch( \Exception $ex )
+	{
+		return CoreFuncs::$False;
+	}
+} );
+
+$functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "negative-filing-indicator", 1, XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
+{
+	$template = CoreFuncs::Atomize( $args[0] );
+	if ( ! is_string( $template ) && ! ( $template instanceof XPath2Item && $template->getSchemaType()->TypeCode == XmlTypeCode::String ) )
+		return EmptyIterator::$Shared;
+
+	/** @var XPath2Context $context */
+	try
+	{
+		$expression = 'count(/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false" and text() = $template])';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
+		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+	}
+	catch( \Exception $ex )
+	{
+		// Do nothing
+	}
+	try
+	{
+		$expression = 'count(for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])';
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
+		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+	}
+	catch( \Exception $ex )
+	{
+		return CoreFuncs::$False;
+	}
 } );
 
 /**
