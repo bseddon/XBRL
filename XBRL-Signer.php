@@ -145,7 +145,7 @@ class XBRL_Signer
 			$message = "Error verifying: " . openssl_error_string();
 		}
 
-		openssl_free_key( $public_key );
+		// openssl_free_key( $public_key );
 
 		return $result;
 	}
@@ -191,7 +191,7 @@ class XBRL_Signer
 			$message = "Error to signing: " . openssl_error_string();
 		}
 
-		openssl_free_key( $private_key );
+		// openssl_free_key( $private_key );
 
 		if ( ! $result )
 			throw new \Exception( $message );
