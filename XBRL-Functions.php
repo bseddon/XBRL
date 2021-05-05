@@ -51,6 +51,7 @@ use lyquidity\XPath2\Value\TimeValue;
 use lyquidity\XPath2\XPath2Context;
 use lyquidity\XPath2\XPath2Expression;
 use lyquidity\XPath2\XPath2Item;
+use lyquidity\XPath2\XPath2NodeIterator;
 use lyquidity\XPath2\XPath2NodeIterator\SingleIterator;
 
 $functionTable = FunctionTable::getInstance();
@@ -922,7 +923,9 @@ class FunctionUtilities
 		try
 		{
 			$result = FunctionUtilities::executeExpression( $findExpression, $context, $provider, $parameters );
-			return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+			return $result instanceof XPath2NodeIterator
+				? $result
+				: ( $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False );
 		}
 		catch( \Exception $ex )
 		{
@@ -932,11 +935,14 @@ class FunctionUtilities
 		try
 		{
 			$result = FunctionUtilities::executeExpression( $fiExpression, $context, $provider, $parameters );
-			return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+			return $result instanceof XPath2NodeIterator
+				? $result
+				: ( $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False );
 		}
 		catch( \Exception $ex )
 		{
-			return CoreFuncs::$False;
+			return EmptyIterator::$Shared;
+			// return CoreFuncs::$False;
 		}
 	
 	}
