@@ -33,19 +33,19 @@ use lyquidity\XPath2\Iterator\EmptyIterator;
 use lyquidity\XPath2\FunctionTable;
 use lyquidity\XPath2\XPath2ResultType;
 use lyquidity\XPath2\Value\QNameValue;
-use lyquidity;
 use lyquidity\xml\MS\XmlTypeCode;
+use lyquidity\xml\xpath\XPathNodeIterator;
 use lyquidity\xml\xpath\XPathNodeType;
 use lyquidity\XPath2\CoreFuncs;
 use lyquidity\XPath2\DOM\DOMXPathItem;
 use lyquidity\XPath2\DOM\DOMXPathNavigator;
 use lyquidity\XPath2\ExtFuncs;
-use lyquidity\XPath2\Iterator\BufferedNodeIterator;
-use lyquidity\XPath2\Iterator\DocumentOrderNodeIterator;
 use lyquidity\XPath2\Iterator\EmptyIterator as IteratorEmptyIterator;
 use lyquidity\XPath2\Iterator\NodeIterator;
 use lyquidity\XPath2\MathsFuncs;
-use lyquidity\XPath2\SequenceType;
+use lyquidity\XPath2\NodeProvider;
+use lyquidity\XPath2\Value\DateTimeValue;
+use lyquidity\XPath2\Value\DateTimeValueBase;
 use lyquidity\XPath2\Value\DateValue;
 use lyquidity\XPath2\Value\TimeValue;
 use lyquidity\XPath2\XPath2Context;
@@ -709,7 +709,6 @@ $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTIO
 	 * @var \XBRL_Instance $instance
 	 */
 	$instance = $context->xbrlInstance;
-	$result = array();
 	foreach( $instance->getInstanceXml()->children(\XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_LINK] )->schemaRef as $element )
 	{
 		/** @var \SimpleXMLElement $element */
@@ -720,92 +719,41 @@ $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTIO
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "any-identifier", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/entity/identifier';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
+
 	return $result->moveNext()
 		? $result->getCurrent()
 		: EmptyIterator::$Shared;
-	// return $result;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "unique-identifiers", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/entity/identifier';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getValue();
-
-		/** @var \DOMElement */
-		$dom = $item->getUnderlyingObject();
-		$scheme = $dom->getAttribute('scheme');
-
-		if ( isset( $ordered["$scheme!$value"] ) ) continue;
-		$ordered["$scheme!$value"] = $item->CloneInstance();
-	}
-
-	ksort( $ordered );
+	$ordered = FunctionUtilities::createUniqueList( $result, true );
 
 	// Return them using an iterator
-	return new NodeIterator( function() use( $ordered ) 
-	{
-		foreach( $ordered as $item )
-		{
-			yield $item;
-		}
-	
-	} );
+	return FunctionUtilities::createNodeIterator( $ordered );
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "single-unique-identifier", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/entity/identifier';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getValue();
-
-		/** @var \DOMElement */
-		$dom = $item->getUnderlyingObject();
-		$scheme = $dom->getAttribute('scheme');
-
-		if ( isset( $ordered["$scheme!$value"] ) ) continue;
-		$ordered["$scheme!$value"] = $item->CloneInstance();
-	}
+	$ordered = FunctionUtilities::createUniqueList( $result, true );
 
 	return count( $ordered ) == 1 ? CoreFuncs::$True : CoreFuncs::$False;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "any-start-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/startDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 	return $result->moveNext()
 		? CoreFuncs::Atomize( $result->getCurrent() )
 		: EmptyIterator::$Shared;
@@ -813,381 +761,315 @@ $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTIO
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "unique-start-dates", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/startDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue()->Value->format('Y-m-d-e');
-
-		if ( isset( $ordered["$value"] ) ) continue;
-		$ordered["$value"] = $item->CloneInstance();
-	}
-
-	ksort( $ordered );
+	$ordered = FunctionUtilities::createStartDateList( $result, true );
 
 	// Return them using an iterator
-	return new NodeIterator( function() use( $ordered ) 
-	{
-		foreach( $ordered as $item )
-		{
-			yield $item;
-		}
-	} );
+	return FunctionUtilities::createNodeIterator( $ordered );
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "single-unique-start-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/startDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue()->Value->format('Y-m-d-e');
-		if ( isset( $ordered["$value"] ) ) continue;
-		$ordered["$value"] = $item->CloneInstance();
-	}
-
-	$count = count( $ordered );
+	$ordered = FunctionUtilities::createStartDateList( $result );
 
 	return count( $ordered ) == 1 ? CoreFuncs::$True : CoreFuncs::$False;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "any-end-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/endDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 	if ( ! $result->moveNext() )
 		return EmptyIterator::$Shared;
 
-	$value = CoreFuncs::Atomize( $result->getCurrent() );
-	if ( $value instanceof DateValue )
-	{
-		// In XBRL the end date is thevery end of the last day
-		$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-	}
+	$value = FunctionUtilities::getEndDate( CoreFuncs::Atomize( $result->getCurrent() ) );
 
 	return $value;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "unique-end-dates", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/endDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue();
-		if ( $value instanceof DateValue )
-		{
-			// In XBRL the end date is thevery end of the last day
-			$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-		}
-		
-		$format = $value->Value->format('Y-m-d-e');
-		if ( isset( $ordered[ $format ] ) ) continue;
-		$ordered[ $format ] = $value;
-	}
-
-	ksort( $ordered );
+	$ordered = FunctionUtilities::createEndDateList( $result, true );
 
 	// Return them using an iterator
-	return new NodeIterator( function() use( $ordered ) 
-	{
-		foreach( $ordered as $item )
-		{
-			yield $item;
-		}
-	} );
+	return FunctionUtilities::createNodeIterator( $ordered );
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "single-unique-end-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/endDate';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue();
-		if ( $value instanceof DateValue )
-		{
-			// In XBRL the end date is thevery end of the last day
-			$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-		}
-
-		$format = $value->Value->format('Y-m-d-e');
-
-		if ( isset( $ordered[ $format ] ) ) continue;
-		$ordered[ $format ] = $value;
-	}
-
-	$count = count( $ordered );
+	$ordered = FunctionUtilities::createEndDateList( $result );
 
 	return count( $ordered ) == 1 ? CoreFuncs::$True : CoreFuncs::$False;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "any-instant-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/instant';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 	if ( ! $result->moveNext() )
 		return EmptyIterator::$Shared;
 
-	$value = CoreFuncs::Atomize( $result->getCurrent() );
-	if ( $value instanceof DateValue )
-	{
-		// In XBRL the end date is thevery end of the last day
-		$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-	}
+	$value = FunctionUtilities::getEndDate( CoreFuncs::Atomize( $result->getCurrent() ) );
 
 	return $value;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "unique-instant-dates", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/instant';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue();
-		if ( $value instanceof DateValue )
-		{
-			// In XBRL the end date is thevery end of the last day
-			$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-		}
-		
-		$format = $value->Value->format('Y-m-d-H-i-s-e');
-		if ( isset( $ordered[ $format ] ) ) continue;
-		$ordered[ $format ] = $value;
-	}
-
-	ksort( $ordered );
+	$ordered = FunctionUtilities::createEndDateList( $result, true, 'Y-m-d-H-i-s-e' );
 
 	// Return them using an iterator
-	return new NodeIterator( function() use( $ordered ) 
-	{
-		foreach( $ordered as $item )
-		{
-			yield $item;
-		}
-	} );
+	return FunctionUtilities::createNodeIterator( $ordered );
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "single-unique-instant-date", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
 	$expression = 'for $contextRef in distinct-values(//@contextRef) return //context[@id=$contextRef]/period/instant';
-	$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-	$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-	$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-	$result = $expression->EvaluateWithVars( $provider, array() );
+	$result = FunctionUtilities::executeExpression( $expression, $context, $provider );
 
 	// Create a list of the items and make them unique and in order
-	$ordered = array();
-	foreach( $result as $item )
-	{
-		/** @var DOMXPathItem $item */
-		// Get the value
-		$value = $item->getTypedValue();
-		if ( $value instanceof DateValue )
-		{
-			// In XBRL the end date is thevery end of the last day
-			$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
-		}
-
-		$format = $value->Value->format('Y-m-d-H-i-s-e');
-
-		if ( isset( $ordered[ $format ] ) ) continue;
-		$ordered[ $format ] = $value;
-	}
+	$ordered = FunctionUtilities::createEndDateList( $result, true, 'Y-m-d-H-i-s-e' );
 
 	return count( $ordered ) == 1 ? CoreFuncs::$True : CoreFuncs::$False;
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "positive-filing-indicators", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
-	try
-	{
-		$expression = '/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false")]';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array() );
-		$count = count( $result );
-		return $result;
-	}
-	catch( \Exception $ex )
-	{
-		// Do nothing
-	}
-	try
-	{
-		$expression = 'for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array() );
-		$count = count( $result );
-		return $result;
-	}
-	catch( \Exception $ex )
-	{
-		return EmptyIterator::$Shared;
-	}
+	return FunctionUtilities::checkFilings( 
+		'/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false")]',
+		'for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain',
+		null,
+		$context,
+		$provider
+	);
 } );
 
 $functionTable->Add( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "negative-filing-indicators", XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	/** @var XPath2Context $context */
-	try
-	{
-		$expression = '/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false"]';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array() );
-		$count = count( $result );
-		return $result;
-	}
-	catch( \Exception $ex )
-	{
-		// Do nothing
-	}
-	try
-	{
-		$expression = 'for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array() );
-		$count = count( $result );
-		return $result;
-	}
-	catch( \Exception $ex )
-	{
-		return EmptyIterator::$Shared;
-	}
+	return FunctionUtilities::checkFilings( 
+		'/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false"]',
+		'for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef	return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain',
+		null,
+		$context,
+		$provider
+	);
 } );
 
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "positive-filing-indicator", 1, XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	$template = $args[0];
-	if ( ! is_string( $template ) && ! ( $template instanceof XPath2Item && $template->getSchemaType()->TypeCode == XmlTypeCode::String ) )
-		return EmptyIterator::$Shared;
-
-	/** @var XPath2Context $context */
-	try
-	{
-		$expression = 'count(/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false") and text() = $template])';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
-		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
-	}
-	catch( \Exception $ex )
-	{
-		// Do nothing
-	}
-	try
-	{
-		$expression = 'count(for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
-		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
-	}
-	catch( \Exception $ex )
-	{
-		return CoreFuncs::$False;
-	}
+	return FunctionUtilities::checkFilings( 
+		'count(/xbrl/find:fIndicators/find:filingIndicator[not(@find:filed="false") and text() = $template])',
+		'count(for $contextRef in /xbrl/fi:filed[text()="true"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])',
+		CoreFuncs::Atomize( $args[0] ),
+		$context,
+		$provider
+	);
 } );
 
 $functionTable->AddWithArity( \XBRL_Constants::$standardPrefixes[ STANDARD_PREFIX_FUNCTION_INSTANCE ], "negative-filing-indicator", 1, XPath2ResultType::NodeSet, function( $context, $provider, $args ) 
 {
-	$template = CoreFuncs::Atomize( $args[0] );
-	if ( ! is_string( $template ) && ! ( $template instanceof XPath2Item && $template->getSchemaType()->TypeCode == XmlTypeCode::String ) )
-		return EmptyIterator::$Shared;
-
-	/** @var XPath2Context $context */
-	try
-	{
-		$expression = 'count(/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false" and text() = $template])';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
-		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
-	}
-	catch( \Exception $ex )
-	{
-		// Do nothing
-	}
-	try
-	{
-		$expression = 'count(for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])';
-		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
-		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
-		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
-		$result = $expression->EvaluateWithVars( $provider, array( 'template' => $template ) );
-		return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
-	}
-	catch( \Exception $ex )
-	{
-		return CoreFuncs::$False;
-	}
+	return FunctionUtilities::checkFilings( 
+		'count(/xbrl/find:fIndicators/find:filingIndicator[@find:filed="false" and text() = $template])',
+		'count(for $contextRef in /xbrl/fi:filed[text()="false"]/@contextRef return /xbrl/context[@id=$contextRef]/*/xbrldi:typedMember/fi:templateDomain[text() = $template])',
+		CoreFuncs::Atomize( $args[0] ),
+		$context,
+		$provider
+	);
 } );
+
+class FunctionUtilities
+{
+	/**
+	 * Check both types of filing codes using XPath queries
+	 * @param string $findExpression
+	 * @param string $fiExpression
+	 * @param object $template
+	 * @param XPath2Context $context
+	 * @param NodeProvider $provider
+	 * @return CoreFuncs::$False|CoreFuncs::$True
+	 */
+	public static function checkFilings( $findExpression, $fiExpression, $template, $context, $provider )
+	{
+		$parameters = array();
+
+		if ( $template )
+		{
+			if ( ! is_string( $template ) && ! ( $template instanceof XPath2Item && $template->getSchemaType()->TypeCode == XmlTypeCode::String ) )
+				return EmptyIterator::$Shared;
+			$parameters = array( 'template' => $template );
+		}
+
+		/** @var XPath2Context $context */
+		try
+		{
+			$result = FunctionUtilities::executeExpression( $findExpression, $context, $provider, $parameters );
+			return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+		}
+		catch( \Exception $ex )
+		{
+			// Do nothing
+		}
+	
+		try
+		{
+			$result = FunctionUtilities::executeExpression( $fiExpression, $context, $provider, $parameters );
+			return $result >= 1 ? CoreFuncs::$True : CoreFuncs::$False;
+		}
+		catch( \Exception $ex )
+		{
+			return CoreFuncs::$False;
+		}
+	
+	}
+
+	/**
+	 * Excute an XPath expression
+	 * @param string $expression
+	 * @param mixed[] $parameters
+	 * @param XPath2Context $context
+	 * @param NodeProvider $provider
+	 * @return object
+	 */
+	public static function executeExpression( $expression, $context, $provider, $parameters = array() ) 
+	{
+		/** @var XPath2Context $context */
+		$expression = XPath2Expression::Compile( $expression, $context->NamespaceManager );
+		$expression->AddToContext( "xbrlInstance", $context->xbrlInstance );
+		$expression->AddToContext( "xbrlTaxonomy", $context->xbrlInstance ? $context->xbrlInstance->getInstanceTaxonomy() : null );
+		return $expression->EvaluateWithVars( $provider, $parameters );
+	}
+
+	/**
+	 * Created a unique list of items
+	 * @param XPathNodeIterator $iter
+	 * @return array
+	 */
+	public static function createUniqueList( $iter, $sort = false )
+	{
+		// Create a list of the items and make them unique and in order
+		$ordered = array();
+		foreach( $iter as $item )
+		{
+			/** @var DOMXPathItem $item */
+			// Get the value
+			$value = $item->getValue();
+
+			/** @var \DOMElement */
+			$dom = $item->getUnderlyingObject();
+			$scheme = $dom->getAttribute('scheme');
+
+			if ( isset( $ordered["$scheme!$value"] ) ) continue;
+			$ordered["$scheme!$value"] = $item->CloneInstance();
+		}
+
+		if ( $sort )
+			ksort( $ordered );
+
+		return $ordered;
+	}
+
+	/**
+	 * Create a list of unique end date items
+	 * @param XPathNodeIterator $iter
+	 * @param boolean $sort
+	 * @return array
+	 */
+	public static function createEndDateList( $iter, $sort = false, $format = 'Y-m-d-e')
+	{
+		$ordered = array();
+		foreach( $iter as $item )
+		{
+			/** @var DOMXPathItem $item */
+			// Get the value
+			$value = self::getEndDate( $item->getTypedValue() );
+	
+			$formatted = $value->Value->format( $format );
+	
+			if ( isset( $ordered[ $formatted ] ) ) continue;
+			$ordered[ $formatted ] = $value;
+		}
+
+		if ( $sort )
+			ksort( $ordered );
+
+		return $ordered;
+	}
+
+	/**
+	 * Create a list of unique start date items
+	 * @param XPathNodeIterator $iter
+	 * @return array
+	 */
+	public static function createStartDateList( $iter, $sort = false )
+	{
+		// Create a list of the items and make them unique and in order
+		$ordered = array();
+		foreach( $iter as $item )
+		{
+			/** @var DOMXPathItem $item */
+			// Get the value
+			$value = $item->getTypedValue()->Value->format('Y-m-d-e');
+			if ( isset( $ordered["$value"] ) ) continue;
+			$ordered["$value"] = $item->CloneInstance();
+		}
+
+		if ( $sort )
+			ksort( $ordered );
+
+		return $ordered;
+	}
+
+	/**
+	 * Create a node iterator to return the $ordered array
+	 * @param array $ordered
+	 * @return NodeIterator
+	 */
+	public static function createNodeIterator( $ordered )
+	{
+		return new NodeIterator( function() use( $ordered ) 
+		{
+			foreach( $ordered as $item )
+			{
+				yield $item;
+			}
+		
+		} );		
+	}
+
+	/**
+	 * Get the end date value
+	 * @param DateTimeValueBase $value
+	 * @return DateTimeValue
+	 */
+	public static function getEndDate( $value )
+	{
+		if ( $value instanceof DateValue )
+		{
+			// In XBRL the end date is thevery end of the last day
+			$value = ExtFuncs::CreateDateTime( $value, TimeValue::Parse('24:00:00') );
+		}
+		return $value;
+	}
+}
 
 /**
  * A class to convey relationship information
