@@ -22,17 +22,26 @@
  *
  */
 
+use lyquidity\XMLSecLibs\XMLSecEnc;
+use lyquidity\XMLSecLibs\XMLSecurityDSig;
+use lyquidity\XMLSecLibs\XMLSecurityKey;
+
 /**
  * Class to provide taxonomy signing and verification
  */
 class XBRL_Signer
 {
+	public function __construct()
+	{
+		// Fake this so the class is loaded so the signature_alg default value can reference a ststic property
+		new XMLSecurityDSig();
+	}
 	/**
 	 * Sign and save the signed taxonomy.
 	 * @param string $source The source of the JSON
 	 * @param string $private_key_pem  Path to a PEM formatted file containing the private key or a string containing the private key
 	 * @param string $signature_alg The name the hash algorithm to use (Default: SHA256)
-	 * @return string
+	 * @return void
 	 */
 	public function sign_taxonomy( $source, $private_key_pem, $signature_alg = "SHA256" )
 	{
@@ -148,6 +157,173 @@ class XBRL_Signer
 		// openssl_free_key( $public_key );
 
 		return $result;
+	}
+
+	/**
+	 * Sign and save the signed taxonomy.
+	 * @param string $instanceFile A path to an instance document
+	 * @param string $privateKeyFile  Path to a PEM formatted file containing the private key or a string containing the private key
+	 * @param string $certificateFile Path to an x509 certificate document
+	 * @param string $signedFile The path of the file to save
+	 * @param string $signature_alg The name the hash algorithm to use (Default: SHA256)
+	 * @return \DOMDocument A signed document to be saved
+	 * @throws \Exception 
+	 */
+	public function sign_instance( $instanceFile, $privateKeyFile, $certificateFile, $signedFile, $signature_alg = XMLSecurityDSig::SHA256 )
+	{
+		if ( ! file_exists( $instanceFile ) )
+		{
+			throw new \Exception( "XML file does not exist" );
+		}
+
+		// Load the XML to be signed
+		$doc = new DOMDocument();
+		$doc->load( $instanceFile );
+
+		// Load the certificate
+		if ( ! file_exists( $certificateFile ) )
+		{
+			throw new \Exception( "Certificate file does not exist" );
+		}
+
+		// Load the private key
+		if ( ! file_exists( $privateKeyFile ) )
+		{
+			throw new \Exception( "Key file does not exist" );
+		}
+
+		$signed = $this->sign_instance_dom( $doc, file_get_contents( $privateKeyFile ), file_get_contents( $certificateFile ), $signature_alg );
+		file_put_contents( $signedFile, $signed->saveXML() );
+	}
+
+	/**
+	 * Sign and save the signed taxonomy.
+	 * @param \DOMDocument $instanceDom A DOMDocuent instance
+	 * @param string $private_key_pem  A PEM string containing the private key
+	 * @param string $certificate An x509 certificate document
+	 * @param string $signature_alg The name the hash algorithm to use (Default: SHA256)
+	 * @return \DOMDocument
+	 */
+	public function sign_instance_dom( $instanceDom, $private_key_pem, $certificate, $signature_alg = XMLSecurityDSig::SHA256 )
+	{
+		// Create a new Security object 
+		$objDSig = new XMLSecurityDSig();
+
+		// Use the c14n exclusive canonicalization
+		$objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+
+		// Sign using SHA-256
+		$objDSig->addReference(
+			$instanceDom, 
+			$signature_alg, 
+			array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
+		);
+	
+		// Create a new (private) Security key
+		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
+		/*
+		If key has a passphrase, set it using
+		$objKey->passphrase = '<passphrase>';
+		*/
+		$objKey->loadKey( $private_key_pem, false );
+	
+		// Sign the XML file
+		$objDSig->sign($objKey);
+	
+		// Add the associated public key to the signature
+		$objDSig->add509Cert( $certificate );
+		
+		// Append the signature to the XML
+		$objDSig->appendSignature($instanceDom->documentElement);
+
+		return $instanceDom;
+	}
+
+	/**
+	 * Verifies the signature of an Xml document
+	 *
+	 * @param string $signedXmlFile
+	 * @param string $certificate An x509 certificate document
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public function verity_instance( $signedXmlFile, $certificateFile = null )
+	{
+		if ( ! file_exists( $signedXmlFile ) )
+		{
+			throw new \Exception( "Signed file does not exist" );
+		}
+	
+		// Load the XML to be signed
+		$doc = new DOMDocument();
+		$doc->load( $signedXmlFile );
+
+		return $this->verity_instance_dom( $doc, $certificateFile && file_exists( $certificateFile ) ? file_get_contents( $certificateFile ) : null );
+	}
+
+	/**
+	 * Verifies the signature of an Xml document
+	 *
+	 * @param string $signedDom
+	 * @param string $certificate An x509 certificate document
+	 * @return bool
+	 * @throws \Exception
+	 */
+	public function verity_instance_dom( $signedDom, $certificate = null )
+	{
+		try
+		{
+			// Create a new Security object 
+			$objXMLSecDSig  = new XMLSecurityDSig();
+	
+			$objDSig = $objXMLSecDSig->locateSignature( $signedDom );
+			if ( ! $objDSig )
+			{
+				throw new \Exception("Cannot locate Signature Node");
+			}
+			$objXMLSecDSig->canonicalizeSignedInfo();
+			$objXMLSecDSig->idKeys = array('wsu:Id');
+			$objXMLSecDSig->idNS = array('wsu'=>'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd');
+			
+			$retVal = $objXMLSecDSig->validateReference();
+	
+			if (! $retVal) 
+			{
+				throw new \Exception("Reference Validation Failed");
+			}
+			
+			$objKey = $objXMLSecDSig->locateKey();
+			if ( ! $objKey ) 
+			{
+				throw new \Exception("We have no idea about the key");
+			}
+			$key = NULL;
+			
+			$objKeyInfo = XMLSecEnc::staticLocateKeyInfo( $objKey, $objDSig );
+	
+			if ( ! $objKeyInfo->key && empty( $key ) ) 
+			{
+				// Load the certificate
+				$objKey->loadKey( $certificate, TRUE) ;
+			}
+	
+			if ( $objXMLSecDSig->verify( $objKey ) === 1 )
+			{
+				return true;
+			} 
+			else
+			{
+				throw new \Exception( "The signature is not valid: it may have been tampered with." );
+			}
+	
+			print "\n";
+		}
+		catch( \Exception $ex )
+		{
+			print $ex->getMessage();
+		}
+
+		return false;
 	}
 
 	/* -----------------------------------------------

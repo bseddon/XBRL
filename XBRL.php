@@ -19460,6 +19460,17 @@ function xbrl_autoload( $classname )
 		return true;
 	}
 
+	if ( strpos( $classname, "lyquidity\XMLSecLibs" ) !== false )
+	{
+		$parts = explode( '\\', $classname );
+		unset( $parts[0] );
+		if ( file_exists( __DIR__ . '/' . implode( '/', $parts ) . '.php' ) )
+		{
+			require_once __DIR__ . '/' . implode( '/', $parts ) . '.php';
+			return true;
+		}
+	}
+
 	if ( substr( $classname, 0, 4 ) != "XBRL" )
 	{
 		return false;
