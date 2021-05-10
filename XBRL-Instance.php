@@ -22,6 +22,7 @@
 use XBRL\Formulas\Exceptions\FormulasException;
 use lyquidity\xml\schema\SchemaTypes;
 use lyquidity\xml\QName;
+use lyquidity\XMLSecLibs\XMLSecurityDSig;
 
 /**
  * XBRL instance document class
@@ -278,6 +279,7 @@ class XBRL_Instance
 	 * @param string $cache_basename
 	 * @param string $taxonomyNamespace
 	 * @param string $compiledTaxonomyFile
+	 * @param \SimpleXMLElement $originalXml
 	 * @return XBRL_Instance
 	 */
 	public static function FromInstanceCache( $cache_path, $cache_basename, $taxonomyNamespace, $compiledTaxonomyFile, $originalXml = null )
@@ -1152,6 +1154,7 @@ class XBRL_Instance
 
 		libxml_clear_errors();
 		// $this->instance_xml = new SimpleXMLElement( file_get_contents( $instance_document ) );
+		/** @var \SimpleXMLElement */
 		$this->instance_xml = simplexml_load_file( $instance_document, "SimpleXMLElement", LIBXML_NOBLANKS );
 		$xml_errors = libxml_get_errors();
 
@@ -2246,11 +2249,25 @@ class XBRL_Instance
 
 				continue;
 			}
-			else if ( isset( XBRL_Constants::$standardNamespaces[ $namespace ] ) || ! isset( $this->taxonomyToNamespaceMap[ $namespace ] ) )
+			// Make sure a signature is ignored
+			else if ( $namespace == XMLSecurityDSig::XMLDSIGNS )
+			{
+				continue;
+			}
+			else if ( isset( XBRL_Constants::$standardNamespaces[ $namespace ] ) )
 			{
 				if ( count( $rootElement->children( $namespace ) ) )
 				{
 					$this->log()->instance_validation( "4.1", "There should be no elements in the standard namespace", array( 'namespace' => $namespace ) );
+				}
+
+				continue;
+			}
+			else if ( ! isset( $this->taxonomyToNamespaceMap[ $namespace ] ) )
+			{
+				if ( count( $rootElement->children( $namespace ) ) )
+				{
+					$this->log()->instance_validation( "4.1", "There should be no elements not in a namespace supported by the taxonomy ", array( 'namespace' => $namespace ) );
 				}
 
 				continue;
