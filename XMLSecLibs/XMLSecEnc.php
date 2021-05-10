@@ -6,6 +6,7 @@ use \DOMElement;
 use \DOMNode;
 use \DOMXPath;
 use \Exception;
+use lyquidity\XMLSecLibs\Utils\XPath as UtilsXPath;
 use lyquidity\XMLSecLibs\XPath as XPath;
 
 /**
@@ -312,16 +313,17 @@ class XMLSecEnc
         $root = $this->encdoc->documentElement;
         $encKey = $this->encdoc->createElementNS(self::XMLENCNS, 'xenc:EncryptedKey');
         if ($append) {
-            $keyInfo = $root->insertBefore($this->encdoc->createElementNS('http://www.w3.org/2000/09/xmldsig#', 'dsig:KeyInfo'), $root->firstChild);
+            $keyInfo = $root->insertBefore($this->encdoc->createElementNS( XMLSecurityDSig::XMLDSIGNS, 'dsig:KeyInfo'), $root->firstChild);
             $keyInfo->appendChild($encKey);
         } else {
             $this->encKey = $encKey;
         }
         $encMethod = $encKey->appendChild($this->encdoc->createElementNS(self::XMLENCNS, 'xenc:EncryptionMethod'));
         $encMethod->setAttribute('Algorithm', $srcKey->getAlgorithm());
-        if (! empty($srcKey->name)) {
-            $keyInfo = $encKey->appendChild($this->encdoc->createElementNS('http://www.w3.org/2000/09/xmldsig#', 'dsig:KeyInfo'));
-            $keyInfo->appendChild($this->encdoc->createElementNS('http://www.w3.org/2000/09/xmldsig#', 'dsig:KeyName', $srcKey->name));
+        if (! empty($srcKey->name))
+        {
+            $keyInfo = $encKey->appendChild($this->encdoc->createElementNS( XMLSecurityDSig::XMLDSIGNS, 'dsig:KeyInfo' ) );
+            $keyInfo->appendChild($this->encdoc->createElementNS( XMLSecurityDSig::XMLDSIGNS, 'dsig:KeyName', $srcKey->name ) );
         }
         $cipherData = $encKey->appendChild($this->encdoc->createElementNS(self::XMLENCNS, 'xenc:CipherData'));
         $cipherData->appendChild($this->encdoc->createElementNS(self::XMLENCNS, 'xenc:CipherValue', $strEncKey));
@@ -475,7 +477,7 @@ class XMLSecEnc
                     }
                     $id = substr($uri, 1);
 
-                    $query = '//xmlsecenc:EncryptedKey[@Id="'.XPath::filterAttrValue($id, XPath::DOUBLE_QUOTE).'"]';
+                    $query = '//xmlsecenc:EncryptedKey[@Id="'. UtilsXPath::filterAttrValue($id, UtilsXPath::DOUBLE_QUOTE).'"]';
                     $keyElement = $xpath->query($query)->item(0);
                     if (!$keyElement) {
                         throw new Exception("Unable to locate EncryptedKey with @Id='$id'.");

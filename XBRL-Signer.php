@@ -192,8 +192,14 @@ class XBRL_Signer
 			throw new \Exception( "Key file does not exist" );
 		}
 
-		$signed = $this->sign_instance_dom( $doc, file_get_contents( $privateKeyFile ), file_get_contents( $certificateFile ), $signature_alg );
-		file_put_contents( $signedFile, $signed->saveXML() );
+		$signed = $this->sign_instance_dom( $doc, file_get_contents( $privateKeyFile ), file_get_contents( $certificateFile ), ! (bool)$signedFile, $signature_alg );
+		if ( ! $signedFile )
+		{
+			$parts = pathinfo( $instanceFile );
+			$signedFile = "{$parts['dirname']}/{$parts['filename']}.signature";
+		}
+
+		file_put_contents( $signedFile, $signed->saveXML() );			
 	}
 
 	/**
@@ -201,10 +207,11 @@ class XBRL_Signer
 	 * @param \DOMDocument $instanceDom A DOMDocuent instance
 	 * @param string $private_key_pem  A PEM string containing the private key
 	 * @param string $certificate An x509 certificate document
+	 * @param bool $separateFile True if the signature node should be returned
 	 * @param string $signature_alg The name the hash algorithm to use (Default: SHA256)
 	 * @return \DOMDocument
 	 */
-	public function sign_instance_dom( $instanceDom, $private_key_pem, $certificate, $signature_alg = XMLSecurityDSig::SHA256 )
+	public function sign_instance_dom( $instanceDom, $private_key_pem, $certificate, $separateFile = false, $signature_alg = XMLSecurityDSig::SHA256 )
 	{
 		// Create a new Security object 
 		$objDSig = new XMLSecurityDSig();
@@ -232,6 +239,9 @@ class XBRL_Signer
 	
 		// Add the associated public key to the signature
 		$objDSig->add509Cert( $certificate );
+		
+		if ( $separateFile )
+			return $objDSig->sigNode->ownerDocument;
 		
 		// Append the signature to the XML
 		$objDSig->appendSignature($instanceDom->documentElement);
@@ -264,7 +274,7 @@ class XBRL_Signer
 	/**
 	 * Verifies the signature of an Xml document
 	 *
-	 * @param string $signedDom
+	 * @param \DOMDocument $signedDom
 	 * @param string $certificate An x509 certificate document
 	 * @return bool
 	 * @throws \Exception
@@ -275,17 +285,32 @@ class XBRL_Signer
 		{
 			// Create a new Security object 
 			$objXMLSecDSig  = new XMLSecurityDSig();
-	
+			$signatureDom = null;
+
 			$objDSig = $objXMLSecDSig->locateSignature( $signedDom );
 			if ( ! $objDSig )
 			{
-				throw new \Exception("Cannot locate Signature Node");
+				// Look to see if there is a companion .signature file
+				$parts = pathinfo( $signedDom->baseURI );
+				$signatureFile = "{$parts['dirname']}/{$parts['filename']}.signature";
+				if ( ! file_exists( $signatureFile ) )
+				{
+					throw new \Exception("Cannot locate a separate signature file");
+				}
+
+				$signatureDom = new \DOMDocument();
+				$signatureDom->load( $signatureFile );
+				$objDSig = $objXMLSecDSig->locateSignature( $signatureDom );
+				if ( ! $objDSig )
+				{
+					throw new \Exception("Cannot locate Signature Node");
+				}
 			}
 			$objXMLSecDSig->canonicalizeSignedInfo();
 			$objXMLSecDSig->idKeys = array('wsu:Id');
 			$objXMLSecDSig->idNS = array('wsu'=>'http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd');
-			
-			$retVal = $objXMLSecDSig->validateReference();
+
+			$retVal = $objXMLSecDSig->validateReference( $signatureDom ? $signedDom : null );
 	
 			if (! $retVal) 
 			{

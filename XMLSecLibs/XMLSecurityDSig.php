@@ -6,7 +6,7 @@ use \DOMElement;
 use \DOMNode;
 use \DOMXPath;
 use \Exception;
-use lyquidity\XMLSecLibs\XPath as XPath;
+use lyquidity\XMLSecLibs\Utils\XPath as UtilsXPath;
 
 /**
  * xmlseclibs.php
@@ -484,20 +484,20 @@ class XMLSecurityDSig
     }
 
     /**
-     * @param DOMElement $refNode
+     * @param \DOMElement $refNode
+     * @param \DOMDocument $dataObject Optionally a data object (the XML being validated) can be passed in
      * @return bool
      */
-    public function processRefNode($refNode)
+    public function processRefNode( $refNode, $dataObject = null )
     {
-        $dataObject = null;
-
         /*
          * Depending on the URI, we may not want to include comments in the result
          * See: http://www.w3.org/TR/xmldsig-core/#sec-ReferenceProcessingModel
          */
         $includeCommentNodes = true;
 
-        if ($uri = $refNode->getAttribute("URI")) {
+        if ( ! $dataObject && $uri = $refNode->getAttribute("URI") ) 
+        {
             $arUrl = parse_url($uri);
             if (empty($arUrl['path'])) {
                 if ($identifier = $arUrl['fragment']) {
@@ -513,11 +513,11 @@ class XMLSecurityDSig
                             $xPath->registerNamespace($nspf, $ns);
                         }
                     }
-                    $iDlist = '@Id="'.XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
+                    $iDlist = '@Id="'.UtilsXPath::filterAttrValue($identifier, UtilsXPath::DOUBLE_QUOTE).'"';
                     if (is_array($this->idKeys)) {
                         foreach ($this->idKeys as $idKey) {
-                            $iDlist .= " or @".XPath::filterAttrName($idKey).'="'.
-                                XPath::filterAttrValue($identifier, XPath::DOUBLE_QUOTE).'"';
+                            $iDlist .= " or @".UtilsXPath::filterAttrName($idKey).'="'.
+                            UtilsXPath::filterAttrValue($identifier, UtilsXPath::DOUBLE_QUOTE).'"';
                         }
                     }
                     $query = '//*['.$iDlist.']';
@@ -526,7 +526,8 @@ class XMLSecurityDSig
                     $dataObject = $refNode->ownerDocument;
                 }
             }
-        } else {
+        } else if ( ! $dataObject ) 
+        {
             /* This reference identifies the root node with an empty URI. This should
              * not include comments.
              */
@@ -590,14 +591,17 @@ class XMLSecurityDSig
 
     /**
      * @return bool
+     * @param \DOMNode $xmlNode This will be supplied if the signature is in a separate file which will be in 
      * @throws \Exception
      */
-    public function validateReference()
+    public function validateReference( $xmlNode = null )
     {
         $docElem = $this->sigNode->ownerDocument->documentElement;
-        if (! $docElem->isSameNode($this->sigNode)) {
-            if ($this->sigNode->parentNode != null) {
-                $this->sigNode->parentNode->removeChild($this->sigNode);
+        if (! $docElem->isSameNode($this->sigNode)) 
+        {
+            if ($this->sigNode->parentNode != null) 
+            {
+                $this->sigNode->parentNode->removeChild( $this->sigNode );
             }
         }
         $xpath = $this->getXPathObj();
@@ -610,9 +614,11 @@ class XMLSecurityDSig
         /* Initialize/reset the list of validated nodes. */
         $this->validatedNodes = array();
 
-        foreach ($nodeset AS $refNode) {
-            if (! $this->processRefNode($refNode)) {
-                /* Clear the list of validated nodes. */
+        foreach ( $nodeset AS $refNode ) 
+        {
+            if (! $this->processRefNode( $refNode, $xmlNode ) )
+            {
+                /* Clear the list of validated nodes. */ 
                 $this->validatedNodes = null;
                 throw new \Exception("Reference validation failed: this means the data has been changed");
             }
