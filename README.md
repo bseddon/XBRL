@@ -79,10 +79,9 @@ XBRL Formulas includes support for:
 * The full set of [functions registry](https://specifications.xbrl.org/registries/functions-registry-1.0/) (XFI) are also supported 
 including both recommended and draft functions. 
 
-Notable exceptions:
+Notable exception:
 
-Only instance documents using the XML format can be read as the processor does not support any of the [OIM](https://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html) mappings.
-In a similar way, instance information cannot be extracted from [in-line XBRL](https://www.xbrl.org/the-standard/what/specifications/) documents.
+Only instance documents using the XML format (XHTML) can be read as the processor does not support any of the [OIM](https://specifications.xbrl.org/work-product-index-open-information-model-open-information-model.html) mappings.
 
 These exceptions exist because there has been no reason to add support.  At the moment where iXBRL is being used, submitters are also providing data in XML 
 formatted instance documents.
