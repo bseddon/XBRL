@@ -343,7 +343,7 @@ $documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $cacheLoc
 
 |variable|comment|
 |--|--|
-|$name|Your name for the document(s) to include as headers in the generated instance document.  It is not necessarily the name of the document.|
+|$name|Your name for the document(s) to include as headers in the generated instance document(s).  It is not necessarily the name of the document.|
 |$documentSet|An array of the path and file name of the iXBRL documents in the document set. Very often there is just one item in the array.|
 |$cacheLocation|A path to a folder to be used to cache downloaded Xml files, such as XBRL taxonomies.|
 |$validate|True if the input document(s) in the document set to be transformed should also be validated|
@@ -351,7 +351,8 @@ $documents = XBRL_Inline::createInstanceDocument( $name, $documentSet, $cacheLoc
 If the documents are validated successfully, the createInstanceDocument() function will return an array of of DOMDocument instances, one for each 
 document in the input document set. The array will be indexed by the relevant targets. For more about targets, review the iXBRL specification.
 
-The returned documents then be saved.  The example below assumes there is a suitable output folder in $outputFolder and that $name used above is a useful filename.
+The returned documents then be saved.  The example below assumes there is a suitable output folder in $outputFolder and that $name used above is a useful filename. 
+$target is the name defined in the iXBRL document to distinguish the output instance documents if more than one is to be produced.
 
 ```php
 foreach( $documents as $target => $document )
