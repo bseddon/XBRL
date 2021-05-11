@@ -323,7 +323,7 @@ class XBRL_Signer
 				throw new \Exception("We have no idea about the key");
 			}
 			$key = NULL;
-			
+		
 			$objKeyInfo = XMLSecEnc::staticLocateKeyInfo( $objKey, $objDSig );
 	
 			if ( ! $objKeyInfo->key && empty( $key ) ) 
