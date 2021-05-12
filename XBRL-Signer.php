@@ -516,5 +516,197 @@ class XBRL_Signer
 		}
 	}
 
+	/**
+	 * Creates a root certificate and saves it in the designated folder
+	 * @param string[] $dn A set of x509 distinguished names
+	 * @param string $certificateLocation A path to the location the certificate should be stored
+	 * @param string $privateKeyLocation A path to the location the certificate's private key should be stored
+	 * @return boolean
+	 */		
+	function createRootCertificate( $dn, $certificateLocation, $privateKeyLocation )
+	{
+		$configTemplate = <<<EOT
+[ req ]
+default_bits					= 2048
+distinguished_name				= req_distinguished_name
+req_extensions					= v3_req
+prompt							= no
+encrypt_key						= no
+
+#About the user for the request
+[ req_distinguished_name ]
+
+#Extensions to add to a certificate request for how it will be used
+[ v3_req ]
+basicConstraints                = CA:true
+subjectAltName					= @alt_names
+
+#The other names your server may be connected to as
+[alt_names]
+%email%
+EOT;
+
+		$config = str_replace( '%email%', isset( $dn['emailAddress'] ) ? 'email = ' . $dn['emailAddress'] : '', $configTemplate );
+		file_put_contents( 'mem:config', $config );
+
+		try
+		{
+			$configParams = array(
+				'config' => 'mem:config',
+				'digest_alg' => 'sha256',
+				'private_key_bits' => 2048,
+				'private_key_type' => OPENSSL_KEYTYPE_RSA,
+			);
+
+			// Generate a new private (and public) key pair
+			if ( ! $privkey = openssl_pkey_new( $configParams ) )
+				return false;
+
+			$dn = array(
+				'countryName'					=> $dn[ 'countryName' ] ?? null,
+				'stateOrProvinceName'			=> $dn[ 'stateOrProvinceName' ]?? null,
+				'localityName'					=> $dn[ 'localityName' ] ?? 'Example',
+				'organizationName'				=> $dn[ 'organizationName' ] ?? 'Example Co',
+				'commonName'					=> $dn[ 'commonName' ] ?? 'Example Co',
+				'emailAddress'					=> $dn[ 'emailAddress' ] ?? 'signing@example.com',
+				'organizationalUnitName'		=> $dn[ 'organizationalUnitName' ] ?? 'Certification'
+			);
+			$dn = array_filter( $dn );
+			// generates a certificate signing request
+			if ( ! $csr = openssl_csr_new( $dn, $privkey, $configParams ) )
+				return false;
+
+			// This creates a self-signed cert that is valid for $duration days
+			if ( ! $sscert = openssl_csr_sign( $csr, null, $privkey, 365, $configParams ) )
+				return false;
+
+			// expport the certificate and the private key
+			if ( ! openssl_x509_export( $sscert, $certout ) )
+				return false;
+
+			if ( ! openssl_pkey_export( $privkey, $pkout, null, $configParams ) )
+				return false;
+
+			file_put_contents( $certificateLocation, $certout );
+			file_put_contents( $privateKeyLocation, $pkout);
+		}
+		catch( \Exception $ex )
+		{
+			throw new $ex;
+		}
+		finally
+		{
+			unlink('mem:config');
+		}
+
+		return true;
+	}
+
+	/**
+	 * Creates a client certificate and saves it in a specified location
+	 * @param string[] $dn A set of x509 distinguished names
+	 * @param string $rootCert This will be the 'issuer' certificate
+	 * @param string $rootPkey The key of the root certificate used to sign the client certificate
+	 * @param string $certificateLocation A path to the location the certificate should be stored
+	 * @param string $privateKeyLocation A path to the location the certificate's private key should be stored
+	 * @param string $LEI An optional legal entity identifier to include in the client certificate
+	 * @param string $role A role to include in the client certificate
+	 * @param string $crl The address of the CRL source
+	 * @return boolean
+	 */
+	function createClientCertificate( $dn, $rootCert, $rootPkey, $certificateLocation, $privateKeyLocation, $LEI, $role, $crl )
+	{
+
+		$configTemplate = <<<EOT
+[ req ]
+default_bits					= 2048
+distinguished_name				= req_distinguished_name
+req_extensions					= v3_req
+x509_extensions					= x509_ext
+prompt							= no
+encrypt_key						= no
+
+#About the user for the request
+[ req_distinguished_name ]
+
+#Extensions to add to a certificate request for how it will be used
+[ v3_req ]
+subjectAltName					= @alt_names
+
+#The other names your server may be connected to as
+[alt_names]
+%email%
+
+[x509_ext]
+basicConstraints                = CA:FALSE
+keyUsage                        = critical, nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage                = critical, clientAuth
+%oids%
+%crl%
+EOT;
+
+		$config = str_replace( '%email%', isset( $dn['emailAddress'] ) ? 'email = ' . $dn['emailAddress'] : '', $configTemplate );
+		$config = str_replace( '%crl%', $crl ? 'crlDistributionPoints = ' . $crl : '', $config );
+		$oids = ( $LEI ? '1.3.6.1.4.1.52266.1 = ASN1:PRINTABLESTRING:' . $LEI . "\n" : '' );
+		$oids .= ( $role ? '1.3.6.1.4.1.52266.2 = ASN1:PRINTABLESTRING:' . $role . "\n" : '' );
+		$config = str_replace( '%oids%',  $oids, $config );
+
+		file_put_contents('mem:config', $config );
+
+		try
+		{
+			$configParams = array(
+				'config' => 'mem:config',
+				'digest_alg' => 'sha256',
+				'private_key_bits' => 2048,
+				'private_key_type' => OPENSSL_KEYTYPE_RSA,
+			);
+
+			// Generate a new private (and public) key pair
+			if ( ! $privkey = openssl_pkey_new( $configParams ) )
+				return false;
+
+			$dn = array(
+				'countryName'				=> $dn[ 'countryName' ] ?? null,
+				'stateOrProvinceName'		=> $dn[ 'stateOrProvinceName' ]?? null,
+				'localityName'				=> $dn[ 'localityName' ] ?? 'Example',
+				'organizationName'			=> $dn[ 'organizationName' ] ?? 'Example Co',
+				'commonName'				=> $dn[ 'commonName' ] ?? 'Example Co',
+				'emailAddress'				=> $dn[ 'emailAddress' ] ?? 'signing@example.com',
+				'organizationalUnitName'	> $dn[ 'organizationalUnitName' ] ?? 'Certification'
+			);
+			$dn = array_filter( $dn );
+
+			// generates a certificate signing request
+			if ( ! $csr = openssl_csr_new( $dn, $privkey, $configParams ) )
+				return false;
+
+			// This creates a self-signed cert that is valid for $duration days
+			if ( ! $sscert = openssl_csr_sign( $csr, $rootCert, $rootPkey, 365, $configParams ) )
+				return false;
+
+			// expport the certificate and the private key
+			if ( ! openssl_x509_export( $sscert, $certout ) )
+				return false;
+
+			if ( ! openssl_pkey_export( $privkey, $pkout, null, $configParams ) )
+				return false;
+
+			file_put_contents( $certificateLocation, $certout );
+			file_put_contents( $privateKeyLocation, $pkout);
+		}
+		catch( \Exception $ex )
+		{
+			throw $ex;
+		}
+		finally
+		{
+			unlink('mem:config');
+		}
+
+		return true;
+	}
+
+
 }
 
