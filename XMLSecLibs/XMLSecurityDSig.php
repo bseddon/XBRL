@@ -51,16 +51,20 @@ use lyquidity\XMLSecLibs\Utils\XPath as UtilsXPath;
 class XMLSecurityDSig
 {
     const XMLDSIGNS = 'http://www.w3.org/2000/09/xmldsig#';
+    const XMLDSIGNS11 = 'http://www.w3.org/2000/09/xmldsig11#';
+    const XMLDSIGNS2 = 'http://www.w3.org/2000/09/xmldsig2#';
     const SHA1 = 'http://www.w3.org/2000/09/xmldsig#sha1';
     const SHA256 = 'http://www.w3.org/2001/04/xmlenc#sha256';
     const SHA384 = 'http://www.w3.org/2001/04/xmldsig-more#sha384';
     const SHA512 = 'http://www.w3.org/2001/04/xmlenc#sha512';
     const RIPEMD160 = 'http://www.w3.org/2001/04/xmlenc#ripemd160';
-
+    
     const C14N = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
     const C14N_COMMENTS = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments';
     const EXC_C14N = 'http://www.w3.org/2001/10/xml-exc-c14n#';
     const EXC_C14N_COMMENTS = 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments';
+
+    const CXPATH = 'http://www.w3.org/TR/1999/REC-xpath-19991116';
 
     const template = '<ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ds:SignedInfo>
@@ -106,8 +110,9 @@ class XMLSecurityDSig
 
     /**
      * @param string $prefix
+     * @param string $id (optional) If supplied it will become the Id attribute of the <Signature>
      */
-    public function __construct($prefix='ds')
+    public function __construct($prefix='ds', $id = null )
     {
         $template = self::BASE_TEMPLATE;
         if (! empty($prefix)) {
@@ -119,6 +124,8 @@ class XMLSecurityDSig
         $sigdoc = new DOMDocument();
         $sigdoc->loadXML($template);
         $this->sigNode = $sigdoc->documentElement;
+        if ( ! $id ) return;
+        $this->sigNode->setAttribute( 'Id', $id );
     }
 
     /**
@@ -227,10 +234,10 @@ class XMLSecurityDSig
     public function setCanonicalMethod($method)
     {
         switch ($method) {
-            case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315':
-            case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments':
-            case 'http://www.w3.org/2001/10/xml-exc-c14n#':
-            case 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments':
+            case self::C14N:
+            case self::C14N_COMMENTS:
+            case self::EXC_C14N:
+            case self::EXC_C14N_COMMENTS:
                 $this->canonicalMethod = $method;
                 break;
             default:
@@ -264,17 +271,17 @@ class XMLSecurityDSig
         $exclusive = false;
         $withComments = false;
         switch ($canonicalmethod) {
-            case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315':
+            case self::C14N:
                 $exclusive = false;
                 $withComments = false;
                 break;
-            case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments':
+            case self::C14N_COMMENTS:
                 $withComments = true;
                 break;
-            case 'http://www.w3.org/2001/10/xml-exc-c14n#':
+            case self::EXC_C14N:
                 $exclusive = true;
                 break;
-            case 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments':
+            case self::EXC_C14N_COMMENTS:
                 $exclusive = true;
                 $withComments = true;
                 break;
@@ -406,20 +413,20 @@ class XMLSecurityDSig
         $xpath->registerNamespace('secdsig', self::XMLDSIGNS);
         $query = './secdsig:Transforms/secdsig:Transform';
         $nodelist = $xpath->query($query, $refNode);
-        $canonicalMethod = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
+        $canonicalMethod = self::C14N;
         $arXPath = null;
         $prefixList = null;
         foreach ($nodelist AS $transform) {
             $algorithm = $transform->getAttribute("Algorithm");
             switch ($algorithm) {
-                case 'http://www.w3.org/2001/10/xml-exc-c14n#':
+                case self::EXC_C14N:
                 case 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments':
 
                     if (!$includeCommentNodes) {
                         /* We remove comment nodes by forcing it to use a canonicalization
                          * without comments.
                          */
-                        $canonicalMethod = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+                        $canonicalMethod = self::EXC_C14N;
                     } else {
                         $canonicalMethod = $algorithm;
                     }
@@ -445,19 +452,19 @@ class XMLSecurityDSig
                         $node = $node->nextSibling;
                     }
             break;
-                case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315':
-                case 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments':
+                case self::C14N:
+                case self::C14N_COMMENTS:
                     if (!$includeCommentNodes) {
                         /* We remove comment nodes by forcing it to use a canonicalization
                          * without comments.
                          */
-                        $canonicalMethod = 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
+                        $canonicalMethod = self::C14N;
                     } else {
                         $canonicalMethod = $algorithm;
                     }
 
                     break;
-                case 'http://www.w3.org/TR/1999/REC-xpath-19991116':
+                case self::CXPATH:
                     $node = $transform->firstChild;
                     while ($node) {
                         if ($node->localName == 'XPath') {
@@ -496,7 +503,7 @@ class XMLSecurityDSig
          */
         $includeCommentNodes = true;
 
-        if ( ! $dataObject && $uri = $refNode->getAttribute("URI") ) 
+        if ( $uri = $refNode->getAttribute("URI") ) 
         {
             $arUrl = parse_url($uri);
             if (empty($arUrl['path'])) {
@@ -520,8 +527,8 @@ class XMLSecurityDSig
                             UtilsXPath::filterAttrValue($identifier, UtilsXPath::DOUBLE_QUOTE).'"';
                         }
                     }
-                    $query = '//*['.$iDlist.']';
-                    $dataObject = $xPath->query($query)->item(0);
+                    $query = './/*['.$iDlist.']';
+                    $dataObject = $xPath->query( $query, $this->sigNode )->item(0);
                 } else {
                     $dataObject = $refNode->ownerDocument;
                 }
@@ -533,7 +540,11 @@ class XMLSecurityDSig
              */
             $includeCommentNodes = false;
 
-            $dataObject = $refNode->ownerDocument;
+            $xml = $refNode->ownerDocument->saveXML();
+            $dataObject = new \DOMDocument();
+            $dataObject->loadXML( $xml );
+            $dataObject->documentElement->removeChild( $dataObject->documentElement->lastChild );
+            // $dataObject = $refNode->ownerDocument;
         }
         $data = $this->processTransforms($refNode, $dataObject, $includeCommentNodes);
         if (!$this->validateDigest($refNode, $data)) {
@@ -597,11 +608,9 @@ class XMLSecurityDSig
     public function validateReference( $xmlNode = null )
     {
         $docElem = $this->sigNode->ownerDocument->documentElement;
-        if (! $docElem->isSameNode($this->sigNode)) 
-        {
-            if ($this->sigNode->parentNode != null) 
-            {
-                $this->sigNode->parentNode->removeChild( $this->sigNode );
+        if (! $docElem->isSameNode($this->sigNode)) {
+            if ($this->sigNode->parentNode != null) {
+                // $this->sigNode->parentNode->removeChild($this->sigNode);
             }
         }
         $xpath = $this->getXPathObj();
@@ -679,13 +688,13 @@ class XMLSecurityDSig
                 $transNode = $this->createNewSignNode('Transform');
                 $transNodes->appendChild($transNode);
                 if (is_array($transform) &&
-                    (! empty($transform['http://www.w3.org/TR/1999/REC-xpath-19991116'])) &&
-                    (! empty($transform['http://www.w3.org/TR/1999/REC-xpath-19991116']['query']))) {
-                    $transNode->setAttribute('Algorithm', 'http://www.w3.org/TR/1999/REC-xpath-19991116');
-                    $XPathNode = $this->createNewSignNode('XPath', $transform['http://www.w3.org/TR/1999/REC-xpath-19991116']['query']);
+                    (! empty($transform[self::CXPATH])) &&
+                    (! empty($transform[self::CXPATH]['query']))) {
+                    $transNode->setAttribute('Algorithm', self::CXPATH);
+                    $XPathNode = $this->createNewSignNode('XPath', $transform[self::CXPATH]['query']);
                     $transNode->appendChild($XPathNode);
-                    if (! empty($transform['http://www.w3.org/TR/1999/REC-xpath-19991116']['namespaces'])) {
-                        foreach ($transform['http://www.w3.org/TR/1999/REC-xpath-19991116']['namespaces'] AS $prefix => $namespace) {
+                    if (! empty($transform[self::CXPATH]['namespaces'])) {
+                        foreach ($transform[self::CXPATH]['namespaces'] AS $prefix => $namespace) {
                             $XPathNode->setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:$prefix", $namespace);
                         }
                     }
@@ -771,6 +780,48 @@ class XMLSecurityDSig
         $objNode->appendChild($newData);
 
         return $objNode;
+    }
+
+    /**
+     * Adds a timestamp of te form defined for xsd:dateTimeStamp (eg. 2021-05-12T12:35:00Z).
+     * The timestamp is added as a <SignatureProperty>.
+     * 
+     * The class does not explicity support <SignatureProperty> but does support <Object> so
+     * the necessary elements for a <SignatureProperty> are created and passed into an <Object>
+     * 
+     * @param string $timestamp xsd:dateTimeStamp (eg. 2021-05-12T12:35:00Z).
+     * @param string $signatureId The id of <Signature> and isused as the property @Target
+     * @param string $propertyId An id to use to identify the property.  The name is opaque and no meaning can be inferred.
+     * @return void
+     */
+    public function addTimestamp( $timestamp, $signatureId, $propertyId = 'timestamp' )
+    {
+        $propertiesXml = "<ds:SignatureProperties xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">" .
+            "<ds:SignatureProperty Id=\"$propertyId\" Target=\"#$signatureId\">" .
+            "     <xs:timestamp xmlns:xs=\"http://www.w3.org/2001/XMLSchema\">$timestamp</xs:timestamp> " .
+            "  </ds:SignatureProperty>" .
+            "</ds:SignatureProperties>";
+    
+        $propertiesDom = new \DOMDocument();
+        $propertiesDom->loadXML( $propertiesXml );
+        $object = $this->addObject( $propertiesDom->documentElement );
+        unset( $propertiesDom );
+
+        $xpath = $this->getXPathObj();
+        $nodes = $xpath->query("./ds:SignatureProperties/ds:SignatureProperty[\"@Id=$propertyId\"]", $object );
+        if ( $nodes->length == 1 )
+        {
+            $this->addReference(
+                $nodes[0],
+                XMLSecurityDSig::SHA256, 
+                array( self::EXC_C14N ),
+                array( 'overwrite' => false )
+            );
+
+            return $nodes[0];
+        }
+    
+        return $object;
     }
 
     /**
@@ -887,7 +938,6 @@ class XMLSecurityDSig
     {
         $objKey->serializeKey($parent);
     }
-
 
     /**
      * This function inserts the signature element.

@@ -214,7 +214,8 @@ class XBRL_Signer
 	public function sign_instance_dom( $instanceDom, $private_key_pem, $certificate, $separateFile = false, $signature_alg = XMLSecurityDSig::SHA256 )
 	{
 		// Create a new Security object 
-		$objDSig = new XMLSecurityDSig();
+		$signatureId = 'withTimestamp';
+		$objDSig = new XMLSecurityDSig( 'ds', $signatureId );
 
 		// Use the c14n exclusive canonicalization
 		$objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
@@ -225,6 +226,9 @@ class XBRL_Signer
 			$signature_alg, 
 			array('http://www.w3.org/2000/09/xmldsig#enveloped-signature')
 		);
+	
+
+		$objDSig->addTimestamp( date(DateTime::ISO8601), $signatureId );
 	
 		// Create a new (private) Security key
 		$objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA256, array('type'=>'private'));
@@ -253,7 +257,7 @@ class XBRL_Signer
 	 * Verifies the signature of an Xml document
 	 *
 	 * @param string $signedXmlFile
-	 * @param string $certificate An x509 certificate document
+	 * @param string $certificate An x509 certificate document to be used as a key.  Will not be used if the signature contains a certificate
 	 * @return bool
 	 * @throws \Exception
 	 */
@@ -287,10 +291,11 @@ class XBRL_Signer
 			$objXMLSecDSig  = new XMLSecurityDSig();
 			$signatureDom = null;
 
+			// If the document being verified does not include a signature...
 			$objDSig = $objXMLSecDSig->locateSignature( $signedDom );
 			if ( ! $objDSig )
 			{
-				// Look to see if there is a companion .signature file
+				// ...Look to see if there is a companion .signature file
 				$parts = pathinfo( $signedDom->baseURI );
 				$signatureFile = "{$parts['dirname']}/{$parts['filename']}.signature";
 				if ( ! file_exists( $signatureFile ) )
@@ -323,7 +328,7 @@ class XBRL_Signer
 				throw new \Exception("We have no idea about the key");
 			}
 			$key = NULL;
-		
+
 			$objKeyInfo = XMLSecEnc::staticLocateKeyInfo( $objKey, $objDSig );
 	
 			if ( ! $objKeyInfo->key && empty( $key ) ) 
