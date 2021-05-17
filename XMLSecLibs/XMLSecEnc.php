@@ -7,7 +7,6 @@ use \DOMNode;
 use \DOMXPath;
 use \Exception;
 use lyquidity\XMLSecLibs\Utils\XPath as UtilsXPath;
-use lyquidity\XMLSecLibs\XPath as XPath;
 
 /**
  * xmlseclibs.php
