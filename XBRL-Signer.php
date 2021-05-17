@@ -272,7 +272,7 @@ class XBRL_Signer
 		$doc = new DOMDocument();
 		$doc->load( $signedXmlFile );
 
-		return $this->verity_instance_dom( $doc, $certificateFile && file_exists( $certificateFile ) ? file_get_contents( $certificateFile ) : null );
+		return $this->verify_instance_dom( $doc, $certificateFile && file_exists( $certificateFile ) ? file_get_contents( $certificateFile ) : null );
 	}
 
 	/**
@@ -283,7 +283,7 @@ class XBRL_Signer
 	 * @return bool
 	 * @throws \Exception
 	 */
-	public function verity_instance_dom( $signedDom, $certificate = null )
+	public function verify_instance_dom( $signedDom, $certificate = null )
 	{
 		try
 		{
@@ -646,12 +646,15 @@ subjectAltName					= @alt_names
 basicConstraints                = CA:FALSE
 keyUsage                        = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage                = critical, clientAuth
+authorityInfoAccess				= OCSP;URI:%caurl%
+authorityInfoAccess				= OCSP;URI:%caurl%,caIssuers;URI:%caurl%
 %oids%
 %crl%
 EOT;
 
 		$config = str_replace( '%email%', isset( $dn['emailAddress'] ) ? 'email = ' . $dn['emailAddress'] : '', $configTemplate );
 		$config = str_replace( '%crl%', $crl ? 'crlDistributionPoints = ' . $crl : '', $config );
+		$config = str_replace( '%caurl%', 'xbrlquery.com/root.crt', $config );
 		$oids = ( $LEI ? '1.3.6.1.4.1.52266.1 = ASN1:PRINTABLESTRING:' . $LEI . "\n" : '' );
 		$oids .= ( $role ? '1.3.6.1.4.1.52266.2 = ASN1:PRINTABLESTRING:' . $role . "\n" : '' );
 		$config = str_replace( '%oids%',  $oids, $config );
