@@ -420,7 +420,7 @@ class XMLSecurityDSig
             $algorithm = $transform->getAttribute("Algorithm");
             switch ($algorithm) {
                 case self::EXC_C14N:
-                case 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments':
+                case self::EXC_C14N_COMMENTS:
 
                     if (!$includeCommentNodes) {
                         /* We remove comment nodes by forcing it to use a canonicalization
@@ -503,8 +503,7 @@ class XMLSecurityDSig
          */
         $includeCommentNodes = true;
 
-        if ( $uri = $refNode->getAttribute("URI") ) 
-        {
+        if ($uri = $refNode->getAttribute("URI")) {
             $arUrl = parse_url($uri);
             if (empty($arUrl['path'])) {
                 if ($identifier = $arUrl['fragment']) {
