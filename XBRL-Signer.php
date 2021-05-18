@@ -521,6 +521,14 @@ class XBRL_Signer
 		}
 	}
 
+	function createSerialNumber( $dn )
+	{
+		// Hopefully 2bn + is a big enough pool
+		$serialNumber = random_int( 0, 2**31-1 ); // openssl_sign_crl does not use more than this even on 64-bit systems!
+		// TODO: Check its not already been generated
+		return $serialNumber;
+	}
+
 	/**
 	 * Creates a root certificate and saves it in the designated folder
 	 * @param string[] $dn A set of x509 distinguished names
@@ -577,12 +585,15 @@ EOT;
 				'organizationalUnitName'		=> $dn[ 'organizationalUnitName' ] ?? 'Certification'
 			);
 			$dn = array_filter( $dn );
+
+			$serialNumber = $this->createSerialNumber( $dn );
+
 			// generates a certificate signing request
 			if ( ! $csr = openssl_csr_new( $dn, $privkey, $configParams ) )
 				return false;
 
 			// This creates a self-signed cert that is valid for $duration days
-			if ( ! $sscert = openssl_csr_sign( $csr, null, $privkey, 365, $configParams ) )
+			if ( ! $sscert = openssl_csr_sign( $csr, null, $privkey, 365, $configParams, $serialNumber ) )
 				return false;
 
 			// expport the certificate and the private key
@@ -646,15 +657,14 @@ subjectAltName					= @alt_names
 basicConstraints                = CA:FALSE
 keyUsage                        = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage                = critical, clientAuth
-authorityInfoAccess				= OCSP;URI:%caurl%
-authorityInfoAccess				= OCSP;URI:%caurl%,caIssuers;URI:%caurl%
+authorityInfoAccess				= OCSP;URI:%caurl%/ocsp,caIssuers;URI:%caurl%/root.crt
 %oids%
 %crl%
 EOT;
 
 		$config = str_replace( '%email%', isset( $dn['emailAddress'] ) ? 'email = ' . $dn['emailAddress'] : '', $configTemplate );
 		$config = str_replace( '%crl%', $crl ? 'crlDistributionPoints = ' . $crl : '', $config );
-		$config = str_replace( '%caurl%', 'xbrlquery.com/root.crt', $config );
+		$config = str_replace( '%caurl%', 'http://www.xbrlquery.com', $config );
 		$oids = ( $LEI ? '1.3.6.1.4.1.52266.1 = ASN1:PRINTABLESTRING:' . $LEI . "\n" : '' );
 		$oids .= ( $role ? '1.3.6.1.4.1.52266.2 = ASN1:PRINTABLESTRING:' . $role . "\n" : '' );
 		$config = str_replace( '%oids%',  $oids, $config );
@@ -685,12 +695,14 @@ EOT;
 			);
 			$dn = array_filter( $dn );
 
+			$serialNumber = $this->createSerialNumber( $dn );
+
 			// generates a certificate signing request
 			if ( ! $csr = openssl_csr_new( $dn, $privkey, $configParams ) )
 				return false;
 
 			// This creates a self-signed cert that is valid for $duration days
-			if ( ! $sscert = openssl_csr_sign( $csr, $rootCert, $rootPkey, 365, $configParams ) )
+			if ( ! $sscert = openssl_csr_sign( $csr, $rootCert, $rootPkey, 365, $configParams, $serialNumber ) )
 				return false;
 
 			// expport the certificate and the private key
