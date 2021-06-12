@@ -90,6 +90,5 @@ $key = file_get_contents( '... path to private key file ...' );
 $signer = new \XBRL_Signer();
 $dom = $signer->sign_instance_dom( $dom, $key, $certificate );
 
-// Wite the signed content
-// file_put_contents( __DIR__ . '/sbr_hashes.xml', $dom->saveXML() );
+// Write the signed content
 file_put_contents( __DIR__ . 'sbr_hashes.xml', $dom->saveXML() );
