@@ -4,7 +4,7 @@
  * PHP implementation of the Reporting package hash generator
  * see https://www.nba.nl/themas/ict/reporting-package-hash-generator/
  * Bill Seddon
- * 2021-06-11
+ * 2021-06-12
  */
 
 require __DIR__ . '/../../XBRL.php';
@@ -92,4 +92,4 @@ $dom = $signer->sign_instance_dom( $dom, $key, $certificate );
 
 // Wite the signed content
 // file_put_contents( __DIR__ . '/sbr_hashes.xml', $dom->saveXML() );
-file_put_contents( 'd:/sbr_hashes.xml', $dom->saveXML() );
+file_put_contents( __DIR__ . 'sbr_hashes.xml', $dom->saveXML() );
