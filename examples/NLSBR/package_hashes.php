@@ -65,23 +65,17 @@ asort( $hashes, SORT_FLAG_CASE|SORT_STRING );
 // Compute the overall hash
 $hashes['totalHash'] = substr( base64_encode( hash( 'sha256', join( '', array_values( $hashes ) ), true ) ), -16 );
 
-// Add a hash element to a parent
-$addHash = function( \DOMElement $root, string $file, string $value ) 
-{
-	$hash = $root->ownerDocument->createElement('hash');
-	$root->appendChild( $hash );
-	$hash->setAttribute( 'file', $file );
-	$hash->setAttribute( 'value', $value );
-};
-
 // Create an XML document
 $dom = new \DOMDocument();
 $dom->formatOutput = true;
 $root = $dom->createElement('hashes');
 $dom->appendChild( $root );
-foreach( $hashes as $file => $hash )
+foreach( $hashes as $file => $value )
 {
-	$addHash( $root, $file, $hash );
+	$hash = $root->ownerDocument->createElement('hash');
+	$root->appendChild( $hash );
+	$hash->setAttribute( 'file', $file );
+	$hash->setAttribute( 'value', $value );
 }
 
 // Sign the hashes document
