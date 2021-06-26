@@ -9781,7 +9781,7 @@ class XBRL {
 	 * If validating and there are validation errors then conformance warning messages will be emitted
 	 * @param string $fragment
 	 * @param SimpleXMLElement $xml
-	 * @param XBRL $taxonomy An XBR instance will be passed if the fragment MUST be a concept
+	 * @param XBRL $taxonomy An XBRL instance will be passed if the fragment MUST be a concept
 	 * @param string $name (by reference) Will store the name attribtute
 	 * @param DOMNode|string|null $domNode Returns the node pointed to by the fragment if relevant or null
 	 * @return true if the fragment is an XPointer (whether valid or not)
