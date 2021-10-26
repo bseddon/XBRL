@@ -261,7 +261,7 @@ class XBRL_Signer
 	 * @return bool
 	 * @throws \Exception
 	 */
-	public function verity_instance( $signedXmlFile, $certificateFile = null )
+	public function verify_instance( $signedXmlFile, $certificateFile = null )
 	{
 		if ( ! file_exists( $signedXmlFile ) )
 		{
