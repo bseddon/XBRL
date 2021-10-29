@@ -780,8 +780,8 @@ class IXBRL_Transforms
 	/**
 	 * Translate text using an array of codepoint mappings
 	 *
-	 * @param [type] $text
-	 * @param [type] $table
+	 * @param string $text
+	 * @param string $table
 	 * @return void
 	 */
 	function translate( $text, $table )
