@@ -7,6 +7,14 @@
  * 2021-06-12
  */
 
+use lyquidity\xmldsig\InputResourceInfo;
+use lyquidity\xmldsig\XAdES;
+
+if ( ! class_exists( '\lyquidity\xmldsig\XAdES', false ) )
+{
+	throw new \Exception( 'The project xml-signer needs to be loaded' );
+}
+
 require __DIR__ . '/../../XBRL.php';
 
 $zip = new \ZipArchive();
@@ -79,10 +87,15 @@ foreach( $hashes as $file => $value )
 }
 
 // Sign the hashes document
-$certificate = file_get_contents( '... path to certificate file ...');
-$key = file_get_contents( '... path to private key file ...' );
-$signer = new \XBRL_Signer();
-$dom = $signer->sign_instance_dom( $dom, $key, $certificate );
-
-// Write the signed content
-file_put_contents( __DIR__ . 'sbr_hashes.xml', $dom->saveXML() );
+XAdES::signDocument(
+	new InputResourceInfo( 
+		$dom,
+		InputResourceInfo::xmlDocument,
+		__DIR__,
+		'sbr_hashes.xml',
+		null,
+		false
+	),
+	'... path to certificate file ...',
+	'... path to private key file ...'
+);
