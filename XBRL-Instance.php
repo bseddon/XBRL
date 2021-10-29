@@ -20,9 +20,7 @@
  */
 
 use XBRL\Formulas\Exceptions\FormulasException;
-use lyquidity\xml\schema\SchemaTypes;
 use lyquidity\xml\QName;
-use lyquidity\XMLSecLibs\XMLSecurityDSig;
 
 /**
  * XBRL instance document class
@@ -2250,7 +2248,7 @@ class XBRL_Instance
 				continue;
 			}
 			// Make sure a signature is ignored
-			else if ( $namespace == XMLSecurityDSig::XMLDSIGNS )
+			else if ( $namespace == 'http://www.w3.org/2000/09/xmldsig#' )
 			{
 				continue;
 			}
