@@ -49,24 +49,10 @@ use lyquidity\xmldsig\xml\SignerRole;
 use lyquidity\xmldsig\xml\SignerRoleV2;
 use lyquidity\xmldsig\XMLSecurityDSig;
 
-class XAdES_XBRL extends XAdES
-{
-	/**
-	 * Get the filename to use to save the signature
-	 * Overridden to return the correct path
-	 *
-	 * @param string $location
-	 * @param string $signatureName
-	 * @return string
-	 */
-	protected function getSignatureFilename( $location, $signatureName = self::SignatureFilename )
-	{
-		return "$location$signatureName";
-	}
-}
-
 class XBRL_Signing
 {
+	const defaultSigningFilename = 'signed_hashes.xml';
+
 	private static function traverseContents( &$package, &$signedFilename, &$contents, &$meta, $throwException = true )
 	{
 		$package->traverseContents( function( $path, $name, $type ) use( $package, &$contents, &$meta, &$signedFilename, $throwException ) 
@@ -104,7 +90,7 @@ class XBRL_Signing
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function verifySignature( $sourcePackageFilename, $signedFilename = 'signed_hashes.xml' )
+	public static function verifySignature( $sourcePackageFilename, $signedFilename = self::defaultSigningFilename )
 	{
 		$package = XBRL_Package::getPackage( $sourcePackageFilename );
 
@@ -212,36 +198,14 @@ class XBRL_Signing
 	}
 
 	/**
-	 * Add a signature to a package file
+	 * Get an DOMDocument containing the hashes of the package contents
 	 *
 	 * @param string $sourcePackageFilename
-	 * @param string $targetPackageFilename
-	 * @param string $certificateFile
-	 * @param string $keyFile
-	 * @param boolean $addTimestamp
-	 * @param boolean $addLTA
-	 * @param string|SignatureProductionPlace|SignatureProductionPlaceV2 $signatureProductionPlace
-	 * @param string|SignerRole|SignerRoleV2 $signerRole
-	 * @param string $signedFilename
-	 * @return void
-	 * @throws \Exception
+	 * @return \DOMDocument
 	 */
-	public static function addSignature( 
-		$sourcePackageFilename, 
-		$targetPackageFilename, 
-		$certificateFile, 
-		$keyFile,
-		$addTimestamp = false,
-		$addLTA = false,
-		$signatureProductionPlace = null, 
-		$signerRole = null, 
-		$signedFilename = 'signed_hashes.xml' )
+	public static function getHashes( $sourcePackageFilename )
 	{
 		$package = XBRL_Package::getPackage( $sourcePackageFilename );
-
-		// Make sure there is a target
-		if ( ! $targetPackageFilename )
-			$targetPackageFilename = $sourcePackageFilename;
 
 		$contents = array();
 		$meta = array();
@@ -295,6 +259,42 @@ class XBRL_Signing
 			$hash->setAttribute( 'file', $file );
 			$hash->setAttribute( 'value', $value );
 		}
+
+		return $dom;
+	}
+
+	/**
+	 * Add a signature to a package file
+	 *
+	 * @param string $sourcePackageFilename
+	 * @param string $targetPackageFilename
+	 * @param string $certificateFile
+	 * @param string $keyFile
+	 * @param boolean $addTimestamp
+	 * @param boolean $addLTA
+	 * @param string|SignatureProductionPlace|SignatureProductionPlaceV2 $signatureProductionPlace
+	 * @param string|SignerRole|SignerRoleV2 $signerRole
+	 * @param string $signedFilename
+	 * @return void
+	 * @throws \Exception
+	 */
+	public static function addSignature( 
+		$sourcePackageFilename, 
+		$targetPackageFilename, 
+		$certificateFile, 
+		$keyFile,
+		$addTimestamp = false,
+		$addLTA = false,
+		$signatureProductionPlace = null, 
+		$signerRole = null, 
+		$signedFilename = 'signed_hashes.xml' )
+	{
+
+		// Make sure there is a target
+		if ( ! $targetPackageFilename )
+			$targetPackageFilename = $sourcePackageFilename;
+
+		$dom = self::getHashes( $sourcePackageFilename);
 
 		if ( $signerRole && ! $signerRole instanceof SignerRole  && ! $signerRole instanceof SignerRoleV2 )
 		{
@@ -351,6 +351,31 @@ class XBRL_Signing
 				);
 			}
 
+			self::addSignedHashesToPackage( $sourcePackageFilename, $tempFile, $signedFilename, $targetPackageFilename );
+		}
+		catch( \Exception $ex )
+		{
+			throw $ex;
+		}
+		finally
+		{
+			unlink( $tempFile );
+			rmdir( $tempFolder );
+		}
+
+	}
+
+	/**
+	 * Add a signed hashes file to the package
+	 *
+	 * @param string $sourcePackageFilename
+	 * @param string $tempFile
+	 * @param string $signedFilename
+	 * @param string $targetPackageFilename
+	 * @return void
+	 */
+	public static function addSignedHashesToPackage( $sourcePackageFilename, $tempFile, $signedFilename, $targetPackageFilename = null )
+	{
 			// Update the package zip file
 			if ( $sourcePackageFilename != $targetPackageFilename )
 				copy( $sourcePackageFilename, $targetPackageFilename );
@@ -374,16 +399,6 @@ class XBRL_Signing
 			{
 				if ( $zip )
 					$zip->close();
-			}
-		}
-		catch( \Exception $ex )
-		{
-			throw $ex;
-		}
-		finally
-		{
-			unlink( $tempFile );
-			rmdir( $tempFolder );
 		}
 
 	}
