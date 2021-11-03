@@ -377,8 +377,13 @@ class XBRL_Signing
 	public static function addSignedHashesToPackage( $sourcePackageFilename, $tempFile, $signedFilename, $targetPackageFilename = null )
 	{
 			// Update the package zip file
-			if ( $sourcePackageFilename != $targetPackageFilename )
-				copy( $sourcePackageFilename, $targetPackageFilename );
+			if ( $targetPackageFilename )
+			{
+				if ( $sourcePackageFilename != $targetPackageFilename )
+					copy( $sourcePackageFilename, $targetPackageFilename );
+			}
+			else
+				$targetPackageFilename = $sourcePackageFilename;
 
 			$zip = new \ZipArchive();
 
