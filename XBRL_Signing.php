@@ -90,7 +90,7 @@ class XBRL_Signing
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function verifySignature( $sourcePackageFilename, $signedFilename = self::defaultSigningFilename )
+	public static function verifySignature( $sourcePackageFilename, $className = XAdES::class, $signedFilename = self::defaultSigningFilename )
 	{
 		$package = XBRL_Package::getPackage( $sourcePackageFilename );
 
@@ -183,7 +183,7 @@ class XBRL_Signing
 			file_put_contents( $tempFile, $signature );
 
 			// Now check the signature
-			XAdES::verifyDocument(
+			$className::verifyDocument(
 				$tempFile
 			);
 		}
