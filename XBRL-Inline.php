@@ -604,7 +604,7 @@ class XBRL_Inline
 			$context->resetEntityLoader();
 			$context->reset();
 			self::$context = null;
-            self::$documents = [];
+			self::$documents = [];
 		}
 
 	}
